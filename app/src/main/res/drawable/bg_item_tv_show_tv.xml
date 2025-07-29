@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_focused="true">
+        <layer-list>
+            <item >
+                <shape android:shape="rectangle">
+                    <stroke android:width="2dp" android:color="#FE4545" />
+                    <corners android:radius="8dp"/>
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp"/>
+        </shape>
+    </item>
+
+</selector>

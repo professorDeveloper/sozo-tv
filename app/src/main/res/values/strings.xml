@@ -1,3 +1,97 @@
 <resources>
-    <string name="app_name">Sozo-Tv</string>
+    <string name="app_name">Sozo Tv</string>
+    <string name="browse_title">Videos by Your Company</string>
+    <string name="related_movies">Related Videos</string>
+    <string name="grid_view">Grid View</string>
+    <string name="error_fragment">Error Fragment</string>
+    <string name="personal_settings">Personal Settings</string>
+
+    <string name="watch_trailer_1">Watch trailer</string>
+    <string name="watch_trailer_2">FREE</string>
+    <string name="rent_1">Rent By Day</string>
+    <string name="rent_2">From $1.99</string>
+    <string name="buy_1">Buy and Own</string>
+    <string name="buy_2">AT $9.99</string>
+    <string name="movie">Movie</string>
+
+    <!-- Error messages -->
+    <string name="error_fragment_message">An error occurred</string>
+    <string name="dismiss_error">Dismiss</string>
+
+    <string name="main_menu_change_provider">Change provider</string>
+    <string name="main_menu_search">Search</string>
+    <string name="main_menu_home">Main</string>
+    <string name="main_menu_movies">Movies</string>
+    <string name="main_menu_tv_shows">TV</string>
+    <string name="main_menu_settings">Settings</string>
+    <string name="lorem">"Unlock unlimited entertainment with our IPSAT  Subscription! Enjoy access to a vast library of movies across various genres, from timeless classics to the latest blockbusters. With new releases every week, you’ll never run out of exciting options to watch. Whether you're into animated films, gripping thrillers, heartwarming dramas, or action-packed adventures, our app has something for everyone. Subscribe now for a seamless movie-watching experience, ad-free, with the ability to watch anytime, anywhere!</string>
+    <string name="main_menu_categories">Tv Shows</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="siz_hali_tizimga_kirmagansiz">Siz hali tizimga kirmagansiz</string>
+    <string name="tizimga_kirish">Login Page</string>
+    <string name="_998">+998</string>
+    <string name="telefon_raqamingiz">Subscription Code</string>
+    <string name="tizimga_kirish_va_ro_yxatdan_o_tish_uchun_siz_quyidagi_usullardan_foydalanishingiz_mumkin">You can use the following methods to log in and register.</string>
+    <string name="kirish">Login</string>
+    <string name="qr_code_orqali_kirish">QR Code orqali kirish</string>
+    <string name="boshqa_usullar_orqali_kirish">Boshqa usullar orqali kirish</string>
+    <string name="telefon_raqamingizni_ntasdiqlang">Telefon raqamingizni\ntasdiqlang!</string>
+    <string name="tasdiqlash">Tasdiqlash</string>
+    <string name="_00000" translatable="false">00000</string>
+    <string name="_998_90_364_08_04_telefon_raqamiga_6_xonali_kod_yuborildi_ushbu_kodni_kiriting">+998 90 364 08 04 telefon raqamiga 6 xonali kod yuborildi, ushbu kodni kiriting!</string>
+    <string name="kodni_kiriting">Kodni kiriting</string>
+    <string name="_00_00" translatable="false">00:00</string>
+    <string name="back">Back</string>
+    <string name="back_to_main">Back to Main</string>
+    <string name="resend_sms">Qayta yuborish</string>
+    <string name="enter_valid_pin">Tasdiqlash kodini kiriting!</string>
+    <string name="main_menu_shorts">Shorts</string>
+    <string name="main_menu_filter">Filter Movies</string>
+    <string name="ushbu_kodni_kiriting">telefon raqamiga 6 xonali kod yuborildi, ushbu kodni kiriting!</string>
+    <string name="online_tv">Onlayn Tv</string>
+    <string name="xatolik">Kutilmagan xatolik sodir bo\'ldi!</string>
+    <string name="retry_loading_button">Qayta yuklash</string>
+    <string name="obuna">Obuna</string>
+    <string name="tv_kanallar">Tv Kanallar</string>
+    <string name="profile">Profile</string>
+    <string name="eshonov_fakhriyor">Eshonov Fakhriyor</string>
+    <string name="add_account">Akkount qo`shish</string>
+    <string name="akkount_holati">Subscription Status</string>
+    <string name="premium_plus">Active</string>
+    <string name="my_films">Mening filmlarim</string>
+    <string name="my_accounts">My Subscription</string>
+    <string name="my_info">My Subscription</string>
+    <string name="bookmark">Bookmark Page</string>
+    <string name="my_history">Watch History</string>
+    <string name="my_subscription">Obunalar</string>
+    <string name="message_page">Get Messages</string>
+    <string name="exit">Exit Account</string>
+    <string name="place_holder_text">There is no movie or serial here right now</string>
+    <string name="amallar">Amallar</string>
+    <string name="ha_o_chirish">Ha, o\'chirish</string>
+    <string name="yo_q_yopish">Yo\'q, yopish</string>
+    <string name="accept_Remove">Don`t ask me again</string>
+    <string name="warning_subscription">Sizni 20.11.2024gacha faolligingiz bor. akkauntni o\'chirsangiz obuna bekor bo\'ladi.</string>
+    <string name="are_You_sure_Remove_Account">Siz rostan ham ushbu akkauntni o\'chirmoqchimisiz?</string>
+    <string name="film_serial_multfilm">Film, serial, multfilm..</string>
+    <string name="filmni_ko_rish">Watch Now</string>
+    <string name="update_now">Update Now</string>
+    <string name="treyler">Treyler</string>
+    <string name="film_haqida">About Movie</string>
+    <string name="prodyuser_va_aktyorlar">More Info</string>
+    <string name="ishlab_chiqarilgan_sana">Release Year</string>
+    <string name="davlat">Country</string>
+    <string name="davomiyligi">User Ratings</string>
+    <string name="janr">Category</string>
+    <string name="reyting">IMDB Rating</string>
+    <string name="til">Language</string>
+    <string name="yangi">Yangi</string>
+    <string name="soat">soat</string>
+    <string name="daqiqa">daqiqa</string>
+    <string name="obunalar">Obunalar</string>
+    <string name="to_lov_summasi">To’lov summasi:</string>
+    <string name="learn">Ushbu to’lov tizimlari orqali to’lov qiling</string>
+    <string name="categories">Categories</string>
+    <string name="update_sheet">Please do`nt close</string>
+
 </resources>

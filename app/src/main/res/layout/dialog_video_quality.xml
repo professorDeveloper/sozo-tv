@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:layout_margin="4dp"
+    android:background="@drawable/item_subscription_bg"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="4dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:fontFamily="@font/days"
+            android:text="Choose Quality"
+            android:textSize="16sp" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/close"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="end|center"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/close_bg"
+            android:focusable="true"
+
+            android:focusableInTouchMode="true"
+            android:src="@drawable/close"
+            app:tint="@color/color_item_tv_section_profile" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/qualityContainer"
+        android:layout_width="330dp"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="10dp"
+        android:orientation="vertical"
+        tools:itemCount="1">
+
+    </LinearLayout>
+</LinearLayout>

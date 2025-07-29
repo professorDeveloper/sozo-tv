@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.saikou.sozo_tv.components.navigation.NavigationSlideHeaderView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="@drawable/header_navigation_bg"
+        android:duplicateParentState="true"
+        android:gravity="center"
+        android:padding="4dp"
+        app:cardCornerRadius="10dp">
+
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/iv_navigation_header_icon"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:duplicateParentState="true"
+            android:padding="2dp"
+            android:scaleType="fitCenter"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_no_register_profile"
+            app:tint="@color/color_item_tv_section_profile" />
+
+
+        <LinearLayout
+            android:id="@+id/headerContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:duplicateParentState="true"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_navigation_header_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:duplicateParentState="true"
+                android:ellipsize="end"
+                android:maxEms="9"
+                android:maxLines="1"
+                android:paddingHorizontal="3dp"
+                android:text="Account"
+                android:textColor="@color/color_black_white_text"
+                android:textSize="13sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/iv_navigation_header_icon"
+                app:layout_constraintTop_toTopOf="@id/iv_navigation_header_icon"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/tv_navigation_header_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:alpha=".8"
+                android:duplicateParentState="true"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:paddingHorizontal="3dp"
+                android:textColor="@color/color_black_white_text"
+                android:textSize="8sp"
+                app:layout_constraintBottom_toBottomOf="@+id/iv_navigation_header_icon"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/iv_navigation_header_icon"
+                app:layout_constraintTop_toBottomOf="@id/tv_navigation_header_title"
+                tools:ignore="SmallSp"
+                tools:text="+998 90 364 0804"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+</com.saikou.sozo_tv.components.navigation.NavigationSlideHeaderView>

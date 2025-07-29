@@ -1,10 +1,25 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="navigation_background">#EE1A1E25</color>
+    <color name="main_background">#1B1E23</color>
+    <color name="dot_color">#56838383</color>
+    <color name="white_and_black">#000000</color>
+    <color name="textLightColor">#99000000</color>
+    <color name="white_and_black_hint">#99000000</color>
+    <color name="settings_background">#F2F2F7</color>
+    <color name="backward_color">#40181E17</color>
+    <color name="selected_item_background">#FF4081</color> <!-- Color when focused -->
+    <color name="default_item_background">#333333</color> <!-- Default background -->
+
+    <color name="button_stations">#ffe9cc</color>
+    <color name="button_leaderboard">#C8A6C7EC</color>
+    <color name="button_contribute">#efdcf8</color>
+    <color name="grayText">#96969A</color>
+    <color name="card_intro_color">#EAEAF1</color>
+    <color name="card_search_color">#C0C0C6</color>
+    <color name="selected_dot_color">#ffff</color>
+    <color name="selected_category_color">#1B1E23</color>
+    <color name="primaryBackground">#111111</color>
+    <color name="red">#FE4545</color>
+    <color name="red60">#48FE4545</color>
+    <color name="yellow">#FFC107</color>
 </resources>

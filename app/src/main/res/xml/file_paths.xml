@@ -1,0 +1,4 @@
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- allow sharing from your app’s external-files/IPSAT folder -->
+    <external-files-path name="updates" path="IPSAT/"/>
+</paths>

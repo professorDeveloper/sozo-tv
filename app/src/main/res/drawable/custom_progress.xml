@@ -1,0 +1,19 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background Color: The unfilled portion of the progress bar -->
+    <item android:right="2dp" android:left="2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#63FFFFFF" /> <!-- Light gray background -->
+            <corners android:radius="24dp"/>
+        </shape>
+    </item>
+
+    <!-- Progress Color: The filled portion of the progress bar -->
+    <item>
+        <clip>
+            <shape android:shape="rectangle">
+                <solid android:color="#D31A1F" /> <!-- Green progress color -->
+                <corners android:radius="24dp"/>
+            </shape>
+        </clip>
+    </item>
+</layer-list>

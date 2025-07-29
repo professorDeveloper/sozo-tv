@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="questions">
+        <item>What is your favourite color?</item>
+        <item>What is your favourite food?</item>
+        <item>What is your favourite pet`s name?</item>
+        <item>What is your favourite coffee?</item>
+        <item>Why Kotlin?</item>
+    </string-array>
+
+</resources>

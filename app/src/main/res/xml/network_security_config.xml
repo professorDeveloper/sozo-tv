@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+
+
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">cdn.jwplayer.com</domain>
+        <domain includeSubdomains="true">www.imdb.com</domain>
+        <domain includeSubdomains="true">sat24shop.com</domain>
+        <domain includeSubdomains="true">www.g9cap.com</domain>
+        <domain includeSubdomains="true">www.m6ive.com</domain>
+        <domain includeSubdomains="true">m.media-amazon.com</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+        <domain includeSubdomains="true">ngslbs.com</domain>
+        <domain includeSubdomains="true">familytv.co</domain>
+        <domain includeSubdomains="true">crl3.digicert.com</domain>
+        <domain includeSubdomains="false">102.177.177.151</domain>
+        <domain includeSubdomains="false">wb.mixmusic.online</domain>
+        <domain includeSubdomains="false">103.211.103.84</domain>
+        <domain includeSubdomains="true">www.moviefone.com</domain>
+        <domain includeSubdomains="true">141.94.26.102</domain>
+    </domain-config>
+</network-security-config>

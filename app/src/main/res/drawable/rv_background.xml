@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+        <shape xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" android:shape="rectangle">
+            <corners android:radius="16dp" /> <!-- Burchaklarni yumshatish -->
+            <gradient
+                android:angle="90"
+                android:startColor="#19FFFFFF"
+                android:endColor="#1FFFFFFF"
+                android:centerColor="#19FFFFFF"
+                android:type="linear" />
+        </shape>
