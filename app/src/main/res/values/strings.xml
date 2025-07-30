@@ -50,7 +50,7 @@
     <string name="ushbu_kodni_kiriting">telefon raqamiga 6 xonali kod yuborildi, ushbu kodni kiriting!</string>
     <string name="online_tv">Onlayn Tv</string>
     <string name="xatolik">Kutilmagan xatolik sodir bo\'ldi!</string>
-    <string name="retry_loading_button">Qayta yuklash</string>
+    <string name="retry_loading_button">Retry</string>
     <string name="obuna">Obuna</string>
     <string name="tv_kanallar">Tv Kanallar</string>
     <string name="profile">Profile</string>

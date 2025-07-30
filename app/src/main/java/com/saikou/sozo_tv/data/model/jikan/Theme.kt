@@ -1,0 +1,8 @@
+package com.saikou.sozo_tv.data.model.jikan
+
+data class Theme(
+    val mal_id: Int,
+    val name: String,
+    val type: String,
+    val url: String
+)

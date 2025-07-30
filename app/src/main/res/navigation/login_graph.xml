@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/login_graph">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/login_graph"
+    app:startDestination="@id/splashScreen">
 
+    <fragment
+        android:id="@+id/splashScreen"
+        android:name="com.saikou.sozo_tv.presentation.screens.splash.SplashScreen"
+        android:label="splash_screen"
+        tools:layout="@layout/splash_screen" />
 </navigation>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/pagerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="10dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/viewPager"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            app:focusOutEnd="true"
+            app:focusOutFront="true"
+            android:layout_width="match_parent"
+            android:layout_height="400dp" />
+
+    </androidx.cardview.widget.CardView>
+
+    <com.tbuonomo.viewpagerdotsindicator.DotsIndicator
+        android:id="@+id/dots_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:elevation="4dp"
+        app:dotsColor="@color/dot_color"
+        app:dotsCornerRadius="4dp"
+        app:dotsSize="8dp"
+        app:dotsSpacing="4dp"
+        app:dotsStrokeColor="@color/lb_tv_white"
+        app:dotsWidthFactor="2.5"
+        app:layout_constraintBottom_toBottomOf="@+id/pagerContainer"
+        app:layout_constraintEnd_toEndOf="@+id/pagerContainer"
+        app:selectedDotColor="@color/lb_tv_white" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
