@@ -1,0 +1,72 @@
+package com.saikou.sozo_tv.di
+
+import androidx.room.Room
+import com.saikou.sozo_tv.data.repository.HomeRepositoryImpl
+import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
+import com.saikou.sozo_tv.domain.repository.HomeRepository
+import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
+import org.koin.android.ext.koin.androidApplication
+import org.koin.android.ext.koin.androidContext
+import org.koin.androidx.viewmodel.dsl.viewModel
+import org.koin.dsl.module
+
+val koinModule = module {
+//    single {
+//        Room.databaseBuilder(
+//            androidApplication(), AppDatabase::class.java, "movie_database"
+//        ).build()
+//    }
+//    single { get<AppDatabase>().movieDao() }
+//    single { get<AppDatabase>().watchHistoryDao() }
+//
+//    // mant = "Assalomu alasalomykum"
+//    // qoshimcha soz ="salom"
+//    // matn to ASCCI
+//    //ASSCI ga 5 soni  qo`shiladi
+//    // va ASSCI ni harfga o`tkazamiz
+//
+//
+    factory { UserPreferenceManager(androidContext()) }
+    single<HomeRepository> {
+        HomeRepositoryImpl(jikanApiService = get())
+    }
+//    single<SearchRepository> {
+//        SearchRepositoryImpl(api = get(), pref = get())
+//    }
+//    single<HomeRepository> {
+//        HomeRepositoryImpl(service = get(), userPreferenceManager = get())
+//    }
+//    single<MovieBookmarkRepository> {
+//        MovieBookmarkRepositoryImpl(dao = get())
+//    }
+//    single<ProfileRepository> {
+//        ProfileRepositoryImpl(service = get(), pref = get())
+//    }
+//
+//    single<LiveTvRepository> {
+//        LiveTvRepositoryImpl(api = get(), pref = get())
+//    }
+//    single<WatchHistoryRepository> {
+//        WatchHistoryRepositoryImpl(watchHistoryDao = get())
+//    }
+//
+//
+    viewModel { HomeViewModel(repo = get()) }
+//    viewModel { LiveTvScreenViewModel(liveTvUseCase = get()) }
+//    viewModel { SearchViewModel(repo = get(), homeRepository = get()) }
+//    viewModel {
+//        PlayViewModel(
+//            homeRepository = get(),
+//            watchHistoryRepository = get(),
+//            movieRepository = get(),
+//            liveTvRepository = get()
+//        )
+//    }
+//    viewModel { SplashViewModel(repo = get(), pref = get(), firebaseService = get()) }
+//    viewModel { UpdateViewModel() }
+//    viewModel { ProfileViewModel(repo = get()) }
+//    viewModel { CategoryViewModel(repo = get()) }
+//    viewModel { HomeViewModel(repo = get(), liveTvUseCase = get()) }
+//    viewModel { BookmarkViewModel(bookmarkRepository = get(), homeRepo = get()) }
+
+}

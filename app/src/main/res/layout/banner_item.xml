@@ -1,0 +1,138 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusable="true"
+
+    android:focusableInTouchMode="true">
+
+    <ImageView
+        android:id="@+id/bannerImg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/joker"
+        tools:ignore="ContentDescription" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha=".7"
+        android:background="@drawable/background_banner_item_stroke" />
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/linear_gradient_bg"
+        tools:ignore="ContentDescription" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:duplicateParentState="true"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dear Santa"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <!-- Description -->
+        <TextView
+            android:id="@+id/description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="3"
+
+            android:text="Dear Santa is a heartwarming holiday film that captures the magic of the seasonDear Santa is a heartwarming holiday film that captures the magic of the seasonDear Santa is a heartwarming holiday film that captures the magic of the seasonDear Santa is a heartwarming holiday film that captures the magic of the seasonDear Santa is a heartwarming holiday film that captures the magic of the seasonDear Santa is a heartwarming holiday film that captures the magic of the seasonDear Santa is a heartwarming holiday film that captures the magic of the season and the transformative power of love."
+            android:textColor="@android:color/white"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:id="@+id/playButton"
+            android:layout_width="130dp"
+            android:layout_height="34dp"
+
+            android:layout_marginTop="8dp"
+            android:background="@drawable/background_button_play"
+            android:duplicateParentState="true"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <com.google.android.material.imageview.ShapeableImageView
+
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:duplicateParentState="true"
+                app:srcCompat="@drawable/ic_play_for_button"
+                app:tint="@color/login_button_text_color_selected_state" />
+
+            <TextView
+                android:id="@+id/play"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:duplicateParentState="true"
+                android:ellipsize="end"
+                android:lines="1"
+                android:maxEms="8"
+                android:maxLines="1"
+                android:text="Play Now"
+                android:textAlignment="center"
+                android:textColor="@color/login_button_text_color_selected_state"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/genreButtons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/genrePropert"
+                android:layout_width="wrap_content"
+
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/background_button"
+                android:ellipsize="end"
+                android:lines="1"
+                android:maxEms="8"
+                android:maxLines="1"
+
+                android:padding="8dp"
+                android:text="Comedy"
+                android:textAlignment="center"
+
+                android:textColor="@android:color/white"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/yearPropert"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/background_button"
+                android:padding="8dp"
+                android:text="2024"
+                android:textAlignment="center"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>
