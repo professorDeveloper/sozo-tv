@@ -5,6 +5,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.databinding.BannerItemBinding
 import com.saikou.sozo_tv.databinding.ContentBannerBinding
+import com.saikou.sozo_tv.databinding.ItemCategoryBinding
+import com.saikou.sozo_tv.databinding.ItemMovieBinding
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 
 object ViewHolderFactory {
@@ -38,15 +40,15 @@ object ViewHolderFactory {
 //                HomeAdapter.ChannelItemViewHolder(binding)
 //            }
 //
-//            HomeAdapter.VIEW_CATEGORY_FILMS_ITEM -> {
-//                val binding = ItemMovieBinding.inflate(inflater, parent, false)
-//                HomeAdapter.CategoryFilmsItemViewHolder(binding)
-//            }
-//
-//            HomeAdapter.VIEW_CATEGORY_FILMS -> {
-//                val binding = ItemCategoryBinding.inflate(inflater, parent, false)
-//                HomeAdapter.ItemCategoryViewHolder(binding)
-//            }
+            HomeAdapter.VIEW_CATEGORY_FILMS_ITEM -> {
+                val binding = ItemMovieBinding.inflate(inflater, parent, false)
+                HomeAdapter.CategoryFilmsItemViewHolder(binding)
+            }
+
+            HomeAdapter.VIEW_CATEGORY_FILMS -> {
+                val binding = ItemCategoryBinding.inflate(inflater, parent, false)
+                HomeAdapter.ItemCategoryViewHolder(binding)
+            }
 //
 //            MovieDetailsAdapter.DETAILS_ITEM_HEADER -> {
 //                val binding = ItemPlayDetailsHeaderBinding.inflate(inflater, parent, false)

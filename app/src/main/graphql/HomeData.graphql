@@ -1,0 +1,80 @@
+query getRecommendations($page: Int) {
+    Page(page: $page, perPage: 20) {
+        recommendations(sort: RATING_DESC){
+            media {   id
+                idMal
+                coverImage {
+                    large
+                }
+                format
+                source
+
+                title {
+                    english
+                }
+            }
+        }
+    }
+}
+
+
+
+query getPopular($page: Int) {
+    Page(page: $page, perPage: 20) {
+        media(sort: POPULARITY_DESC){
+            id
+            idMal
+            coverImage {
+                large
+            }
+            format
+            source
+
+            title {
+                english
+                userPreferred
+            }
+        }
+    }
+}
+
+query getRecentlyAdded($page: Int) {
+    Page(page: $page, perPage: 20) {
+        airingSchedules(airingAt_greater:0) {
+            media {   id
+                idMal
+                coverImage {
+                    large
+                }
+                format
+                source
+
+                title {
+                    userPreferred
+                    english
+                }
+            }
+        }
+    }
+}
+
+query getTrending($page: Int) {
+    Page(page: $page, perPage: 10) {
+        mediaTrends{
+            media {   id
+                idMal
+                coverImage {
+                    large
+                }
+                format
+                source
+
+                title {
+                    userPreferred
+                    english
+                }
+            }
+        }
+    }
+}
+

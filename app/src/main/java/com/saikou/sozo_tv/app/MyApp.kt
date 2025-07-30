@@ -14,6 +14,7 @@ import org.koin.core.context.startKoin
 //import com.ipsat.ipsat_tv.di.koinModule
 import com.jakewharton.threetenabp.AndroidThreeTen
 import com.saikou.sozo_tv.di.NetworkModule
+import com.saikou.sozo_tv.di.koinModule
 
 class MyApp : Application() {
     @SuppressLint("StaticFieldLeak")
@@ -31,7 +32,7 @@ class MyApp : Application() {
         startKoin {
             androidContext(this@MyApp)
             androidLogger()
-            modules(NetworkModule, )
+            modules(NetworkModule, koinModule)
         }
 
     }

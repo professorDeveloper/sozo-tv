@@ -4,6 +4,7 @@
 
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">cdn.jwplayer.com</domain>
+        <domain includeSubdomains="true">api.jikan.moe</domain>
         <domain includeSubdomains="true">www.imdb.com</domain>
         <domain includeSubdomains="true">sat24shop.com</domain>
         <domain includeSubdomains="true">www.g9cap.com</domain>

@@ -4,13 +4,21 @@ plugins {
     id("kotlin-parcelize")
     id("androidx.navigation.safeargs.kotlin")
     id("kotlin-kapt")
+    id("com.apollographql.apollo3") version "3.7.0"
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
+
+    //
 }
 android {
     namespace = "com.saikou.sozo_tv"
     compileSdk = 35
+    apollo {
 
+        packageName.set("com.animestudios.animeapp")
+        generateKotlinModels.set(true)
+        excludes.add("**/schema.json.graphql")
+    }
     defaultConfig {
         applicationId = "com.saikou.sozo_tv"
         minSdk = 24
@@ -126,6 +134,7 @@ dependencies {
     implementation("com.github.Blatzar:NiceHttp:0.4.4")
     implementation("org.jsoup:jsoup:1.15.1")
 
+    //
     //Room ORM
     // Room Components
     implementation("androidx.room:room-runtime:2.6.1")
@@ -157,5 +166,10 @@ dependencies {
     implementation("io.noties.markwon:ext-strikethrough:$markwon_version")
     implementation("io.noties.markwon:inline-parser:$markwon_version")
     implementation("org.mozilla:rhino:1.7.13")
+
+
+    //GraphQL
+    val apolloVersion = "3.7.0"
+    implementation("com.apollographql.apollo3:apollo-runtime:$apolloVersion")
 
 }

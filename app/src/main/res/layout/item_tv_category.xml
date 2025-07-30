@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="6dp"
+    android:background="@drawable/background_item_tv_category_tv"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:paddingHorizontal="10dp">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/filterIcon"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_gravity="center"
+        android:layout_marginStart="8dp"
+        android:duplicateParentState="true"
+        android:src="@drawable/filter"
+        android:tint="@color/color_textview_40"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginHorizontal="4dp"
+        android:duplicateParentState="true"
+        android:fontFamily="@font/rubik_regular"
+        android:gravity="center"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="6dp"
+        android:textColor="@color/color_item_tv_category_tv"
+        android:textSize="14sp"
+        tools:text="Filter" />
+
+
+</LinearLayout>

@@ -15,9 +15,15 @@ import com.bumptech.glide.load.model.GlideUrl
 import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.databinding.BannerItemBinding
 import com.saikou.sozo_tv.databinding.ContentBannerBinding
+import com.saikou.sozo_tv.databinding.ItemCategoryBinding
+import com.saikou.sozo_tv.databinding.ItemMovieBinding
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
+import com.saikou.sozo_tv.domain.model.Category
+import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.presentation.screens.home.vh.ViewHolderFactory
+import com.saikou.sozo_tv.utils.loadImage
+import com.saikou.sozo_tv.utils.toYear
 
 class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf()) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -86,18 +92,18 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
 //                    holder.bind(item)
 //                }
 //            }
-//
-//            is CategoryFilmsItemViewHolder -> {
-//                if (item is CategoryDetails) {
-//                    holder.bind(item)
-//                }
-//            }
-//
-//            is ItemCategoryViewHolder -> {
-//                if (item is Category) {
-//                    holder.bind(item)
-//                }
-//            }
+
+            is CategoryFilmsItemViewHolder -> {
+                if (item is CategoryDetails) {
+                    holder.bind(item)
+                }
+            }
+
+            is ItemCategoryViewHolder -> {
+                if (item is Category) {
+                    holder.bind(item)
+                }
+            }
         }
     }
 
@@ -117,8 +123,10 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
     class BannerViewHolder(private val binding: ContentBannerBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: BannerModel) {
+            val arraYList:ArrayList<BannerItem> = item.data as ArrayList<BannerItem>
+            arraYList.subList(0, arraYList.size / 2).clear()
             val adapter = HomeAdapter().apply {
-                submitList(item.data)
+                submitList(arraYList)
             }
             val handler = Handler(Looper.getMainLooper())
             val runnable = object : Runnable {
@@ -245,54 +253,54 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
 //            }
 //        }
 //    }
-//
-//    /**
-//     * Kategoriyaga oid filmlarni ko‘rsatish uchun ViewHolder.
-//     */
-//    class CategoryFilmsItemViewHolder(private val binding: ItemMovieBinding) :
-//        RecyclerView.ViewHolder(binding.root) {
-//        @SuppressLint("SetTextI18n")
-//        fun bind(item: CategoryDetails) {
-//            binding.topContainer.text = item.content.name
-////            if (item.isPremiere) {
-////                binding.statusFilmNewTv.text =
-////                    ContextCompat.getString(binding.root.context, R.string.yangi)
-////            } else {
-////                binding.statusFilmNewTv.visibility = View.GONE
-////            }
-//            binding.root.apply {
-//
-//                setOnClickListener {
+
+    /**
+     * Kategoriyaga oid filmlarni ko‘rsatish uchun ViewHolder.
+     */
+    class CategoryFilmsItemViewHolder(private val binding: ItemMovieBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        @SuppressLint("SetTextI18n")
+        fun bind(item: CategoryDetails) {
+            binding.topContainer.text = item.content.title.english
+//            if (item.isPremiere) {
+//                binding.statusFilmNewTv.text =
+//                    ContextCompat.getString(binding.root.context, R.string.yangi)
+//            } else {
+//                binding.statusFilmNewTv.visibility = View.GONE
+//            }
+            binding.root.apply {
+
+                setOnClickListener {
 //                    LocalData.listenerItemCategory.invoke(item)
 //                    Log.d("GGG", "bind:${item.content.name} ")
-//                }
-//            }
-//            binding.genreTv.text =
-//                "${item.content.release_year ?: "2024".toYear() ?: "2024"} · ${item.content.language ?: "English"} · ${item.content.country ?: "Unknown"}"
+                }
+            }
+            binding.genreTv.text =
+                "${item.content.source.name} · ${item.content.id} · ${item.content.format.name}"
 //
-//            binding.itemImg.loadImage(item.content.image)
-//
-//        }
-//    }
-//
-//    /**
-//     * Kategoriya elementlarini ko‘rsatish uchun ViewHolder.
-//     */
-//    class ItemCategoryViewHolder(private val binding: ItemCategoryBinding) :
-//        RecyclerView.ViewHolder(binding.root) {
-//        fun bind(item: Category) {
-//            binding.tvCategoryTitle.text = item.name
-//
-//            binding.hgvCategory.apply {
-//                setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
-//                adapter = HomeAdapter().apply {
-//                    submitList(item.list)
-//                }
-//
-//                setItemSpacing(10)
-//            }
-//        }
-//    }
+            binding.itemImg.loadImage(item.content.coverImage.large)
+
+        }
+    }
+
+    /**
+     * Kategoriya elementlarini ko‘rsatish uchun ViewHolder.
+     */
+    class ItemCategoryViewHolder(private val binding: ItemCategoryBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: Category) {
+            binding.tvCategoryTitle.text = item.name
+
+            binding.hgvCategory.apply {
+                setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+                adapter = HomeAdapter().apply {
+                    submitList(item.list)
+                }
+
+                setItemSpacing(10)
+            }
+        }
+    }
 
     /**
      * Adapterdagi ma'lumotlarni yangilaydi va o‘zgarishlarni hisoblab chiqaradi.
@@ -322,14 +330,14 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                         oldItem.contentItem.mal_id == newItem.contentItem.mal_id
                     }
 
-//                    oldItem is Category && newItem is Category -> {
-//                        oldItem.name == newItem.name
-//                    }
-//
-//                    oldItem is CategoryDetails && newItem is CategoryDetails -> {
-//                        oldItem.content.name == newItem.content.name
-//                    }
-//
+                    oldItem is Category && newItem is Category -> {
+                        oldItem.name == newItem.name
+                    }
+
+                    oldItem is CategoryDetails && newItem is CategoryDetails -> {
+                        oldItem.content.idMal == newItem.content.idMal
+                    }
+
 //                    oldItem is CategoryChannelItem && newItem is CategoryChannelItem -> {
 //                        oldItem.content.image == newItem.content.image
 //                    }

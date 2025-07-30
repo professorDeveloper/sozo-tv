@@ -1,6 +1,8 @@
 package com.saikou.sozo_tv.di
 
 import android.content.Context
+import com.apollographql.apollo3.ApolloClient
+import com.apollographql.apollo3.network.okHttpClient
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.saikou.sozo_tv.data.remote.JikanApiService
@@ -18,30 +20,30 @@ import java.util.concurrent.TimeUnit
 
 
 const val JIKAN_BASE_URL = "https://api.jikan.moe/"
+const val BASE_URL = "https://graphql.anilist.co/"
+
+
 val NetworkModule = module {
-    // Preferences
+
+    single { createService(get()) }
+
+    single {
+        ApolloClient.Builder()
+            .serverUrl(BASE_URL)
+            .okHttpClient(get())
+
+            .build()
+    }
+    single { createRetrofit(get(), JIKAN_BASE_URL) }
+
+    single { createOkHttpClient(get(), androidContext()) }
     single { UserPreferenceManager(androidContext()) }
     single { EncryptedPreferencesManager(androidContext()) }
 
-    // OkHttpClient
-    single(named("default_okhttp")) { createOkHttpClient(get(), androidContext()) }
-
-    // Retrofit instances
-    single(named("jikan_retrofit")) { createRetrofit(get(named("default_okhttp")), JIKAN_BASE_URL) }
-//    single(named("anilist_retrofit")) { createRetrofit(get(named("default_okhttp")), ANILIST_BASE_URL) }
-//    single(named("kitsu_retrofit")) { createRetrofit(get(named("default_okhttp")), KITSU_BASE_URL) }
-
-    // API Services
-    single<JikanApiService>(named("jikan_api")) {
-        get<Retrofit>(named("jikan_retrofit")).create(
-            JikanApiService::class.java
-        )
-    }
-//    single<AnilistApiService>(named("anilist_api")) { get<Retrofit>(named("anilist_retrofit")).create(AnilistApiService::class.java) }
-//    single<KitsuApiService>(named("kitsu_api")) { get<Retrofit>(named("kitsu_retrofit")).create(KitsuApiService::class.java) }
 }
 
 fun createOkHttpClient(pref: EncryptedPreferencesManager, context: Context): OkHttpClient {
+
 
     val httpLoggingInterceptor = HttpLoggingInterceptor()
     httpLoggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
@@ -63,5 +65,7 @@ fun createRetrofit(okHttpClient: OkHttpClient, url: String): Retrofit {
         .addConverterFactory(GsonConverterFactory.create(gson)).build()
 }
 
+fun createService(retrofit: Retrofit): JikanApiService {
+    return retrofit.create(JikanApiService::class.java)
 
-
+}

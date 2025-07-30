@@ -32,7 +32,6 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun handleUserDataState() {
-        headerBinding?.tvNavigationHeaderSubtitle?.text = encryptedPreferencesManager.getSubCode()
     }
 
 

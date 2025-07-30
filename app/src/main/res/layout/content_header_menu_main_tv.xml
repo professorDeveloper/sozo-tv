@@ -50,7 +50,7 @@
                 android:maxEms="9"
                 android:maxLines="1"
                 android:paddingHorizontal="3dp"
-                android:text="Account"
+                android:text="Profile"
                 android:textColor="@color/color_black_white_text"
                 android:textSize="13sp"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -63,6 +63,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:visibility="gone"
                 android:alpha=".8"
                 android:duplicateParentState="true"
                 android:ellipsize="end"
@@ -76,7 +77,7 @@
                 app:layout_constraintTop_toBottomOf="@id/tv_navigation_header_title"
                 tools:ignore="SmallSp"
                 tools:text="+998 90 364 0804"
-                tools:visibility="visible" />
+                tools:visibility="gone" />
         </LinearLayout>
 
 
