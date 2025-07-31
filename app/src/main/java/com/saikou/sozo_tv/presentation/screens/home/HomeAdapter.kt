@@ -264,12 +264,6 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
         @SuppressLint("SetTextI18n")
         fun bind(item: CategoryDetails) {
             binding.topContainer.text = item.content.title.english
-//            if (item.isPremiere) {
-//                binding.statusFilmNewTv.text =
-//                    ContextCompat.getString(binding.root.context, R.string.yangi)
-//            } else {
-//                binding.statusFilmNewTv.visibility = View.GONE
-//            }
             binding.root.apply {
 
                 setOnClickListener {
