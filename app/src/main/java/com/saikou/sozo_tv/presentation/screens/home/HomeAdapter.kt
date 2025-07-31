@@ -7,11 +7,13 @@ import android.os.Looper
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.model.GlideUrl
+import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.databinding.BannerItemBinding
 import com.saikou.sozo_tv.databinding.ContentBannerBinding
@@ -273,6 +275,22 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 setOnClickListener {
 //                    LocalData.listenerItemCategory.invoke(item)
 //                    Log.d("GGG", "bind:${item.content.name} ")
+                }
+                setOnFocusChangeListener { view, hasFocus ->
+                    val animation = when {
+                        hasFocus -> AnimationUtils.loadAnimation(
+                            binding.root.context,
+                            R.anim.zoom_in
+                        )
+
+                        else -> AnimationUtils.loadAnimation(
+                            binding.root.context,
+                            R.anim.zoom_out
+                        )
+                    }
+                    binding.root.startAnimation(animation)
+                    animation.fillAfter = true
+
                 }
             }
             binding.genreTv.text =

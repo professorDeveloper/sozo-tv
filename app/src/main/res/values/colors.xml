@@ -21,5 +21,5 @@
     <color name="primaryBackground">#111111</color>
     <color name="red">#FE4545</color>
     <color name="red60">#48FE4545</color>
-    <color name="yellow">#FFC107</color>
+    <color name="yellow">#FE4545</color>
 </resources>
