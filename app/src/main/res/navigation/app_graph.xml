@@ -8,4 +8,9 @@
         android:id="@+id/home"
         android:name="com.saikou.sozo_tv.presentation.screens.home.HomeScreen"
         android:label="HomeScreen" />
+    <fragment
+        android:id="@+id/contact"
+        android:name="com.saikou.sozo_tv.presentation.screens.contact.ContactScreen"
+        android:label="ContactScreen" />
+
 </navigation>

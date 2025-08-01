@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Category
+import com.saikou.sozo_tv.domain.model.CategoryGenre
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 import com.saikou.sozo_tv.utils.UiState
@@ -23,12 +24,13 @@ class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
     private val _categoriesState = MutableStateFlow<UiState<List<Category>>>(UiState.Idle)
     val categoriesState: StateFlow<UiState<List<Category>>> get() = _categoriesState
 
+    val genresState = MutableStateFlow<UiState<CategoryGenre>>(UiState.Idle)
 
     val homeDataState: StateFlow<UiState<List<HomeAdapter.HomeData>>> = combine(
-        bannersState, categoriesState
-    ) { bannerState, categoryState ->
+        bannersState, categoriesState, genresState
+    ) { bannerState, categoryState, genresState ->
         when {
-            bannerState is UiState.Loading || categoryState is UiState.Loading -> {
+            bannerState is UiState.Loading || categoryState is UiState.Loading || genresState is UiState.Loading -> {
                 UiState.Loading
             }
 
@@ -40,10 +42,14 @@ class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
                 UiState.Error(categoryState.message)
             }
 
+            genresState is UiState.Error -> {
+                UiState.Error(genresState.message)
+            }
 
-            bannerState is UiState.Success && categoryState is UiState.Success -> {
+            bannerState is UiState.Success && categoryState is UiState.Success && genresState is UiState.Success -> {
                 val homeDataList = mutableListOf<HomeAdapter.HomeData>()
                 homeDataList.add(bannerState.data)
+                homeDataList.add(genresState.data)
                 homeDataList.addAll(categoryState.data)
                 UiState.Success(homeDataList)
             }
@@ -58,6 +64,7 @@ class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
     init {
         loadBanners()
         loadCategories()
+        loadGenres()
     }
 
     fun loadBanners() {
@@ -87,4 +94,20 @@ class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
         }
     }
 
+    fun loadGenres() {
+        viewModelScope.launch {
+            genresState.value = UiState.Loading
+            val result = repo.loadGenres()
+            genresState.value = when {
+                result.isSuccess -> UiState.Success(result.getOrNull()!!.toDomain())
+                result.isFailure -> UiState.Error(
+                    result.exceptionOrNull()?.message ?: "Unknown error"
+                )
+
+                else -> {
+                    UiState.Idle
+                }
+            }
+        }
+    }
 }

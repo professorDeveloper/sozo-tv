@@ -1,7 +1,7 @@
 package com.saikou.sozo_tv.data.repository
 
 import android.util.Log
-import com.animestudios.animeapp.GetGenresQuery
+import com.animestudios.animeapp.GetGenreThumbnailQuery
 import com.animestudios.animeapp.GetPopularQuery
 import com.animestudios.animeapp.GetRecentlyAddedQuery
 import com.animestudios.animeapp.GetRecommendationsQuery
@@ -63,7 +63,7 @@ class HomeRepositoryImpl(
                             content = HomeModel(
                                 id = it!!.media!!.id,
                                 idMal = it.media!!.idMal!!,
-                                coverImage = CoverImage(it.media.coverImage!!.large ?: ""),
+                                coverImage = CoverImage(it.media.coverImage!!.large ?: LocalData.anime404),
                                 format = it.media.format!!,
                                 source = it.media.source!!,
                                 title = Title(
@@ -97,7 +97,7 @@ class HomeRepositoryImpl(
                             content = HomeModel(
                                 id = it!!.media!!.id,
                                 idMal = it.media!!.idMal!!,
-                                coverImage = CoverImage(it.media.coverImage!!.large ?: ""),
+                                coverImage = CoverImage(it.media.coverImage!!.large ?: LocalData.anime404),
                                 format = it.media.format!!,
                                 source = it.media.source!!,
                                 title = Title(
@@ -133,7 +133,7 @@ class HomeRepositoryImpl(
                             content = HomeModel(
                                 id = it!!.id,
                                 idMal = it.idMal!!,
-                                coverImage = CoverImage(it.coverImage!!.large ?: ""),
+                                coverImage = CoverImage(it.coverImage!!.large ?: LocalData.anime404),
                                 format = it.format!!,
                                 source = it.source!!,
                                 title = Title(
@@ -169,7 +169,7 @@ class HomeRepositoryImpl(
                             content = HomeModel(
                                 id = it!!.media!!.id,
                                 idMal = it.media!!.idMal!!,
-                                coverImage = CoverImage(it.media.coverImage!!.large ?: ""),
+                                coverImage = CoverImage(it.media.coverImage!!.large ?: LocalData.anime404),
                                 format = it.media.format!!,
                                 source = it.media.source!!,
                                 title = Title(
@@ -220,7 +220,7 @@ class HomeRepositoryImpl(
             }
 
             return Result.success(genres)
-        }catch (e:Exception){
+        } catch (e: Exception) {
             return Result.failure(e)
         }
     }

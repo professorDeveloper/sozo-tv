@@ -3,6 +3,9 @@ package com.saikou.sozo_tv.utils
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
+import com.saikou.sozo_tv.domain.model.CategoryGenre
+import com.saikou.sozo_tv.domain.model.CategoryGenreItem
+import com.saikou.sozo_tv.domain.model.GenreModel
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 
 //
@@ -23,6 +26,17 @@ fun JikanBannerResponse.toDomain(): BannerModel {
             contentItem = it,
         )
     })
+}
+
+fun List<GenreModel>.toDomain():CategoryGenre {
+    return CategoryGenre(
+        "Genres",
+        this.map {
+            CategoryGenreItem(
+                content = it
+            )
+        }
+    )
 }
 
 ////import uz.kinoplus.tv.presentation.screens.home.HomeAdapter.Companion.VIEW_CHANNEL_ITEM

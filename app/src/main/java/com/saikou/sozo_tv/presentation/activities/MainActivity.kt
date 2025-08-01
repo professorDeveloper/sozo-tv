@@ -67,7 +67,7 @@ class MainActivity : FragmentActivity() {
             }
 
             when (destination.id) {
-                R.id.search, R.id.home, R.id.categories, R.id.tv_shows -> binding.navMain.visibility =
+                R.id.search, R.id.home, R.id.categories, R.id.tv_shows, R.id.contact -> binding.navMain.visibility =
                     View.VISIBLE
 
                 else -> binding.navMain.visibility = View.GONE

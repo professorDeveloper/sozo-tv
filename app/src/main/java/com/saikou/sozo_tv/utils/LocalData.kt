@@ -19,6 +19,7 @@ package com.saikou.sozo_tv.utils
 //import com.ipsat.ipsat_tv.domain.model.category.ChannelItem
 //
 object LocalData {
+    val anime404 ="https://c4.wallpaperflare.com/wallpaper/976/117/318/anime-girls-404-not-found-glowing-eyes-girls-frontline-wallpaper-preview.jpg"
     val genres = listOf(
         "Action",
         "Adventure",

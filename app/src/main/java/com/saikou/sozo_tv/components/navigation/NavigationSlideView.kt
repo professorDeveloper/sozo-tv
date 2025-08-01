@@ -1,4 +1,4 @@
-package com.ipsat.ipsat_tv.components.navigation
+package com.saikou.sozo_tv.components.navigation
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -12,8 +12,10 @@ import androidx.annotation.LayoutRes
 import androidx.appcompat.view.SupportMenuInflater
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.core.content.res.getResourceIdOrThrow
+import com.ipsat.ipsat_tv.components.navigation.NavigationSlideMenu
+import com.ipsat.ipsat_tv.components.navigation.NavigationSlideMenuView
+import com.ipsat.ipsat_tv.components.navigation.NavigationSlidePresenter
 import com.saikou.sozo_tv.R
-import com.saikou.sozo_tv.components.navigation.NavigationSlideHeaderView
 
 @SuppressLint("RestrictedApi")
 class NavigationSlideView @JvmOverloads constructor(
