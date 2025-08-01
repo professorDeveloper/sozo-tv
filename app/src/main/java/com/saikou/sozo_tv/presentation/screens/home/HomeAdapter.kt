@@ -5,7 +5,6 @@ import android.app.Activity
 import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
-import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import androidx.recyclerview.widget.DiffUtil
@@ -18,14 +17,16 @@ import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.databinding.BannerItemBinding
 import com.saikou.sozo_tv.databinding.ContentBannerBinding
 import com.saikou.sozo_tv.databinding.ItemCategoryBinding
+import com.saikou.sozo_tv.databinding.ItemGenreBinding
 import com.saikou.sozo_tv.databinding.ItemMovieBinding
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Category
 import com.saikou.sozo_tv.domain.model.CategoryDetails
+import com.saikou.sozo_tv.domain.model.CategoryGenre
+import com.saikou.sozo_tv.domain.model.CategoryGenreItem
 import com.saikou.sozo_tv.presentation.screens.home.vh.ViewHolderFactory
 import com.saikou.sozo_tv.utils.loadImage
-import com.saikou.sozo_tv.utils.toYear
 
 class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf()) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -43,8 +44,8 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
         const val VIEW_CATEGORY_FILMS = 2
         const val VIEW_BANNER_ITEM = 3
         const val VIEW_CATEGORY_FILMS_ITEM = 4
-        const val VIEW_CHANNEL = 5
-        const val VIEW_CHANNEL_ITEM = 6
+        const val VIEW_GENRE = 5
+        const val VIEW_GENRE_ITEM = 6
 
 
     }
@@ -83,17 +84,17 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 }
             }
 
-//            is ChannelViewHolder -> {
-//                if (item is CategoryChannel) {
-//                    holder.bind(item)
-//                }
-//            }
-//
-//            is ChannelItemViewHolder -> {
-//                if (item is CategoryChannelItem) {
-//                    holder.bind(item)
-//                }
-//            }
+            is GenreViewHolder -> {
+                if (item is CategoryGenre) {
+                    holder.bind(item)
+                }
+            }
+
+            is GenreItemViewHolder -> {
+                if (item is CategoryGenreItem) {
+                    holder.bind(item)
+                }
+            }
 
             is CategoryFilmsItemViewHolder -> {
                 if (item is CategoryDetails) {
@@ -125,7 +126,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
     class BannerViewHolder(private val binding: ContentBannerBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: BannerModel) {
-            val arraYList:ArrayList<BannerItem> = item.data as ArrayList<BannerItem>
+            val arraYList: ArrayList<BannerItem> = item.data as ArrayList<BannerItem>
             arraYList.subList(0, arraYList.size / 2).clear()
             val adapter = HomeAdapter().apply {
                 submitList(arraYList)
@@ -133,15 +134,23 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             val handler = Handler(Looper.getMainLooper())
             val runnable = object : Runnable {
                 override fun run() {
-                    val currentItem = binding.viewPager.currentItem
-                    val nextItem = if (currentItem == adapter.itemCount - 1) 0 else currentItem + 1
-                    binding.viewPager.setCurrentItem(nextItem, true)
-                    binding.viewPager.post {
-                        (binding.viewPager.getChildAt(0) as? RecyclerView)
-                            ?.findViewHolderForAdapterPosition(nextItem)
-                            ?.itemView
-                            ?.requestFocus()
+                    // Only proceed with auto-scroll if ViewPager or its child has focus
+                    if (binding.viewPager.hasFocus() || (binding.viewPager.getChildAt(0) as? RecyclerView)!!.findViewHolderForAdapterPosition(
+                            binding.viewPager.currentItem
+                        )?.itemView?.hasFocus() == true
+                    ) {
+                        val currentItem = binding.viewPager.currentItem
+                        val nextItem =
+                            if (currentItem == adapter.itemCount - 1) 0 else currentItem + 1
+                        binding.viewPager.setCurrentItem(nextItem, true)
+                        binding.viewPager.post {
+                            (binding.viewPager.getChildAt(0) as? RecyclerView)
+                                ?.findViewHolderForAdapterPosition(nextItem)
+                                ?.itemView
+                                ?.requestFocus()
+                        }
                     }
+
                     handler.postDelayed(this, 8000)
                 }
             }
@@ -217,44 +226,58 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
 
         }
     }
-//
-//    class ChannelViewHolder(private val binding: ItemCategoryBinding) :
-//        RecyclerView.ViewHolder(binding.root) {
-//        fun bind(item: CategoryChannel) {
-//            binding.tvCategoryTitle.text = item.name
-//            binding.hgvCategory.apply {
-//                setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
-//
-//                adapter = HomeAdapter().apply {
-//                    submitList(item.list)
-//                }
-//
+
+    class GenreViewHolder(private val binding: ItemCategoryBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: CategoryGenre) {
+            binding.tvCategoryTitle.text = item.name
+            binding.hgvCategory.apply {
+                setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+
+                adapter = HomeAdapter().apply {
+                    submitList(item.list)
+                }
+
 //                HomeFakeDAta.setFocusChangedListenerPlayer {
 //                    HomeFakeDAta.categoryItemClicked.invoke(
 //                        item, it
 //                    )
 //                }
-//
-//                setItemSpacing(10)
+
+                setItemSpacing(10)
+            }
+        }
+    }
+
+
+    class GenreItemViewHolder(private val binding: ItemGenreBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: CategoryGenreItem) {
+            Glide.with(binding.root.context).load(item.content.image).into(binding.imgGenre)
+            binding.topContainer.text = item.content.title
+            binding.root.setOnFocusChangeListener { view, hasFocus ->
+                if (bindingAdapterPosition != 0) {
+                    val animation = when {
+                        hasFocus -> AnimationUtils.loadAnimation(
+                            binding.root.context,
+                            R.anim.zoom_in
+                        )
+
+                        else -> AnimationUtils.loadAnimation(
+                            binding.root.context,
+                            R.anim.zoom_out
+                        )
+                    }
+                    binding.root.startAnimation(animation)
+                    animation.fillAfter = true
+                }
+
+            }
 //            }
-//        }
-//    }
-//
-//
-//    class ChannelItemViewHolder(private val binding: ItemChannelBinding) :
-//        RecyclerView.ViewHolder(binding.root) {
-//        fun bind(item: CategoryChannelItem) {
-//            Glide.with(binding.root.context).load(item.content.image).into(binding.itemImg)
-//            binding.topContainer.text = item.content.name
-//            binding.categoryProperty.text = item.content.categoryProperty
-//            binding.audioList.text = item.content.audioList
-//            binding.root.setOnClickListener {
-//                HomeFakeDAta.categoryChannelItemClicked.invoke(
-//                    item
-//                )
-//            }
-//        }
-//    }
+
+
+        }
+    }
 
     /**
      * Kategoriyaga oid filmlarni ko‘rsatish uchun ViewHolder.
@@ -350,9 +373,9 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                         oldItem.content.idMal == newItem.content.idMal
                     }
 
-//                    oldItem is CategoryChannelItem && newItem is CategoryChannelItem -> {
-//                        oldItem.content.image == newItem.content.image
-//                    }
+                    oldItem is CategoryGenreItem && newItem is CategoryGenreItem -> {
+                        oldItem.content.image == newItem.content.image
+                    }
 
 
                     else -> false
