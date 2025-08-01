@@ -1,5 +1,5 @@
 query getRecommendations($page: Int) {
-    Page(page: $page, perPage: 20) {
+    Page(page: $page, perPage: 25) {
         recommendations(sort: RATING_DESC){
             media {   id
                 idMal

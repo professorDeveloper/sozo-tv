@@ -102,6 +102,7 @@ class HomeScreen : Fragment() {
             }
 
             is UiState.Error -> {
+
                 binding.isLoading.gIsLoadingRetry.isVisible = true
                 binding.isLoading.root.isVisible = true
                 binding.isLoading.tvIsLoadingError.text = state.message

@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.data.repository
 
 import android.util.Log
+import com.animestudios.animeapp.GetGenresQuery
 import com.animestudios.animeapp.GetPopularQuery
 import com.animestudios.animeapp.GetRecentlyAddedQuery
 import com.animestudios.animeapp.GetRecommendationsQuery
@@ -10,12 +11,15 @@ import com.apollographql.apollo3.api.Optional
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.anilist.HomeModel
 import com.saikou.sozo_tv.data.model.anilist.Title
+import com.saikou.sozo_tv.data.model.jikan.Genre
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.data.remote.JikanApiService
 import com.saikou.sozo_tv.data.remote.safeApiCall
 import com.saikou.sozo_tv.domain.model.Category
 import com.saikou.sozo_tv.domain.model.CategoryDetails
+import com.saikou.sozo_tv.domain.model.GenreModel
 import com.saikou.sozo_tv.domain.repository.HomeRepository
+import com.saikou.sozo_tv.utils.LocalData
 import kotlin.random.Random
 
 class HomeRepositoryImpl(
@@ -178,11 +182,46 @@ class HomeRepositoryImpl(
             }
 
 
-
+//            Log.d("GGG", "loadCategories: ")
             Result.success(categories)
         } catch (e: Exception) {
             Log.d("GGGG", "loadCategories:${e} ")
             Result.failure(e)
+        }
+    }
+
+    override suspend fun loadGenres(): Result<List<GenreModel>> {
+        try {
+            val recommendationApolloResponse =
+                apolloClient.query(
+                    GetRecommendationsQuery(
+                        page = Optional.present(
+                            Random.nextInt(
+                                1,
+                                4
+                            )
+                        )
+                    )
+                )
+                    .execute()
+
+
+            val recommendationMediaList = recommendationApolloResponse.data!!.Page?.recommendations!!
+            val genres = ArrayList<GenreModel>()
+            recommendationMediaList.let {
+                LocalData.genres.forEachIndexed { index, s ->
+                    genres.add(
+                        GenreModel(
+                            s,
+                            it[index]?.media?.coverImage?.large ?: "https://via.placeholder.com/150",
+                        )
+                    )
+                }
+            }
+
+            return Result.success(genres)
+        }catch (e:Exception){
+            return Result.failure(e)
         }
     }
 

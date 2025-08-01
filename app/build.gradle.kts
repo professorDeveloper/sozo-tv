@@ -13,8 +13,11 @@ plugins {
 android {
     namespace = "com.saikou.sozo_tv"
     compileSdk = 35
-    apollo {
+    kapt {
+        correctErrorTypes = true
+    }
 
+    apollo {
         packageName.set("com.animestudios.animeapp")
         generateKotlinModels.set(true)
         excludes.add("**/schema.json.graphql")

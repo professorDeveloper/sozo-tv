@@ -1,4 +1,4 @@
-//package com.ipsat.ipsat_tv.utils
+package com.saikou.sozo_tv.utils
 //
 //import com.ipsat.ipsat_tv.R
 //import com.ipsat.ipsat_tv.app.MyApp
@@ -18,8 +18,30 @@
 //import com.ipsat.ipsat_tv.domain.model.category.CategoryItem
 //import com.ipsat.ipsat_tv.domain.model.category.ChannelItem
 //
-//object LocalData {
-//
+object LocalData {
+    val genres = listOf(
+        "Action",
+        "Adventure",
+        "Comedy",
+        "Drama",
+        "Ecchi",
+        "Fantasy",
+        "Hentai",
+        "Horror",
+        "Mahou Shoujo",
+        "Mecha",
+        "Music",
+        "Mystery",
+        "Psychological",
+        "Romance",
+        "Sci-Fi",
+        "Slice of Life",
+        "Sports",
+        "Supernatural",
+        "Thriller"
+    )
+
+}//
 //    var seriesId: Int = -1
 //    var currentEpp: Item0? = null
 //    var isHistoryItemClicked = false
