@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.presentation.activities
 
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -67,7 +68,7 @@ class MainActivity : FragmentActivity() {
             }
 
             when (destination.id) {
-                R.id.search, R.id.home, R.id.categories, R.id.tv_shows, R.id.contact -> binding.navMain.visibility =
+                R.id.search, R.id.home, R.id.categories, R.id.contact -> binding.navMain.visibility =
                     View.VISIBLE
 
                 else -> binding.navMain.visibility = View.GONE
@@ -76,8 +77,8 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun navigateProfile() {
-//        val intent = Intent(this@MainActivity, ProfileActivity::class.java)
-//        startActivity(intent)
-//        finish()
+        val intent = Intent(this@MainActivity, ProfileActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 }

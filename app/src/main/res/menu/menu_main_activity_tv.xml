@@ -12,10 +12,10 @@
 
 
 
-    <item
-        android:id="@+id/tv_shows"
-        android:icon="@drawable/ic_menu_tv"
-        android:title="@string/main_menu_tv_shows" />
+<!--    <item-->
+<!--        android:id="@+id/tv_shows"-->
+<!--        android:icon="@drawable/ic_menu_tv"-->
+<!--        android:title="@string/main_menu_tv_shows" />-->
 
     <item
         android:id="@+id/categories"

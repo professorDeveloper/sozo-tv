@@ -46,9 +46,11 @@
         android:theme="@style/Theme.Tv"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".presentation.activities.NoInternetActivity"
+            android:name=".presentation.activities.ProfileActivity"
             android:exported="false" />
-        <!-- <activity -->
+        <activity
+            android:name=".presentation.activities.NoInternetActivity"
+            android:exported="false" /> <!-- <activity -->
         <!-- android:name=".presentation.activities.UpdateActivity" -->
         <!-- android:exported="false" /> -->
         <!-- <activity -->

@@ -126,8 +126,9 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
     class BannerViewHolder(private val binding: ContentBannerBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: BannerModel) {
+
+
             val arraYList: ArrayList<BannerItem> = item.data as ArrayList<BannerItem>
-            arraYList.subList(0, arraYList.size / 2).clear()
             val adapter = HomeAdapter().apply {
                 submitList(arraYList)
             }
