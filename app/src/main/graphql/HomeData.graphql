@@ -40,7 +40,7 @@ query getPopular($page: Int) {
 
 query getRecentlyAdded($page: Int) {
     Page(page: $page, perPage: 20) {
-        airingSchedules(airingAt_greater:0) {
+        airingSchedules(airingAt_greater:0,sort: TIME_DESC ) {
             media {   id
                 idMal
                 coverImage {

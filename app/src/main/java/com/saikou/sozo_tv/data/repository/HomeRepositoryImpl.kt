@@ -20,6 +20,7 @@ import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.GenreModel
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.utils.LocalData
+import java.lang.StackWalker.Option
 import kotlin.random.Random
 
 class HomeRepositoryImpl(
@@ -145,6 +146,7 @@ class HomeRepositoryImpl(
                 )
             }
 
+            val airingTime: Int = ((System.currentTimeMillis() / 1000) - 10000).toInt()
 
             val recentlyAddedApolloResponse = apolloClient.query(
                 GetRecentlyAddedQuery(
