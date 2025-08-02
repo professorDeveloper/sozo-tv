@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".presentation.screens.search.SearchScreen">
+
+    <androidx.leanback.widget.SearchEditText
+        android:id="@+id/search_edt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/background_search_edittext"
+        android:drawableStart="@drawable/ic_search"
+        android:drawablePadding="6dp"
+        android:textColor="@color/white40"
+        android:textColorHint="@color/white40"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:gravity="center_vertical"
+        android:hint="@string/film_serial_multfilm"
+        android:imeOptions="actionSearch"
+        android:inputType="text"
+        android:maxLines="1"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="8dp"
+        android:scaleX="1.0"
+        android:scaleY="1.0"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+
+    <androidx.leanback.widget.VerticalGridView
+        android:id="@+id/vgvSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/rv_background"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:padding="16dp"
+        app:focusOutEnd="true"
+        app:focusOutFront="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/search_edt"
+        app:numberOfColumns="1"
+        tools:itemCount="2"
+        tools:listitem="@layout/search_item" />
+
+    <include
+        android:id="@+id/placeHolder"
+        layout="@layout/bookmark_place_holder" />
+
+</LinearLayout>

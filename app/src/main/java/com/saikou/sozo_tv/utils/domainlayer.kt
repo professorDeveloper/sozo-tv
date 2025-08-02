@@ -1,11 +1,13 @@
 package com.saikou.sozo_tv.utils
 
+import com.animestudios.animeapp.SearchAnimeQuery
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.CategoryGenre
 import com.saikou.sozo_tv.domain.model.CategoryGenreItem
 import com.saikou.sozo_tv.domain.model.GenreModel
+import com.saikou.sozo_tv.domain.model.SearchModel
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 
 //
@@ -28,14 +30,22 @@ fun JikanBannerResponse.toDomain(): BannerModel {
     })
 }
 
-fun List<GenreModel>.toDomain():CategoryGenre {
-    return CategoryGenre(
-        "Genres",
-        this.map {
-            CategoryGenreItem(
-                content = it
-            )
-        }
+fun List<GenreModel>.toDomain(): CategoryGenre {
+    return CategoryGenre("Genres", this.map {
+        CategoryGenreItem(
+            content = it
+        )
+    })
+}
+
+fun SearchAnimeQuery.Medium.toDomain(): SearchModel {
+    return SearchModel(
+        this.id,
+        this.title?.userPreferred,
+        this.coverImage?.large,
+        studios = this.studios!!.nodes!!.map { it?.name },
+        genres = this.genres!!.map { it },
+        this.averageScore
     )
 }
 

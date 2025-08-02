@@ -10,6 +10,10 @@ import com.saikou.sozo_tv.R
 
 object DialogUtils {
 
+    fun checkAndShowNetworkDialog(ctx: Context) {
+
+    }
+
     fun loadingDialog(ctx: Context): Dialog {
         val dialog = Dialog(ctx)
         dialog.setContentView(R.layout.dialog_loading)

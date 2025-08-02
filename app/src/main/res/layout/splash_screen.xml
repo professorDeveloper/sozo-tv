@@ -13,14 +13,6 @@
         android:layout_gravity="center"
         app:use_controller="false" />
 
-    <ImageView
-        android:id="@+id/splash_image"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ipsat_banner"
-        android:visibility="gone" />
 
     <ProgressBar
         android:id="@+id/loading_indicator"

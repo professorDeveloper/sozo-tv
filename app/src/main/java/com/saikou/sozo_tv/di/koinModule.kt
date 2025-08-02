@@ -2,9 +2,12 @@ package com.saikou.sozo_tv.di
 
 import androidx.room.Room
 import com.saikou.sozo_tv.data.repository.HomeRepositoryImpl
+import com.saikou.sozo_tv.data.repository.SearchRepositoryImpl
 import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import com.saikou.sozo_tv.domain.repository.HomeRepository
+import com.saikou.sozo_tv.domain.repository.SearchRepository
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -30,9 +33,9 @@ val koinModule = module {
     single<HomeRepository> {
         HomeRepositoryImpl(jikanApiService = get(), apolloClient = get())
     }
-//    single<SearchRepository> {
-//        SearchRepositoryImpl(api = get(), pref = get())
-//    }
+    single<SearchRepository> {
+        SearchRepositoryImpl(apolloClient = get())
+    }
 //    single<HomeRepository> {
 //        HomeRepositoryImpl(service = get(), userPreferenceManager = get())
 //    }
@@ -53,7 +56,7 @@ val koinModule = module {
 //
     viewModel { HomeViewModel(repo = get()) }
 //    viewModel { LiveTvScreenViewModel(liveTvUseCase = get()) }
-//    viewModel { SearchViewModel(repo = get(), homeRepository = get()) }
+    viewModel { SearchViewModel(repo = get()) }
 //    viewModel {
 //        PlayViewModel(
 //            homeRepository = get(),

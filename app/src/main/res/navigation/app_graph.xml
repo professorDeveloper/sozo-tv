@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/app_graph.xml"
     app:startDestination="@id/home">
 
@@ -12,5 +13,10 @@
         android:id="@+id/contact"
         android:name="com.saikou.sozo_tv.presentation.screens.contact.ContactScreen"
         android:label="ContactScreen" />
+    <fragment
+        android:id="@+id/search"
+        android:name="com.saikou.sozo_tv.presentation.screens.search.SearchScreen"
+        android:label="search_screen"
+        tools:layout="@layout/search_screen" />
 
 </navigation>

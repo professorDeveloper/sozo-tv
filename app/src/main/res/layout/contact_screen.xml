@@ -41,15 +41,28 @@
             android:layout_marginBottom="4dp"
             android:src="@drawable/qr_telegram" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:orientation="horizontal"
             android:layout_marginTop="8dp"
-            android:fontFamily="@font/poppins_bold"
-            android:text="Follow us on social"
-            android:textSize="14sp"
-            app:layout_constraintStart_toStartOf="@+id/textView6" />
+            app:layout_constraintStart_toStartOf="@+id/textView6"
+            android:layout_height="wrap_content">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_bold"
+                android:text="Follow us on social"
+                android:textSize="14sp"/>
+            <TextView
+                android:textSize="14sp"
+                android:layout_marginStart="4dp"
+                android:fontFamily="@font/poppins_bold"
+                android:text="@string/amp_sozoapp"
+                android:layout_width="wrap_content"
+                android:textColor="@color/red"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
         <LinearLayout
             android:id="@+id/playContainer"
             android:layout_width="240dp"

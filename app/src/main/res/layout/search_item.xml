@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    android:background="@drawable/search_item_bg"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:focusedByDefault="true"
+    android:padding="4dp">
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/moviePosterContainer"
+        android:layout_width="70dp"
+        android:layout_height="100dp"
+        app:cardCornerRadius="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/moviePoster"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/joker" />
+
+
+        </FrameLayout>
+    </androidx.cardview.widget.CardView>
+
+
+    <TextView
+        android:id="@+id/movieTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:fontFamily="@font/days"
+        android:maxLines="2"
+        android:text="Lorem Ipsum is simply dummy text of the"
+        android:textColor="@color/lb_tv_white"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/moviePosterContainer"
+        app:layout_constraintTop_toTopOf="@id/moviePosterContainer" />
+
+    <TextView
+        android:id="@+id/imdbRating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="2dp"
+        android:fontFamily="@font/rubik_regular"
+        android:text="IMDB 8.7"
+        android:textColorHint="@color/white40"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="@id/movieTitle"
+        app:layout_constraintTop_toBottomOf="@id/movieTitle" />
+
+    <TextView
+        android:id="@+id/movieDetails"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="2020 • Detektiv • Ispaniya"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="@id/movieTitle"
+        app:layout_constraintTop_toBottomOf="@id/imdbRating" />
+
+    <TextView
+        android:id="@+id/subscribeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:text="Подписка"
+        android:textColor="@color/lb_grey"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@+id/moviePosterContainer"
+        app:layout_constraintStart_toStartOf="@id/movieTitle"
+        app:layout_constraintTop_toBottomOf="@id/movieDetails" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,22 @@
+query searchAnime($search: String) {
+    Page(page: 1, perPage: 5){
+        media(search: $search, type: ANIME) {
+            id
+            idMal
+            coverImage {
+                large
+            }
+            title {
+                userPreferred
+            }
+            averageScore
+            countryOfOrigin
+            studios {
+                nodes {
+                    name
+                }
+            }
+            genres
+        }
+    }
+}

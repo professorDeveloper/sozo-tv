@@ -53,14 +53,14 @@ class SplashScreen : Fragment() {
 
     private fun setupNavigationLogic() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            binding.splashImage.visible()
+//            binding.splashImage.visible()
             binding.playerView.gone()
             lifecycleScope.launch {
                 delay(1000) // wait 1 second
                 observeAndNavigate()
             }
         } else {
-            binding.splashImage.gone()
+//            binding.splashImage.gone()
             binding.playerView.visible()
             initVideoPlayer()
         }

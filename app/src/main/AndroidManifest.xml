@@ -45,13 +45,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Tv"
         android:usesCleartextTraffic="true">
-        <!--        <activity-->
-        <!--            android:name=".presentation.activities.UpdateActivity"-->
-        <!--            android:exported="false" />-->
-
-        <!--        <activity-->
-        <!--            android:name=".presentation.activities.PlayerActivity"-->
-        <!--            android:exported="false" />-->
+        <activity
+            android:name=".presentation.activities.NoInternetActivity"
+            android:exported="false" />
+        <!-- <activity -->
+        <!-- android:name=".presentation.activities.UpdateActivity" -->
+        <!-- android:exported="false" /> -->
+        <!-- <activity -->
+        <!-- android:name=".presentation.activities.PlayerActivity" -->
+        <!-- android:exported="false" /> -->
         <activity
             android:name=".presentation.activities.MainActivity"
             android:exported="false">
@@ -73,27 +75,25 @@
 
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
-        </activity>
-        <!--        <activity-->
-        <!--            android:name=".presentation.activities.ProfileActivity"-->
-        <!--            android:exported="false" />-->
-        <!--        <activity-->
-        <!--            android:name=".presentation.activities.LoginActivity"-->
-        <!--            android:banner="@mipmap/ic_launcher"-->
-        <!--            android:exported="true"-->
-        <!--            android:icon="@mipmap/ic_launcher"-->
-        <!--            android:logo="@mipmap/ic_launcher"-->
-        <!--            android:screenOrientation="landscape">-->
-        <!--            <intent-filter>-->
-        <!--                <action android:name="android.intent.action.MAIN" />-->
-
-        <!--                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />-->
-        <!--            </intent-filter>-->
-        <!--        </activity>-->
-
+        </activity> <!-- <activity -->
+        <!-- android:name=".presentation.activities.ProfileActivity" -->
+        <!-- android:exported="false" /> -->
+        <!-- <activity -->
+        <!-- android:name=".presentation.activities.LoginActivity" -->
+        <!-- android:banner="@mipmap/ic_launcher" -->
+        <!-- android:exported="true" -->
+        <!-- android:icon="@mipmap/ic_launcher" -->
+        <!-- android:logo="@mipmap/ic_launcher" -->
+        <!-- android:screenOrientation="landscape"> -->
+        <!-- <intent-filter> -->
+        <!-- <action android:name="android.intent.action.MAIN" /> -->
+        <!-- <category android:name="android.intent.category.LEANBACK_LAUNCHER" /> -->
+        <!-- </intent-filter> -->
+        <!-- </activity> -->
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
             android:value="4b29bbcd3db7f7125f312efde4e3dd2a" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

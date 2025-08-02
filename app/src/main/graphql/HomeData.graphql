@@ -78,22 +78,6 @@ query getTrending($page: Int) {
     }
 }
 
-query searchAnime{
-    Page(page: 1, perPage: 10) {
-        media(search: "One Piece") {
-            id
-            title {
-                userPreferred
-                english
-            }
-            coverImage {
-                large
-            }
-            episodes
-
-        }
-    }
-}
 
 query getGenreThumbnail( $genre: String) {
     Page(perPage: 10){media(genre:$genre, sort: TRENDING_DESC, type: ANIME, countryOfOrigin:"JP") {id bannerImage title{english romaji userPreferred} } }

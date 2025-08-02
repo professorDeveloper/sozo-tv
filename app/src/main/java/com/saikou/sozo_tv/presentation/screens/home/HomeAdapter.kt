@@ -131,13 +131,14 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             val adapter = HomeAdapter().apply {
                 submitList(arraYList)
             }
+            binding.viewPager.adapter = adapter
+            binding.dotsIndicator.attachTo(binding.viewPager)
             val handler = Handler(Looper.getMainLooper())
             val runnable = object : Runnable {
                 override fun run() {
-                    // Only proceed with auto-scroll if ViewPager or its child has focus
-                    if (binding.viewPager.hasFocus() || (binding.viewPager.getChildAt(0) as? RecyclerView)!!.findViewHolderForAdapterPosition(
-                            binding.viewPager.currentItem
-                        )?.itemView?.hasFocus() == true
+                    if (binding.viewPager.hasFocus() || (binding.viewPager.getChildAt(0) as? RecyclerView)
+                            ?.findViewHolderForAdapterPosition(binding.viewPager.currentItem)
+                            ?.itemView?.hasFocus() == true
                     ) {
                         val currentItem = binding.viewPager.currentItem
                         val nextItem =
@@ -150,12 +151,12 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                                 ?.requestFocus()
                         }
                     }
-
                     handler.postDelayed(this, 8000)
                 }
             }
             handler.postDelayed(runnable, 8000)
-            binding.viewPager.setOnFocusChangeListener { v, hasFocus ->
+
+            binding.viewPager.setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
                     val currentItem = binding.viewPager.currentItem
                     (binding.viewPager.getChildAt(0) as? RecyclerView)
@@ -164,11 +165,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                         ?.requestFocus()
                 }
             }
-
-            binding.viewPager.adapter = adapter
-            binding.dotsIndicator.attachTo(binding.viewPager)
         }
-
 
     }
 

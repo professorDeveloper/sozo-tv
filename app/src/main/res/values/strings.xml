@@ -73,7 +73,7 @@
     <string name="accept_Remove">Don`t ask me again</string>
     <string name="warning_subscription">Sizni 20.11.2024gacha faolligingiz bor. akkauntni o\'chirsangiz obuna bekor bo\'ladi.</string>
     <string name="are_You_sure_Remove_Account">Siz rostan ham ushbu akkauntni o\'chirmoqchimisiz?</string>
-    <string name="film_serial_multfilm">Film, serial, multfilm..</string>
+    <string name="film_serial_multfilm">One Piece, Naruto, Etc..</string>
     <string name="filmni_ko_rish">Watch Now</string>
     <string name="update_now">Update Now</string>
     <string name="treyler">Treyler</string>
@@ -94,5 +94,6 @@
     <string name="categories">Categories</string>
     <string name="update_sheet">Please do`nt close</string>
     <string name="contact">Contact</string>
+    <string name="amp_sozoapp">&amp; @sozoApp</string>
 
 </resources>
