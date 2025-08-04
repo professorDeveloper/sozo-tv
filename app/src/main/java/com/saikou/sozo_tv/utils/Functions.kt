@@ -9,10 +9,13 @@ import android.graphics.drawable.shapes.RoundRectShape
 import android.os.Build
 import android.provider.Settings
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.FOCUS_AFTER_DESCENDANTS
 import android.widget.FrameLayout
 import androidx.core.view.updateLayoutParams
+import androidx.leanback.widget.VerticalGridView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
@@ -53,6 +56,7 @@ fun String.toDateFromIso8601(): Date? {
         null
     }
 }
+
 @SuppressLint("NewApi")
 fun snackString(s: String?, activity: Activity? = null, clipboard: String? = null) {
     if (s != null) {
@@ -93,22 +97,16 @@ fun snackString(s: String?, activity: Activity? = null, clipboard: String? = nul
     }
 }
 
-fun RecyclerView.setupGridLayoutForCategories(adapter: CategoriesPageAdapter) {
-    val gridLayoutManager =
-        GridLayoutManager(this.context, CategoriesPageAdapter.COLUMN_COUNT)
-    gridLayoutManager.orientation = RecyclerView.VERTICAL
-    gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
-        override fun getSpanSize(position: Int): Int {
-            return when (adapter.getItemViewType(position)) {
-                CategoriesPageAdapter.TYPE_CATEGORY -> 1
-                else -> CategoriesPageAdapter.COLUMN_COUNT
-            }
-        }
+fun VerticalGridView.setupGridLayoutForCategories(pageAdapter: CategoriesPageAdapter) {
+
+    this.apply {
+        isFocusable = true
+        isFocusableInTouchMode = true
+        descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
+        this.isFocusDrawingOrderEnabled = true
+        setNumColumns(5) // ← agar siz `VerticalGridView` ishlatsangiz, bu juda muhim
     }
-    this.layoutManager = gridLayoutManager
-    this.descendantFocusability = RecyclerView.FOCUS_AFTER_DESCENDANTS
-    this.isFocusable = true
-    this.isFocusableInTouchMode = true
+
 }
 
 

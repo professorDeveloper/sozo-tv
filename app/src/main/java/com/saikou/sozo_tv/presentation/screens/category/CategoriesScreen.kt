@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.RecyclerView
 import com.kongzue.dialogx.dialogs.WaitDialog
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.CategoriesScreenBinding
@@ -44,7 +43,8 @@ class CategoriesScreen : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.root.requestFocus()
+        binding.topContainer.adapter = pageAdapter
+        binding.topContainer.setupGridLayoutForCategories(pageAdapter)
 
         if (notSet) {
             notSet = false
@@ -61,18 +61,11 @@ class CategoriesScreen : Fragment() {
         }
 
         model.result.observe(viewLifecycleOwner) {
-            binding.topContainer.adapter = pageAdapter
-//            binding.isLoadingContainer.gIsLoadingRetry.isGone = true
             binding.isLoadingContainer.root.isVisible = false
-            binding.topContainer.setupGridLayoutForCategories(pageAdapter)
             model.searchResults.apply {
                 results = it?.results ?: arrayListOf()
                 currentPage = it?.currentPage ?: 1
                 hasNextPage = it?.hasNextPage ?: false
-            }
-            pageAdapter.apply {
-                stateRestorationPolicy =
-                    RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
             }
             pageAdapter.updateCategories(it?.results as ArrayList<MainModel>? ?: arrayListOf())
         }
@@ -139,7 +132,7 @@ class CategoriesScreen : Fragment() {
                 ) {
 
                     lifecycleScope.launch(Dispatchers.IO) {
-                        model.loadNextPage(model.searchResults)
+                            model.loadNextPage(model.searchResults)
 
                     }
                 }

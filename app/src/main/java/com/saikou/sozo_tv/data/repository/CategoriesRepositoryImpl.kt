@@ -21,7 +21,7 @@ class CategoriesRepositoryImpl(private val apolloClient: ApolloClient) : Categor
 
             searchResults.hasNextPage =
                 animeGenreResponse.data?.Page?.pageInfo?.hasNextPage ?: false
-            searchResults.results = mediaList.map {
+            searchResults.results = mediaList.filter { it?.title?.english != null }.map {
                 it!!.toDomain()
             }
             return Result.success(searchResults)

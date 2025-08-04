@@ -40,7 +40,7 @@ class CategoriesPageAdapter(val isDetail: Boolean = false) :
 
     override fun getItemViewType(position: Int): Int {
         return when (position) {
-            else -> TYPE_CATEGORY
+            else -> COLUMN_COUNT
         }
     }
 
@@ -107,21 +107,7 @@ class CategoriesPageAdapter(val isDetail: Boolean = false) :
                             )
                         }
                     }
-                    if (bindingAdapterPosition != 0) {
-                        val animation = when {
-                            hasFocus -> AnimationUtils.loadAnimation(
-                                binding.root.context,
-                                R.anim.zoom_in
-                            )
 
-                            else -> AnimationUtils.loadAnimation(
-                                binding.root.context,
-                                R.anim.zoom_out
-                            )
-                        }
-                        binding.root.startAnimation(animation)
-                        animation.fillAfter = true
-                    }
                 }
                 binding.root.isFocusable = true
                 binding.root.isFocusableInTouchMode = true
