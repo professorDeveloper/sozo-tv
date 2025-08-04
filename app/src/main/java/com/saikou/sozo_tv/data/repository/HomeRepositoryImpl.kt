@@ -146,7 +146,6 @@ class HomeRepositoryImpl(
                 )
             }
 
-            val airingTime: Int = ((System.currentTimeMillis() / 1000) - 10000).toInt()
 
             val recentlyAddedApolloResponse = apolloClient.query(
                 GetRecentlyAddedQuery(

@@ -13,9 +13,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.core.view.updateLayoutParams
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -88,6 +91,24 @@ fun snackString(s: String?, activity: Activity? = null, clipboard: String? = nul
             }
         }
     }
+}
+
+fun RecyclerView.setupGridLayoutForCategories(adapter: CategoriesPageAdapter) {
+    val gridLayoutManager =
+        GridLayoutManager(this.context, CategoriesPageAdapter.COLUMN_COUNT)
+    gridLayoutManager.orientation = RecyclerView.VERTICAL
+    gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+        override fun getSpanSize(position: Int): Int {
+            return when (adapter.getItemViewType(position)) {
+                CategoriesPageAdapter.TYPE_CATEGORY -> 1
+                else -> CategoriesPageAdapter.COLUMN_COUNT
+            }
+        }
+    }
+    this.layoutManager = gridLayoutManager
+    this.descendantFocusability = RecyclerView.FOCUS_AFTER_DESCENDANTS
+    this.isFocusable = true
+    this.isFocusableInTouchMode = true
 }
 
 

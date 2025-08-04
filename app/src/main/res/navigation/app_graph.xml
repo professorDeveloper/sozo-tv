@@ -18,5 +18,10 @@
         android:name="com.saikou.sozo_tv.presentation.screens.search.SearchScreen"
         android:label="search_screen"
         tools:layout="@layout/search_screen" />
+    <fragment
+        android:id="@+id/categories"
+        android:name="com.saikou.sozo_tv.presentation.screens.category.CategoriesScreen"
+        android:label="categories_screen"
+        tools:layout="@layout/categories_screen" />
 
 </navigation>

@@ -1,0 +1,26 @@
+query getAnimeByGenre($genre:String,$page: Int) {
+    Page(page: $page, perPage: 50) {
+        pageInfo {
+            hasNextPage
+            currentPage
+        }
+        media(genre:$genre, type: ANIME) {
+            id
+            idMal
+            genres
+            averageScore
+            title {
+                english
+            }
+            coverImage {
+                large
+            }
+            studios{
+                nodes {
+                    name
+                }
+            }
+            meanScore
+        }
+    }
+}
