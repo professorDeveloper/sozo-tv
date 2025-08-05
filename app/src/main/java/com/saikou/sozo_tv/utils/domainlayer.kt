@@ -1,12 +1,18 @@
 package com.saikou.sozo_tv.utils
 
 import com.animestudios.animeapp.GetAnimeByGenreQuery
+import com.animestudios.animeapp.GetAnimeByIdQuery
+import com.animestudios.animeapp.GetAnimeByOnlGenreQuery
 import com.animestudios.animeapp.SearchAnimeQuery
+import com.animestudios.animeapp.type.CountryCode
+import com.animestudios.animeapp.type.Query
+import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.CategoryGenre
 import com.saikou.sozo_tv.domain.model.CategoryGenreItem
+import com.saikou.sozo_tv.domain.model.DetailModel
 import com.saikou.sozo_tv.domain.model.GenreModel
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.SearchModel
@@ -23,6 +29,30 @@ import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 //import com.ipsat.ipsat_tv.presentation.screens.home.HomeAdapter
 //import kotlinx.parcelize.Parcelize
 //
+
+fun GetAnimeByIdQuery.Media.toDomain(): DetailModel {
+    val extraLinksD = this.externalLinks?.map {
+        it?.url ?: ""
+    }
+    val studiosD = this.studios?.nodes?.map {
+        it?.name ?: ""
+    }
+    val detail = DetailModel(
+        this.id,
+        this.idMal ?: 0,
+        CoverImage(this.coverImage?.large ?: LocalData.anime404),
+        this.bannerImage ?: LocalData.anime404,
+        description = this.description ?: "",
+        title = this.title?.english ?: "",
+        this.episodes ?: 0,
+        this.genres,
+        extraLinksD,
+        studios = studiosD,
+        this.seasonYear ?: 0,
+        this.source,
+    )
+    return detail
+}
 
 fun JikanBannerResponse.toDomain(): BannerModel {
     return BannerModel(viewType = HomeAdapter.VIEW_BANNER, data = this.data.map {
@@ -52,6 +82,19 @@ fun SearchAnimeQuery.Medium.toDomain(): SearchModel {
 }
 
 fun GetAnimeByGenreQuery.Medium.toDomain(): MainModel {
+    val it = this
+    return MainModel(
+        id = it.id,
+        title = it.title?.english ?: "",
+        image = it.coverImage?.large ?: LocalData.anime404,
+        studios = it.studios!!.nodes!!.map { it?.name ?: "" },
+        genres = it.genres!!.map { it },
+        averageScore = it.averageScore ?: -1,
+        idMal = it.idMal ?: -1,
+    )
+}
+
+fun GetAnimeByOnlGenreQuery.Medium.toDomain(): MainModel {
     val it = this
     return MainModel(
         id = it.id,

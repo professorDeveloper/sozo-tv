@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:focusable="false"
+
+    android:focusableInTouchMode="false"
+    android:layout_marginHorizontal="15dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="12dp"
+    android:layout_height="wrap_content">
+
+    <View
+        android:id="@+id/topGradient"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#33FFFFFF"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_marginTop="16dp"
+        android:paddingHorizontal="8dp"
+        android:background="@drawable/account_type_bg"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/topGradient" >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_gravity="center_vertical"
+            android:textSize="10sp"
+            android:textColor="@color/lb_tv_white"
+            android:fontFamily="@font/days"
+            android:text="@string/akkount_holati"
+            tools:ignore="SmallSp" />
+
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:background="@drawable/premium_plus_gradient"
+            android:layout_marginEnd="4dp"
+            android:paddingVertical="5dp"
+            android:paddingHorizontal="10dp"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/accountTypeTxt"
+                android:layout_width="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:fontFamily="@font/days"
+                android:textSize="10sp"
+                android:layout_height="wrap_content"
+                android:text="@string/premium_plus"
+                android:textColor="#ffff"
+                tools:ignore="SmallSp" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

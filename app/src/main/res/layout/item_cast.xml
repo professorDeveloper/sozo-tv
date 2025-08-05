@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardView"
+    android:layout_width="130dp"
+    android:layout_height="130dp"
+    android:layout_margin="8dp"
+    android:background="@drawable/account_item_bg"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:padding="4dp"
+    app:layout_constraintDimensionRatio="2.8:3"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:layout_margin="8dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            app:cardCornerRadius="120dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/account_img"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:scaleType="center" />
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/userNameTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginHorizontal="8dp"
+            android:layout_marginTop="12dp"
+            android:clickable="true"
+            android:duplicateParentState="true"
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:fontFamily="@font/days"
+            android:includeFontPadding="false"
+            android:lines="1"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:maxLines="1"
+            android:scrollHorizontally="true"
+            android:textAlignment="center"
+            android:textColor="@color/color_black_white_text"
+            android:textSize="13sp"
+            tools:text="+998943017410" />
+
+        <TextView
+            android:id="@+id/characterTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginHorizontal="8dp"
+            android:layout_marginTop="4dp"
+            android:clickable="true"
+            android:duplicateParentState="true"
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:fontFamily="@font/rubik_regular"
+            android:includeFontPadding="false"
+            android:lines="1"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:maxLines="1"
+            android:scrollHorizontally="true"
+            android:textAlignment="center"
+            android:textColor="@color/color_black_white_text"
+            android:textSize="10sp"
+            tools:text="Character : Joker" />
+
+    </LinearLayout>
+
+
+</FrameLayout>

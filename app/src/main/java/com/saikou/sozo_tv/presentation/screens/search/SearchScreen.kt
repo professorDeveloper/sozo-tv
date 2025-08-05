@@ -8,17 +8,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.lifecycle.lifecycleScope
-import com.kongzue.dialogx.dialogs.WaitDialog
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.SearchAdapter
 import com.saikou.sozo_tv.databinding.SearchScreenBinding
-import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
 import com.saikou.sozo_tv.utils.applyFocusedStyle
 import com.saikou.sozo_tv.utils.hideKeyboard
 import com.saikou.sozo_tv.utils.resetStyle
 import com.saikou.sozo_tv.utils.showKeyboard
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 

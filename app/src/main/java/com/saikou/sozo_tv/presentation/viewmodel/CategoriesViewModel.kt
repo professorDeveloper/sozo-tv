@@ -38,4 +38,22 @@ class CategoriesViewModel(private val repo: CategoriesRepository) : ViewModel() 
             }
         }
     }
+
+    fun loadFilter(searchResults: SearchResults) {
+        val data = searchResults.copy(currentPage = searchResults.currentPage)
+        updateFilter.postValue(UiState.Loading)
+        viewModelScope.launch {
+            updateFilter.postValue(UiState.Loading)
+            val catResult = repo.loadAnimeByGenre(data)
+            if (catResult.isSuccess) {
+                updateFilter.postValue(UiState.Success(catResult.getOrNull()!!))
+            } else {
+                updateFilter.postValue(
+                    UiState.Error(
+                        catResult.exceptionOrNull()?.message ?: "Expected Error !"
+                    )
+                )
+            }
+        }
+    }
 }

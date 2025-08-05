@@ -26,6 +26,7 @@ import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.CategoryGenre
 import com.saikou.sozo_tv.domain.model.CategoryGenreItem
 import com.saikou.sozo_tv.presentation.screens.home.vh.ViewHolderFactory
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.loadImage
 
 class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf()) :
@@ -269,10 +270,10 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                     binding.root.startAnimation(animation)
                     animation.fillAfter = true
                 }
-
+                binding.root.setOnClickListener {
+                    LocalData.sFocusedGenreClickListener.invoke(item.content.title)
+                }
             }
-//            }
-
 
         }
     }
@@ -288,8 +289,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             binding.root.apply {
 
                 setOnClickListener {
-//                    LocalData.listenerItemCategory.invoke(item)
-//                    Log.d("GGG", "bind:${item.content.name} ")
+                    LocalData.listenerItemCategory.invoke(item)
                 }
                 setOnFocusChangeListener { view, hasFocus ->
                     val animation = when {

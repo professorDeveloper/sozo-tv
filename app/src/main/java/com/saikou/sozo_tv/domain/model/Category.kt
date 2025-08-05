@@ -1,11 +1,7 @@
 package com.saikou.sozo_tv.domain.model
 
-import android.graphics.Movie
-import android.os.Parcelable
 import com.saikou.sozo_tv.data.model.anilist.HomeModel
-import com.saikou.sozo_tv.data.model.jikan.Data
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
-import kotlinx.parcelize.Parcelize
 
 data class Category(
     val name: String,

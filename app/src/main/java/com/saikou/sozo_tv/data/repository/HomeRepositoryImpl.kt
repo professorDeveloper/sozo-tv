@@ -1,7 +1,6 @@
 package com.saikou.sozo_tv.data.repository
 
 import android.util.Log
-import com.animestudios.animeapp.GetGenreThumbnailQuery
 import com.animestudios.animeapp.GetPopularQuery
 import com.animestudios.animeapp.GetRecentlyAddedQuery
 import com.animestudios.animeapp.GetRecommendationsQuery
@@ -11,7 +10,6 @@ import com.apollographql.apollo3.api.Optional
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.anilist.HomeModel
 import com.saikou.sozo_tv.data.model.anilist.Title
-import com.saikou.sozo_tv.data.model.jikan.Genre
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.data.remote.JikanApiService
 import com.saikou.sozo_tv.data.remote.safeApiCall
@@ -20,7 +18,6 @@ import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.GenreModel
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.utils.LocalData
-import java.lang.StackWalker.Option
 import kotlin.random.Random
 
 class HomeRepositoryImpl(

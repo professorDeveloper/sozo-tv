@@ -1,4 +1,11 @@
 package com.saikou.sozo_tv.utils
+
+import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.app.MyApp
+import com.saikou.sozo_tv.data.model.SectionItem
+import com.saikou.sozo_tv.domain.model.CategoryDetails
+import com.saikou.sozo_tv.domain.model.MySpinnerItem
+
 //
 //import com.ipsat.ipsat_tv.R
 //import com.ipsat.ipsat_tv.app.MyApp
@@ -19,7 +26,10 @@ package com.saikou.sozo_tv.utils
 //import com.ipsat.ipsat_tv.domain.model.category.ChannelItem
 //
 object LocalData {
-    val anime404 ="https://c4.wallpaperflare.com/wallpaper/976/117/318/anime-girls-404-not-found-glowing-eyes-girls-frontline-wallpaper-preview.jpg"
+    var isHistoryItemClicked = false
+    var currentCategory =""
+    val anime404 =
+        "https://c4.wallpaperflare.com/wallpaper/976/117/318/anime-girls-404-not-found-glowing-eyes-girls-frontline-wallpaper-preview.jpg"
     val genres = arrayListOf(
         "Action",
         "Adventure",
@@ -42,6 +52,51 @@ object LocalData {
         "Thriller"
     )
 
+    val mediaSortList = arrayListOf(
+        "START_DATE",
+        "START_DATE_DESC",
+        "STATUS",
+        "STATUS_DESC",
+        "TITLE_ENGLISH",
+        "TITLE_ENGLISH_DESC",
+        "TITLE_NATIVE",
+        "TITLE_NATIVE_DESC",
+        "TITLE_ROMAJI",
+        "TITLE_ROMAJI_DESC",
+        "TRENDING",
+        "TRENDING_DESC",
+        "TYPE",
+        "TYPE_DESC",
+        "UPDATED_AT",
+        "UPDATED_AT_DESC",
+        "VOLUMES",
+        "VOLUMES_DESC"
+    )
+    val sortSpinner = mediaSortList.map {
+        MySpinnerItem(it)
+    }
+
+    val years = (1970 until 2025).map { MySpinnerItem(it.toString()) }.reversed().toMutableList()
+    lateinit var sFocusedGenreClickListener: (String) -> Unit
+
+    fun setFocusedGenreClickListener(listener: (String) -> Unit) {
+        sFocusedGenreClickListener = listener
+
+    }
+
+
+    val sectionList = arrayListOf(
+        SectionItem(MyApp.context.getString(R.string.my_info), R.drawable.ic_users),
+        SectionItem(MyApp.context.getString(R.string.my_history), R.drawable.ic_time_history),
+        SectionItem(MyApp.context.getString(R.string.bookmark), R.drawable.ic_bookmark),
+        SectionItem(MyApp.context.getString(R.string.message_page), R.drawable.ic_chat),
+        SectionItem(MyApp.context.getString(R.string.exit), R.drawable.ic_exit),
+    )
+    lateinit var listenerItemCategory: (isAbout: CategoryDetails) -> Unit
+        fun setonClickedListenerItemCategory(listener: (isAbout: CategoryDetails) -> Unit) {
+        listenerItemCategory = listener
+    }
+
 }//
 //    var seriesId: Int = -1
 //    var currentEpp: Item0? = null
@@ -52,11 +107,7 @@ object LocalData {
 //    val eventList = ArrayList<EventModelItem>()
 //    var backdropEpList = ArrayList<Backdrop>()
 //    var itemMovieWatch: WatchHistoryEntity? = null
-//    lateinit var listenerItemCategory: (isAbout: CategoryDetails) -> Unit
 //    var isBookmarkClicked = false
-//    fun setonClickedListenerItemCategory(listener: (isAbout: CategoryDetails) -> Unit) {
-//        listenerItemCategory = listener
-//    }
 //
 //    val recommendedMovies: MutableList<Movie> = mutableListOf()
 //

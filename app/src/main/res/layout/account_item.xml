@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="15dp"
+    android:background="@drawable/background_account_item"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:gravity="start"
+    android:orientation="horizontal"
+    android:paddingHorizontal="8dp"
+    android:paddingVertical="4dp">
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/account_img"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center_vertical"
+        android:duplicateParentState="true"
+        app:srcCompat="@drawable/ic_no_register_profile"
+        app:tint="@color/color_item_tv_section_profile" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginVertical="4dp"
+        android:layout_marginStart="8dp"
+        android:duplicateParentState="true"
+        android:orientation="vertical"
+        android:padding="2dp">
+
+        <TextView
+            android:id="@+id/userNameTxt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:duplicateParentState="true"
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:text="Account"
+            android:focusableInTouchMode="true"
+            android:fontFamily="@font/days"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:maxLines="1"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
+            android:textColor="@color/color_black_white_text"
+            android:textSize="11sp"
+            tools:text="@string/eshonov_fakhriyor" />
+
+        <TextView
+            android:id="@+id/phoneTxt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:alpha=".7"
+            android:duplicateParentState="true"
+            android:fontFamily="@font/rubik_regular"
+            android:gravity="center_vertical"
+            android:textColor="@color/color_black_white_text"
+            android:textSize="10sp"
+            tools:ignore="SmallSp"
+            tools:text="+998 99 280 38 09" />
+
+    </LinearLayout>
+
+</LinearLayout>

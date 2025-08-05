@@ -1,0 +1,32 @@
+query getAnimeById($id: Int) {
+    Media(id: $id) {
+        id
+        idMal
+        countryOfOrigin
+
+        title {
+            english
+        }
+        seasonYear
+        coverImage {
+            large
+        }
+        bannerImage
+
+        studios {
+            nodes {
+                name
+            }
+        }
+        episodes
+        externalLinks {
+             url
+        }
+        source
+        meanScore
+        averageScore
+        genres
+
+        description
+    }
+}

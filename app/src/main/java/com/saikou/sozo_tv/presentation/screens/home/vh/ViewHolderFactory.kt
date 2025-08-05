@@ -8,6 +8,11 @@ import com.saikou.sozo_tv.databinding.ContentBannerBinding
 import com.saikou.sozo_tv.databinding.ItemCategoryBinding
 import com.saikou.sozo_tv.databinding.ItemGenreBinding
 import com.saikou.sozo_tv.databinding.ItemMovieBinding
+import com.saikou.sozo_tv.databinding.ItemPlayDetailsHeaderBinding
+import com.saikou.sozo_tv.databinding.ItemPlayDetailsSectionBinding
+import com.saikou.sozo_tv.databinding.ItemPlayRecommendedBinding
+import com.saikou.sozo_tv.presentation.screens.detail.MovieDetailsAdapter
+import com.saikou.sozo_tv.presentation.screens.detail.MovieDetailsAdapter.Companion.DETAILS_ITEM_THIRD
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 
 object ViewHolderFactory {
@@ -51,25 +56,25 @@ object ViewHolderFactory {
                 HomeAdapter.ItemCategoryViewHolder(binding)
             }
 //
-//            MovieDetailsAdapter.DETAILS_ITEM_HEADER -> {
-//                val binding = ItemPlayDetailsHeaderBinding.inflate(inflater, parent, false)
-//                MovieDetailsAdapter.ItemPlayDetailsHeaderViewHolder(binding)
-//            }
+            MovieDetailsAdapter.DETAILS_ITEM_HEADER -> {
+                val binding = ItemPlayDetailsHeaderBinding.inflate(inflater, parent, false)
+                MovieDetailsAdapter.ItemPlayDetailsHeaderViewHolder(binding)
+            }
 //
-//            MovieDetailsAdapter.DETAILS_ITEM_SECTION -> {
-//                val binding = ItemPlayDetailsSectionBinding.inflate(inflater, parent, false)
-//                MovieDetailsAdapter.ItemPlayDetailsSectionViewHolder(binding)
-//            }
-//
-//            DETAILS_ITEM_THIRD -> {
-//                MovieDetailsAdapter.ItemPlayDetailsThirdViewHolder(
-//                    ItemPlayRecommendedBinding.inflate(
-//                        inflater,
-//                        parent,
-//                        false
-//                    )
-//                )
-//            }
+            MovieDetailsAdapter.DETAILS_ITEM_SECTION -> {
+                val binding = ItemPlayDetailsSectionBinding.inflate(inflater, parent, false)
+                MovieDetailsAdapter.ItemPlayDetailsSectionViewHolder(binding)
+            }
+
+            DETAILS_ITEM_THIRD -> {
+                MovieDetailsAdapter.ItemPlayDetailsThirdViewHolder(
+                    ItemPlayRecommendedBinding.inflate(
+                        inflater,
+                        parent,
+                        false
+                    )
+                )
+            }
 
 
             else -> throw IllegalArgumentException("Invalid view type: $viewType")

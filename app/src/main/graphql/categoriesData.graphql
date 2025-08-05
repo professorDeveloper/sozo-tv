@@ -1,4 +1,44 @@
-query getAnimeByGenre($genre:String,$page: Int) {
+query getAnimeByGenre(
+    $genre: String
+    $page: Int
+    $mediaSort: MediaSort
+    $year: Int
+    $avgScore: Int
+) {
+    Page(page: $page, perPage: 50) {
+        pageInfo {
+            hasNextPage
+            currentPage
+        }
+        media(
+            genre: $genre
+            type: ANIME
+            sort: [$mediaSort]
+            seasonYear: $year
+            popularity_greater: $avgScore
+
+        ) {
+            id
+            idMal
+            genres
+            averageScore
+            title {
+                english
+            }
+            coverImage {
+                large
+            }
+            studios {
+                nodes {
+                    name
+                }
+            }
+            meanScore
+        }
+    }
+}
+
+query getAnimeByOnlGenre($genre:String,$page: Int) {
     Page(page: $page, perPage: 50) {
         pageInfo {
             hasNextPage

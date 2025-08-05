@@ -86,6 +86,11 @@ class CategoryTabAdapter(private var isFiltered: Boolean = true) :
         )
     }
 
+    fun setSelectedPosition(position: Int) {
+        selectedPosition = position
+        notifyDataSetChanged()
+    }
+
     fun submitList(newList: ArrayList<String>) {
         list.clear()
         if (isFiltered) list.add(0, "Filter")

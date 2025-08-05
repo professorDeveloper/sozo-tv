@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginBottom="10dp"
+    android:background="@color/main_background">
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardView4"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="15dp"
+        app:cardCornerRadius="7dp"
+        app:cardElevation="0dp"
+        app:layout_constraintDimensionRatio="2:3"
+        app:layout_constraintEnd_toStartOf="@+id/guideline29"
+        app:layout_constraintStart_toStartOf="@+id/guideline26"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/film_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
+    </androidx.cardview.widget.CardView>
+
+
+    <TextView
+        android:id="@+id/film_description_tv"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="7dp"
+        android:layout_marginEnd="7dp"
+        android:textColor="@color/lb_tv_white"
+        android:fontFamily="@font/rubik_regular"
+        android:minLines="4"
+        android:maxLines="5"
+        android:lines="5"
+        android:textSize="13sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline30"
+        app:layout_constraintTop_toTopOf="@+id/cardView4" />
+
+
+    <View
+        android:id="@+id/view3"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginEnd="10dp"
+        android:background="#373D3F"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/guideline30"
+        app:layout_constraintTop_toBottomOf="@+id/barrier3" />
+
+
+    <TextView
+        android:id="@+id/textView8"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:fontFamily="@font/rubik_regular"
+        android:lines="1"
+        android:text="@string/ishlab_chiqarilgan_sana"
+        android:textColor="#8C9598"
+        android:textSize="13sp"
+        app:layout_constraintStart_toStartOf="@+id/guideline30"
+        app:layout_constraintTop_toBottomOf="@id/barrier3" />
+
+    <LinearLayout
+        android:id="@+id/container_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="@+id/textView8"
+        app:layout_constraintTop_toBottomOf="@+id/textView8" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/rubik_regular"
+        android:lines="1"
+        android:text="@string/davlat"
+        android:textColor="#8C9598"
+        android:textSize="13sp"
+        app:layout_constraintStart_toEndOf="@id/barrier4"
+        app:layout_constraintTop_toTopOf="@id/textView8" />
+
+    <LinearLayout
+        android:id="@+id/container_country"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toEndOf="@id/barrier4"
+        app:layout_constraintTop_toTopOf="@id/container_date" />
+
+    <TextView
+        android:id="@+id/textView9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:fontFamily="@font/rubik_regular"
+        android:lines="1"
+        android:text="@string/til"
+        android:textColor="#8C9598"
+        android:textSize="13sp"
+        app:layout_constraintStart_toEndOf="@id/guideline30"
+        app:layout_constraintTop_toBottomOf="@id/container_date" />
+
+    <LinearLayout
+        android:id="@+id/language"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+
+        app:layout_constraintStart_toStartOf="@+id/guideline30"
+        app:layout_constraintTop_toBottomOf="@id/textView9" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/rubik_regular"
+        android:lines="1"
+        android:text="@string/janr"
+        android:textColor="#8C9598"
+        android:textSize="13sp"
+        app:layout_constraintStart_toEndOf="@id/barrier4"
+        app:layout_constraintTop_toTopOf="@id/textView9" />
+
+    <LinearLayout
+        android:id="@+id/container_janr"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toEndOf="@id/barrier4"
+        app:layout_constraintTop_toTopOf="@+id/language" />
+
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/rubik_regular"
+        android:lines="1"
+        android:text="@string/reyting"
+        android:textColor="#8C9598"
+        android:textSize="13sp"
+        app:layout_constraintStart_toEndOf="@id/guideline30"
+        app:layout_constraintTop_toBottomOf="@id/barrier5" />
+
+
+    <TextView
+        android:id="@+id/rating_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/days"
+        android:lines="1"
+        android:textColor="#fff"
+        app:layout_constraintStart_toStartOf="@+id/guideline30"
+        app:layout_constraintTop_toBottomOf="@id/textView" />
+
+
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:barrierMargin="10dp"
+        app:constraint_referenced_ids="container_janr,language" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="right"
+        app:barrierMargin="50dp"
+        app:constraint_referenced_ids="textView8" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:barrierMargin="10dp"
+        app:constraint_referenced_ids="film_description_tv" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline26"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent=".03" />
+
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline29"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent=".23" />
+
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline30"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent=".27" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

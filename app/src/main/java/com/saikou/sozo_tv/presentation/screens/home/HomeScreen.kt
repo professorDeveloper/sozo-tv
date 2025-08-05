@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.presentation.screens.home
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -15,7 +16,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.kongzue.dialogx.dialogs.WaitDialog
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.HomeScreenBinding
+import com.saikou.sozo_tv.domain.model.DetailArg
+import com.saikou.sozo_tv.presentation.activities.MainActivity
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.UiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -40,6 +44,7 @@ class HomeScreen : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initializeHome()
+        LocalData.currentCategory = ""
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 homeViewModel.homeDataState.collect { state ->
@@ -55,6 +60,9 @@ class HomeScreen : Fragment() {
                 binding.isLoading.gIsLoadingRetry.isGone = true
                 binding.isLoading.root.isGone = true
                 homeAdapter.submitList(state.data)
+                LocalData.setFocusedGenreClickListener {
+                    (requireActivity() as MainActivity).navigateToCategory(it)
+                }
 //                HomeFakeDAta.setFocusedCateogryItem { data, it ->
 //                    if (::channelCategory.isInitialized) {
 //                        findNavController().navigate(
@@ -68,7 +76,11 @@ class HomeScreen : Fragment() {
 //                    channelCategory = it
 //                    LocalData.categoryList = it
 //                }
-//                LocalData.setonClickedListenerItemCategory {
+                LocalData.setonClickedListenerItemCategory {
+                    findNavController().navigate(
+                        HomeScreenDirections.actionHomeToDetailPage(DetailArg(it.content.id))
+                    )
+                }
 //                    WaitDialog.setMessage("Loading..").show(requireActivity())
 //                    lifecycleScope.launch {
 //                        delay(300)
@@ -111,7 +123,6 @@ class HomeScreen : Fragment() {
                 binding.isLoading.btnIsLoadingRetry.setOnClickListener {
                     homeViewModel.loadBanners()
                     homeViewModel.loadCategories()
-//                    homeViewModel.loadChannels()
                 }
             }
 
@@ -119,6 +130,7 @@ class HomeScreen : Fragment() {
             else -> {}
         }
     }
+
     private fun initializeHome() {
         binding.vgvHome.apply {
             adapter = homeAdapter.apply {

@@ -2,14 +2,17 @@ package com.saikou.sozo_tv.di
 
 import androidx.room.Room
 import com.saikou.sozo_tv.data.repository.CategoriesRepositoryImpl
+import com.saikou.sozo_tv.data.repository.DetailRepositoryImpl
 import com.saikou.sozo_tv.data.repository.HomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.SearchRepositoryImpl
 import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import com.saikou.sozo_tv.domain.repository.CategoriesRepository
+import com.saikou.sozo_tv.domain.repository.DetailRepository
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.domain.repository.SearchRepository
 import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
@@ -42,9 +45,9 @@ val koinModule = module {
     single<CategoriesRepository> {
         CategoriesRepositoryImpl(apolloClient = get())
     }
-//    single<MovieBookmarkRepository> {
-//        MovieBookmarkRepositoryImpl(dao = get())
-//    }
+    single<DetailRepository> {
+        DetailRepositoryImpl(client = get())
+    }
 //    single<ProfileRepository> {
 //        ProfileRepositoryImpl(service = get(), pref = get())
 //    }
@@ -58,6 +61,7 @@ val koinModule = module {
 //
 //
     viewModel { HomeViewModel(repo = get()) }
+    viewModel { PlayViewModel(repo = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
     viewModel { SearchViewModel(repo = get()) }
 //    viewModel {

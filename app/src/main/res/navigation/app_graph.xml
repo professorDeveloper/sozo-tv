@@ -8,7 +8,11 @@
     <fragment
         android:id="@+id/home"
         android:name="com.saikou.sozo_tv.presentation.screens.home.HomeScreen"
-        android:label="HomeScreen" />
+        android:label="HomeScreen" >
+        <action
+            android:id="@+id/action_home_to_detailPage"
+            app:destination="@id/detailPage" />
+    </fragment>
     <fragment
         android:id="@+id/contact"
         android:name="com.saikou.sozo_tv.presentation.screens.contact.ContactScreen"
@@ -23,5 +27,13 @@
         android:name="com.saikou.sozo_tv.presentation.screens.category.CategoriesScreen"
         android:label="categories_screen"
         tools:layout="@layout/categories_screen" />
+    <fragment
+        android:id="@+id/detailPage"
+        android:name="com.saikou.sozo_tv.presentation.screens.detail.DetailPage"
+        android:label="DetailPage">
+        <argument
+            android:name="animeId"
+            app:argType="com.saikou.sozo_tv.domain.model.DetailArg" />
+    </fragment>
 
 </navigation>

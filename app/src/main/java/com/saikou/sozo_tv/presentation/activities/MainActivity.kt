@@ -14,6 +14,7 @@ import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ActivityMainBinding
 import com.saikou.sozo_tv.databinding.ContentHeaderMenuMainTvBinding
 import com.saikou.sozo_tv.domain.preference.EncryptedPreferencesManager
+import com.saikou.sozo_tv.utils.LocalData
 import org.koin.android.ext.android.inject
 
 class MainActivity : FragmentActivity() {
@@ -80,5 +81,13 @@ class MainActivity : FragmentActivity() {
         val intent = Intent(this@MainActivity, ProfileActivity::class.java)
         startActivity(intent)
         finish()
+    }
+
+    fun navigateToCategory(it: String) {
+        LocalData.currentCategory = it
+        val navHostFragment =
+            this.supportFragmentManager.findFragmentById(binding.navMainFragment.id) as NavHostFragment
+        val navController = navHostFragment.navController
+        navController.navigate(R.id.categories)
     }
 }

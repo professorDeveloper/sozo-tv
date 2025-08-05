@@ -52,6 +52,15 @@
         app:layout_constraintTop_toBottomOf="@+id/tabRv"
         tools:listitem="@layout/item_movie" />
 
+
+    <include
+        android:id="@+id/placeHolder"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tabRv"
+        layout="@layout/bookmark_place_holder" />
+
     <include
         android:id="@+id/isLoadingContainer"
         layout="@layout/layout_is_loading"

@@ -58,6 +58,7 @@ query getRecentlyAdded($page: Int) {
     }
 }
 
+
 query getTrending($page: Int) {
     Page(page: $page, perPage: 10) {
         mediaTrends{

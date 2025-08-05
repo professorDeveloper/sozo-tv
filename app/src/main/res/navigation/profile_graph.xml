@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/profile_graph"
+    app:startDestination="@id/myAccountPage">
+
+    <fragment
+        android:id="@+id/myAccountPage"
+        android:name="com.saikou.sozo_tv.presentation.screens.profile.MyAccountPage"
+        android:label="my_account_page"
+        tools:layout="@layout/my_account_page" />
+</navigation>

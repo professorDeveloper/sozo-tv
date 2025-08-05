@@ -107,7 +107,19 @@ class CategoriesPageAdapter(val isDetail: Boolean = false) :
                             )
                         }
                     }
+                    val animation = when {
+                        hasFocus -> AnimationUtils.loadAnimation(
+                            binding.root.context,
+                            R.anim.zoom_in
+                        )
 
+                        else -> AnimationUtils.loadAnimation(
+                            binding.root.context,
+                            R.anim.zoom_out
+                        )
+                    }
+                    binding.root.startAnimation(animation)
+                    animation.fillAfter = true
                 }
                 binding.root.isFocusable = true
                 binding.root.isFocusableInTouchMode = true

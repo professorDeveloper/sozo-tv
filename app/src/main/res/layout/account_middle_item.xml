@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardView"
+    android:layout_width="130dp"
+    android:layout_height="130dp"
+    android:layout_margin="8dp"
+    android:background="@drawable/account_item_bg"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:padding="4dp"
+    app:layout_constraintDimensionRatio="2.8:3"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:layout_margin="8dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/account_img"
+
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            app:srcCompat="@drawable/ic_no_register_profile"
+            app:tint="@color/color_item_tv_section_profile" />
+
+        <TextView
+            android:id="@+id/userNameTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:lines="1"
+            android:maxLines="1"
+            android:layout_marginHorizontal="8dp"
+            android:layout_marginTop="8dp"
+            android:clickable="true"
+            android:duplicateParentState="true"
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:fontFamily="@font/days"
+            android:includeFontPadding="false"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:scrollHorizontally="true"
+            android:textAlignment="center"
+            android:textColor="@color/color_black_white_text"
+            android:textSize="10sp"
+            tools:text="+998943017410" />
+
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="25dp"
+            android:layout_marginHorizontal="10dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/background_button"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            app:cardCornerRadius="8dp">
+
+            <ImageView
+                android:layout_width="2dp"
+                android:layout_height="8dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="12dp"
+                android:duplicateParentState="true"
+                android:src="@drawable/ic_more_vertical"
+                app:tint="@color/color_item_tv_category_tv" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="4dp"
+                android:duplicateParentState="true"
+                android:fontFamily="@font/days"
+                android:text="@string/amallar"
+                android:textColor="@color/color_item_tv_category_tv"
+                android:textSize="10sp"
+                tools:ignore="SmallSp" />
+
+        </FrameLayout>
+
+
+    </LinearLayout>
+
+
+</FrameLayout>
