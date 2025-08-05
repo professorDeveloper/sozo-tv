@@ -26,7 +26,11 @@
         android:id="@+id/categories"
         android:name="com.saikou.sozo_tv.presentation.screens.category.CategoriesScreen"
         android:label="categories_screen"
-        tools:layout="@layout/categories_screen" />
+        tools:layout="@layout/categories_screen" >
+        <action
+            android:id="@+id/action_categories_to_detailPage"
+            app:destination="@id/detailPage" />
+    </fragment>
     <fragment
         android:id="@+id/detailPage"
         android:name="com.saikou.sozo_tv.presentation.screens.detail.DetailPage"

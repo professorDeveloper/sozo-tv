@@ -11,12 +11,14 @@ import android.widget.Toast
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.DetailPageBinding
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
+import com.saikou.sozo_tv.utils.loadImage
 import com.saikou.sozo_tv.utils.snackString
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
@@ -65,6 +67,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         playViewModel.loadAnimeById(id = nav.animeId.id.toString().toInt())
         initializeAdapter()
         playViewModel.detailData.observe(viewLifecycleOwner) { details ->
+            binding.replaceImage.loadImage(details.content.bannerImage)
             val currentList = arrayListOf<DetailCategory>()
             val headerItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_HEADER)
             val sectionItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_SECTION)
@@ -91,7 +94,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
 
 
     override fun onCancelButtonClicked() {
-        TODO("Not yet implemented")
+        findNavController().popBackStack()
     }
 
     override fun onBookMarkClicked(itme: DetailCategory) {
@@ -118,5 +121,11 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
 
     override fun onTrailerButtonClicked(item: DetailCategory) {
         TODO("Not yet implemented")
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+
     }
 }

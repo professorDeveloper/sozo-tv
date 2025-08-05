@@ -9,8 +9,10 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.CategoriesScreenBinding
+import com.saikou.sozo_tv.domain.model.DetailArg
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.SearchResults
 import com.saikou.sozo_tv.presentation.screens.category.dialog.FilterDialog
@@ -63,6 +65,11 @@ class CategoriesScreen : Fragment() {
         pageAdapter.updateTabs(LocalData.genres)
         pageAdapter.setClickDetail {
 //
+            findNavController().navigate(
+                CategoriesScreenDirections.actionCategoriesToDetailPage(
+                    DetailArg(it.id)
+                )
+            )
         }
 
         model.result.observe(viewLifecycleOwner) {
@@ -178,7 +185,6 @@ class CategoriesScreen : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        LocalData.currentCategory = ""
     }
 
     private fun showFilterDialog() {

@@ -206,6 +206,8 @@ class MovieDetailsAdapter(
                 val descriptionTextView =
                     binding.frame.findViewById<TextView>(R.id.film_description_tv)
                 descriptionTextView?.movementMethod = LinkMovementMethod.getInstance()
+                descriptionTextView.isFocusable = false
+                descriptionTextView.focusable = View.NOT_FOCUSABLE
                 descriptionTextView?.text = Html.fromHtml(item.content.description, Html.FROM_HTML_MODE_COMPACT)
                 languageContainer?.removeAllViews()
                 countryContainer?.removeAllViews()
