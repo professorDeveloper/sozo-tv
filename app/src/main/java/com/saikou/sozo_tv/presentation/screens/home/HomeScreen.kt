@@ -78,14 +78,9 @@ class HomeScreen : Fragment() {
 //                    LocalData.categoryList = it
 //                }
                 LocalData.setonClickedListenerItemCategory {
-                    lifecycleScope.launch {
-                        DialogUtils.loadingDialog(requireActivity()).show()
-                        delay(900)
-                        DialogUtils.loadingDialog(requireActivity()).dismiss()
                         findNavController().navigate(
                             HomeScreenDirections.actionHomeToDetailPage(DetailArg(it.content.id))
                         )
-                    }
 
                 }
 //                    WaitDialog.setMessage("Loading..").show(requireActivity())

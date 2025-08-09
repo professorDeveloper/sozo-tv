@@ -66,17 +66,12 @@ class CategoriesScreen : Fragment() {
         }
         pageAdapter.updateTabs(LocalData.genres)
         pageAdapter.setClickDetail {
-//
-            lifecycleScope.launch {
-                DialogUtils.loadingDialog(requireActivity()).show()
-                delay(900)
-                DialogUtils.loadingDialog(requireActivity()).dismiss()
-                findNavController().navigate(
-                    CategoriesScreenDirections.actionCategoriesToDetailPage(
-                        DetailArg(it.id)
-                    )
+
+            findNavController().navigate(
+                CategoriesScreenDirections.actionCategoriesToDetailPage(
+                    DetailArg(it.id)
                 )
-            }
+            )
         }
 
         model.result.observe(viewLifecycleOwner) {
