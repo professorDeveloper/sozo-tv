@@ -17,12 +17,14 @@ import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.SearchResults
 import com.saikou.sozo_tv.presentation.screens.category.dialog.FilterDialog
 import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
+import com.saikou.sozo_tv.utils.DialogUtils
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.UiState
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.setupGridLayoutForCategories
 import com.saikou.sozo_tv.utils.visible
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -65,11 +67,16 @@ class CategoriesScreen : Fragment() {
         pageAdapter.updateTabs(LocalData.genres)
         pageAdapter.setClickDetail {
 //
-            findNavController().navigate(
-                CategoriesScreenDirections.actionCategoriesToDetailPage(
-                    DetailArg(it.id)
+            lifecycleScope.launch {
+                DialogUtils.loadingDialog(requireActivity()).show()
+                delay(900)
+                DialogUtils.loadingDialog(requireActivity()).dismiss()
+                findNavController().navigate(
+                    CategoriesScreenDirections.actionCategoriesToDetailPage(
+                        DetailArg(it.id)
+                    )
                 )
-            )
+            }
         }
 
         model.result.observe(viewLifecycleOwner) {

@@ -19,6 +19,7 @@ import com.saikou.sozo_tv.databinding.HomeScreenBinding
 import com.saikou.sozo_tv.domain.model.DetailArg
 import com.saikou.sozo_tv.presentation.activities.MainActivity
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
+import com.saikou.sozo_tv.utils.DialogUtils
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.UiState
 import kotlinx.coroutines.delay
@@ -77,9 +78,15 @@ class HomeScreen : Fragment() {
 //                    LocalData.categoryList = it
 //                }
                 LocalData.setonClickedListenerItemCategory {
-                    findNavController().navigate(
-                        HomeScreenDirections.actionHomeToDetailPage(DetailArg(it.content.id))
-                    )
+                    lifecycleScope.launch {
+                        DialogUtils.loadingDialog(requireActivity()).show()
+                        delay(900)
+                        DialogUtils.loadingDialog(requireActivity()).dismiss()
+                        findNavController().navigate(
+                            HomeScreenDirections.actionHomeToDetailPage(DetailArg(it.content.id))
+                        )
+                    }
+
                 }
 //                    WaitDialog.setMessage("Loading..").show(requireActivity())
 //                    lifecycleScope.launch {
