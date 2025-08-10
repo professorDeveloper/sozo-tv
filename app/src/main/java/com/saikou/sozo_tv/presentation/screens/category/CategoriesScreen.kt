@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.category
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -12,9 +13,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.CategoriesScreenBinding
+import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.DetailArg
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.SearchResults
+import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.screens.category.dialog.FilterDialog
 import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
 import com.saikou.sozo_tv.utils.DialogUtils
@@ -66,12 +69,10 @@ class CategoriesScreen : Fragment() {
         }
         pageAdapter.updateTabs(LocalData.genres)
         pageAdapter.setClickDetail {
-
-            findNavController().navigate(
-                CategoriesScreenDirections.actionCategoriesToDetailPage(
-                    DetailArg(it.id)
-                )
-            )
+            val intent =
+                Intent(binding.root.context, PlayerActivity::class.java)
+            intent.putExtra("model", it.id)
+            binding.root.context.startActivity(intent)
         }
 
         model.result.observe(viewLifecycleOwner) {

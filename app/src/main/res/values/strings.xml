@@ -80,10 +80,10 @@
     <string name="film_haqida">About Movie</string>
     <string name="prodyuser_va_aktyorlar">More Info</string>
     <string name="ishlab_chiqarilgan_sana">Release Year</string>
-    <string name="davlat">Country</string>
+    <string name="davlat">Studio</string>
     <string name="davomiyligi">User Ratings</string>
     <string name="janr">Category</string>
-    <string name="reyting">IMDB Rating</string>
+    <string name="reyting">Rating</string>
     <string name="til">Language</string>
     <string name="yangi">Yangi</string>
     <string name="soat">soat</string>

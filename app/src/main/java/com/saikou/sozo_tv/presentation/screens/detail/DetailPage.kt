@@ -29,7 +29,6 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     private val playViewModel: PlayViewModel by activityViewModel()
     private var player: ExoPlayer? = null
     private var trailerUrlPlayer: String? = null
-    private val nav by navArgs<DetailPageArgs>()
     private val detailsAdapter = MovieDetailsAdapter(detailsButtonListener = this)
     private val playerListener = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
@@ -63,18 +62,21 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.d("GGG", "handleHomeDataState:${nav.animeId.id.toInt()} ")
-        playViewModel.loadAnimeById(id = nav.animeId.id.toString().toInt())
         initializeAdapter()
+        playViewModel.relationsData.observe(viewLifecycleOwner){
+            detailsAdapter.submitRecommendedMovies(it)
+        }
         playViewModel.detailData.observe(viewLifecycleOwner) { details ->
             binding.replaceImage.loadImage(details.content.bannerImage)
             val currentList = arrayListOf<DetailCategory>()
             val headerItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_HEADER)
             val sectionItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_SECTION)
-            currentList.addAll(listOf(headerItem, sectionItem))
+            val thirdItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_THIRD)
+            currentList.addAll(listOf(headerItem, sectionItem, thirdItem))
 
             detailsAdapter.submitList(currentList)
         }
+
         playViewModel.errorData.observe(viewLifecycleOwner) {
             Toast.makeText(requireActivity(), it, Toast.LENGTH_SHORT).show()
         }
@@ -94,7 +96,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
 
 
     override fun onCancelButtonClicked() {
-        findNavController().popBackStack()
+        requireActivity().finish()
     }
 
     override fun onBookMarkClicked(itme: DetailCategory) {

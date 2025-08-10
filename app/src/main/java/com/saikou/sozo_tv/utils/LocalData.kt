@@ -4,6 +4,7 @@ import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.model.SectionItem
 import com.saikou.sozo_tv.domain.model.CategoryDetails
+import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.MySpinnerItem
 
 //
@@ -26,6 +27,7 @@ import com.saikou.sozo_tv.domain.model.MySpinnerItem
 //import com.ipsat.ipsat_tv.domain.model.category.ChannelItem
 //
 object LocalData {
+    const val FILE_NAME_GENRES: String ="genres"
     var isHistoryItemClicked = false
     var currentCategory =""
     val anime404 =
@@ -96,6 +98,7 @@ object LocalData {
         fun setonClickedListenerItemCategory(listener: (isAbout: CategoryDetails) -> Unit) {
         listenerItemCategory = listener
     }
+    val recommendedMovies: MutableList<MainModel> = mutableListOf()
 
 }//
 //    var seriesId: Int = -1

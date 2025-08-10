@@ -3,10 +3,12 @@ package com.saikou.sozo_tv.utils
 import com.animestudios.animeapp.GetAnimeByGenreQuery
 import com.animestudios.animeapp.GetAnimeByIdQuery
 import com.animestudios.animeapp.GetAnimeByOnlGenreQuery
+import com.animestudios.animeapp.GetRelationsByIdQuery
 import com.animestudios.animeapp.SearchAnimeQuery
 import com.animestudios.animeapp.type.CountryCode
 import com.animestudios.animeapp.type.Query
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
+import com.saikou.sozo_tv.data.model.anilist.HomeModel
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
@@ -29,6 +31,21 @@ import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 //import com.ipsat.ipsat_tv.presentation.screens.home.HomeAdapter
 //import kotlinx.parcelize.Parcelize
 //
+
+fun GetRelationsByIdQuery.Node.toDomain(): MainModel {
+    return MainModel(
+        this.id,
+        title = this.title?.userPreferred ?: "",
+        idMal = -1,
+        this.coverImage?.large ?: LocalData.anime404,
+        this.genres,
+        this.studios?.nodes?.map {
+            it?.name ?: ""
+        },
+        this.averageScore ?: -1,
+        this.meanScore ?: -1
+    )
+}
 
 fun GetAnimeByIdQuery.Media.toDomain(): DetailModel {
     val extraLinksD = this.externalLinks?.map {

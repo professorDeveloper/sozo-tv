@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.home
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -18,6 +19,7 @@ import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.HomeScreenBinding
 import com.saikou.sozo_tv.domain.model.DetailArg
 import com.saikou.sozo_tv.presentation.activities.MainActivity
+import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.utils.DialogUtils
 import com.saikou.sozo_tv.utils.LocalData
@@ -64,50 +66,12 @@ class HomeScreen : Fragment() {
                 LocalData.setFocusedGenreClickListener {
                     (requireActivity() as MainActivity).navigateToCategory(it)
                 }
-//                HomeFakeDAta.setFocusedCateogryItem { data, it ->
-//                    if (::channelCategory.isInitialized) {
-//                        findNavController().navigate(
-//                            HomeScreenDirections.actionHomeToLiveTvMainPlayerScreen(
-//                                channelCategory[0], it.content
-//                            )
-//                        )
-//                    }
-//                }
-//                homeViewModel.tvCategory.observe(viewLifecycleOwner) {
-//                    channelCategory = it
-//                    LocalData.categoryList = it
-//                }
                 LocalData.setonClickedListenerItemCategory {
-                        findNavController().navigate(
-                            HomeScreenDirections.actionHomeToDetailPage(DetailArg(it.content.id))
-                        )
-
+                    val intent =
+                        Intent(binding.root.context, PlayerActivity::class.java)
+                    intent.putExtra("model", it.content.id)
+                    binding.root.context.startActivity(intent)
                 }
-//                    WaitDialog.setMessage("Loading..").show(requireActivity())
-//                    lifecycleScope.launch {
-//                        delay(300)
-//                        homeViewModel.checkMovieSeries(it.content.id, it.content).apply {
-//                            WaitDialog.dismiss()
-//                            if (this) {
-//                                val intent = Intent(
-//                                    binding.root.context, PlayerActivity::class.java
-//                                )
-//                                intent.putExtra("model", it)
-//                                intent.putExtra("isSeries", true)
-//                                binding.root.context.startActivity(intent)
-//
-//                            } else {
-//                                val intent =
-//                                    Intent(binding.root.context, PlayerActivity::class.java)
-//                                intent.putExtra("model", it)
-//                                intent.putExtra("isSeries", false)
-//                                binding.root.context.startActivity(intent)
-//
-//                            }
-//                        }
-//                    }
-//
-//                }
             }
 
             is UiState.Loading -> {

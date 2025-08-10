@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -30,8 +31,11 @@ import org.kamranzafar.jtar.TarInputStream
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import java.net.URL
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
@@ -339,6 +343,45 @@ fun makeSslForTrailer(sslContext: SSLContext) {
 //    )
 //}
 
+fun <T> readData(fileName: String, context: Context? = null, toast: Boolean = true): T? {
+    val a = context ?: MyApp.context
+    try {
+        if (a.fileList() != null)
+            if (fileName in a.fileList()) {
+                val fileIS: FileInputStream = a.openFileInput(fileName)
+                val objIS = ObjectInputStream(fileIS)
+                val data = objIS.readObject() as T
+                objIS.close()
+                fileIS.close()
+                return data
+            }
+    } catch (e: Exception) {
+        if (toast) snackString("Error loading data $fileName")
+        e.printStackTrace()
+    }
+    return null
+}
+
+fun <T> tryWith(post: Boolean = false, snackbar: Boolean = true, call: () -> T): T? {
+    return try {
+        call.invoke()
+    } catch (e: Throwable) {
+        null
+    }
+}
+
+fun saveData(fileName: String, data: Any?, context: Context? = null) {
+    tryWith {
+        val a = context ?: MyApp.context
+        if (a != null) {
+            val fos: FileOutputStream = a.openFileOutput(fileName, Context.MODE_PRIVATE)
+            val os = ObjectOutputStream(fos)
+            os.writeObject(data)
+            os.close()
+            fos.close()
+        }
+    }
+}
 @SuppressLint("HardwareIds")
 fun getAndroidId(context: Context): String {
     return Settings.Secure.getString(

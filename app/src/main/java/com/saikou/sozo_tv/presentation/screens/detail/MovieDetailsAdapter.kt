@@ -22,11 +22,15 @@ import com.saikou.sozo_tv.databinding.ItemPlayRecommendedBinding
 import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.DetailModel
+import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 import com.saikou.sozo_tv.presentation.screens.home.vh.ViewHolderFactory
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.LocalData.recommendedMovies
 import com.saikou.sozo_tv.utils.loadImage
+import com.saikou.sozo_tv.utils.toYear
+import kotlin.random.Random
 
 class MovieDetailsAdapter(
     val itemList: MutableList<HomeAdapter.HomeData> = mutableListOf(),
@@ -70,7 +74,6 @@ class MovieDetailsAdapter(
                 )
                 ItemPlayDetailsThirdViewHolder(binding)
             }
-
             DETAILS_ITEM_FOUR -> {
                 val binding = ItemPlayCastBinding.inflate(
                     LayoutInflater.from(parent.context),
@@ -127,16 +130,14 @@ class MovieDetailsAdapter(
             adapter.setClickDetail {
 //                LocalData.focusChangedListenerPlayerg.invoke(it)
             }
+            Log.d("REcommmended List", "updateTextViews:${recommendedMovies} ")
+            adapter.updateCategoriesAll(recommendedMovies as ArrayList<MainModel>)
+            adapter.setCategoriesPageInterface(object :
+                CategoriesPageAdapter.CategoriesPageInterface {
+                override fun onCategorySelected(category: MainModel, position: Int) {
+                }
 
-//            Log.d("REcommmended List", "updateTextViews:${recommendedMovies} ")
-//            adapter.updateCategoriesAll(recommendedMovies as ArrayList<DetailModel>)
-//            adapter.setCategoriesPageInterface(object :
-//                CategoriesPageAdapter.CategoriesPageInterface {
-//
-//                override fun onCategorySelected(category: Movie, position: Int) {
-//                }
-//
-//            })
+            })
             binding.recommendedRv.adapter = adapter
         }
     }
@@ -151,8 +152,9 @@ class MovieDetailsAdapter(
 
         init {
             setFocusChangeListener(
-                binding.aboutFilmContainer,
-                R.layout.item_container_about_film,
+                binding.aboutFilmTv,
+                binding.indicator1,
+                R.layout.item_container_about_film
             )
 
         }
@@ -160,28 +162,27 @@ class MovieDetailsAdapter(
         fun bind(item: DetailCategory) {
             replaceLayout(R.layout.item_container_about_film, binding.root.context)
             currentItem = item
-            updateTextViews()
-
-        }
-
-        private fun setFocusChangeListener(
-            view: View,
-            layoutResId: Int,
-        ) {
-            view.setOnFocusChangeListener { _, hasFocus ->
-                if (hasFocus) {
-                    if (currentLayoutId != layoutResId) {
-                        replaceLayout(layoutResId, binding.root.context)
-                        if (layoutResId == R.layout.item_container_about_film) {
-                            updateTextViews(true)
-                        } else {
-                            updateTextViews(false)
-                        }
-                    }
-                }
+            if (currentLayoutId != R.layout.item_container_about_film) {
+                replaceLayout(R.layout.item_container_about_film, binding.root.context)
+            } else {
+                updateTextViews()
             }
         }
 
+        private fun setFocusChangeListener(view: View, indicator: View, layoutResId: Int) {
+            view.setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus) {
+                    Log.d("GGG", "setFocusChangeListener:${layoutResId} || ${currentLayoutId} ")
+                    if (currentLayoutId != layoutResId) {
+                        indicator.visibility = View.VISIBLE
+                        replaceLayout(layoutResId, binding.root.context)
+                        updateTextViews()
+                    }
+                } else {
+                    indicator.visibility = View.INVISIBLE
+                }
+            }
+        }
 
         private fun replaceLayout(layoutResId: Int, context: Context) {
             binding.frame.removeAllViews()
@@ -189,7 +190,7 @@ class MovieDetailsAdapter(
             currentLayoutId = layoutResId
         }
 
-        @SuppressLint("SetTextI18n")
+        @SuppressLint("SetTextI18n", "NewApi")
         private fun updateTextViews(isAbout: Boolean = true) {
             val yearContainer =
                 binding.frame.findViewById<LinearLayout>(R.id.container_date) ?: null
@@ -199,51 +200,60 @@ class MovieDetailsAdapter(
                 binding.frame.findViewById<LinearLayout>(R.id.container_janr) ?: null
             val languageContainer =
                 binding.frame.findViewById<LinearLayout>(R.id.language) ?: null
-            val ratingTxt = binding.frame.findViewById<TextView>(R.id.rating_tv) ?: null
             val image = binding.frame.findViewById<ImageView>(R.id.film_image) ?: null
 
             currentItem?.let { item ->
                 val descriptionTextView =
                     binding.frame.findViewById<TextView>(R.id.film_description_tv)
                 descriptionTextView?.movementMethod = LinkMovementMethod.getInstance()
-                descriptionTextView.isFocusable = false
-                descriptionTextView.focusable = View.NOT_FOCUSABLE
-                descriptionTextView?.text = Html.fromHtml(item.content.description, Html.FROM_HTML_MODE_COMPACT)
+                descriptionTextView?.text =
+                    Html.fromHtml(item.content.description, Html.FROM_HTML_MODE_COMPACT)
+                descriptionTextView?.isFocusable = false
+//                descriptionTextView?.isfocu
                 languageContainer?.removeAllViews()
                 countryContainer?.removeAllViews()
                 yearContainer?.removeAllViews()
                 genresContainer?.removeAllViews()
-//                val countryTextView = createCategoryTextView(
-//                    binding.root.context,
-//                    currentItem?.content?.country ?: "Unknown"
-//                )
-//                countryContainer?.addView(countryTextView)
+                if (currentItem?.content?.studios?.isNotEmpty() == true) {
+                    val countryTextView = createCategoryTextView(
+                        binding.root.context,
+                        currentItem?.content?.studios?.get(0) ?: "Unknown"
+                    )
+                    countryContainer?.addView(countryTextView)
+                } else {
+                    val countryTextView = createCategoryTextView(
+                        binding.root.context,
+                        "Japan"
+                    )
+                    countryContainer?.addView(countryTextView)
 
-//                val textView = createCategoryTextView(
-//                    binding.root.context,
-//                    text = currentItem?.content?.language ?: "Unknown"
-//                )
-//                languageContainer?.addView(textView)
-//                ratingTxt?.text = item.content.rating.toString()
-//
+                }
+                val textView = createCategoryTextView(
+                    binding.root.context,
+                    text = currentItem?.content?.mediaSource?.name ?: "Unknown"
+                )
+                languageContainer?.addView(textView)
+                val year = createCategoryTextView(
+                    binding.root.context,
+                    LocalData.years[Random.nextInt(0, LocalData.years.size)]!!.title.toYear()
+                        .toString()
+                )
+                yearContainer?.addView(year)
                 image?.loadImage(item.content.coverImage.large)
-//                val year = createCategoryTextView(
-//                    binding.root.context, item.content.release_year!!.toYear().toString()
-//                )
-//                yearContainer?.addView(year)
-//
-//                if (item.content.categoryProperty.toString()
-//                        .isNotEmpty() && item.content.categoryProperty.toString() != "null"
-//                ) {
-//
-//                    val categories = item.content.categoryProperty?.split(",") ?: emptyList()
-//                    categories.forEach { category ->
-//                        val trimmedCategory = category.trim()
-//                        val genreTextView =
-//                            createCategoryTextView(binding.root.context, trimmedCategory)
-//                        genresContainer?.addView(genreTextView)
-//                    }
-//                }
+
+
+                if (currentItem?.content?.genres?.isNotEmpty() == true) {
+                    currentItem?.content?.genres?.forEach { category ->
+                        val trimmedCategory = category?.trim()
+
+                        val genreTextView =
+                            createCategoryTextView(
+                                binding.root.context,
+                                trimmedCategory ?: "Unknown"
+                            )
+                        genresContainer?.addView(genreTextView)
+                    }
+                }
             }
 
 
@@ -262,7 +272,7 @@ class MovieDetailsAdapter(
                     rightMargin = (7 * resources.displayMetrics.density).toInt()
                 }
                 setBackgroundResource(R.drawable.bg_cat_tv)
-                setPadding(16, 8, 16, 8)
+                setPadding(18, 10, 18, 10)
             }
         }
     }
@@ -316,44 +326,44 @@ class MovieDetailsAdapter(
                 isPlay = !isPlay
                 interfaceListener.onPauseButtonClicked(isPlay)
             }
-//            val date = item.content.release_year ?: "2024".toYear()
-//            val genres =
-//                item.content.categoryProperty?.split(",")
-//                    ?: arrayListOf(LocalData.categoriesTop.random().title)
-
+            val genres = if (item.content.genres?.isEmpty() == true) LocalData.genres.subList(
+                0,
+                3
+            ) else item.content.genres ?: emptyList<String>()
+            val date = LocalData.years[Random.nextInt(1, LocalData.years.size)].title.toYear()
 
             val container = binding.categoryContainer
             container.removeAllViews()
-//            val textView = TextView(binding.root.context).apply {
-////                text = date
-//                textSize = 12f
-//                setTextColor(Color.WHITE)
-//                layoutParams = LinearLayout.LayoutParams(
-//                    LinearLayout.LayoutParams.MATCH_PARENT,
-//                    LinearLayout.LayoutParams.WRAP_CONTENT
-//                ).apply {
-//                    rightMargin = 7 * resources.displayMetrics.density.toInt()
-//                }
-//                setBackgroundResource(R.drawable.bg_cat_tv)
-//                setPadding(16, 8, 16, 8)
-//            }
-//            container.addView(textView)
-//            genres.forEach { category ->
-//                val textView = TextView(binding.root.context).apply {
-//                    text = category
-//                    textSize = 12f
-//                    setTextColor(Color.WHITE)
-//                    layoutParams = LinearLayout.LayoutParams(
-//                        LinearLayout.LayoutParams.MATCH_PARENT,
-//                        LinearLayout.LayoutParams.WRAP_CONTENT
-//                    ).apply {
-//                        rightMargin = 7 * resources.displayMetrics.density.toInt()
-//                    }
-//                    setBackgroundResource(R.drawable.bg_cat_tv)
-//                    setPadding(16, 8, 16, 8)
-//                }
-//                container.addView(textView)
-//            }
+            val textView = TextView(binding.root.context).apply {
+                text = date
+                textSize = 12f
+                setTextColor(Color.WHITE)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    rightMargin = 7 * resources.displayMetrics.density.toInt()
+                }
+                setBackgroundResource(R.drawable.bg_cat_tv)
+                setPadding(18, 10, 18, 10)
+            }
+            container.addView(textView)
+            genres.forEach { category ->
+                val textView = TextView(binding.root.context).apply {
+                    text = category
+                    textSize = 12f
+                    setTextColor(Color.WHITE)
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        rightMargin = 7 * resources.displayMetrics.density.toInt()
+                    }
+                    setBackgroundResource(R.drawable.bg_cat_tv)
+                    setPadding(16, 8, 16, 8)
+                }
+                container.addView(textView)
+            }
 
             binding.filmTitleTv.text = item.content.title
             binding.filmDescriptionTv.text = item.content.description
@@ -421,12 +431,13 @@ class MovieDetailsAdapter(
         itemList.addAll(list)
         result.dispatchUpdatesTo(this)
     }
-//
-//    fun submitRecommendedMovies(movies: List<Movie>) {
-//        recommendedMovies.clear()
-//        recommendedMovies.addAll(movies)
-//        notifyItemChanged(2)
-//    }
+
+    //
+    fun submitRecommendedMovies(movies: List<MainModel>) {
+        recommendedMovies.clear()
+        recommendedMovies.addAll(movies)
+        notifyItemChanged(2)
+    }
 //
 //    fun submitCast(cast: CastResponse?) {
 //        this.castResponse.clear()

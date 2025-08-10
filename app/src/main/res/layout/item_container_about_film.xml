@@ -34,10 +34,12 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="7dp"
         android:layout_marginEnd="7dp"
-        android:textColor="@color/lb_tv_white"
+        android:focusable="false"
+        android:focusedByDefault="false"
         android:fontFamily="@font/rubik_regular"
-        android:minLines="5"
         android:maxLines="8"
+        android:minLines="5"
+        android:textColor="@color/lb_tv_white"
         android:textSize="13sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -138,31 +140,6 @@
         android:orientation="horizontal"
         app:layout_constraintStart_toEndOf="@id/barrier4"
         app:layout_constraintTop_toTopOf="@+id/language" />
-
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/rubik_regular"
-        android:lines="1"
-        android:text="@string/reyting"
-        android:textColor="#8C9598"
-        android:textSize="13sp"
-        app:layout_constraintStart_toEndOf="@id/guideline30"
-        app:layout_constraintTop_toBottomOf="@id/barrier5" />
-
-
-    <TextView
-        android:id="@+id/rating_tv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/days"
-        android:lines="1"
-        android:textColor="#fff"
-        app:layout_constraintStart_toStartOf="@+id/guideline30"
-        app:layout_constraintTop_toBottomOf="@id/textView" />
-
 
 
     <androidx.constraintlayout.widget.Barrier

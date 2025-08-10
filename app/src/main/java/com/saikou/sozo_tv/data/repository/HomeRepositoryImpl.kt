@@ -7,6 +7,7 @@ import com.animestudios.animeapp.GetRecommendationsQuery
 import com.animestudios.animeapp.GetTrendingQuery
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
+import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.anilist.HomeModel
 import com.saikou.sozo_tv.data.model.anilist.Title
@@ -18,6 +19,9 @@ import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.GenreModel
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.LocalData.FILE_NAME_GENRES
+import com.saikou.sozo_tv.utils.readData
+import com.saikou.sozo_tv.utils.saveData
 import kotlin.random.Random
 
 class HomeRepositoryImpl(
@@ -61,7 +65,9 @@ class HomeRepositoryImpl(
                             content = HomeModel(
                                 id = it!!.media!!.id,
                                 idMal = it.media!!.idMal!!,
-                                coverImage = CoverImage(it.media.coverImage!!.large ?: LocalData.anime404),
+                                coverImage = CoverImage(
+                                    it.media.coverImage!!.large ?: LocalData.anime404
+                                ),
                                 format = it.media.format!!,
                                 source = it.media.source!!,
                                 title = Title(
@@ -95,7 +101,9 @@ class HomeRepositoryImpl(
                             content = HomeModel(
                                 id = it!!.media!!.id,
                                 idMal = it.media!!.idMal!!,
-                                coverImage = CoverImage(it.media.coverImage!!.large ?: LocalData.anime404),
+                                coverImage = CoverImage(
+                                    it.media.coverImage!!.large ?: LocalData.anime404
+                                ),
                                 format = it.media.format!!,
                                 source = it.media.source!!,
                                 title = Title(
@@ -131,7 +139,9 @@ class HomeRepositoryImpl(
                             content = HomeModel(
                                 id = it!!.id,
                                 idMal = it.idMal!!,
-                                coverImage = CoverImage(it.coverImage!!.large ?: LocalData.anime404),
+                                coverImage = CoverImage(
+                                    it.coverImage!!.large ?: LocalData.anime404
+                                ),
                                 format = it.format!!,
                                 source = it.source!!,
                                 title = Title(
@@ -167,7 +177,9 @@ class HomeRepositoryImpl(
                             content = HomeModel(
                                 id = it!!.media!!.id,
                                 idMal = it.media!!.idMal!!,
-                                coverImage = CoverImage(it.media.coverImage!!.large ?: LocalData.anime404),
+                                coverImage = CoverImage(
+                                    it.media.coverImage!!.large ?: LocalData.anime404
+                                ),
                                 format = it.media.format!!,
                                 source = it.media.source!!,
                                 title = Title(
@@ -190,34 +202,44 @@ class HomeRepositoryImpl(
 
     override suspend fun loadGenres(): Result<List<GenreModel>> {
         try {
-            val recommendationApolloResponse =
-                apolloClient.query(
-                    GetRecommendationsQuery(
-                        page = Optional.present(
-                            Random.nextInt(
-                                1,
-                                4
+
+            val localGenres = readData<ArrayList<GenreModel>>(FILE_NAME_GENRES) ?: emptyList()
+
+            if (localGenres.isNotEmpty()) {
+                return Result.success(localGenres)
+            } else {
+                val recommendationApolloResponse =
+                    apolloClient.query(
+                        GetRecommendationsQuery(
+                            page = Optional.present(
+                                Random.nextInt(
+                                    1,
+                                    4
+                                )
                             )
                         )
                     )
-                )
-                    .execute()
+                        .execute()
 
 
-            val recommendationMediaList = recommendationApolloResponse.data!!.Page?.recommendations!!
-            val genres = ArrayList<GenreModel>()
-            recommendationMediaList.let {
-                LocalData.genres.forEachIndexed { index, s ->
-                    genres.add(
-                        GenreModel(
-                            s,
-                            it[index]?.media?.coverImage?.large ?: "https://via.placeholder.com/150",
+                val recommendationMediaList =
+                    recommendationApolloResponse.data!!.Page?.recommendations!!
+                val genres = ArrayList<GenreModel>()
+                recommendationMediaList.let {
+                    LocalData.genres.forEachIndexed { index, s ->
+                        genres.add(
+                            GenreModel(
+                                s,
+                                it[index]?.media?.coverImage?.large
+                                    ?: "https://via.placeholder.com/150",
+                            )
                         )
-                    )
+                    }
                 }
+                saveData(FILE_NAME_GENRES, genres, MyApp.context)
+                return Result.success(genres)
             }
 
-            return Result.success(genres)
         } catch (e: Exception) {
             return Result.failure(e)
         }

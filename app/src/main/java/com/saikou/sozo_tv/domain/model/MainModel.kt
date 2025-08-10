@@ -1,5 +1,7 @@
 package com.saikou.sozo_tv.domain.model
 
+import java.io.Serializable
+
 data class MainModel(
     val id: Int,
     val title: String,
@@ -9,5 +11,7 @@ data class MainModel(
     val studios: List<String?>?,
     val averageScore: Int,
     val meanScore: Int = -1
-)
+) : Serializable
+
+
 

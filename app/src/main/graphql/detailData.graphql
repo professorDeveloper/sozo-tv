@@ -20,7 +20,7 @@ query getAnimeById($id: Int) {
         }
         episodes
         externalLinks {
-             url
+            url
         }
         source
         meanScore
@@ -28,5 +28,49 @@ query getAnimeById($id: Int) {
         genres
 
         description
+    }
+}
+query  getCharactersAnimeById($id: Int) {
+    Media(id: $id) {
+        characters {
+            nodes {
+                name {
+                    userPreferred
+                }
+                age
+                image {
+                    medium
+                }
+
+            }
+        }
+    }
+}
+
+query getRelationsById($id: Int) {
+    Media(id: $id) {
+        relations {
+            nodes {
+                id
+                title {
+                    userPreferred
+                }
+                studios{
+                    nodes {
+                         name
+                    }
+                }
+                coverImage {
+                    large
+                }
+                mediaListEntry {
+                    status
+                }
+                genres
+                hashtag
+                meanScore
+                averageScore
+            }
+        }
     }
 }
