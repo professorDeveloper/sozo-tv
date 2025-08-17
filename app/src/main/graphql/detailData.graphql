@@ -30,6 +30,7 @@ query getAnimeById($id: Int) {
         description
     }
 }
+
 query  getCharactersAnimeById($id: Int) {
     Media(id: $id) {
         characters {
@@ -47,17 +48,16 @@ query  getCharactersAnimeById($id: Int) {
     }
 }
 
-query getRelationsById($id: Int) {
-    Media(id: $id) {
-        relations {
-            nodes {
-                id
+query getRelationsById($page: Int) {
+    Page(page: $page, perPage: 7) {
+        mediaTrends{
+            media {       id
                 title {
                     userPreferred
                 }
                 studios{
                     nodes {
-                         name
+                        name
                     }
                 }
                 coverImage {

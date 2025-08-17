@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.search
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -11,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.SearchAdapter
 import com.saikou.sozo_tv.databinding.SearchScreenBinding
+import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
 import com.saikou.sozo_tv.utils.applyFocusedStyle
 import com.saikou.sozo_tv.utils.hideKeyboard
@@ -79,8 +81,10 @@ class SearchScreen : Fragment() {
     private fun setupRecyclerView() {
         searchAdapter = SearchAdapter()
         searchAdapter.setOnItemClickListener {
-
-
+            Log.d("GGG", "setupRecyclerView:${it} ")
+            val intent = Intent(requireActivity(), PlayerActivity::class.java)
+            intent.putExtra("model", it.id)
+            requireActivity().startActivity(intent)
         }
 
         binding.vgvSearch.adapter = searchAdapter

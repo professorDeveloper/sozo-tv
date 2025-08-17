@@ -3,6 +3,7 @@ package com.saikou.sozo_tv.utils
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.model.SectionItem
+import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.MySpinnerItem
@@ -98,6 +99,12 @@ object LocalData {
         fun setonClickedListenerItemCategory(listener: (isAbout: CategoryDetails) -> Unit) {
         listenerItemCategory = listener
     }
+
+    lateinit var listenerItemBanner: (isAbout: BannerItem) -> Unit
+    fun setonClickedlistenerItemBanner(listener: (isAbout: BannerItem) -> Unit) {
+        listenerItemBanner = listener
+    }
+
     val recommendedMovies: MutableList<MainModel> = mutableListOf()
 
 }//

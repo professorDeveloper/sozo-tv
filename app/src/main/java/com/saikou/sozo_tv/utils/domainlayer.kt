@@ -32,7 +32,7 @@ import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 //import kotlinx.parcelize.Parcelize
 //
 
-fun GetRelationsByIdQuery.Node.toDomain(): MainModel {
+fun GetRelationsByIdQuery.Media.toDomain(): MainModel {
     return MainModel(
         this.id,
         title = this.title?.userPreferred ?: "",
@@ -72,11 +72,18 @@ fun GetAnimeByIdQuery.Media.toDomain(): DetailModel {
 }
 
 fun JikanBannerResponse.toDomain(): BannerModel {
-    return BannerModel(viewType = HomeAdapter.VIEW_BANNER, data = this.data.map {
-        BannerItem(
-            contentItem = it,
-        )
-    })
+    val itRemovedFirst = this.data
+    val list = arrayListOf<BannerItem>()
+    itRemovedFirst.forEachIndexed { index, data ->
+        if (index != 0) {
+           list.add(
+               BannerItem(
+                   contentItem = data,
+               )
+           )
+        }
+    }
+    return BannerModel(viewType = HomeAdapter.VIEW_BANNER, data = list)
 }
 
 fun List<GenreModel>.toDomain(): CategoryGenre {

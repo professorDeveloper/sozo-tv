@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.viewmodel
 
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
@@ -8,6 +9,7 @@ import com.saikou.sozo_tv.domain.model.Category
 import com.saikou.sozo_tv.domain.model.CategoryGenre
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
+import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.UiState
 import com.saikou.sozo_tv.utils.toDomain
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,6 +62,17 @@ class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
     }.stateIn(
         viewModelScope, SharingStarted.Lazily, UiState.Idle
     )
+
+    val aniId = MutableLiveData<Resource<Int>>(Resource.Idle)
+
+    fun getMalId(id: Int) {
+        viewModelScope.launch {
+            val result = repo.convertMalId(id)
+            if (result.isSuccess) {
+                aniId.value = Resource.Success(result.getOrNull()!!)
+            }
+        }
+    }
 
     init {
         loadBanners()

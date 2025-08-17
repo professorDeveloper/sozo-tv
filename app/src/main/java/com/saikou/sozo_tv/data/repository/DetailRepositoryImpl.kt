@@ -30,17 +30,17 @@ class DetailRepositoryImpl(private val client: ApolloClient) : DetailRepository 
     override suspend fun loadRandomAnime(): Result<List<MainModel>> {
         try {
             val result = client.query(
-                GetRelationsByIdQuery(Optional.present(Random.nextInt(7,21)))
+                GetRelationsByIdQuery(Optional.present(Random.nextInt(7, 21)))
             ).execute()
 
-            val data = result.data?.Media?.relations?.nodes ?: emptyList()
+            val data = result.data?.Page?.mediaTrends ?: emptyList()
 
             val resultList = data.map {
-                it?.toDomain()!!
+                it?.media?.toDomain()!!
             }
 
             return Result.success(resultList)
-            } catch (e: Exception) {
+        } catch (e: Exception) {
             return Result.failure(e)
 
         }
@@ -49,13 +49,13 @@ class DetailRepositoryImpl(private val client: ApolloClient) : DetailRepository 
     override suspend fun loadAnimeRelations(id: Int): Result<List<MainModel>> {
         try {
             val result = client.query(
-                GetRelationsByIdQuery(Optional.present(id))
+                GetRelationsByIdQuery(Optional.present(Random.nextInt(1, 10)))
             ).execute()
 
-            val data = result.data?.Media?.relations?.nodes ?: emptyList()
+            val data = result.data?.Page?.mediaTrends ?: emptyList()
 
             val resultList = data.map {
-                it?.toDomain()!!
+                it?.media?.toDomain()!!
             }
 
             return Result.success(resultList)

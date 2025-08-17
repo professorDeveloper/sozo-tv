@@ -23,6 +23,7 @@ import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.utils.DialogUtils
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.UiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -65,6 +66,24 @@ class HomeScreen : Fragment() {
                 homeAdapter.submitList(state.data)
                 LocalData.setFocusedGenreClickListener {
                     (requireActivity() as MainActivity).navigateToCategory(it)
+                }
+                LocalData.setonClickedlistenerItemBanner {
+                    WaitDialog.show(requireActivity(), "Loading...")
+                    homeViewModel.getMalId(it.contentItem.mal_id)
+                }
+                homeViewModel.aniId.observe(viewLifecycleOwner) {
+                    when (it) {
+                        is Resource.Success -> {
+                            WaitDialog.dismiss(requireActivity())
+                            homeViewModel.aniId.postValue(Resource.Idle)
+                            val intent =
+                                Intent(binding.root.context, PlayerActivity::class.java)
+                            intent.putExtra("model", it.data)
+                            binding.root.context.startActivity(intent)
+                        }
+
+                        else -> {}
+                    }
                 }
                 LocalData.setonClickedListenerItemCategory {
                     val intent =

@@ -1,5 +1,5 @@
 query getRecommendations($page: Int) {
-    Page(page: $page, perPage: 25) {
+    Page(page: $page, perPage: 7) {
         recommendations(sort: RATING_DESC){
             media {   id
                 idMal
@@ -20,7 +20,7 @@ query getRecommendations($page: Int) {
 
 
 query getPopular($page: Int) {
-    Page(page: $page, perPage: 20) {
+    Page(page: $page, perPage: 7) {
         media(sort: POPULARITY_DESC){
             id
             idMal
@@ -38,29 +38,9 @@ query getPopular($page: Int) {
     }
 }
 
-query getRecentlyAdded($page: Int) {
-    Page(page: $page, perPage: 20) {
-        airingSchedules(airingAt_greater:0 ) {
-            media {   id
-                idMal
-                coverImage {
-                    large
-                }
-                format
-                source
-
-                title {
-                    userPreferred
-                    english
-                }
-            }
-        }
-    }
-}
-
 
 query getTrending($page: Int) {
-    Page(page: $page, perPage: 10) {
+    Page(page: $page, perPage: 7) {
         mediaTrends{
             media {   id
                 idMal
@@ -79,6 +59,11 @@ query getTrending($page: Int) {
     }
 }
 
+query convertMalToId($malId: Int) {
+    Media(idMal: $malId) {
+        id
+    }
+}
 
 query getGenreThumbnail( $genre: String) {
     Page(perPage: 10){media(genre:$genre, sort: TRENDING_DESC, type: ANIME, countryOfOrigin:"JP") {id bannerImage title{english romaji userPreferred} } }

@@ -31,7 +31,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
 
-        playerViewModel.loadAnimeById(id = categoryDetails)
-        playerViewModel.loadRelations(id = categoryDetails)
-    }
+            playerViewModel.loadAnimeById(id = categoryDetails)
+            playerViewModel.loadRelations(id = categoryDetails)
+        }
 }

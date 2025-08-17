@@ -181,12 +181,9 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
         @SuppressLint("SetTextI18n")
         fun bind(item: BannerItem) {
             binding.root.setOnClickListener {
-//                LocalData.listenerItemCategory.invoke(
-//                    CategoryDetails(
-//                        content = item.contentItem,
-//                        viewType = item.viewType
-//                    )
-//                )
+                LocalData.listenerItemBanner.invoke(
+                    item
+                )
 
             }
             val activity = binding.root.context as? Activity
