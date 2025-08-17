@@ -21,7 +21,6 @@ import com.saikou.sozo_tv.databinding.ItemPlayDetailsSectionBinding
 import com.saikou.sozo_tv.databinding.ItemPlayRecommendedBinding
 import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.DetailCategory
-import com.saikou.sozo_tv.domain.model.DetailModel
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter

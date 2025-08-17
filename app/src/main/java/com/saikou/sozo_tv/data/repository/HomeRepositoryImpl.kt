@@ -22,7 +22,6 @@ import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.FILE_NAME_GENRES
 import com.saikou.sozo_tv.utils.readData
 import com.saikou.sozo_tv.utils.saveData
-import kotlin.math.log
 import kotlin.random.Random
 
 class HomeRepositoryImpl(

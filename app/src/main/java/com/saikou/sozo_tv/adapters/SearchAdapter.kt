@@ -1,7 +1,6 @@
 package com.saikou.sozo_tv.adapters
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.graphics.Color
 import android.text.Spannable
 import android.text.SpannableString

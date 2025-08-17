@@ -2,8 +2,6 @@ package com.saikou.sozo_tv.data.remote
 
 import com.saikou.sozo_tv.data.model.TrailerModel
 import com.saikou.sozo_tv.utils.Utils
-import kotlinx.coroutines.runBlocking
-import okhttp3.OkHttpClient
 
 class LiveChartTrailer() {
     private val BASE_URL = "https://www.livechart.me"

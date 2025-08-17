@@ -4,7 +4,6 @@ import com.animestudios.animeapp.GetAnimeByIdQuery
 import com.animestudios.animeapp.GetRelationsByIdQuery
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
-import com.saikou.sozo_tv.data.model.anilist.HomeModel
 import com.saikou.sozo_tv.domain.model.DetailModel
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.DetailRepository

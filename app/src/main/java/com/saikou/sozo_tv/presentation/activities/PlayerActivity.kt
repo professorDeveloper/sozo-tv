@@ -4,12 +4,9 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ActivityPlayerBinding
-import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 

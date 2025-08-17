@@ -11,15 +11,11 @@ import android.widget.Toast
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.RecyclerView
-import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.DetailPageBinding
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.loadImage
-import com.saikou.sozo_tv.utils.snackString
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 

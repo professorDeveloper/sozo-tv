@@ -1,8 +1,5 @@
 package com.saikou.sozo_tv.data.model.jikan
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
-
 data class Data(
     val aired: com.saikou.sozo_tv.data.model.jikan.Aired,
     val airing: Boolean,

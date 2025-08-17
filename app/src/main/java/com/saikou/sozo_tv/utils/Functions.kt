@@ -9,15 +9,11 @@ import android.graphics.drawable.shapes.RoundRectShape
 import android.os.Build
 import android.provider.Settings
 import android.view.Gravity
-import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.FOCUS_AFTER_DESCENDANTS
 import android.widget.FrameLayout
 import androidx.core.view.updateLayoutParams
 import androidx.leanback.widget.VerticalGridView
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import com.saikou.sozo_tv.R

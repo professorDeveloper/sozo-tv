@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.di
 
-import androidx.room.Room
 import com.saikou.sozo_tv.data.repository.CategoriesRepositoryImpl
 import com.saikou.sozo_tv.data.repository.DetailRepositoryImpl
 import com.saikou.sozo_tv.data.repository.HomeRepositoryImpl
@@ -14,7 +13,6 @@ import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
-import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module

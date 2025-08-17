@@ -5,10 +5,7 @@ import com.animestudios.animeapp.GetAnimeByIdQuery
 import com.animestudios.animeapp.GetAnimeByOnlGenreQuery
 import com.animestudios.animeapp.GetRelationsByIdQuery
 import com.animestudios.animeapp.SearchAnimeQuery
-import com.animestudios.animeapp.type.CountryCode
-import com.animestudios.animeapp.type.Query
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
-import com.saikou.sozo_tv.data.model.anilist.HomeModel
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel

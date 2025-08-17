@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.domain.model
 
-import android.os.Parcelable
 import com.saikou.sozo_tv.data.model.anilist.HomeModel
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 import java.io.Serializable

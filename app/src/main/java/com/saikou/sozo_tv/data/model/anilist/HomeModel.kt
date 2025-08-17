@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.data.model.anilist
 
-import com.animestudios.animeapp.GetRecommendationsQuery
 import com.animestudios.animeapp.type.MediaFormat
 import com.animestudios.animeapp.type.MediaSource
 
