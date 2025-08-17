@@ -48,7 +48,7 @@ class DetailRepositoryImpl(private val client: ApolloClient) : DetailRepository 
     override suspend fun loadAnimeRelations(id: Int): Result<List<MainModel>> {
         try {
             val result = client.query(
-                GetRelationsByIdQuery(Optional.present(Random.nextInt(1, 10)))
+                GetRelationsByIdQuery(Optional.present(Random.nextInt(1, 4)))
             ).execute()
 
             val data = result.data?.Page?.mediaTrends ?: emptyList()
