@@ -30,6 +30,7 @@
 
             <ImageView
                 android:id="@+id/account_img"
+                android:background="@color/main_background"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
@@ -57,7 +58,7 @@
             android:textAlignment="center"
             android:textColor="@color/color_black_white_text"
             android:textSize="13sp"
-            tools:text="+998943017410" />
+            tools:text="+9989430qwdqdqwdq17410" />
 
         <TextView
             android:id="@+id/characterTxt"
@@ -80,7 +81,7 @@
             android:textAlignment="center"
             android:textColor="@color/color_black_white_text"
             android:textSize="10sp"
-            tools:text="Character : Joker" />
+            tools:text="Character :qwdqdqwdqdqd Joker" />
 
     </LinearLayout>
 

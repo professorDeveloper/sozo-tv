@@ -3,12 +3,14 @@ package com.saikou.sozo_tv.utils
 import com.animestudios.animeapp.GetAnimeByGenreQuery
 import com.animestudios.animeapp.GetAnimeByIdQuery
 import com.animestudios.animeapp.GetAnimeByOnlGenreQuery
+import com.animestudios.animeapp.GetCharactersAnimeByIdQuery
 import com.animestudios.animeapp.GetRelationsByIdQuery
 import com.animestudios.animeapp.SearchAnimeQuery
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
+import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.CategoryGenre
 import com.saikou.sozo_tv.domain.model.CategoryGenreItem
 import com.saikou.sozo_tv.domain.model.DetailModel
@@ -73,14 +75,23 @@ fun JikanBannerResponse.toDomain(): BannerModel {
     val list = arrayListOf<BannerItem>()
     itRemovedFirst.forEachIndexed { index, data ->
         if (index != 0) {
-           list.add(
-               BannerItem(
-                   contentItem = data,
-               )
-           )
+            list.add(
+                BannerItem(
+                    contentItem = data,
+                )
+            )
         }
     }
     return BannerModel(viewType = HomeAdapter.VIEW_BANNER, data = list)
+}
+
+fun GetCharactersAnimeByIdQuery.Node.toDomain(): Cast {
+    return Cast(
+        (this.image?.medium ?: LocalData.anime404).toString(),
+        (this.name?.userPreferred ?: "").toString(),
+        this.name?.middle ?: "",
+        this.age ?: ""
+    )
 }
 
 fun List<GenreModel>.toDomain(): CategoryGenre {

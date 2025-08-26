@@ -15,10 +15,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.adapters.CastAdapter
 import com.saikou.sozo_tv.databinding.ItemPlayCastBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsHeaderBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsSectionBinding
 import com.saikou.sozo_tv.databinding.ItemPlayRecommendedBinding
+import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.MainModel
@@ -26,9 +28,12 @@ import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 import com.saikou.sozo_tv.presentation.screens.home.vh.ViewHolderFactory
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.LocalData.castList
 import com.saikou.sozo_tv.utils.LocalData.recommendedMovies
+import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.loadImage
 import com.saikou.sozo_tv.utils.toYear
+import com.saikou.sozo_tv.utils.visible
 import kotlin.random.Random
 
 class MovieDetailsAdapter(
@@ -66,20 +71,22 @@ class MovieDetailsAdapter(
             DETAILS_ITEM_HEADER -> ViewHolderFactory.create(parent, viewType)
             DETAILS_ITEM_SECTION -> ViewHolderFactory.create(parent, viewType)
             DETAILS_ITEM_THIRD -> {
-                val binding = ItemPlayRecommendedBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
-                ItemPlayDetailsThirdViewHolder(binding)
-            }
-            DETAILS_ITEM_FOUR -> {
                 val binding = ItemPlayCastBinding.inflate(
                     LayoutInflater.from(parent.context),
                     parent,
                     false
                 )
                 ItemPlayCastViewHolder(binding)
+            }
+
+            DETAILS_ITEM_FOUR -> {
+                val binding = ItemPlayRecommendedBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+                ItemPlayDetailsThirdViewHolder(binding)
+
             }
 
             else -> throw IllegalArgumentException("Invalid view type")
@@ -115,7 +122,7 @@ class MovieDetailsAdapter(
             }
 
             is ItemPlayCastViewHolder -> {
-//                holder.bind(castResponse)
+                holder.bind(castList)
             }
         }
 
@@ -127,7 +134,7 @@ class MovieDetailsAdapter(
         fun bind() {
             val adapter = CategoriesPageAdapter(isDetail = true)
             adapter.setClickDetail {
-//                LocalData.focusChangedListenerPlayerg.invoke(it)
+                LocalData.focusChangedListenerPlayerg.invoke(it)
             }
             Log.d("REcommmended List", "updateTextViews:${recommendedMovies} ")
             adapter.updateCategoriesAll(recommendedMovies as ArrayList<MainModel>)
@@ -374,19 +381,22 @@ class MovieDetailsAdapter(
 
     class ItemPlayCastViewHolder(private val binding: ItemPlayCastBinding) :
         RecyclerView.ViewHolder(binding.root) {
-//        @SuppressLint("SetTextI18n")
-//        fun bind(castREsponse: MutableList<CastItem>) {
-//            val castAdapter = CastAdapter()
-//            if (castREsponse.isEmpty()) {
-//                binding.castRv.visibility = View.INVISIBLE
-//                binding.castProgress.visible()
-//            } else {
-//                binding.castRv.visible()
-//                binding.castProgress.gone()
-//            }
-//            castAdapter.submitList(castREsponse)
-//            binding.castRv.adapter = castAdapter
-//        }
+        @SuppressLint("SetTextI18n")
+        fun bind(castREsponse: List<Cast>) {
+            binding.root.visible()
+            val castAdapter = CastAdapter()
+            if (castREsponse.isEmpty()) {
+                binding.root.gone()
+                binding.castRv.visibility = View.INVISIBLE
+                binding.castProgress.visible()
+            } else {
+                binding.root.visible()
+                binding.castRv.visible()
+                binding.castProgress.gone()
+            }
+            castAdapter.submitCast(castREsponse)
+            binding.castRv.adapter = castAdapter
+        }
     }
 
     fun submitList(list: List<HomeAdapter.HomeData>) {
@@ -435,6 +445,12 @@ class MovieDetailsAdapter(
     fun submitRecommendedMovies(movies: List<MainModel>) {
         recommendedMovies.clear()
         recommendedMovies.addAll(movies)
+        notifyItemChanged(3)
+    }
+
+    fun submitCast(cast: List<Cast>) {
+        castList.clear()
+        castList.addAll(cast)
         notifyItemChanged(2)
     }
 //

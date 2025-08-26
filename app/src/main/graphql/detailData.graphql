@@ -31,13 +31,16 @@ query getAnimeById($id: Int) {
     }
 }
 
+
 query  getCharactersAnimeById($id: Int) {
     Media(id: $id) {
         characters {
             nodes {
                 name {
                     userPreferred
+                    middle
                 }
+
                 age
                 image {
                     medium

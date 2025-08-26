@@ -3,6 +3,7 @@ package com.saikou.sozo_tv.presentation.viewmodel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.DetailRepository
@@ -12,6 +13,7 @@ class PlayViewModel(private val repo: DetailRepository) : ViewModel() {
     val detailData = MutableLiveData<DetailCategory>()
     val relationsData = MutableLiveData<List<MainModel>>()
     val errorData = MutableLiveData<String>()
+    val castResponseData = MutableLiveData<List<Cast>>()
     fun loadRelations(id: Int) {
         viewModelScope.launch {
             val result = repo.loadAnimeRelations(id)
@@ -26,6 +28,16 @@ class PlayViewModel(private val repo: DetailRepository) : ViewModel() {
                         errorData.postValue(resultRandom.exceptionOrNull()?.message)
                     }
                 }
+            } else {
+                errorData.postValue(result.exceptionOrNull()?.message)
+            }
+        }
+    }
+    fun loadCast(id: Int) {
+        viewModelScope.launch {
+            val result = repo.loadCast(id)
+            if (result.isSuccess) {
+                castResponseData.postValue(result.getOrNull()!!)
             } else {
                 errorData.postValue(result.exceptionOrNull()?.message)
             }

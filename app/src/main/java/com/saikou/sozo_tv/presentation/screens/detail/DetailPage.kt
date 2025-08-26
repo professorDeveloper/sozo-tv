@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.presentation.screens.detail
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -14,7 +15,9 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.databinding.DetailPageBinding
 import com.saikou.sozo_tv.domain.model.DetailCategory
+import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.loadImage
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
@@ -59,8 +62,11 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initializeAdapter()
-        playViewModel.relationsData.observe(viewLifecycleOwner){
+        playViewModel.relationsData.observe(viewLifecycleOwner) {
             detailsAdapter.submitRecommendedMovies(it)
+        }
+        playViewModel.castResponseData.observe(viewLifecycleOwner) {
+            detailsAdapter.submitCast(it)
         }
         playViewModel.detailData.observe(viewLifecycleOwner) { details ->
             binding.replaceImage.loadImage(details.content.bannerImage)
@@ -68,9 +74,16 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
             val headerItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_HEADER)
             val sectionItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_SECTION)
             val thirdItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_THIRD)
-            currentList.addAll(listOf(headerItem, sectionItem, thirdItem))
-
+            val fourItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_FOUR)
+            currentList.addAll(listOf(headerItem, sectionItem, thirdItem,fourItem))
             detailsAdapter.submitList(currentList)
+            LocalData.setFocusChangedListenerPlayer {
+                val intent =
+                    Intent(binding.root.context, PlayerActivity::class.java)
+                intent.putExtra("model", it.id)
+                requireActivity().startActivity(intent)
+                requireActivity().finish()
+            }
         }
 
         playViewModel.errorData.observe(viewLifecycleOwner) {

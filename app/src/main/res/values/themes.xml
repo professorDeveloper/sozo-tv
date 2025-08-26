@@ -1,6 +1,8 @@
 <resources>
 
-    <style name="Theme.Tv" parent="@style/Theme.MaterialComponents.DayNight.NoActionBar"></style>
+    <style name="Theme.Tv" parent="@style/Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:textColor">@color/lb_tv_white</item>
+    </style>
 
 
 </resources>

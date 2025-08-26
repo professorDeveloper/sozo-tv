@@ -331,13 +331,22 @@ class HomeRepositoryImpl(
                 val genres = ArrayList<GenreModel>()
                 recommendationMediaList.let {
                     LocalData.genres.forEachIndexed { index, s ->
-                        genres.add(
-                            GenreModel(
-                                s,
-                                it[index]?.media?.coverImage?.large
-                                    ?: "https://via.placeholder.com/150",
-                            )
-                        )
+                       if (it.size > index) {
+                           genres.add(
+                               GenreModel(
+                                   s,
+                                   it[index]?.media?.coverImage?.large
+                                       ?: "https://via.placeholder.com/150",
+                               )
+                           )
+                       }else {
+                           genres.add(
+                               GenreModel(
+                                   s,
+                                    LocalData.anime404,
+                               )
+                           )
+                       }
                     }
                 }
                 genres.forEachIndexed { index, genre ->

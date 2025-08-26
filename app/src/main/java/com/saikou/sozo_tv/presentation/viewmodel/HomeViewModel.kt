@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -36,14 +37,17 @@ class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
             }
 
             bannerState is UiState.Error -> {
+                Log.d("GGG", "bannerState: ${bannerState.message}")
                 UiState.Error(bannerState.message)
             }
 
             categoryState is UiState.Error -> {
+                Log.d("GGG", "categoryState: ${categoryState.message}")
                 UiState.Error(categoryState.message)
             }
 
             genresState is UiState.Error -> {
+                Log.d("GGG", "genresState: ${genresState.message}")
                 UiState.Error(genresState.message)
             }
 
@@ -112,9 +116,12 @@ class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
             val result = repo.loadGenres()
             genresState.value = when {
                 result.isSuccess -> UiState.Success(result.getOrNull()!!.toDomain())
-                result.isFailure -> UiState.Error(
-                    result.exceptionOrNull()?.message ?: "Unknown error"
-                )
+                result.isFailure -> {
+                    Log.d("GGG", "loadGenres:${result.exceptionOrNull()?.message} ")
+                    UiState.Error(
+                        result.exceptionOrNull()?.message ?: "Unknown error"
+                    )
+                }
 
                 else -> {
                     UiState.Idle

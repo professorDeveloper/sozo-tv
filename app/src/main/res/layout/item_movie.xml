@@ -15,9 +15,8 @@
         android:id="@+id/cardView"
         android:layout_width="0dp"
         android:layout_height="200dp"
-
         app:cardCornerRadius="8dp"
-        app:layout_constraintDimensionRatio="2.8:4"
+        app:layout_constraintDimensionRatio="2.9:3.7"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 

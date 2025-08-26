@@ -4,6 +4,7 @@ import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.model.SectionItem
 import com.saikou.sozo_tv.domain.model.BannerItem
+import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.MySpinnerItem
@@ -28,9 +29,9 @@ import com.saikou.sozo_tv.domain.model.MySpinnerItem
 //import com.ipsat.ipsat_tv.domain.model.category.ChannelItem
 //
 object LocalData {
-    const val FILE_NAME_GENRES: String ="genres"
+    const val FILE_NAME_GENRES: String = "genres"
     var isHistoryItemClicked = false
-    var currentCategory =""
+    var currentCategory = ""
     val anime404 =
         "https://c4.wallpaperflare.com/wallpaper/976/117/318/anime-girls-404-not-found-glowing-eyes-girls-frontline-wallpaper-preview.jpg"
     val genres = arrayListOf(
@@ -96,7 +97,7 @@ object LocalData {
         SectionItem(MyApp.context.getString(R.string.exit), R.drawable.ic_exit),
     )
     lateinit var listenerItemCategory: (isAbout: CategoryDetails) -> Unit
-        fun setonClickedListenerItemCategory(listener: (isAbout: CategoryDetails) -> Unit) {
+    fun setonClickedListenerItemCategory(listener: (isAbout: CategoryDetails) -> Unit) {
         listenerItemCategory = listener
     }
 
@@ -106,8 +107,14 @@ object LocalData {
     }
 
     val recommendedMovies: MutableList<MainModel> = mutableListOf()
+    val castList: MutableList<Cast> = mutableListOf()
+    lateinit var focusChangedListenerPlayerg: (MainModel) -> Unit
 
+    fun setFocusChangedListenerPlayer(listener: (MainModel) -> Unit) {
+        focusChangedListenerPlayerg = listener
+    }
 }//
+
 //    var seriesId: Int = -1
 //    var currentEpp: Item0? = null
 //    var isHistoryItemClicked = false
@@ -121,11 +128,7 @@ object LocalData {
 //
 //    val recommendedMovies: MutableList<Movie> = mutableListOf()
 //
-//    lateinit var focusChangedListenerPlayerg: (Movie) -> Unit
-//
-//    fun setFocusChangedListenerPlayer(listener: (Movie) -> Unit) {
-//        focusChangedListenerPlayerg = listener
-//    }
+
 //
 //    lateinit var itemChangedForPlayBtng: () -> Unit
 //    fun setItemChangedForPlayBtn(listener: () -> Unit) {
