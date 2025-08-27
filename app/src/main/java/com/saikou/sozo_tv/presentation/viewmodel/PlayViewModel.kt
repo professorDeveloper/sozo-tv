@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,7 @@ import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.DetailRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class PlayViewModel(private val repo: DetailRepository) : ViewModel() {
@@ -53,12 +55,15 @@ class PlayViewModel(private val repo: DetailRepository) : ViewModel() {
             val liveChartTrailer = LiveChartTrailer()
             val link = liveChartTrailer.searchAndGetTrailer(name)
             val ytList = liveChartTrailer.getTrailerByDetail(link.mediaLink)
-            if (ytList.isNotEmpty()) {
+            Log.d("GGG", "loadTrailer:${ytList} ")
+            if (ytList.isEmpty()) {
                 trailerData.postValue("")
             } else {
                 val parser = DubsMp4Parser()
-                val mp4Link = parser.parseYt(ytList[0].mediaLink)
-                trailerData.postValue(mp4Link)
+                parser.parseYt(ytList[0].mediaLink)?.let {
+                    trailerData.postValue(it)
+
+                }
             }
         }
     }

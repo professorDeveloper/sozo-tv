@@ -149,7 +149,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         player?.playWhenReady = true
     }
 
-    private fun initializeAdapter() {
+        private fun initializeAdapter() {
         binding.vgvMovieDetails.apply {
             adapter = detailsAdapter.apply {
                 stateRestorationPolicy =

@@ -1,12 +1,15 @@
 package com.saikou.sozo_tv.data.remote
 
+import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.lagradost.nicehttp.Requests
 import com.saikou.sozo_tv.data.model.TrailerModel
 import com.saikou.sozo_tv.utils.Utils
 import com.saikou.sozo_tv.utils.parser
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.jsoup.Jsoup
 
@@ -52,42 +55,54 @@ class DubsMp4Parser {
     private val gson = Gson()
 
     suspend fun parseYt(link: String): String {
-        val videoId = extractYoutubeId(link)
-        println(videoId)
-        val url = "$BASE_URL/download-video?id=$videoId&format=720"
-        val response = Requests(baseClient = Utils.httpClient, responseParser = parser).get(url)
+        val videoId = extractYoutubeId(link) ?: throw Exception("Invalid YouTube link")
+        Log.d("GGG", "VideoId: $videoId")
 
-        if (!response.isSuccessful) {
-            throw Exception("Request failed: ${response.code}")
-        }
+        var progressId: String? = null
 
-        val body = response.body.string() ?: throw Exception("Empty response")
-        println("init: $body")
-        val json = gson.fromJson(body, JsonObject::class.java)
+        repeat(40) { attempt -> // ~120s kutish (40*3s)
+            // Agar progressId bo‘lmasa yangidan olish
+            if (progressId == null) {
+                val initUrl = "$BASE_URL/download-video?id=$videoId&format=720"
+                val initResp = Requests(baseClient = Utils.httpClient, responseParser = parser).get(initUrl)
 
+                if (!initResp.isSuccessful) throw Exception("Request failed: ${initResp.code}")
 
-        if (!json["success"].asBoolean) {
-            throw Exception("Download init failed: $body")
-        }
-        val progressId = json["progressId"].asString
+                val initBody = initResp.body.string() ?: throw Exception("Empty response")
+                val initJson = gson.fromJson(initBody, JsonObject::class.java)
 
-        var downloadUrl: String? = null
-        repeat(20) { // maksimal 20 marta tekshiradi (~60 sekund)
+                if (!initJson["success"].asBoolean) throw Exception("Download init failed: $initBody")
+
+                progressId = initJson["progressId"].asString
+                Log.d("GGG", "New progressId: $progressId")
+            }
+
+            // Statusni tekshirish
             val statusUrl = "$BASE_URL/status-video?id=$progressId"
-            val statusResp =
+            val statusResp = withContext(Dispatchers.IO) {
                 Utils.httpClient.newCall(Request.Builder().url(statusUrl).build()).execute()
+            }
             val statusBody = statusResp.body?.string() ?: ""
             val statusJson = gson.fromJson(statusBody, JsonObject::class.java)
 
-            if (statusJson["finished"].asBoolean) {
-                downloadUrl = statusJson["downloadUrl"].asString
-                return@repeat
+            Log.d("GGG", "Status [$attempt]: $statusBody")
+
+            if (statusJson["finished"]?.asBoolean == true) {
+                val downloadUrl = statusJson["downloadUrl"].asString
+                Log.d("GGG", "Download ready: $downloadUrl")
+                return downloadUrl // 🔥 finished true bo‘lsa loopni to‘xtatamiz
             }
 
-            delay(2000) // 3 sekund kutadi
+            // progressId yangilansa — update
+            if (statusJson.has("progressId") && statusJson["progressId"].asString != progressId) {
+                progressId = statusJson["progressId"].asString
+                Log.d("GGG", "ProgressId updated: $progressId")
+            }
+
+            delay(3000) // 3 sekund kutish
         }
 
-        return downloadUrl ?: throw Exception("Download URL not ready")
+        throw Exception("Download URL not ready after timeout")
     }
 
     private fun extractYoutubeId(url: String): String? {
