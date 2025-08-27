@@ -391,11 +391,9 @@ class MovieDetailsAdapter(
             binding.root.visible()
             val castAdapter = CastAdapter()
             if (castREsponse.isEmpty()) {
-                binding.root.gone()
                 binding.castRv.visibility = View.INVISIBLE
                 binding.castProgress.visible()
             } else {
-                binding.root.visible()
                 binding.castRv.visible()
                 binding.castProgress.gone()
             }

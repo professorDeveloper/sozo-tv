@@ -3,21 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:visibility="gone"
     android:layout_height="wrap_content"
     android:background="@color/main_background">
 
-    <TextView
-        android:id="@+id/textView5"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="26dp"
-        android:fontFamily="@font/days"
-        android:text="Cast"
-        android:textColor="@color/lb_tv_white"
-        android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.leanback.widget.HorizontalGridView
         android:id="@+id/castRv"
@@ -25,7 +13,7 @@
         android:layout_height="150dp"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:paddingStart="14dp"
+        android:paddingStart="20dp"
         android:visibility="visible"
         app:focusOutEnd="true"
         app:focusOutFront="true"

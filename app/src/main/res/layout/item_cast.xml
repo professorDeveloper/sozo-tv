@@ -5,7 +5,7 @@
     android:id="@+id/cardView"
     android:layout_width="130dp"
     android:layout_height="130dp"
-    android:layout_margin="8dp"
+    android:layout_margin="5dp"
     android:background="@drawable/account_item_bg"
     android:focusable="true"
     android:focusableInTouchMode="true"
