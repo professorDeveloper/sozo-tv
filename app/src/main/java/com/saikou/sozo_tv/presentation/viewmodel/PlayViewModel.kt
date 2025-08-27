@@ -3,6 +3,8 @@ package com.saikou.sozo_tv.presentation.viewmodel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.saikou.sozo_tv.data.remote.DubsMp4Parser
+import com.saikou.sozo_tv.data.remote.LiveChartTrailer
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.MainModel
@@ -14,6 +16,7 @@ class PlayViewModel(private val repo: DetailRepository) : ViewModel() {
     val relationsData = MutableLiveData<List<MainModel>>()
     val errorData = MutableLiveData<String>()
     val castResponseData = MutableLiveData<List<Cast>>()
+    val trailerData = MutableLiveData<String>()
     fun loadRelations(id: Int) {
         viewModelScope.launch {
             val result = repo.loadAnimeRelations(id)
@@ -33,6 +36,7 @@ class PlayViewModel(private val repo: DetailRepository) : ViewModel() {
             }
         }
     }
+
     fun loadCast(id: Int) {
         viewModelScope.launch {
             val result = repo.loadCast(id)
@@ -40,6 +44,21 @@ class PlayViewModel(private val repo: DetailRepository) : ViewModel() {
                 castResponseData.postValue(result.getOrNull()!!)
             } else {
                 errorData.postValue(result.exceptionOrNull()?.message)
+            }
+        }
+    }
+
+    fun loadTrailer(name: String) {
+        viewModelScope.launch {
+            val liveChartTrailer = LiveChartTrailer()
+            val link = liveChartTrailer.searchAndGetTrailer(name)
+            val ytList = liveChartTrailer.getTrailerByDetail(link.mediaLink)
+            if (ytList.isNotEmpty()) {
+                trailerData.postValue("")
+            } else {
+                val parser = DubsMp4Parser()
+                val mp4Link = parser.parseYt(ytList[0].mediaLink)
+                trailerData.postValue(mp4Link)
             }
         }
     }

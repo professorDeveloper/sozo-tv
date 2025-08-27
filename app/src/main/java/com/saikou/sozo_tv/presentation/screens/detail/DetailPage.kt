@@ -9,9 +9,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.OptIn
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.hls.HlsMediaSource
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.databinding.DetailPageBinding
 import com.saikou.sozo_tv.domain.model.DetailCategory
@@ -19,7 +27,10 @@ import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.loadImage
+import com.saikou.sozo_tv.utils.makeCustomHttpClient
+import com.saikou.sozo_tv.utils.makeSslForTrailer
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import javax.net.ssl.SSLContext
 
 
 class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
@@ -59,23 +70,33 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         return binding.root
     }
 
+    @SuppressLint("UnsafeOptInUsageError")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initializeAdapter()
+        initializePlayer()
         playViewModel.relationsData.observe(viewLifecycleOwner) {
             detailsAdapter.submitRecommendedMovies(it)
         }
         playViewModel.castResponseData.observe(viewLifecycleOwner) {
             detailsAdapter.submitCast(it)
         }
+        playViewModel.trailerData.observe(viewLifecycleOwner) {
+            if (it.isNotEmpty()) {
+                trailerUrlPlayer = it
+                prepareMedia(it)
+
+            }
+        }
         playViewModel.detailData.observe(viewLifecycleOwner) { details ->
+            playViewModel.loadTrailer(details.content.title)
             binding.replaceImage.loadImage(details.content.bannerImage)
             val currentList = arrayListOf<DetailCategory>()
             val headerItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_HEADER)
             val sectionItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_SECTION)
             val thirdItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_THIRD)
             val fourItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_FOUR)
-            currentList.addAll(listOf(headerItem, sectionItem, thirdItem,fourItem))
+            currentList.addAll(listOf(headerItem, sectionItem, thirdItem, fourItem))
             detailsAdapter.submitList(currentList)
             LocalData.setFocusChangedListenerPlayer {
                 val intent =
@@ -90,7 +111,43 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
             Toast.makeText(requireActivity(), it, Toast.LENGTH_SHORT).show()
         }
     }
+    @UnstableApi
+    private fun initializePlayer() {
+        val context = requireContext()
+        val httpDataSourceFactory = androidx.media3.datasource.DefaultHttpDataSource.Factory()
+            .setAllowCrossProtocolRedirects(true)
+        val dataSourceFactory =
+            androidx.media3.datasource.DefaultDataSource.Factory(context, httpDataSourceFactory)
 
+        val mediaSourceFactory =
+            androidx.media3.exoplayer.source.DefaultMediaSourceFactory(dataSourceFactory)
+
+        player = androidx.media3.exoplayer.ExoPlayer.Builder(context)
+            .setMediaSourceFactory(mediaSourceFactory).build().apply {
+                setAudioAttributes(
+                    androidx.media3.common.AudioAttributes.Builder()
+                        .setUsage(androidx.media3.common.C.USAGE_MEDIA)
+                        .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MOVIE).build(),
+                    true
+                )
+                addListener(playerListener)
+                volume = 0f
+                playWhenReady = true
+            }
+
+        binding.trailerView.player = player
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun prepareMedia(hlsUrl: String) {
+        val mediaItem =
+            MediaItem.Builder().setUri(hlsUrl).setMimeType(MimeTypes.APPLICATION_MP4) // HLS format
+                .build()
+
+        player?.setMediaItem(mediaItem)
+        player?.prepare()
+        player?.playWhenReady = true
+    }
 
     private fun initializeAdapter() {
         binding.vgvMovieDetails.apply {

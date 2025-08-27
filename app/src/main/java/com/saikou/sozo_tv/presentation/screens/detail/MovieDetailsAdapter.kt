@@ -145,6 +145,11 @@ class MovieDetailsAdapter(
 
             })
             binding.recommendedRv.adapter = adapter
+            if (recommendedMovies.isEmpty()) {
+                binding.textView5.gone()
+            }else {
+                binding.textView5.visible()
+            }
         }
     }
 

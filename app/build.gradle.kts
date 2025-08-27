@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-parcelize")
+//    id("kotlinx-serialization")
     id("androidx.navigation.safeargs.kotlin")
     id("kotlin-kapt")
     id("com.apollographql.apollo3") version "3.7.0"
@@ -110,6 +111,9 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer-hls:1.0.0")
     implementation("androidx.media3:media3-session:1.0.0")
     implementation("androidx.media3:media3-datasource-okhttp:1.0.0")
+
+    //Jackson
+    api ("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.1")
 
 
     //Exoplayer2

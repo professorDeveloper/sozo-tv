@@ -3,6 +3,10 @@ query getAnimeById($id: Int) {
         id
         idMal
         countryOfOrigin
+        trailer {
+            site
+            thumbnail
+        }
 
         title {
             english

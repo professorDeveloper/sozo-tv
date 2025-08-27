@@ -10,7 +10,7 @@ import org.jsoup.nodes.Document
 
 object Utils {
 
-    private var httpClient = UnsafeOkHttpClient.getUnsafeOkHttpClient()
+     var httpClient = UnsafeOkHttpClient.getUnsafeOkHttpClient()
 
     fun getAsilMedia(
         host: String? = null,
