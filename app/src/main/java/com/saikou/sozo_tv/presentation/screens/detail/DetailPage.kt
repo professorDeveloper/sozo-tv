@@ -166,15 +166,14 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     }
 
     override fun onBookMarkClicked(itme: DetailCategory) {
-        TODO("Not yet implemented")
     }
 
     override fun onSoundButtonClicked(isOn: Boolean) {
-        TODO("Not yet implemented")
+        player?.volume = if (isOn) 0.5f else 0f
     }
 
     override fun onPauseButtonClicked(isPlay: Boolean) {
-        TODO("Not yet implemented")
+        if (isPlay) player?.play() else player?.pause()
     }
 
     override fun onWatchButtonClicked(
@@ -184,16 +183,17 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         title: String,
         isFree: Boolean
     ) {
-        TODO("Not yet implemented")
     }
 
     override fun onTrailerButtonClicked(item: DetailCategory) {
-        TODO("Not yet implemented")
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-
+        if (player != null) {
+            player?.release()
+            player = null
+        }
     }
 }

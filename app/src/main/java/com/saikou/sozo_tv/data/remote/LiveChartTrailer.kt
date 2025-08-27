@@ -102,7 +102,7 @@ class DubsMp4Parser {
             delay(3000) // 3 sekund kutish
         }
 
-        throw Exception("Download URL not ready after timeout")
+        return ""
     }
 
     private fun extractYoutubeId(url: String): String? {

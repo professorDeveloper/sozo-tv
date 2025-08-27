@@ -1,8 +1,11 @@
 package com.saikou.sozo_tv.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import androidx.recyclerview.widget.RecyclerView
+import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ItemCastBinding
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.utils.loadImage
@@ -16,6 +19,22 @@ class CastAdapter : RecyclerView.Adapter<CastAdapter.CastVh>() {
             binding.userNameTxt.text = cast.name
             binding.characterTxt.text = cast.role
             binding.accountImg.loadImage(cast.image)
+            binding.root.setOnFocusChangeListener { _, hasFocus ->
+
+                val animation = when {
+                    hasFocus -> AnimationUtils.loadAnimation(
+                        binding.root.context,
+                        R.anim.zoom_in
+                    )
+
+                    else -> AnimationUtils.loadAnimation(
+                        binding.root.context,
+                        R.anim.zoom_out
+                    )
+                }
+                binding.root.startAnimation(animation)
+                animation.fillAfter = true
+            }
         }
     }
 
