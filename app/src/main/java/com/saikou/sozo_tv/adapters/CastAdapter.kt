@@ -13,12 +13,21 @@ import com.saikou.sozo_tv.utils.loadImage
 class CastAdapter : RecyclerView.Adapter<CastAdapter.CastVh>() {
     private val castList = ArrayList<Cast>()
 
+    private lateinit var itemClickkedListener: (Cast) -> Unit
+
+    fun setOnItemClickListener(listener: (Cast) -> Unit) {
+        itemClickkedListener = listener
+    }
+
     inner class CastVh(private val binding: ItemCastBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun onBind(cast: Cast) {
             binding.userNameTxt.text = cast.name
             binding.characterTxt.text = cast.role
             binding.accountImg.loadImage(cast.image)
+            binding.root.setOnClickListener {
+                itemClickkedListener.invoke(cast)
+            }
             binding.root.setOnFocusChangeListener { _, hasFocus ->
 
                 val animation = when {

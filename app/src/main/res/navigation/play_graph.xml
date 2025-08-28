@@ -9,5 +9,18 @@
         android:id="@+id/detailPage2"
         tools:layout="@layout/detail_page"
         android:name="com.saikou.sozo_tv.presentation.screens.detail.DetailPage"
-        android:label="DetailPage" />
+        android:label="DetailPage" >
+        <action
+            android:id="@+id/action_detailPage2_to_castDetailScreen"
+            app:destination="@id/castDetailScreen" />
+    </fragment>
+    <fragment
+        android:id="@+id/castDetailScreen"
+        tools:layout="@layout/cast_detail_screen"
+        android:name="com.saikou.sozo_tv.presentation.screens.detail.CastDetailScreen"
+        android:label="CastDetailScreen" >
+        <argument
+            android:name="castId"
+            app:argType="integer" />
+    </fragment>
 </navigation>

@@ -9,6 +9,7 @@ import com.saikou.sozo_tv.domain.repository.CategoriesRepository
 import com.saikou.sozo_tv.domain.repository.DetailRepository
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.domain.repository.SearchRepository
+import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
@@ -62,6 +63,7 @@ val koinModule = module {
     viewModel { PlayViewModel(repo = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
     viewModel { SearchViewModel(repo = get()) }
+    viewModel { CastDetailViewModel(repo = get()) }
 //    viewModel {
 //        PlayViewModel(
 //            homeRepository = get(),

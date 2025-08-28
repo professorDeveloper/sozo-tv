@@ -63,6 +63,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.3")
     implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.9")
     implementation("com.google.firebase:firebase-database:21.0.0")
+    implementation("androidx.palette:palette-ktx:1.0.0")
     kapt("com.github.bumptech.glide:compiler:4.15.1")
 
     // Koin

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ItemMovieBinding
 import com.saikou.sozo_tv.domain.model.MainModel
@@ -89,7 +90,7 @@ class CategoriesPageAdapter(val isDetail: Boolean = false) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(data: MainModel) {
             binding.apply {
-                binding.itemImg.loadImage(data.image)
+                Glide.with(binding.root.context).load(data.image).into(binding.itemImg)
                 binding.topContainer.text = data.title
                 binding.root.setOnClickListener {
                     if (isDetail) {

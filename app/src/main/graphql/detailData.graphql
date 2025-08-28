@@ -38,8 +38,10 @@ query getAnimeById($id: Int) {
 
 query  getCharactersAnimeById($id: Int) {
     Media(id: $id) {
+
         characters {
             nodes {
+                id
                 name {
                     userPreferred
                     middle
@@ -50,6 +52,45 @@ query  getCharactersAnimeById($id: Int) {
                     medium
                 }
 
+            }
+        }
+    }
+}
+
+
+query getCharacterDetail($id: Int) {
+    Character(id: $id){
+        age
+        name {
+            userPreferred
+            middle
+            alternative
+        }
+        image {
+            medium
+        }
+
+        media {
+            nodes {
+                id
+                title {
+                    userPreferred
+                }
+                studios{
+                    nodes {
+                        name
+                    }
+                }
+                coverImage {
+                    large
+                }
+                mediaListEntry {
+                    status
+                }
+                genres
+                hashtag
+                meanScore
+                averageScore
             }
         }
     }

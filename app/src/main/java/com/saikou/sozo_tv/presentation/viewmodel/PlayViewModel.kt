@@ -11,6 +11,7 @@ import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.DetailRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class PlayViewModel(private val repo: DetailRepository) : ViewModel() {
@@ -38,6 +39,7 @@ class PlayViewModel(private val repo: DetailRepository) : ViewModel() {
             }
         }
     }
+    private var trailerJob: Job? = null
 
     fun loadCast(id: Int) {
         viewModelScope.launch {
@@ -51,7 +53,8 @@ class PlayViewModel(private val repo: DetailRepository) : ViewModel() {
     }
 
     fun loadTrailer(name: String) {
-        viewModelScope.launch {
+        trailerJob?.cancel() // eski jobni to‘xtatib yuboramiz
+        trailerJob = viewModelScope.launch {
             val liveChartTrailer = LiveChartTrailer()
             val link = liveChartTrailer.searchAndGetTrailer(name)
             val ytList = liveChartTrailer.getTrailerByDetail(link.mediaLink)
@@ -62,10 +65,13 @@ class PlayViewModel(private val repo: DetailRepository) : ViewModel() {
                 val parser = DubsMp4Parser()
                 parser.parseYt(ytList[0].mediaLink)?.let {
                     trailerData.postValue(it)
-
                 }
             }
         }
+    }
+
+    fun cancelTrailerLoading() {
+        trailerJob?.cancel()
     }
 
     fun loadAnimeById(id: Int) {

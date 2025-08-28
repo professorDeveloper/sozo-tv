@@ -20,8 +20,10 @@ import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.databinding.DetailPageBinding
+import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
@@ -111,6 +113,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
             Toast.makeText(requireActivity(), it, Toast.LENGTH_SHORT).show()
         }
     }
+
     @UnstableApi
     private fun initializePlayer() {
         val context = requireContext()
@@ -149,7 +152,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         player?.playWhenReady = true
     }
 
-        private fun initializeAdapter() {
+    private fun initializeAdapter() {
         binding.vgvMovieDetails.apply {
             adapter = detailsAdapter.apply {
                 stateRestorationPolicy =
@@ -186,11 +189,22 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     }
 
     override fun onTrailerButtonClicked(item: DetailCategory) {
+
+    }
+
+    override fun onCastItemClicked(item: Cast) {
+        Log.d("GGG", "onCastItemClicked:${item.id} ")
+        findNavController().navigate(
+            DetailPageDirections.actionDetailPage2ToCastDetailScreen(
+                item.id
+            ),
+        )
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        playViewModel.cancelTrailerLoading()
         if (player != null) {
             player?.release()
             player = null

@@ -5,12 +5,15 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.databinding.BannerItemBinding
 import com.saikou.sozo_tv.databinding.ContentBannerBinding
+import com.saikou.sozo_tv.databinding.ItemCastRecommendedBinding
 import com.saikou.sozo_tv.databinding.ItemCategoryBinding
+import com.saikou.sozo_tv.databinding.ItemCategoryDetailsHeaderBinding
 import com.saikou.sozo_tv.databinding.ItemGenreBinding
 import com.saikou.sozo_tv.databinding.ItemMovieBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsHeaderBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsSectionBinding
 import com.saikou.sozo_tv.databinding.ItemPlayRecommendedBinding
+import com.saikou.sozo_tv.presentation.screens.detail.CastDetailAdapter
 import com.saikou.sozo_tv.presentation.screens.detail.MovieDetailsAdapter
 import com.saikou.sozo_tv.presentation.screens.detail.MovieDetailsAdapter.Companion.DETAILS_ITEM_THIRD
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
@@ -21,8 +24,7 @@ object ViewHolderFactory {
      * viewType asosida mos ViewHolder yaratadi.
      */
     fun create(
-        parent: ViewGroup,
-        viewType: Int
+        parent: ViewGroup, viewType: Int
     ): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
@@ -66,12 +68,28 @@ object ViewHolderFactory {
                 MovieDetailsAdapter.ItemPlayDetailsSectionViewHolder(binding)
             }
 
-            DETAILS_ITEM_THIRD -> {
+            CastDetailAdapter.DETAILS_ITEM_HEADER -> {
+                val binding = ItemCategoryDetailsHeaderBinding.inflate(inflater, parent, false)
+                CastDetailAdapter.ItemPlayDetailsHeaderViewHolder(binding)
+            }
+
+            CastDetailAdapter.DETAILS_ITEM_SECTION -> {
+                val binding = ItemPlayDetailsSectionBinding.inflate(inflater, parent, false)
+                CastDetailAdapter.ItemPlayDetailsSectionViewHolder(binding)
+            }
+
+            CastDetailAdapter.DETAILS_ITEM_THIRD -> {
+                CastDetailAdapter.ItemPlayDetailsThirdViewHolder(
+                    ItemCastRecommendedBinding.inflate(
+                        inflater, parent, false
+                    )
+                )
+            }
+
+            MovieDetailsAdapter.DETAILS_ITEM_THIRD -> {
                 MovieDetailsAdapter.ItemPlayDetailsThirdViewHolder(
                     ItemPlayRecommendedBinding.inflate(
-                        inflater,
-                        parent,
-                        false
+                        inflater, parent, false
                     )
                 )
             }

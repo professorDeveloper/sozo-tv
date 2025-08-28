@@ -107,6 +107,7 @@ object LocalData {
     }
 
     val recommendedMovies: MutableList<MainModel> = mutableListOf()
+    val recommendedMoviesCast: MutableList<MainModel> = mutableListOf()
     val castList: MutableList<Cast> = mutableListOf()
     lateinit var focusChangedListenerPlayerg: (MainModel) -> Unit
 

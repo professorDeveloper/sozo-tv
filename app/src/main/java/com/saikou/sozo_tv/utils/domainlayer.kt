@@ -3,6 +3,7 @@ package com.saikou.sozo_tv.utils
 import com.animestudios.animeapp.GetAnimeByGenreQuery
 import com.animestudios.animeapp.GetAnimeByIdQuery
 import com.animestudios.animeapp.GetAnimeByOnlGenreQuery
+import com.animestudios.animeapp.GetCharacterDetailQuery
 import com.animestudios.animeapp.GetCharactersAnimeByIdQuery
 import com.animestudios.animeapp.GetRelationsByIdQuery
 import com.animestudios.animeapp.SearchAnimeQuery
@@ -11,6 +12,7 @@ import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Cast
+import com.saikou.sozo_tv.domain.model.CastDetailModel
 import com.saikou.sozo_tv.domain.model.CategoryGenre
 import com.saikou.sozo_tv.domain.model.CategoryGenreItem
 import com.saikou.sozo_tv.domain.model.DetailModel
@@ -74,8 +76,40 @@ fun JikanBannerResponse.toDomain(): BannerModel {
     return BannerModel(viewType = HomeAdapter.VIEW_BANNER, data = list)
 }
 
+fun GetCharacterDetailQuery.Node.toDomain(): MainModel {
+    return MainModel(
+        this.id,
+        this.title?.userPreferred ?: "",
+        -1,
+        image = this.coverImage?.large ?: LocalData.anime404,
+        this.genres,
+        this.studios?.nodes?.map {
+            it?.name ?: ""
+        },
+        this.averageScore ?: -1,
+        this.meanScore ?: -1
+    )
+
+}
+
+fun GetCharacterDetailQuery.Character.toDomain(): CastDetailModel {
+    val list = ArrayList<MainModel>()
+    this.media?.nodes?.map {
+        list.add(it?.toDomain()!!)
+
+    }
+    return CastDetailModel(
+        image = this.image?.medium ?: LocalData.anime404,
+        name = this.name?.userPreferred ?: "",
+        role = this.name?.middle ?: "",
+        media = list,
+        age = this.age ?: ""
+    )
+}
+
 fun GetCharactersAnimeByIdQuery.Node.toDomain(): Cast {
     return Cast(
+        this.id,
         (this.image?.medium ?: LocalData.anime404).toString(),
         (this.name?.userPreferred ?: "").toString(),
         this.name?.middle ?: "",

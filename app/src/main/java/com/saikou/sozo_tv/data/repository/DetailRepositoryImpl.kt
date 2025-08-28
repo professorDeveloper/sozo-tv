@@ -1,11 +1,13 @@
 package com.saikou.sozo_tv.data.repository
 
 import com.animestudios.animeapp.GetAnimeByIdQuery
+import com.animestudios.animeapp.GetCharacterDetailQuery
 import com.animestudios.animeapp.GetCharactersAnimeByIdQuery
 import com.animestudios.animeapp.GetRelationsByIdQuery
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.saikou.sozo_tv.domain.model.Cast
+import com.saikou.sozo_tv.domain.model.CastDetailModel
 import com.saikou.sozo_tv.domain.model.DetailModel
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.DetailRepository
@@ -47,20 +49,20 @@ class DetailRepositoryImpl(private val client: ApolloClient) : DetailRepository 
         }
     }
 
-    override suspend fun loadCast(id:Int): Result<List<Cast>> {
+    override suspend fun loadCast(id: Int): Result<List<Cast>> {
         try {
-            val result =client.query(
+            val result = client.query(
                 GetCharactersAnimeByIdQuery(Optional.present(id))
             ).execute()
 
             val data = result.data?.Media?.characters
 
-            val castList =data?.nodes?.map {
+            val castList = data?.nodes?.map {
                 it?.toDomain()!!
             }
 
             return Result.success(castList!!)
-        }catch (e:Exception) {
+        } catch (e: Exception) {
             return Result.failure(e)
         }
     }
@@ -78,6 +80,20 @@ class DetailRepositoryImpl(private val client: ApolloClient) : DetailRepository 
             }
 
             return Result.success(resultList)
+
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
+    }
+
+    override suspend fun characterDetail(id: Int): Result<CastDetailModel> {
+        try {
+            val result = client.query(
+                GetCharacterDetailQuery(Optional.present(id))
+            ).execute()
+
+            val data =result.data?.Character?.toDomain()
+            return Result.success(data!!)
 
         } catch (e: Exception) {
             return Result.failure(e)

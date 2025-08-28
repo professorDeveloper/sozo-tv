@@ -45,6 +45,7 @@ class MovieDetailsAdapter(
 
     interface DetailsInterface {
         fun onCancelButtonClicked()
+        fun onCastItemClicked(item:Cast)
         fun onBookMarkClicked(itme: DetailCategory)
         fun onSoundButtonClicked(isOn: Boolean)
         fun onPauseButtonClicked(isPlay: Boolean)
@@ -122,7 +123,7 @@ class MovieDetailsAdapter(
             }
 
             is ItemPlayCastViewHolder -> {
-                holder.bind(castList)
+                holder.bind(castList,interfaceListener = detailsButtonListener)
             }
         }
 
@@ -387,12 +388,14 @@ class MovieDetailsAdapter(
     class ItemPlayCastViewHolder(private val binding: ItemPlayCastBinding) :
         RecyclerView.ViewHolder(binding.root) {
         @SuppressLint("SetTextI18n")
-        fun bind(castREsponse: List<Cast>) {
+        fun bind(castREsponse: List<Cast>, interfaceListener: DetailsInterface) {
             binding.root.visible()
             val castAdapter = CastAdapter()
+            castAdapter.setOnItemClickListener {
+                interfaceListener.onCastItemClicked(it)
+            }
             if (castREsponse.isEmpty()) {
                 binding.castRv.visibility = View.INVISIBLE
-                binding.castProgress.visible()
             } else {
                 binding.castRv.visible()
                 binding.castProgress.gone()
