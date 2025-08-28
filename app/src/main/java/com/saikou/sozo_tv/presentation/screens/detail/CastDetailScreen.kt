@@ -47,12 +47,14 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
                 role = it.role,
                 age = it.age,
                 media = it.media,
+                gender = it.gender,
                 viewType = CastDetailAdapter.DETAILS_ITEM_HEADER
             )
             val sectionData = CastAdapterModel(
                 image = it.image,
                 name = it.name,
                 role = it.role,
+                gender = it.gender,
                 age = it.age,
                 media = it.media,
                 viewType = CastDetailAdapter.DETAILS_ITEM_SECTION
@@ -64,6 +66,7 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
                 role = it.role,
                 age = it.age,
                 media = it.media,
+                gender = it.gender,
                 viewType = CastDetailAdapter.DETAILS_ITEM_THIRD
             )
             adapter.submitList(listOf(headerData, sectionData, thirdData))

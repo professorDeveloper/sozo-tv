@@ -102,6 +102,7 @@ fun GetCharacterDetailQuery.Character.toDomain(): CastDetailModel {
         image = this.image?.medium ?: LocalData.anime404,
         name = this.name?.userPreferred ?: "",
         role = this.name?.middle ?: "",
+        gender = this.gender ?: "",
         media = list,
         age = this.age ?: ""
     )

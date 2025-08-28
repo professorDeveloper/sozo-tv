@@ -66,6 +66,8 @@ query getCharacterDetail($id: Int) {
             middle
             alternative
         }
+
+        gender
         image {
             medium
         }

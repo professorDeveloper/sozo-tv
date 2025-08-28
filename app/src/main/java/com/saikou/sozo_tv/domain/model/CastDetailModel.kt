@@ -4,6 +4,7 @@ import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 
 data class CastDetailModel(
     val image: String,
+    val gender:String,
     val name: String,
     val role: String,
     val media: List<MainModel>,
@@ -12,6 +13,7 @@ data class CastDetailModel(
 
 data class CastAdapterModel(
     val image: String,
+    val gender:String,
     val name: String,
     val role: String,
     val age: String,

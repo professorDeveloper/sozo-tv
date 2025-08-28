@@ -6,6 +6,7 @@
     android:layout_height="wrap_content"
     android:background="@color/main_background">
 
+
     <LinearLayout
         android:id="@+id/backBtn"
         android:layout_width="wrap_content"

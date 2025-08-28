@@ -49,7 +49,6 @@ import com.saikou.sozo_tv.utils.loadImage
 import com.saikou.sozo_tv.utils.setupGridLayoutForCategories
 import com.saikou.sozo_tv.utils.toYear
 import com.saikou.sozo_tv.utils.visible
-import kotlin.math.sqrt
 import kotlin.random.Random
 
 class CastDetailAdapter(
@@ -183,63 +182,28 @@ class CastDetailAdapter(
             binding.backBtn.setOnClickListener {
                 interfaceListener.onCancelButtonClicked()
             }
+
             binding.characterImage.loadImage(item.image)
             binding.name.text = item.name
-            binding.middle.text = item.role
-            fun areColorsSimilar(color1: Int, color2: Int, threshold: Float = 50f): Boolean {
-                val r1 = Color.red(color1)
-                val g1 = Color.green(color1)
-                val b1 = Color.blue(color1)
-                val r2 = Color.red(color2)
-                val g2 = Color.green(color2)
-                val b2 = Color.blue(color2)
-                val distance = sqrt(
-                    ((r1 - r2) * (r1 - r2) +
-                            (g1 - g2) * (g1 - g2) +
-                            (b1 - b2) * (b1 - b2)).toDouble()
-                ).toFloat()
-                return distance < threshold
-            }
+            binding.middle.text = item.gender.ifEmpty { item.media[0].title }
 
             Glide.with(MyApp.context).asBitmap().load(item.image)
                 .into(object : CustomTarget<Bitmap>() {
-                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                    override fun onResourceReady(
+                        resource: Bitmap, transition: Transition<in Bitmap>?
+                    ) {
+
                         Palette.from(resource).generate { palette ->
-                            val mainBg = ContextCompat.getColor(binding.root.context, R.color.main_background)
-
-                            // Top rang (energiya beruvchi)
-                            var topColor = palette?.getVibrantColor(mainBg)
-                                ?: palette?.getDarkVibrantColor(mainBg)
-                                ?: palette?.getDominantColor(mainBg)
-                                ?: mainBg
-
-                            // Yumshoq o‘tish uchun rang
-                            var midColor = palette?.getMutedColor(mainBg)
-                                ?: palette?.getDarkMutedColor(mainBg)
-                                ?: topColor
-
-                            // Ranglar juda yaqin bo‘lsa, fallback qilamiz
-                            if (areColorsSimilar(topColor, mainBg)) {
-                                topColor = palette?.getLightVibrantColor(mainBg) ?: topColor
-                            }
-                            if (areColorsSimilar(midColor, mainBg)) {
-                                midColor = palette?.getLightMutedColor(mainBg) ?: midColor
-                            }
-
-                            // 5 rangli tarqoq gradient
-                            val gradient = GradientDrawable(
-                                GradientDrawable.Orientation.LEFT_RIGHT,
-                                intArrayOf(
-                                    topColor,
-                                    midColor,
-                                    mainBg,
-                                    midColor,
-                                    topColor
-                                )
+                            val dominantColor =
+                                palette?.getDominantColor(Color.BLACK) ?: Color.BLACK
+                            val mainBg = ContextCompat.getColor(
+                                binding.root.context, R.color.main_background
                             )
 
-                            // Smooth transition uchun
-                            gradient.gradientType = GradientDrawable.LINEAR_GRADIENT
+                            val gradient = GradientDrawable(
+                                GradientDrawable.Orientation.TOP_BOTTOM,
+                                intArrayOf(dominantColor, mainBg)
+                            )
                             gradient.cornerRadius = 0f
 
                             binding.root.background = gradient
@@ -248,6 +212,7 @@ class CastDetailAdapter(
 
                     override fun onLoadCleared(placeholder: Drawable?) {}
                 })
+
 
         }
     }
@@ -273,7 +238,7 @@ class CastDetailAdapter(
                 val newItem = list[newItemPosition]
 
                 return when {
-                    oldItem is CastAdapterModel && newItem is CastAdapterModel && oldItem.viewType == DETAILS_ITEM_HEADER && newItem.viewType == DETAILS_ITEM_HEADER &&oldItem.viewType == DETAILS_ITEM_THIRD && newItem.viewType == DETAILS_ITEM_THIRD-> {
+                    oldItem is CastAdapterModel && newItem is CastAdapterModel && oldItem.viewType == DETAILS_ITEM_HEADER && newItem.viewType == DETAILS_ITEM_HEADER && oldItem.viewType == DETAILS_ITEM_THIRD && newItem.viewType == DETAILS_ITEM_THIRD -> {
                         oldItem.name == newItem.name
                     }
 
