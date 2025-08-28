@@ -49,6 +49,7 @@ import com.saikou.sozo_tv.utils.loadImage
 import com.saikou.sozo_tv.utils.setupGridLayoutForCategories
 import com.saikou.sozo_tv.utils.toYear
 import com.saikou.sozo_tv.utils.visible
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 class CastDetailAdapter(
@@ -185,46 +186,60 @@ class CastDetailAdapter(
             binding.characterImage.loadImage(item.image)
             binding.name.text = item.name
             binding.middle.text = item.role
-
-            // Helper function to check if two colors are similar (based on RGB distance)
-             fun areColorsSimilar(color1: Int, color2: Int, threshold: Float = 50f): Boolean {
+            fun areColorsSimilar(color1: Int, color2: Int, threshold: Float = 50f): Boolean {
                 val r1 = Color.red(color1)
                 val g1 = Color.green(color1)
                 val b1 = Color.blue(color1)
                 val r2 = Color.red(color2)
                 val g2 = Color.green(color2)
                 val b2 = Color.blue(color2)
-                val distance = Math.sqrt(((r1 - r2) * (r1 - r2) + (g1 - g2) * (g1 - g2) + (b1 - b2) * (b1 - b2)).toDouble()).toFloat()
+                val distance = sqrt(
+                    ((r1 - r2) * (r1 - r2) +
+                            (g1 - g2) * (g1 - g2) +
+                            (b1 - b2) * (b1 - b2)).toDouble()
+                ).toFloat()
                 return distance < threshold
             }
 
             Glide.with(MyApp.context).asBitmap().load(item.image)
                 .into(object : CustomTarget<Bitmap>() {
-                    override fun onResourceReady(
-                        resource: Bitmap, transition: Transition<in Bitmap>?
-                    ) {
+                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                         Palette.from(resource).generate { palette ->
-                            val mainBg = ContextCompat.getColor(
-                                binding.root.context, R.color.main_background
-                            )
-                            // Prefer dark vibrant for harmony in dark themes, fallback to vibrant, then dominant
-                            var topColor = palette?.getDarkVibrantColor(mainBg) ?: palette?.getVibrantColor(mainBg) ?: palette?.getDominantColor(mainBg) ?: mainBg
-                            // Middle color for softness: use dark muted or muted for subtle transition
-                            var midColor = palette?.getDarkMutedColor(mainBg) ?: palette?.getMutedColor(mainBg) ?: topColor
+                            val mainBg = ContextCompat.getColor(binding.root.context, R.color.main_background)
 
-                            // If top or mid is too similar to mainBg, fallback to alternatives for better contrast/harmony
+                            // Top rang (energiya beruvchi)
+                            var topColor = palette?.getVibrantColor(mainBg)
+                                ?: palette?.getDarkVibrantColor(mainBg)
+                                ?: palette?.getDominantColor(mainBg)
+                                ?: mainBg
+
+                            // Yumshoq o‘tish uchun rang
+                            var midColor = palette?.getMutedColor(mainBg)
+                                ?: palette?.getDarkMutedColor(mainBg)
+                                ?: topColor
+
+                            // Ranglar juda yaqin bo‘lsa, fallback qilamiz
                             if (areColorsSimilar(topColor, mainBg)) {
-                                topColor = palette?.getVibrantColor(mainBg) ?: topColor
+                                topColor = palette?.getLightVibrantColor(mainBg) ?: topColor
                             }
                             if (areColorsSimilar(midColor, mainBg)) {
-                                midColor = palette?.getMutedColor(mainBg) ?: midColor
+                                midColor = palette?.getLightMutedColor(mainBg) ?: midColor
                             }
 
-                            // Create a three-color gradient for softer, more harmonious blend
+                            // 5 rangli tarqoq gradient
                             val gradient = GradientDrawable(
-                                GradientDrawable.Orientation.TOP_BOTTOM,
-                                intArrayOf(topColor, midColor, mainBg)
+                                GradientDrawable.Orientation.LEFT_RIGHT,
+                                intArrayOf(
+                                    topColor,
+                                    midColor,
+                                    mainBg,
+                                    midColor,
+                                    topColor
+                                )
                             )
+
+                            // Smooth transition uchun
+                            gradient.gradientType = GradientDrawable.LINEAR_GRADIENT
                             gradient.cornerRadius = 0f
 
                             binding.root.background = gradient
