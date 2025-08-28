@@ -128,7 +128,7 @@ class CastDetailAdapter(
             Log.d("GGG", "bind:fuck WHy not shoewn ${model.media} ")
             val adapter = CategoriesPageAdapter(isDetail = true)
             adapter.setClickDetail {
-                LocalData.focusChangedListenerPlayerg.invoke(it)
+//                LocalData.focusChangedListenerPlayerg.invoke(it)
             }
             adapter.setCategoriesPageInterface(object :
                 CategoriesPageAdapter.CategoriesPageInterface {
@@ -186,41 +186,48 @@ class CastDetailAdapter(
             binding.name.text = item.name
             binding.middle.text = item.role
 
-            Glide.with(binding.root.context)
-                .asBitmap()
-                .load(item.image)
+            // Helper function to check if two colors are similar (based on RGB distance)
+             fun areColorsSimilar(color1: Int, color2: Int, threshold: Float = 50f): Boolean {
+                val r1 = Color.red(color1)
+                val g1 = Color.green(color1)
+                val b1 = Color.blue(color1)
+                val r2 = Color.red(color2)
+                val g2 = Color.green(color2)
+                val b2 = Color.blue(color2)
+                val distance = Math.sqrt(((r1 - r2) * (r1 - r2) + (g1 - g2) * (g1 - g2) + (b1 - b2) * (b1 - b2)).toDouble()).toFloat()
+                return distance < threshold
+            }
+
+            Glide.with(MyApp.context).asBitmap().load(item.image)
                 .into(object : CustomTarget<Bitmap>() {
                     override fun onResourceReady(
-                        resource: Bitmap,
-                        transition: Transition<in Bitmap>?
+                        resource: Bitmap, transition: Transition<in Bitmap>?
                     ) {
                         Palette.from(resource).generate { palette ->
-                            if (palette != null) {
-                                val mainBg = ContextCompat.getColor(
-                                    binding.root.context, R.color.main_background
-                                )
+                            val mainBg = ContextCompat.getColor(
+                                binding.root.context, R.color.main_background
+                            )
+                            // Prefer dark vibrant for harmony in dark themes, fallback to vibrant, then dominant
+                            var topColor = palette?.getDarkVibrantColor(mainBg) ?: palette?.getVibrantColor(mainBg) ?: palette?.getDominantColor(mainBg) ?: mainBg
+                            // Middle color for softness: use dark muted or muted for subtle transition
+                            var midColor = palette?.getDarkMutedColor(mainBg) ?: palette?.getMutedColor(mainBg) ?: topColor
 
-                                // Ranglarni yig‘ib olamiz
-                                val dominant = palette.getDominantColor(mainBg)
-                                val vibrant = palette.getVibrantColor(dominant)
-                                val muted = palette.getMutedColor(dominant)
-
-                                // Gradient ranglar: yuqoridan pastga
-                                val gradientColors = intArrayOf(
-                                    vibrant,    // yuqorida jonli rang
-                                    muted,      // keyinroq sokin rang
-                                    dominant,   // asosiy rang
-                                    mainBg      // eng pastda — siz bergan background
-                                )
-
-                                val gradient = GradientDrawable(
-                                    GradientDrawable.Orientation.TOP_BOTTOM,
-                                    gradientColors
-                                )
-                                gradient.cornerRadius = 0f
-
-                                binding.root.background = gradient
+                            // If top or mid is too similar to mainBg, fallback to alternatives for better contrast/harmony
+                            if (areColorsSimilar(topColor, mainBg)) {
+                                topColor = palette?.getVibrantColor(mainBg) ?: topColor
                             }
+                            if (areColorsSimilar(midColor, mainBg)) {
+                                midColor = palette?.getMutedColor(mainBg) ?: midColor
+                            }
+
+                            // Create a three-color gradient for softer, more harmonious blend
+                            val gradient = GradientDrawable(
+                                GradientDrawable.Orientation.TOP_BOTTOM,
+                                intArrayOf(topColor, midColor, mainBg)
+                            )
+                            gradient.cornerRadius = 0f
+
+                            binding.root.background = gradient
                         }
                     }
 
