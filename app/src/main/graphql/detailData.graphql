@@ -25,6 +25,7 @@ query getAnimeById($id: Int) {
         hashtag
         airingSchedule {
             nodes {
+
                 airingAt
                 timeUntilAiring
                 episode
