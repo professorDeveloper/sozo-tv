@@ -104,7 +104,8 @@ fun GetCharacterDetailQuery.Character.toDomain(): CastDetailModel {
         role = this.name?.middle ?: "",
         gender = this.gender ?: "",
         media = list,
-        age = this.age ?: ""
+        age = this.age ?: "",
+        favorites = this.favourites ?: -1
     )
 }
 

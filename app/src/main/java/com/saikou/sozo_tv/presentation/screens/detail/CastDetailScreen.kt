@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.detail
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -10,7 +11,9 @@ import androidx.navigation.fragment.navArgs
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.CastDetailScreenBinding
 import com.saikou.sozo_tv.domain.model.CastAdapterModel
+import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.snackString
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -41,6 +44,13 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
             snackString(it ?: "", requireActivity())
         }
         model.castDetail.observe(viewLifecycleOwner) {
+            LocalData.setFocusChangedListenerPlayer {
+                val intent =
+                    Intent(binding.root.context, PlayerActivity::class.java)
+                intent.putExtra("model", it.id)
+                requireActivity().startActivity(intent)
+                requireActivity().finish()
+            }
             val headerData = CastAdapterModel(
                 image = it.image,
                 name = it.name,
@@ -48,6 +58,7 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
                 age = it.age,
                 media = it.media,
                 gender = it.gender,
+                favorites = it.favorites,
                 viewType = CastDetailAdapter.DETAILS_ITEM_HEADER
             )
             val sectionData = CastAdapterModel(
@@ -56,6 +67,7 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
                 role = it.role,
                 gender = it.gender,
                 age = it.age,
+                favorites = it.favorites,
                 media = it.media,
                 viewType = CastDetailAdapter.DETAILS_ITEM_SECTION
             )
@@ -66,6 +78,7 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
                 role = it.role,
                 age = it.age,
                 media = it.media,
+                favorites = it.favorites,
                 gender = it.gender,
                 viewType = CastDetailAdapter.DETAILS_ITEM_THIRD
             )

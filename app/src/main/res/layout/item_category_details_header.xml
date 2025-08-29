@@ -6,7 +6,6 @@
     android:layout_height="wrap_content"
     android:background="@color/main_background">
 
-
     <LinearLayout
         android:id="@+id/backBtn"
         android:layout_width="wrap_content"
@@ -40,15 +39,16 @@
             android:textSize="13sp" />
     </LinearLayout>
 
-
     <LinearLayout
         android:id="@+id/characterContainer"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="20dp"
         android:layout_marginBottom="24dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/backBtn"
         app:layout_constraintTop_toBottomOf="@+id/backBtn">
 
@@ -67,9 +67,8 @@
             android:gravity="center_vertical"
             android:orientation="vertical">
 
-            <!-- name ni cho'zib chiqadigan qilib yangilandi -->
             <TextView
-                android:id="@+id/name"
+                android:id="@+id/characterName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
@@ -77,10 +76,10 @@
                 android:includeFontPadding="false"
                 android:singleLine="true"
                 android:textSize="20sp"
-                tools:text="Jerome Bell Joker" />
+                tools:text="Haru Nabatame" />
 
             <TextView
-                android:id="@+id/middle"
+                android:id="@+id/characterLastName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
@@ -88,8 +87,95 @@
                 android:includeFontPadding="false"
                 android:singleLine="true"
                 android:textColor="@color/grayText"
-                android:textSize="16sp"
-                tools:text="Producer va Aktrisa" />
+                android:textSize="14sp"
+                android:visibility="visible"
+                tools:text="Nabatame" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/ageBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/badge_background"
+                    android:gravity="center"
+
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="2dp">
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        app:srcCompat="@drawable/ic_age"
+                        app:tint="@color/white" />
+
+                    <TextView
+                        android:id="@+id/characterAge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:fontFamily="@font/days"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        tools:text="16" />
+                </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/favoritesBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/favorites_badge_background"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="2dp">
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        app:srcCompat="@drawable/ic_favorite_outline"
+                        app:tint="@color/favorite_color" />
+
+                    <TextView
+                        android:id="@+id/favoritesCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:fontFamily="@font/days"
+                        android:textColor="@color/favorite_color"
+                        android:textSize="12sp"
+                        tools:text="48" />
+                </LinearLayout>
+
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/favoriteBtn"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:background="@drawable/background_button"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="8dp"
+                app:srcCompat="@drawable/ic_favorite_outline"
+                app:tint="@color/grayText" />
+
+
         </LinearLayout>
 
     </LinearLayout>

@@ -2,6 +2,7 @@ query getAnimeById($id: Int) {
     Media(id: $id) {
         id
         idMal
+
         countryOfOrigin
         trailer {
             site
@@ -16,9 +17,32 @@ query getAnimeById($id: Int) {
             large
         }
         bannerImage
-
+        countryOfOrigin
+        externalLinks {
+            site
+            url
+        }
+        hashtag
+        airingSchedule {
+            nodes {
+                airingAt
+                timeUntilAiring
+                episode
+            }
+        }
+        staff {
+            nodes {
+                image {
+                    medium
+                }
+                name {
+                    userPreferred
+                }
+            }
+        }
         studios {
             nodes {
+
                 name
             }
         }
@@ -60,6 +84,8 @@ query  getCharactersAnimeById($id: Int) {
 
 query getCharacterDetail($id: Int) {
     Character(id: $id){
+        favourites
+        isFavourite
         age
         name {
             userPreferred

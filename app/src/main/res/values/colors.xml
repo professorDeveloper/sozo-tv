@@ -9,7 +9,7 @@
     <color name="backward_color">#40181E17</color>
     <color name="selected_item_background">#FF4081</color> <!-- Color when focused -->
     <color name="default_item_background">#333333</color> <!-- Default background -->
-
+    <color name="favorite_color">#FF6B6B</color>
     <color name="button_stations">#ffe9cc</color>
     <color name="button_leaderboard">#C8A6C7EC</color>
     <color name="button_contribute">#efdcf8</color>
