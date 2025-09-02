@@ -26,6 +26,7 @@ import com.saikou.sozo_tv.databinding.DetailPageBinding
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
+import com.saikou.sozo_tv.presentation.screens.play.TrailerPlayerScreenArgs
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.loadImage
@@ -68,6 +69,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        LocalData.trailer = ""
         _binding = DetailPageBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -87,6 +89,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
             if (it.isNotEmpty()) {
                 trailerUrlPlayer = it
                 prepareMedia(it)
+                detailsAdapter.updateTrailer(it )
 
             }
         }
@@ -189,7 +192,12 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     }
 
     override fun onTrailerButtonClicked(item: DetailCategory) {
-
+        findNavController().navigate(
+            DetailPageDirections.actionDetailPage2ToTrailerPlayerScreen(
+                LocalData.trailer,
+                item.content.title ?: ""
+            )
+        )
     }
 
     override fun onCastItemClicked(item: Cast) {

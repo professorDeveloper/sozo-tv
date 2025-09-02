@@ -29,6 +29,7 @@ import com.saikou.sozo_tv.domain.model.MySpinnerItem
 //import com.ipsat.ipsat_tv.domain.model.category.ChannelItem
 //
 object LocalData {
+     var trailer: String = ""
     const val FILE_NAME_GENRES: String = "genres"
     var isHistoryItemClicked = false
     var currentCategory = ""

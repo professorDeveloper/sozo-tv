@@ -47,6 +47,40 @@
         app:layout_constraintTop_toTopOf="@+id/cardView4" />
 
 
+    <LinearLayout
+        android:id="@+id/countDownView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="@+id/film_description_tv"
+        app:layout_constraintStart_toStartOf="@+id/film_description_tv"
+        app:layout_constraintTop_toBottomOf="@+id/barrier5">
+
+
+        <TextView
+            android:id="@+id/mediaCountdownText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:alpha="0.58"
+            android:fontFamily="@font/inter_bold"
+            android:text="Episode 2 will be released in"
+            android:textAllCaps="true"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/mediaCountdown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginTop="4dp"
+            android:fontFamily="@font/inter_bold"
+            android:text="00:00:00"
+            android:textAllCaps="true"
+            android:textSize="18sp" />
+    </LinearLayout>
+
     <View
         android:id="@+id/view3"
         android:layout_width="0dp"

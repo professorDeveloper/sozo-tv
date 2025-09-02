@@ -9,6 +9,7 @@ import com.animestudios.animeapp.GetRelationsByIdQuery
 import com.animestudios.animeapp.SearchAnimeQuery
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
+import com.saikou.sozo_tv.domain.model.AiringSchedule
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Cast
@@ -44,6 +45,17 @@ fun GetAnimeByIdQuery.Media.toDomain(): DetailModel {
     val studiosD = this.studios?.nodes?.map {
         it?.name ?: ""
     }
+    var airingSchedule = AiringSchedule()
+    if (this.airingSchedule?.nodes?.isNotEmpty() == true) {
+        val upcomingEpisodes = this.airingSchedule.nodes.filter { it?.timeUntilAiring!! > 0 }
+        if (upcomingEpisodes.isNotEmpty()) {
+            airingSchedule = AiringSchedule(
+                (upcomingEpisodes[0]?.airingAt ?: 0).toLong(),
+                upcomingEpisodes[0]?.episode ?: 0,
+                upcomingEpisodes[0]?.timeUntilAiring ?: 0
+            )
+        }
+    }
     val detail = DetailModel(
         this.id,
         this.idMal ?: 0,
@@ -57,6 +69,7 @@ fun GetAnimeByIdQuery.Media.toDomain(): DetailModel {
         studios = studiosD,
         this.seasonYear ?: 0,
         this.source,
+        airingSchedule = airingSchedule
     )
     return detail
 }

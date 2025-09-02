@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mediaCountdownContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="start"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:visibility="visible"
+    tools:ignore="MissingDefaultResource">
+
+    <TextView
+        android:id="@+id/mediaCountdownText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:alpha="0.58"
+        android:fontFamily="@font/inter_bold"
+        android:textAllCaps="true"
+        android:textSize="16sp"
+        android:text="Episode 2 will be released in" />
+
+    <TextView
+        android:layout_marginTop="4dp"
+        android:id="@+id/mediaCountdown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:fontFamily="@font/inter_bold"
+        android:textAllCaps="true"
+        android:textSize="18sp"
+        android:text="00:00:00" />
+
+</LinearLayout>

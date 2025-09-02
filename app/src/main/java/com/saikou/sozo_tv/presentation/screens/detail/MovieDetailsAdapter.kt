@@ -3,6 +3,7 @@ package com.saikou.sozo_tv.presentation.screens.detail
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
+import android.os.CountDownTimer
 import android.text.Html
 import android.text.method.LinkMovementMethod
 import android.util.Log
@@ -12,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
@@ -30,10 +32,12 @@ import com.saikou.sozo_tv.presentation.screens.home.vh.ViewHolderFactory
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.castList
 import com.saikou.sozo_tv.utils.LocalData.recommendedMovies
+import com.saikou.sozo_tv.utils.LocalData.trailer
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.loadImage
 import com.saikou.sozo_tv.utils.toYear
 import com.saikou.sozo_tv.utils.visible
+import kotlin.math.abs
 import kotlin.random.Random
 
 class MovieDetailsAdapter(
@@ -43,9 +47,10 @@ class MovieDetailsAdapter(
     // Placeholder for the third ite
 //    val castResponse = mutableListOf<CastItem>()
 
+
     interface DetailsInterface {
         fun onCancelButtonClicked()
-        fun onCastItemClicked(item:Cast)
+        fun onCastItemClicked(item: Cast)
         fun onBookMarkClicked(itme: DetailCategory)
         fun onSoundButtonClicked(isOn: Boolean)
         fun onPauseButtonClicked(isPlay: Boolean)
@@ -123,7 +128,7 @@ class MovieDetailsAdapter(
             }
 
             is ItemPlayCastViewHolder -> {
-                holder.bind(castList,interfaceListener = detailsButtonListener)
+                holder.bind(castList, interfaceListener = detailsButtonListener)
             }
         }
 
@@ -148,7 +153,7 @@ class MovieDetailsAdapter(
             binding.recommendedRv.adapter = adapter
             if (recommendedMovies.isEmpty()) {
                 binding.textView5.gone()
-            }else {
+            } else {
                 binding.textView5.visible()
             }
         }
@@ -213,6 +218,29 @@ class MovieDetailsAdapter(
             val languageContainer =
                 binding.frame.findViewById<LinearLayout>(R.id.language) ?: null
             val image = binding.frame.findViewById<ImageView>(R.id.film_image) ?: null
+            val countDown = binding.frame.findViewById<TextView>(R.id.mediaCountdownText)
+            val countDownText = binding.frame.findViewById<TextView>(R.id.mediaCountdown)
+            if (currentItem?.content?.airingSchedule?.episode != -1 && currentItem?.content?.airingSchedule?.timeUntilAiring!! > 0) {
+                countDown.visible()
+                countDownText.visible()
+                val timeInSeconds = currentItem?.content?.airingSchedule?.timeUntilAiring ?: 0
+                countDown.text =
+                    "Episode ${currentItem?.content?.airingSchedule?.episode} will be released in"
+                val totalMillis = abs(timeInSeconds) * 1000L
+
+                object : CountDownTimer(totalMillis, 1000) {
+                    override fun onTick(millisUntilFinished: Long) {
+                        countDownText.text = formatCountdown(millisUntilFinished / 1000)
+                    }
+
+                    override fun onFinish() {
+                        countDownText.text = "Aired!"
+                    }
+                }.start()
+            } else {
+                countDown.gone()
+                countDownText.gone()
+            }
 
             currentItem?.let { item ->
                 val descriptionTextView =
@@ -271,6 +299,18 @@ class MovieDetailsAdapter(
 
         }
 
+        private fun formatCountdown(secondsInput: Long): String {
+            var seconds = secondsInput
+            val days = seconds / (24 * 3600)
+            seconds %= 24 * 3600
+            val hours = seconds / 3600
+            seconds %= 3600
+            val minutes = seconds / 60
+            val secs = seconds % 60
+
+            return "${days}d ${hours}h ${minutes}m ${secs}s"
+        }
+
 
         private fun createCategoryTextView(context: Context, text: String): TextView {
             return TextView(context).apply {
@@ -301,6 +341,7 @@ class MovieDetailsAdapter(
             binding.backBtn.setOnClickListener {
                 interfaceListener.onCancelButtonClicked()
             }
+            binding.trailerWatchButton.isVisible = trailer.isNotEmpty()
             binding.bookmark.setOnClickListener {
                 interfaceListener.onBookMarkClicked(item)
             }
@@ -458,6 +499,11 @@ class MovieDetailsAdapter(
         castList.clear()
         castList.addAll(cast)
         notifyItemChanged(2)
+    }
+
+    fun updateTrailer(it: String) {
+        trailer = it
+        notifyItemChanged(0)
     }
 //
 //    fun submitCast(cast: CastResponse?) {

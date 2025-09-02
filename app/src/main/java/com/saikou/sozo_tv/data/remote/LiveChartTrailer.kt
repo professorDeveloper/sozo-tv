@@ -19,7 +19,7 @@ class LiveChartTrailer() {
         val niceHttp = Requests(baseClient = Utils.httpClient, responseParser = parser)
         var detailsUrl = ""
         niceHttp.get("$BASE_URL/search?q=$animeTitle").document?.let {
-            val firstItem = it.selectFirst("li.grouped-list-item.anime-item")!!
+            val firstItem = it.selectFirst("li.grouped-list-item.anime-item")?:return@let
             detailsUrl =
                 "https://www.livechart.me" + firstItem.selectFirst("a[data-anime-item-target=mainTitle]")
                     ?.attr("href").orEmpty()

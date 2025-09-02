@@ -16,4 +16,5 @@ data class DetailModel(
     val studios:List<String?>?,
     val seasonYear:Int?,
     val mediaSource: MediaSource?,
+    val airingSchedule: AiringSchedule = AiringSchedule(),
 )
