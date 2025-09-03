@@ -72,4 +72,8 @@ class BookmarkScreen : Fragment() {
         _binding = null
     }
 
+    override fun onResume() {
+        super.onResume()
+        model.getAllBookmarks()
+    }
 }

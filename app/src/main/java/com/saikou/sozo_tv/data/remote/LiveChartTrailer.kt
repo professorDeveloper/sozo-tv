@@ -31,21 +31,24 @@ class LiveChartTrailer() {
     suspend fun getTrailerByDetail(url: String): ArrayList<TrailerModel> {
         val trailers = ArrayList<TrailerModel>()
         val niceHttp = Requests(baseClient = Utils.httpClient, responseParser = parser)
+        if (url.startsWith("http") ){
+            val doc = niceHttp.get(url).document
+            val videoElements = doc.select("div.lc-video a[href^=https://www.youtube.com/watch]")
 
-        val doc = niceHttp.get(url).document
-        val videoElements = doc.select("div.lc-video a[href^=https://www.youtube.com/watch]")
+            for (element in videoElements) {
+                val link = element.attr("href") // YouTube link
 
-        for (element in videoElements) {
-            val link = element.attr("href") // YouTube link
-
-            trailers.add(
-                TrailerModel(
-                    link
+                trailers.add(
+                    TrailerModel(
+                        link
+                    )
                 )
-            )
-        }
+            }
 
-        return trailers
+            return trailers
+        }else {
+            return trailers
+        }
     }
 }
 
