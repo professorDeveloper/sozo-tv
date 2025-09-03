@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavOptions
 import androidx.navigation.findNavController
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.ProfileAdapter
@@ -154,13 +155,14 @@ class ProfileActivity : AppCompatActivity() {
 
             when (position) {
                 HOME_BUTTON -> navigateHome()
-//                0 -> {
-//                    if (currentPageId != R.id.myAccountsPage) navController.navigate(
-//                        R.id.myAccountsPage,
-//                        null,
-//                        NavOptions.Builder().setPopUpTo(R.id.myAccountsPage, true).build()
-//                    )
-//                }
+
+                0 -> {
+                    if (currentPageId != R.id.myAccountPage) navController.navigate(
+                        R.id.myAccountPage,
+                        null,
+                        NavOptions.Builder().setPopUpTo(R.id.myAccountPage, true).build()
+                    )
+                }
 //
 //                1 -> {
 //                    LocalData.isBookmarkClicked = false
@@ -171,15 +173,15 @@ class ProfileActivity : AppCompatActivity() {
 //                    )
 //                }
 //
-//                2 -> {
+                2 -> {
 //                    LocalData.isBookmarkClicked = false
-//                    if (currentPageId != R.id.bookmarkPage) navController.navigate(
-//                        R.id.bookmarkPage,
-//                        null,
-//                        NavOptions.Builder().setPopUpTo(R.id.bookmarkPage, true).build()
-//                    )
-//                }
-//
+                    if (currentPageId != R.id.bookmarkScreen) navController.navigate(
+                        R.id.bookmarkScreen,
+                        null,
+                        NavOptions.Builder().setPopUpTo(R.id.bookmarkScreen, true).build()
+                    )
+                }
+
 //                3 -> {
 //                    LocalData.isBookmarkClicked = false
 //                    if (currentPageId != R.id.messagePage) navController.navigate(

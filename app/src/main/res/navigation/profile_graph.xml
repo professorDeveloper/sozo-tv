@@ -10,4 +10,9 @@
         android:name="com.saikou.sozo_tv.presentation.screens.profile.MyAccountPage"
         android:label="my_account_page"
         tools:layout="@layout/my_account_page" />
+    <fragment
+        android:id="@+id/bookmarkScreen"
+        android:name="com.saikou.sozo_tv.presentation.screens.bookmark.BookmarkScreen"
+        android:label="bookmark_screen"
+        tools:layout="@layout/bookmark_screen" />
 </navigation>

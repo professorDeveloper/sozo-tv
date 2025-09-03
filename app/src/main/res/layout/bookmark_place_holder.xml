@@ -1,28 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:orientation="vertical"
-    android:visibility="gone"
+    android:layout_height="match_parent"
     android:layout_gravity="center"
     android:gravity="center"
-    android:layout_height="match_parent">
+    android:orientation="vertical"
+    android:visibility="gone">
+
 
     <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/placeHolderImg"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:id="@+id/placeHolderImg"
         android:layout_gravity="center"
-        android:src="@drawable/ic_bookmark_place_holder"/>
+        android:src="@drawable/ic_bookmark_place_holder" />
+
     <TextView
         android:id="@+id/placeholderTxt"
         android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
-        android:maxWidth="300dp"
-        android:textAlignment="center"
-        android:text="@string/place_holder_text"
-        android:textSize="18sp"
         android:fontFamily="@font/days"
+        android:maxWidth="300dp"
+        android:text="@string/place_holder_text"
+        android:textAlignment="center"
         android:textColor="#ffffff"
-        android:layout_height="wrap_content"/>
+        android:textSize="18sp" />
 
 </LinearLayout>
