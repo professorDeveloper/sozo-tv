@@ -1,5 +1,7 @@
 package com.saikou.sozo_tv.di
 
+import androidx.room.Room
+import com.saikou.sozo_tv.data.local.database.AppDatabase
 import com.saikou.sozo_tv.data.repository.CategoriesRepositoryImpl
 import com.saikou.sozo_tv.data.repository.DetailRepositoryImpl
 import com.saikou.sozo_tv.data.repository.HomeRepositoryImpl
@@ -14,26 +16,19 @@ import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
+import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val koinModule = module {
-//    single {
-//        Room.databaseBuilder(
-//            androidApplication(), AppDatabase::class.java, "movie_database"
-//        ).build()
-//    }
-//    single { get<AppDatabase>().movieDao() }
+    single {
+        Room.databaseBuilder(
+            androidApplication(), AppDatabase::class.java, "movie_database"
+        ).build()
+    }
+    single { get<AppDatabase>().movieDao() }
 //    single { get<AppDatabase>().watchHistoryDao() }
-//
-//    // mant = "Assalomu alasalomykum"
-//    // qoshimcha soz ="salom"
-//    // matn to ASCCI
-//    //ASSCI ga 5 soni  qo`shiladi
-//    // va ASSCI ni harfga o`tkazamiz
-//
-//
     factory { UserPreferenceManager(androidContext()) }
     single<HomeRepository> {
         HomeRepositoryImpl(jikanApiService = get(), apolloClient = get())
