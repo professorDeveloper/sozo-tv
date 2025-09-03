@@ -14,6 +14,7 @@ import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.gone
+import com.saikou.sozo_tv.utils.setupGridLayoutForBookmarks
 import com.saikou.sozo_tv.utils.setupGridLayoutForCategories
 import com.saikou.sozo_tv.utils.toDomain
 import com.saikou.sozo_tv.utils.visible
@@ -52,7 +53,7 @@ class BookmarkScreen : Fragment() {
 
                 })
                 binding.bookmarkRv.adapter = adapter
-                binding.bookmarkRv.setupGridLayoutForCategories(adapter)
+                binding.bookmarkRv.setupGridLayoutForBookmarks(adapter)
                 adapter.updateCategoriesAll(
                     it.map {
                         it.toDomain()

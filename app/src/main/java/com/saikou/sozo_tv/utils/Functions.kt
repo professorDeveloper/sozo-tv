@@ -108,6 +108,17 @@ fun VerticalGridView.setupGridLayoutForCategories(pageAdapter: CategoriesPageAda
     }
 
 }
+fun VerticalGridView.setupGridLayoutForBookmarks(pageAdapter: CategoriesPageAdapter) {
+
+    this.apply {
+        isFocusable = true
+        isFocusableInTouchMode = true
+        descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
+        this.isFocusDrawingOrderEnabled = true
+        setNumColumns(4) // ← agar siz `VerticalGridView` ishlatsangiz, bu juda muhim
+    }
+
+}
 
 
 fun String.toDateFromIso8601ForTxt(): String? {
