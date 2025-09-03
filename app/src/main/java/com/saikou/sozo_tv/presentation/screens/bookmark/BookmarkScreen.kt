@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.bookmark
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -8,6 +9,7 @@ import android.view.ViewGroup
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.BookmarkScreenBinding
 import com.saikou.sozo_tv.domain.model.MainModel
+import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
 import com.saikou.sozo_tv.utils.LocalData
@@ -39,7 +41,9 @@ class BookmarkScreen : Fragment() {
                 binding.bookmarkRv.visible()
                 binding.bookmarkPlaceHolder.root.gone()
                 adapter.setClickDetail {
-
+                    val intent = Intent(requireActivity(), PlayerActivity::class.java)
+                    intent.putExtra("model", it.id)
+                    requireActivity().startActivity(intent)
                 }
                 adapter.setCategoriesPageInterface(object :
                     CategoriesPageAdapter.CategoriesPageInterface {
