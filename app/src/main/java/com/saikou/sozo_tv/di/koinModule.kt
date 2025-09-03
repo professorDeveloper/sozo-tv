@@ -5,11 +5,13 @@ import com.saikou.sozo_tv.data.local.database.AppDatabase
 import com.saikou.sozo_tv.data.repository.CategoriesRepositoryImpl
 import com.saikou.sozo_tv.data.repository.DetailRepositoryImpl
 import com.saikou.sozo_tv.data.repository.HomeRepositoryImpl
+import com.saikou.sozo_tv.data.repository.MovieBookmarkRepositoryImpl
 import com.saikou.sozo_tv.data.repository.SearchRepositoryImpl
 import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import com.saikou.sozo_tv.domain.repository.CategoriesRepository
 import com.saikou.sozo_tv.domain.repository.DetailRepository
 import com.saikou.sozo_tv.domain.repository.HomeRepository
+import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.SearchRepository
 import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
@@ -33,6 +35,9 @@ val koinModule = module {
     single<HomeRepository> {
         HomeRepositoryImpl(jikanApiService = get(), apolloClient = get())
     }
+    single<MovieBookmarkRepository> {
+        MovieBookmarkRepositoryImpl(dao = get())
+    }
     single<SearchRepository> {
         SearchRepositoryImpl(apolloClient = get())
     }
@@ -55,7 +60,7 @@ val koinModule = module {
 //
 //
     viewModel { HomeViewModel(repo = get()) }
-    viewModel { PlayViewModel(repo = get()) }
+    viewModel { PlayViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
     viewModel { SearchViewModel(repo = get()) }
     viewModel { CastDetailViewModel(repo = get()) }

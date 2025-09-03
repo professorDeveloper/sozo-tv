@@ -30,6 +30,7 @@ import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 import com.saikou.sozo_tv.presentation.screens.home.vh.ViewHolderFactory
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.LocalData.bookmark
 import com.saikou.sozo_tv.utils.LocalData.castList
 import com.saikou.sozo_tv.utils.LocalData.recommendedMovies
 import com.saikou.sozo_tv.utils.LocalData.trailer
@@ -51,7 +52,7 @@ class MovieDetailsAdapter(
     interface DetailsInterface {
         fun onCancelButtonClicked()
         fun onCastItemClicked(item: Cast)
-        fun onBookMarkClicked(itme: DetailCategory)
+        fun onBookMarkClicked(itme: DetailCategory, bookmark: Boolean)
         fun onSoundButtonClicked(isOn: Boolean)
         fun onPauseButtonClicked(isPlay: Boolean)
         fun onWatchButtonClicked(
@@ -343,9 +344,9 @@ class MovieDetailsAdapter(
             }
             binding.trailerWatchButton.isVisible = trailer.isNotEmpty()
             binding.bookmark.setOnClickListener {
-                interfaceListener.onBookMarkClicked(item)
+                interfaceListener.onBookMarkClicked(item, bookmark)
             }
-            binding.icBookmark.setImageResource(if (item.isBookmarked) R.drawable.ic_bookmark_fill else R.drawable.ic_bookmark)
+            binding.icBookmark.setImageResource(if (bookmark) R.drawable.ic_bookmark_fill else R.drawable.ic_bookmark)
 
             binding.watchButton.setOnClickListener {
                 item.content.id?.let { it1 ->
@@ -503,6 +504,11 @@ class MovieDetailsAdapter(
 
     fun updateTrailer(it: String) {
         trailer = it
+        notifyItemChanged(0)
+    }
+
+    fun updateBookmark(it: Boolean?){
+        bookmark = it?: false
         notifyItemChanged(0)
     }
 //

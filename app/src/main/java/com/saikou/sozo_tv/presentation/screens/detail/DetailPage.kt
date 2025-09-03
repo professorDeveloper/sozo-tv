@@ -15,25 +15,18 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DefaultDataSource
-import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.hls.HlsMediaSource
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.databinding.DetailPageBinding
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
-import com.saikou.sozo_tv.presentation.screens.play.TrailerPlayerScreenArgs
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.loadImage
-import com.saikou.sozo_tv.utils.makeCustomHttpClient
-import com.saikou.sozo_tv.utils.makeSslForTrailer
+import com.saikou.sozo_tv.utils.toDomain
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
-import javax.net.ssl.SSLContext
 
 
 class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
@@ -70,6 +63,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         savedInstanceState: Bundle?
     ): View {
         LocalData.trailer = ""
+        LocalData.bookmark = false
         _binding = DetailPageBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -93,6 +87,9 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
 
             }
         }
+        playViewModel.isBookmark.observe(viewLifecycleOwner) {
+            detailsAdapter.updateBookmark(it)
+        }
         playViewModel.detailData.observe(viewLifecycleOwner) { details ->
             playViewModel.loadTrailer(details.content.title)
             binding.replaceImage.loadImage(details.content.bannerImage)
@@ -110,7 +107,11 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
                 requireActivity().startActivity(intent)
                 requireActivity().finish()
             }
+            playViewModel.isBookmark.observe(viewLifecycleOwner) {
+                detailsAdapter.updateBookmark(it)
+            }
         }
+
 
         playViewModel.errorData.observe(viewLifecycleOwner) {
             Toast.makeText(requireActivity(), it, Toast.LENGTH_SHORT).show()
@@ -171,7 +172,20 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         requireActivity().finish()
     }
 
-    override fun onBookMarkClicked(itme: DetailCategory) {
+    override fun onBookMarkClicked(itme: DetailCategory, bookmark: Boolean) {
+        if (bookmark) {
+            playViewModel.removeBookmark(
+                itme.content.toDomain()
+            )
+            LocalData.bookmark = false
+            detailsAdapter.updateBookmark(false)
+        }else {
+            playViewModel.addBookmark(
+                itme.content.toDomain()
+            )
+            LocalData.bookmark = true
+            detailsAdapter.updateBookmark(true)
+        }
     }
 
     override fun onSoundButtonClicked(isOn: Boolean) {

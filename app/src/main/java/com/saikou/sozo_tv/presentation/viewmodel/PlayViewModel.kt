@@ -4,22 +4,48 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.remote.DubsMp4Parser
 import com.saikou.sozo_tv.data.remote.LiveChartTrailer
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.DetailRepository
+import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-class PlayViewModel(private val repo: DetailRepository) : ViewModel() {
+class PlayViewModel(private val repo: DetailRepository,private val bookmarkRepo: MovieBookmarkRepository) : ViewModel() {
     val detailData = MutableLiveData<DetailCategory>()
     val relationsData = MutableLiveData<List<MainModel>>()
     val errorData = MutableLiveData<String>()
     val castResponseData = MutableLiveData<List<Cast>>()
     val trailerData = MutableLiveData<String>()
+
+    val isBookmark = MutableLiveData<Boolean>()
+    fun checkBookmark(id: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = bookmarkRepo.getAllBookmarks()
+            if (result.isNotEmpty()) {
+                isBookmark.postValue(result.any { it.id == id })
+            }else {
+                isBookmark.postValue(false)
+            }
+        }
+    }
+
+    fun addBookmark(movie: AnimeBookmark) {
+        viewModelScope.launch(Dispatchers.IO) {
+            bookmarkRepo.addBookmark(movie)
+        }
+    }
+
+    fun removeBookmark(movie: AnimeBookmark) {
+        viewModelScope.launch(Dispatchers.IO) {
+            bookmarkRepo.removeBookmark(movie)
+        }
+    }
     fun loadRelations(id: Int) {
         viewModelScope.launch {
             val result = repo.loadAnimeRelations(id)

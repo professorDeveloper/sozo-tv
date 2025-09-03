@@ -31,5 +31,6 @@ class PlayerActivity : AppCompatActivity() {
             playerViewModel.loadAnimeById(id = categoryDetails)
             playerViewModel.loadCast(id = categoryDetails)
             playerViewModel.loadRelations(id = categoryDetails)
+            playerViewModel.checkBookmark(id = categoryDetails)
         }
 }

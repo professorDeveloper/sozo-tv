@@ -30,6 +30,7 @@ import com.saikou.sozo_tv.domain.model.MySpinnerItem
 //
 object LocalData {
      var trailer: String = ""
+     var bookmark: Boolean = false
     const val FILE_NAME_GENRES: String = "genres"
     var isHistoryItemClicked = false
     var currentCategory = ""

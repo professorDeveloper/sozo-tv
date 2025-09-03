@@ -7,6 +7,7 @@ import com.animestudios.animeapp.GetCharacterDetailQuery
 import com.animestudios.animeapp.GetCharactersAnimeByIdQuery
 import com.animestudios.animeapp.GetRelationsByIdQuery
 import com.animestudios.animeapp.SearchAnimeQuery
+import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.domain.model.AiringSchedule
@@ -36,6 +37,16 @@ fun GetRelationsByIdQuery.Media.toDomain(): MainModel {
         this.averageScore ?: -1,
         this.meanScore ?: -1
     )
+}
+
+fun DetailModel.toDomain(): AnimeBookmark {
+    return AnimeBookmark(
+        this.id,
+        this.title,
+        this.malId,
+        this.coverImage.large,
+    )
+
 }
 
 fun GetAnimeByIdQuery.Media.toDomain(): DetailModel {

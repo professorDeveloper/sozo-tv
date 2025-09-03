@@ -10,6 +10,5 @@ data class AnimeBookmark(
     val title: String,
     val idMal: Int = -1,
     val image: String,
-    val averageScore: Int,
-    val meanScore: Int = -1
+
 )
