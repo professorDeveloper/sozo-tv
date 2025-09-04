@@ -29,7 +29,6 @@ class ProfileActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityProfileBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
-//        model.loadSubDetail()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             viewBinding.navProfile.isFocusedByDefault = true
         }
@@ -40,7 +39,6 @@ class ProfileActivity : AppCompatActivity() {
                     Log.d("GGG", "onCreate: ${backPressCount} ")
                     focusRecyclerViewToPosition(0)
                     backPressCount = 1
-//                    LocalData.isBookmarkClicked = false
                 }
 
                 2 -> {
@@ -56,53 +54,8 @@ class ProfileActivity : AppCompatActivity() {
                 }
             }
         }
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                model.subDetailState.observe(this@ProfileActivity) { state ->
-//                    handleUserDataState(state)
-//                }
-            }
-        }
-//        lifecycleScope.launch {
-//            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                model.exitState.collect { state ->
-//                    handleExitState(state)
-//                }
-//            }
-//        }
-    }
-//
-//    private fun handleUserDataState(state: UiState<SubscriptionResponse>) {
-//        when (state) {
-//            is UiState.Error -> {
-//                Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
-//            }
-//
-//            is UiState.Success -> {
-//                profileAdapter.updateAccountType(
-//                    state.data.status
-//                )
-//                profileAdapter.setOnExitClickListener {
-//                    val dialog = ExitDialog(
-//                        data = state.data,
-//                        subCode = model.getSub()
-//                    )
-//                    dialog.setNoClearListener {
-//                        dialog.dismiss()
-//                    }
-//                    dialog.setYesContinueListener {
-//                        model.exitUser()
-//                        dialog.dismiss()
-//                    }
-//                    dialog.show(supportFragmentManager, "ExitDialog")
-//                }
-//            }
-//
-//            else -> {
-//            }
-//        }
-//    }
 
+    }
     private fun focusRecyclerViewToPosition(position: Int) {
         viewBinding.apply {
             profileRv.post {
@@ -171,33 +124,13 @@ class ProfileActivity : AppCompatActivity() {
                         NavOptions.Builder().setPopUpTo(R.id.sourceScreen, true).build()
                     )
                 }
-//
-//                1 -> {
-////                    LocalData.isBookmarkClicked = false
-//                    if (currentPageId != R.id.sourceScreen) navController.navigate(
-//                        R.id.sourceScreen,
-//                        null,
-//                        NavOptions.Builder().setPopUpTo(R.id.sourceScreen, true).build()
-//                    )
-//                }
-//
                 3 -> {
-//                    LocalData.isBookmarkClicked = false
                     if (currentPageId != R.id.bookmarkScreen) navController.navigate(
                         R.id.bookmarkScreen,
                         null,
                         NavOptions.Builder().setPopUpTo(R.id.bookmarkScreen, true).build()
                     )
                 }
-
-//                3 -> {
-//                    LocalData.isBookmarkClicked = false
-//                    if (currentPageId != R.id.messagePage) navController.navigate(
-//                        R.id.messagePage,
-//                        null,
-//                        NavOptions.Builder().setPopUpTo(R.id.messagePage, true).build()
-//                    )
-//                }
             }
         }
         profileAdapter.setOnExitClickListener {

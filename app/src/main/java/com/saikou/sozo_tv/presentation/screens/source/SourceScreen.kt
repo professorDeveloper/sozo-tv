@@ -1,27 +1,27 @@
 package com.saikou.sozo_tv.presentation.screens.source
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.saikou.sozo_tv.R
-import com.saikou.sozo_tv.adapters.SourceHeaderAdapter
-import com.saikou.sozo_tv.adapters.SourcePageAdapter
-import com.saikou.sozo_tv.data.model.Source
+import com.saikou.sozo_tv.adapters.SourceAdapter
 import com.saikou.sozo_tv.data.model.SubSource
 import com.saikou.sozo_tv.databinding.SourceScreenBinding
-import com.saikou.sozo_tv.utils.SourceUi
+import androidx.leanback.widget.VerticalGridView
+import com.saikou.sozo_tv.R
 
 class SourceScreen : Fragment() {
     private var _binding: SourceScreenBinding? = null
     private val binding get() = _binding!!
     private lateinit var dbRef: DatabaseReference
+    private lateinit var adapter: SourceAdapter
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -34,60 +34,59 @@ class SourceScreen : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         dbRef = FirebaseDatabase.getInstance().getReference("sources")
-        loadSources {
-            val adapter = SourceHeaderAdapter()
-            binding.sourceRv.adapter = adapter
-            adapter.submitList(it)
-        }
+
+        adapter = SourceAdapter(
+            onClick = { sub -> /* Handle click */ },
+            onDelete = { sub -> deleteSubSource(sub) }
+        )
+
+        binding.sourceRv.adapter = adapter
+        binding.progressBar.visibility = View.VISIBLE // Show loading
+        binding.sourcePlaceHolder.root.visibility = View.GONE
+        loadSources()
     }
 
-    private fun loadSources(onResult: (ArrayList<SourceUi>) -> Unit) {
+    private fun loadSources() {
         dbRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                if (!snapshot.exists()) {
-                    // Default data map
-                    val defaultData: Map<String, Source> = mapOf(
-                        "NATIVE" to Source(
-                            country = "NATIVE",
-                            list = mapOf(
-                                "Hianime" to SubSource("hianime", "Hianime", "native"),
-                                "aniwatch" to SubSource("aniwatch", "ANIWATCH", "native")
-                            )
-                        )
-                    )
-                    dbRef.setValue(defaultData).addOnSuccessListener {
-                        onResult(defaultData.toUiList())
-                    }
+                binding.progressBar.visibility = View.GONE // Hide loading
+                if (!snapshot.exists() || snapshot.children.count() == 0) {
+                    binding.sourcePlaceHolder.root.visibility = View.VISIBLE // Show placeholder
+                    binding.sourceRv.visibility = View.GONE
                 } else {
-                    onResult(snapshot.toUiList())
+                    val list = arrayListOf<SubSource>()
+                    for (child in snapshot.children) {
+                        child.getValue(SubSource::class.java)?.let { list.add(it) }
+                    }
+                    binding.sourcePlaceHolder.root.visibility = View.GONE
+                    binding.sourceRv.visibility = View.VISIBLE
+                    adapter.updateList(list)
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
-                onResult(arrayListOf())
+                binding.progressBar.visibility = View.GONE // Hide loading on error
+                binding.sourcePlaceHolder.root.visibility = View.VISIBLE // Show placeholder on error
+                binding.sourceRv.visibility = View.GONE
             }
         })
     }
 
-    private fun Map<String, Source>.toUiList(): ArrayList<SourceUi> {
-        val list = arrayListOf<SourceUi>()
-        for ((_, value) in this) {
-            list.add(SourceUi(value.country, ArrayList(value.list.values)))
+    private fun deleteSubSource(sub: SubSource) {
+        dbRef.child(sub.sourceId).removeValue().addOnSuccessListener {
+            adapter.removeItem(sub)
+            if (adapter.itemCount == 0) {
+                binding.sourcePlaceHolder.root.visibility = View.VISIBLE
+                binding.sourceRv.visibility = View.GONE
+            }
         }
-        return list
     }
 
-    private fun DataSnapshot.toUiList(): ArrayList<SourceUi> {
-        val list = arrayListOf<SourceUi>()
-        for (child in children) {
-            val country = child.child("country").getValue(String::class.java) ?: continue
-            val subs = arrayListOf<SubSource>()
-            for (subNode in child.child("list").children) {
-                subNode.getValue(SubSource::class.java)?.let { subs.add(it) }
-            }
-            list.add(SourceUi(country, subs))
+    private fun upsertSubSource(sub: SubSource) {
+        dbRef.child(sub.sourceId).setValue(sub).addOnSuccessListener {
+            adapter.upsertItem(sub)
+            binding.sourcePlaceHolder.root.visibility = View.GONE
+            binding.sourceRv.visibility = View.VISIBLE
         }
-        return list
     }
 }
-
