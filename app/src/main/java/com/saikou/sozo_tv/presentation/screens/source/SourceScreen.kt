@@ -37,12 +37,10 @@ class SourceScreen : Fragment() {
         loadSources {
             val adapter = SourceHeaderAdapter()
             binding.sourceRv.adapter = adapter
-//            binding.sourceRv.setupGridLayoutForSources(adapter)
             adapter.submitList(it)
         }
     }
 
-    // ---------- LOAD SOURCES (READ / WRITE DEFAULT) ----------
     private fun loadSources(onResult: (ArrayList<SourceUi>) -> Unit) {
         dbRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -66,12 +64,11 @@ class SourceScreen : Fragment() {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                onResult(arrayListOf()) // fallback empty
+                onResult(arrayListOf())
             }
         })
     }
 
-    // ---------- EXTENSIONS ----------
     private fun Map<String, Source>.toUiList(): ArrayList<SourceUi> {
         val list = arrayListOf<SourceUi>()
         for ((_, value) in this) {
