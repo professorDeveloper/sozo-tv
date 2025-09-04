@@ -29,7 +29,6 @@
         android:layout_weight="1"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:paddingHorizontal="8dp"
         android:visibility="visible"
         app:focusOutEnd="true"
         app:focusOutFront="true"

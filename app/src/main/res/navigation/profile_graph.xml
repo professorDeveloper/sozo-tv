@@ -15,4 +15,8 @@
         android:name="com.saikou.sozo_tv.presentation.screens.bookmark.BookmarkScreen"
         android:label="bookmark_screen"
         tools:layout="@layout/bookmark_screen" />
+    <fragment
+        android:id="@+id/sourceScreen"
+        android:name="com.saikou.sozo_tv.presentation.screens.source.SourceScreen"
+        android:label="SourceScreen" />
 </navigation>

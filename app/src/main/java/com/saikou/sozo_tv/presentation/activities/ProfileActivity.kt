@@ -163,17 +163,25 @@ class ProfileActivity : AppCompatActivity() {
                         NavOptions.Builder().setPopUpTo(R.id.myAccountPage, true).build()
                     )
                 }
+                1 -> {
+//                    LocalData.isBookmarkClicked = false
+                    if (currentPageId != R.id.sourceScreen) navController.navigate(
+                        R.id.sourceScreen,
+                        null,
+                        NavOptions.Builder().setPopUpTo(R.id.sourceScreen, true).build()
+                    )
+                }
 //
 //                1 -> {
-//                    LocalData.isBookmarkClicked = false
-//                    if (currentPageId != R.id.historyPage) navController.navigate(
-//                        R.id.historyPage,
+////                    LocalData.isBookmarkClicked = false
+//                    if (currentPageId != R.id.sourceScreen) navController.navigate(
+//                        R.id.sourceScreen,
 //                        null,
-//                        NavOptions.Builder().setPopUpTo(R.id.historyPage, true).build()
+//                        NavOptions.Builder().setPopUpTo(R.id.sourceScreen, true).build()
 //                    )
 //                }
 //
-                2 -> {
+                3 -> {
 //                    LocalData.isBookmarkClicked = false
                     if (currentPageId != R.id.bookmarkScreen) navController.navigate(
                         R.id.bookmarkScreen,

@@ -5,9 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.data.model.Source
 import com.saikou.sozo_tv.databinding.ItemSourceBinding
+import com.saikou.sozo_tv.utils.SourceUi
 
 class SourceHeaderAdapter() : RecyclerView.Adapter<SourceHeaderAdapter.SourceHeaderVh>() {
-    var list = ArrayList<Source>()
+    var list = ArrayList<SourceUi>()
     lateinit var itemClickListenerFr: (String) -> Unit
     fun setItemClickListener(listener: (String) -> Unit) {
         itemClickListenerFr = listener
@@ -16,7 +17,7 @@ class SourceHeaderAdapter() : RecyclerView.Adapter<SourceHeaderAdapter.SourceHea
     inner class SourceHeaderVh(var itemBinding: ItemSourceBinding) : RecyclerView.
     ViewHolder(itemBinding.root) {
 
-        fun onBind(data: Source) {
+        fun onBind(data: SourceUi) {
             itemBinding.apply {
                 val sourcePageAdapter = SourcePageAdapter()
                 textView6.text = data.country.toString()
@@ -42,7 +43,7 @@ class SourceHeaderAdapter() : RecyclerView.Adapter<SourceHeaderAdapter.SourceHea
     }
 
 
-    fun submitList(newList: ArrayList<Source>) {
+    fun submitList(newList: ArrayList<SourceUi>) {
         list.clear()
         list.addAll(newList)
         notifyDataSetChanged()

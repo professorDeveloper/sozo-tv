@@ -93,6 +93,7 @@ object LocalData {
 
     val sectionList = arrayListOf(
         SectionItem(MyApp.context.getString(R.string.my_info), R.drawable.ic_users),
+        SectionItem(MyApp.context.getString(R.string.sources), R.drawable.ic_round_star_24),
         SectionItem(MyApp.context.getString(R.string.my_history), R.drawable.ic_time_history),
         SectionItem(MyApp.context.getString(R.string.bookmark), R.drawable.ic_bookmark),
         SectionItem(MyApp.context.getString(R.string.message_page), R.drawable.ic_chat),
