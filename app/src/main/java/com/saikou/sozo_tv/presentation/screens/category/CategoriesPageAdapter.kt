@@ -16,9 +16,7 @@ class CategoriesPageAdapter(val isDetail: Boolean = false) :
 
     companion object {
         var isUpdated = false
-        const val TYPE_CATEGORY = 1
         const val COLUMN_COUNT = 5
-        const val COLUMN_COUNT_NUM4 = 4
     }
 
     lateinit var clickDetaill: (MainModel) -> Unit
