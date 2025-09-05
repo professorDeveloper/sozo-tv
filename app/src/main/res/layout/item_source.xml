@@ -5,11 +5,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="12dp"
-    android:elevation="4dp"
     android:background="@drawable/bg_item_normal"
-    android:foreground="?android:attr/selectableItemBackground"
+    android:elevation="4dp"
     android:focusable="true"
-    android:focusableInTouchMode="true">
+    android:focusableInTouchMode="true"
+    android:foreground="?android:attr/selectableItemBackground">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -20,42 +20,44 @@
             android:id="@+id/tvCode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
             android:text="ANIWATCH"
             android:textColor="@android:color/white"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:textSize="16sp"
-            android:fontFamily="sans-serif-medium"
-            android:padding="6dp"
-            android:background="@drawable/code_background"
+            app:layout_constraintBottom_toBottomOf="@+id/tvTitle"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="@+id/tvTitle" />
 
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/code_background"
             android:ellipsize="end"
             android:fontFamily="sans-serif"
-            android:paddingStart="8dp"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="7dp"
             android:singleLine="true"
             android:text="Aniwatch"
             android:textColor="@android:color/white"
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/tvCode"
-            app:layout_constraintTop_toBottomOf="@id/tvCode"
+            app:layout_constraintEnd_toStartOf="@+id/selectionIndicator"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_chainStyle="packed" />
 
         <ImageView
             android:id="@+id/selectionIndicator"
             android:layout_width="24dp"
             android:layout_height="24dp"
+            android:contentDescription="Selected Indicator"
             android:src="@android:drawable/btn_radio_on"
-        android:visibility="gone"
-        android:contentDescription="Selected Indicator"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="@id/tvTitle" />
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="@id/tvTitle"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </LinearLayout>
