@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
@@ -37,7 +38,21 @@ class SourceAdapter(
                 notifyItemChanged(selectedIndex)
                 onClick(item)
             }
+            binding.root.setOnFocusChangeListener { view, hasFocus ->
+                val animation = when {
+                    hasFocus -> AnimationUtils.loadAnimation(
+                        binding.root.context,
+                        R.anim.zoom_in
+                    )
 
+                    else -> AnimationUtils.loadAnimation(
+                        binding.root.context,
+                        R.anim.zoom_out
+                    )
+                }
+                binding.root.startAnimation(animation)
+                animation.fillAfter = true
+            }
 
         }
     }
