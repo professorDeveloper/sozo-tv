@@ -225,6 +225,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        LocalData.bookmark = false
         playViewModel.cancelTrailerLoading()
         if (player != null) {
             player?.release()

@@ -53,6 +53,7 @@ import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 import com.saikou.sozo_tv.presentation.screens.home.vh.ViewHolderFactory
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.castList
+import com.saikou.sozo_tv.utils.LocalData.characterBookmark
 import com.saikou.sozo_tv.utils.LocalData.recommendedMovies
 import com.saikou.sozo_tv.utils.LocalData.recommendedMoviesCast
 import com.saikou.sozo_tv.utils.gone
@@ -75,6 +76,7 @@ class CastDetailAdapter(
 
     interface DetailsInterface {
         fun onCancelButtonClicked()
+        fun onFavoriteButtonClicked(item: CastAdapterModel)
     }
 
     companion object {
@@ -197,11 +199,18 @@ class CastDetailAdapter(
             binding.backBtn.setOnClickListener {
                 interfaceListener.onCancelButtonClicked()
             }
+            binding.favoriteBtn.setOnClickListener {
+                interfaceListener.onFavoriteButtonClicked(item)
+            }
+            if (characterBookmark) {
+                binding.favoriteBtn.setImageResource(R.drawable.ic_favorite_filled)
+            } else {
+                binding.favoriteBtn.setImageResource(R.drawable.ic_favorite_outline)
+            }
 
             if (item.age.isNotEmpty()) {
                 binding.ageBadge.visible()
                 binding.characterAge.text = "Age: ${item.age}"
-                // Add subtle scale animation
                 binding.ageBadge.animate()
                     .scaleX(1.05f)
                     .scaleY(1.05f)
@@ -273,10 +282,14 @@ class CastDetailAdapter(
                         } else resource
 
                         Palette.from(scaledBitmap).generate { palette ->
-                            val dominantColor = palette?.getDominantColor(Color.BLACK) ?: Color.BLACK
-                            val vibrantColor = palette?.getVibrantColor(dominantColor) ?: dominantColor
-                            val darkVibrantColor = palette?.getDarkVibrantColor(Color.BLACK) ?: Color.BLACK
-                            val lightVibrantColor = palette?.getLightVibrantColor(Color.WHITE) ?: Color.WHITE
+                            val dominantColor =
+                                palette?.getDominantColor(Color.BLACK) ?: Color.BLACK
+                            val vibrantColor =
+                                palette?.getVibrantColor(dominantColor) ?: dominantColor
+                            val darkVibrantColor =
+                                palette?.getDarkVibrantColor(Color.BLACK) ?: Color.BLACK
+                            val lightVibrantColor =
+                                palette?.getLightVibrantColor(Color.WHITE) ?: Color.WHITE
 
                             val mainBg = ContextCompat.getColor(
                                 binding.root.context, R.color.main_background
@@ -327,7 +340,8 @@ class CastDetailAdapter(
                                 layoutParams = ViewGroup.LayoutParams(starSize, starSize)
                                 background = createStarDrawable(starColor, starType)
                                 alpha = 0f
-                                x = (view.width * 0.6f) + random.nextFloat() * (view.width * 0.4f - starSize)
+                                x =
+                                    (view.width * 0.6f) + random.nextFloat() * (view.width * 0.4f - starSize)
                                 y = random.nextFloat() * (view.height * 0.4f)
                                 elevation = 4f
                             }
@@ -336,12 +350,13 @@ class CastDetailAdapter(
                                 view.addView(star)
 
                                 // Enhanced twinkling animation with floating effect
-                                val twinkleAnimator = ObjectAnimator.ofFloat(star, "alpha", 0f, 0.9f, 0f).apply {
-                                    duration = 2000 + random.nextInt(1000).toLong()
-                                    repeatCount = ObjectAnimator.INFINITE
-                                    startDelay = random.nextInt(1500).toLong()
-                                    interpolator = AccelerateDecelerateInterpolator()
-                                }
+                                val twinkleAnimator =
+                                    ObjectAnimator.ofFloat(star, "alpha", 0f, 0.9f, 0f).apply {
+                                        duration = 2000 + random.nextInt(1000).toLong()
+                                        repeatCount = ObjectAnimator.INFINITE
+                                        startDelay = random.nextInt(1500).toLong()
+                                        interpolator = AccelerateDecelerateInterpolator()
+                                    }
 
                                 // Floating animation
                                 val floatAnimator = ObjectAnimator.ofFloat(
@@ -355,11 +370,12 @@ class CastDetailAdapter(
                                 }
 
                                 // Subtle rotation for sparkle effect
-                                val rotateAnimator = ObjectAnimator.ofFloat(star, "rotation", 0f, 360f).apply {
-                                    duration = 6000 + random.nextInt(3000).toLong()
-                                    repeatCount = ObjectAnimator.INFINITE
-                                    interpolator = LinearInterpolator()
-                                }
+                                val rotateAnimator =
+                                    ObjectAnimator.ofFloat(star, "rotation", 0f, 360f).apply {
+                                        duration = 6000 + random.nextInt(3000).toLong()
+                                        repeatCount = ObjectAnimator.INFINITE
+                                        interpolator = LinearInterpolator()
+                                    }
 
                                 AnimatorSet().apply {
                                     playTogether(twinkleAnimator, floatAnimator, rotateAnimator)
@@ -386,19 +402,21 @@ class CastDetailAdapter(
                                 background = createStarDrawable(starColor, starType)
                                 alpha = 0f
                                 x = random.nextFloat() * (view.width - starSize)
-                                y = (view.height * 0.75f) + random.nextFloat() * (view.height * 0.25f - starSize)
+                                y =
+                                    (view.height * 0.75f) + random.nextFloat() * (view.height * 0.25f - starSize)
                                 elevation = 2f
                             }
 
                             if (view is ViewGroup) {
                                 view.addView(star)
 
-                                val twinkleAnimator = ObjectAnimator.ofFloat(star, "alpha", 0f, 0.6f, 0f).apply {
-                                    duration = 3000 + random.nextInt(1500).toLong()
-                                    repeatCount = ObjectAnimator.INFINITE
-                                    startDelay = random.nextInt(2000).toLong()
-                                    interpolator = AccelerateDecelerateInterpolator()
-                                }
+                                val twinkleAnimator =
+                                    ObjectAnimator.ofFloat(star, "alpha", 0f, 0.6f, 0f).apply {
+                                        duration = 3000 + random.nextInt(1500).toLong()
+                                        repeatCount = ObjectAnimator.INFINITE
+                                        startDelay = random.nextInt(2000).toLong()
+                                        interpolator = AccelerateDecelerateInterpolator()
+                                    }
 
                                 val floatAnimator = ObjectAnimator.ofFloat(
                                     star, "translationX",
@@ -440,7 +458,8 @@ class CastDetailAdapter(
                                     else -> createDotDrawable(Color.WHITE)
                                 }
                                 alpha = 0f
-                                x = (view.width * 0.85f) + random.nextFloat() * (view.width * 0.15f - elementSize)
+                                x =
+                                    (view.width * 0.85f) + random.nextFloat() * (view.width * 0.15f - elementSize)
                                 y = (view.height * 0.3f) + random.nextFloat() * (view.height * 0.4f)
                                 elevation = 3f
                             }
@@ -448,24 +467,29 @@ class CastDetailAdapter(
                             if (view is ViewGroup) {
                                 view.addView(element)
 
-                                val fadeAnimator = ObjectAnimator.ofFloat(element, "alpha", 0f, 0.8f, 0f).apply {
-                                    duration = 2500 + random.nextInt(1000).toLong()
-                                    repeatCount = ObjectAnimator.INFINITE
-                                    startDelay = random.nextInt(1000).toLong()
-                                    interpolator = AccelerateDecelerateInterpolator()
-                                }
+                                val fadeAnimator =
+                                    ObjectAnimator.ofFloat(element, "alpha", 0f, 0.8f, 0f).apply {
+                                        duration = 2500 + random.nextInt(1000).toLong()
+                                        repeatCount = ObjectAnimator.INFINITE
+                                        startDelay = random.nextInt(1000).toLong()
+                                        interpolator = AccelerateDecelerateInterpolator()
+                                    }
 
-                                val scaleAnimator = ObjectAnimator.ofFloat(element, "scaleX", 0.8f, 1.2f, 0.8f).apply {
-                                    duration = 3000 + random.nextInt(1000).toLong()
-                                    repeatCount = ObjectAnimator.INFINITE
-                                    interpolator = AccelerateDecelerateInterpolator()
-                                }
+                                val scaleAnimator =
+                                    ObjectAnimator.ofFloat(element, "scaleX", 0.8f, 1.2f, 0.8f)
+                                        .apply {
+                                            duration = 3000 + random.nextInt(1000).toLong()
+                                            repeatCount = ObjectAnimator.INFINITE
+                                            interpolator = AccelerateDecelerateInterpolator()
+                                        }
 
-                                val scaleYAnimator = ObjectAnimator.ofFloat(element, "scaleY", 0.8f, 1.2f, 0.8f).apply {
-                                    duration = 3000 + random.nextInt(1000).toLong()
-                                    repeatCount = ObjectAnimator.INFINITE
-                                    interpolator = AccelerateDecelerateInterpolator()
-                                }
+                                val scaleYAnimator =
+                                    ObjectAnimator.ofFloat(element, "scaleY", 0.8f, 1.2f, 0.8f)
+                                        .apply {
+                                            duration = 3000 + random.nextInt(1000).toLong()
+                                            repeatCount = ObjectAnimator.INFINITE
+                                            interpolator = AccelerateDecelerateInterpolator()
+                                        }
 
                                 AnimatorSet().apply {
                                     playTogether(fadeAnimator, scaleAnimator, scaleYAnimator)
@@ -494,15 +518,31 @@ class CastDetailAdapter(
                                 val size = minOf(width, height) / 2f
 
                                 // Draw cross sparkle
-                                canvas.drawLine(centerX - size, centerY, centerX + size, centerY, paint)
-                                canvas.drawLine(centerX, centerY - size, centerX, centerY + size, paint)
+                                canvas.drawLine(
+                                    centerX - size,
+                                    centerY,
+                                    centerX + size,
+                                    centerY,
+                                    paint
+                                )
+                                canvas.drawLine(
+                                    centerX,
+                                    centerY - size,
+                                    centerX,
+                                    centerY + size,
+                                    paint
+                                )
 
                                 // Draw diagonal lines
                                 val diagonalSize = size * 0.7f
-                                canvas.drawLine(centerX - diagonalSize, centerY - diagonalSize,
-                                    centerX + diagonalSize, centerY + diagonalSize, paint)
-                                canvas.drawLine(centerX - diagonalSize, centerY + diagonalSize,
-                                    centerX + diagonalSize, centerY - diagonalSize, paint)
+                                canvas.drawLine(
+                                    centerX - diagonalSize, centerY - diagonalSize,
+                                    centerX + diagonalSize, centerY + diagonalSize, paint
+                                )
+                                canvas.drawLine(
+                                    centerX - diagonalSize, centerY + diagonalSize,
+                                    centerX + diagonalSize, centerY - diagonalSize, paint
+                                )
                             }
                         })
                     }
@@ -512,22 +552,32 @@ class CastDetailAdapter(
                             0 -> {
                                 createStarShape(adjustColorAlpha(Color.WHITE, 0.9f), 4, 6f, 3f)
                             }
+
                             1 -> {
                                 createStarShape(adjustColorAlpha(Color.WHITE, 0.8f), 5, 8f, 4f)
                             }
+
                             2 -> {
-                                LayerDrawable(arrayOf(
-                                    // Glow layer
-                                    createStarShape(adjustColorAlpha(color, 0.4f), 6, 12f, 6f),
-                                    // Core star
-                                    createStarShape(Color.WHITE, 6, 10f, 5f)
-                                ))
+                                LayerDrawable(
+                                    arrayOf(
+                                        // Glow layer
+                                        createStarShape(adjustColorAlpha(color, 0.4f), 6, 12f, 6f),
+                                        // Core star
+                                        createStarShape(Color.WHITE, 6, 10f, 5f)
+                                    )
+                                )
                             }
+
                             else -> createStarDrawable(color, 0)
                         }
                     }
 
-                    private fun createStarShape(color: Int, points: Int, outerRadius: Float, innerRadius: Float): ShapeDrawable {
+                    private fun createStarShape(
+                        color: Int,
+                        points: Int,
+                        outerRadius: Float,
+                        innerRadius: Float
+                    ): ShapeDrawable {
                         return ShapeDrawable(object : Shape() {
                             override fun draw(canvas: Canvas, paint: Paint) {
                                 paint.color = color
@@ -576,14 +626,16 @@ class CastDetailAdapter(
                         }
 
                         // Create glow animation
-                        val scaleAnimator = ObjectAnimator.ofFloat(imageView, "scaleX", 1f, 1.05f, 1f).apply {
-                            duration = 3000
-                            repeatCount = ObjectAnimator.INFINITE
-                        }
-                        val scaleYAnimator = ObjectAnimator.ofFloat(imageView, "scaleY", 1f, 1.05f, 1f).apply {
-                            duration = 3000
-                            repeatCount = ObjectAnimator.INFINITE
-                        }
+                        val scaleAnimator =
+                            ObjectAnimator.ofFloat(imageView, "scaleX", 1f, 1.05f, 1f).apply {
+                                duration = 3000
+                                repeatCount = ObjectAnimator.INFINITE
+                            }
+                        val scaleYAnimator =
+                            ObjectAnimator.ofFloat(imageView, "scaleY", 1f, 1.05f, 1f).apply {
+                                duration = 3000
+                                repeatCount = ObjectAnimator.INFINITE
+                            }
 
                         AnimatorSet().apply {
                             playTogether(scaleAnimator, scaleYAnimator)
@@ -592,7 +644,8 @@ class CastDetailAdapter(
                     }
                 })
 
-        }}
+        }
+    }
 
     fun submitRecommendedMovies(movies: List<MainModel>) {
         recommendedMoviesCast.clear()

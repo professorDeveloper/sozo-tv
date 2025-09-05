@@ -13,7 +13,6 @@ class CastDetailViewModel(
     private val bookmarkRepo: CharacterBookmarkRepository
 ) : ViewModel() {
     val castDetail = MutableLiveData<CastDetailModel>()
-
     val error = MutableLiveData<String>()
     fun loadDetail(id: Int) {
         viewModelScope.launch {
