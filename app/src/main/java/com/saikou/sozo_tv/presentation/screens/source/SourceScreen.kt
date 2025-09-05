@@ -41,7 +41,7 @@ class SourceScreen : Fragment() {
         )
 
         binding.sourceRv.adapter = adapter
-        binding.progressBar.visibility = View.VISIBLE // Show loading
+        binding.progressBar.visibility = View.VISIBLE
         binding.sourcePlaceHolder.root.visibility = View.GONE
         loadSources()
     }
