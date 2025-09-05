@@ -4,10 +4,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.domain.model.CastDetailModel
+import com.saikou.sozo_tv.domain.repository.CharacterBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.DetailRepository
 import kotlinx.coroutines.launch
 
-class CastDetailViewModel(private val repo: DetailRepository) : ViewModel() {
+class CastDetailViewModel(
+    private val repo: DetailRepository,
+    private val bookmarkRepo: CharacterBookmarkRepository
+) : ViewModel() {
     val castDetail = MutableLiveData<CastDetailModel>()
 
     val error = MutableLiveData<String>()

@@ -69,7 +69,7 @@ val koinModule = module {
     viewModel { PlayViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
     viewModel { SearchViewModel(repo = get()) }
-    viewModel { CastDetailViewModel(repo = get()) }
+    viewModel { CastDetailViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel { BookmarkViewModel(bookmarkRepository = get()) }
 //    viewModel {
 //        PlayViewModel(
