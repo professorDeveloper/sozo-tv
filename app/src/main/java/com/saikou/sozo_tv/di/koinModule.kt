@@ -31,7 +31,6 @@ val koinModule = module {
         ).build()
     }
     single { get<AppDatabase>().movieDao() }
-//    single { get<AppDatabase>().watchHistoryDao() }
     factory { UserPreferenceManager(androidContext()) }
     single<HomeRepository> {
         HomeRepositoryImpl(jikanApiService = get(), apolloClient = get())

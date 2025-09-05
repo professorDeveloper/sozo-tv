@@ -47,9 +47,9 @@ fun createOkHttpClient(pref: EncryptedPreferencesManager, context: Context): OkH
     val httpLoggingInterceptor = HttpLoggingInterceptor()
     httpLoggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
     return OkHttpClient.Builder()
-        .connectionPool(ConnectionPool(1, 1, TimeUnit.NANOSECONDS)) // Keep-Alive ni o‘chiradi
-        .connectTimeout(60, TimeUnit.SECONDS) // Default: 10s
-        .readTimeout(60, TimeUnit.SECONDS)    // Default: 10s
+        .connectionPool(ConnectionPool(1, 1, TimeUnit.NANOSECONDS))
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
         .addInterceptor(httpLoggingInterceptor)
         .build()

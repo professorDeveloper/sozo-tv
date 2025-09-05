@@ -22,7 +22,6 @@ class MainActivity : FragmentActivity() {
 
     private var _binding: ActivityMainBinding? = null
     private var headerBinding: ContentHeaderMenuMainTvBinding? = null
-    private val encryptedPreferencesManager: EncryptedPreferencesManager by inject()
     private val binding get() = _binding!!
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
