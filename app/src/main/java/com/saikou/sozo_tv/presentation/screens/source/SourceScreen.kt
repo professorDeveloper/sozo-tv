@@ -37,7 +37,7 @@ class SourceScreen : Fragment() {
 
         adapter = SourceAdapter(
             onClick = { sub -> /* Handle click */ },
-            onDelete = { sub -> deleteSubSource(sub) }
+            onDelete = { sub -> }
         )
 
         binding.sourceRv.adapter = adapter
@@ -49,9 +49,9 @@ class SourceScreen : Fragment() {
     private fun loadSources() {
         dbRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                binding.progressBar.visibility = View.GONE // Hide loading
+                binding.progressBar.visibility = View.GONE
                 if (!snapshot.exists() || snapshot.children.count() == 0) {
-                    binding.sourcePlaceHolder.root.visibility = View.VISIBLE // Show placeholder
+                    binding.sourcePlaceHolder.root.visibility = View.VISIBLE
                     binding.sourceRv.visibility = View.GONE
                 } else {
                     val list = arrayListOf<SubSource>()
@@ -65,28 +65,12 @@ class SourceScreen : Fragment() {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                binding.progressBar.visibility = View.GONE // Hide loading on error
-                binding.sourcePlaceHolder.root.visibility = View.VISIBLE // Show placeholder on error
+                binding.progressBar.visibility = View.GONE
+                binding.sourcePlaceHolder.root.visibility = View.VISIBLE
                 binding.sourceRv.visibility = View.GONE
             }
         })
     }
 
-    private fun deleteSubSource(sub: SubSource) {
-        dbRef.child(sub.sourceId).removeValue().addOnSuccessListener {
-            adapter.removeItem(sub)
-            if (adapter.itemCount == 0) {
-                binding.sourcePlaceHolder.root.visibility = View.VISIBLE
-                binding.sourceRv.visibility = View.GONE
-            }
-        }
-    }
 
-    private fun upsertSubSource(sub: SubSource) {
-        dbRef.child(sub.sourceId).setValue(sub).addOnSuccessListener {
-            adapter.upsertItem(sub)
-            binding.sourcePlaceHolder.root.visibility = View.GONE
-            binding.sourceRv.visibility = View.VISIBLE
-        }
-    }
 }
