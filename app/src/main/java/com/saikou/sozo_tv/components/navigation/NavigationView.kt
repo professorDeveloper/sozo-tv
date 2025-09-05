@@ -1,4 +1,4 @@
-package com.ipsat.ipsat_tv.components.navigation
+package com.saikou.sozo_tv.components.navigation
 
 import android.os.Bundle
 import androidx.annotation.IdRes
@@ -8,7 +8,6 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.onNavDestinationSelected
-import com.saikou.sozo_tv.components.navigation.NavigationSlideView
 import java.lang.ref.WeakReference
 
 /**

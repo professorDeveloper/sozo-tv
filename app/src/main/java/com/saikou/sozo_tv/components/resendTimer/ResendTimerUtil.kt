@@ -1,4 +1,4 @@
-package com.ipsat.ipsat_tv.components.resendTimer
+package com.saikou.sozo_tv.components.resendTimer
 
 import android.os.CountDownTimer
 

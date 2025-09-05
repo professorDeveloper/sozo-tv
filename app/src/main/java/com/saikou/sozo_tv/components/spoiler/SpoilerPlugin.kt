@@ -1,4 +1,4 @@
-package com.ipsat.ipsat_tv.components.spoiler
+package com.saikou.sozo_tv.components.spoiler
 import android.graphics.Color
 import android.text.Spannable
 import android.text.Spanned
@@ -20,11 +20,9 @@ class SpoilerPlugin : AbstractMarkwonPlugin() {
         private var revealed = false
         override fun updateDrawState(tp: TextPaint) {
             if (!revealed) {
-                // use the same text color
                 tp.bgColor = Color.DKGRAY
                 tp.color = Color.DKGRAY
             } else {
-                // for example keep a bit of black background to remind that it is a spoiler
                 tp.bgColor = ColorUtils.applyAlpha(Color.DKGRAY, 25)
             }
         }
@@ -34,33 +32,27 @@ class SpoilerPlugin : AbstractMarkwonPlugin() {
         }
     }
 
-    // we also could make text size smaller (but then MetricAffectingSpan should be used)
     private class HideSpoilerSyntaxSpan : CharacterStyle() {
         override fun updateDrawState(tp: TextPaint) {
-            // set transparent color
             tp.color = 0
         }
     }
 
 
     companion object {
-        // existing regex for ~!spoiler!~
         private val RE = Pattern.compile("~!(.+?)!~")
 
-        // the literal phrase to auto-spoiler
         private const val AUTO_SPOILER_PHRASE = "Downloads/IPSAT"
 
         private fun applySpoilerSpans(spannable: Spannable) {
             val text = spannable.toString()
 
-            // 1) first, handle the explicit ~!spoiler!~ syntax
             val matcher = RE.matcher(text)
             while (matcher.find()) {
                 val s = matcher.start()
                 val e = matcher.end()
                 attachSpoiler(spannable, s, e)
 
-                // hide the "~!" and "!~"
                 spannable.setSpan(
                     HideSpoilerSyntaxSpan(),
                     s,
@@ -75,7 +67,6 @@ class SpoilerPlugin : AbstractMarkwonPlugin() {
                 )
             }
 
-            // 2) now, automatically spoiler every "Downloads/IPSAT"
             var index = text.indexOf(AUTO_SPOILER_PHRASE)
             while (index >= 0) {
                 val start = index
@@ -93,7 +84,6 @@ class SpoilerPlugin : AbstractMarkwonPlugin() {
                     widget.postInvalidateOnAnimation()
                 }
                 override fun updateDrawState(ds: TextPaint) {
-                    // no underline, no-op
                 }
             }
             spannable.setSpan(spoilerSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)

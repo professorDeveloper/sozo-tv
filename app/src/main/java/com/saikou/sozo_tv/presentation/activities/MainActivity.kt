@@ -9,7 +9,7 @@ import android.util.Log
 import android.view.View
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.fragment.NavHostFragment
-import com.ipsat.ipsat_tv.components.navigation.setupWithNavController
+import com.saikou.sozo_tv.components.navigation.setupWithNavController
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ActivityMainBinding
 import com.saikou.sozo_tv.databinding.ContentHeaderMenuMainTvBinding

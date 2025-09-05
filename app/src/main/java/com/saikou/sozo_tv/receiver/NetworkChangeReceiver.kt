@@ -7,7 +7,6 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import com.saikou.sozo_tv.presentation.activities.NoInternetActivity
 
-// 3. Receiver - NetworkChangeReceiver.kt
 class NetworkChangeReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         if (!isNetworkAvailable(context)) {

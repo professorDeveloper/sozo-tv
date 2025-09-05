@@ -26,7 +26,7 @@ class MyApp : Application() {
         super.onCreate()
         context = this@MyApp
         Bugsnag.start(this)
-        AndroidThreeTen.init(this) // Initialize ThreeTenABP
+        AndroidThreeTen.init(this)
         BugsnagPerformance.start(this)
         startKoin {
             androidContext(this@MyApp)
