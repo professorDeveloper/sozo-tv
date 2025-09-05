@@ -82,7 +82,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
             if (it.isNotEmpty()) {
                 trailerUrlPlayer = it
                 prepareMedia(it)
-                detailsAdapter.updateTrailer(it )
+                detailsAdapter.updateTrailer(it)
 
             }
         }
@@ -90,6 +90,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
             detailsAdapter.updateBookmark(it)
         }
         playViewModel.detailData.observe(viewLifecycleOwner) { details ->
+            playViewModel.checkBookmark(details.content.id)
             playViewModel.loadTrailer(details.content.title)
             binding.replaceImage.loadImage(details.content.bannerImage)
             val currentList = arrayListOf<DetailCategory>()
@@ -178,7 +179,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
             )
             LocalData.bookmark = false
             detailsAdapter.updateBookmark(false)
-        }else {
+        } else {
             playViewModel.addBookmark(
                 itme.content.toDomain()
             )
