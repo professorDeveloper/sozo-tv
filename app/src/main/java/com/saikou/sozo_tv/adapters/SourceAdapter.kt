@@ -75,13 +75,6 @@ class SourceAdapter(
         notifyDataSetChanged()
     }
 
-    fun removeItem(item: SubSource) {
-        val index = items.indexOfFirst { it.sourceId == item.sourceId }
-        if (index != -1) {
-            items.removeAt(index)
-            notifyItemRemoved(index)
-        }
-    }
 
     fun setSelectedIndex(item: SubSource) {
         val index = items.indexOfFirst { it.sourceId == item.sourceId }
