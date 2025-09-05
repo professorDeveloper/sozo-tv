@@ -13,6 +13,7 @@ data class CastDetailModel(
 )
 
 data class CastAdapterModel(
+
     val image: String,
     val gender: String,
     val name: String,

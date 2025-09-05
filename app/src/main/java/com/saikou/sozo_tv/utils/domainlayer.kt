@@ -8,12 +8,14 @@ import com.animestudios.animeapp.GetCharactersAnimeByIdQuery
 import com.animestudios.animeapp.GetRelationsByIdQuery
 import com.animestudios.animeapp.SearchAnimeQuery
 import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
+import com.saikou.sozo_tv.data.local.entity.CharacterEntity
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.domain.model.AiringSchedule
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Cast
+import com.saikou.sozo_tv.domain.model.CastAdapterModel
 import com.saikou.sozo_tv.domain.model.CastDetailModel
 import com.saikou.sozo_tv.domain.model.CategoryGenre
 import com.saikou.sozo_tv.domain.model.CategoryGenreItem
@@ -50,7 +52,17 @@ fun DetailModel.toDomain(): AnimeBookmark {
 
 }
 
-fun AnimeBookmark.toDomain(): MainModel{
+fun CastAdapterModel.toDomain(id: Int): CharacterEntity {
+    return CharacterEntity(
+        id,
+        this.name,
+        this.image,
+        this.role,
+        this.age
+    )
+}
+
+fun AnimeBookmark.toDomain(): MainModel {
     return MainModel(
         this.id,
         title = this.title,

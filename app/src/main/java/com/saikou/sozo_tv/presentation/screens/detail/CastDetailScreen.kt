@@ -14,8 +14,11 @@ import com.saikou.sozo_tv.domain.model.CastAdapterModel
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.LocalData.characterBookmark
 import com.saikou.sozo_tv.utils.snackString
+import com.saikou.sozo_tv.utils.toDomain
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
     private var _binding: CastDetailScreenBinding? = null
@@ -31,6 +34,7 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
         savedInstanceState: Bundle?
     ): View {
         _binding = CastDetailScreenBinding.inflate(inflater, container, false)
+        characterBookmark = false
         return binding.root
     }
 
@@ -40,6 +44,7 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
         super.onViewCreated(view, savedInstanceState)
         binding.vgvMovieDetails.adapter = adapter
         model.loadDetail(args.castId ?: -1)
+        model.checkBookmark(args.castId ?: -1)
         model.error.observe(viewLifecycleOwner) {
             snackString(it ?: "", requireActivity())
         }
@@ -86,11 +91,38 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
             adapter.submitRecommendedMovies(
                 it.media
             )
+            model.isBookmark.observe(viewLifecycleOwner) { isBookmark ->
+                adapter.updateBookmark(isBookmark)
+
+            }
+        }
+    }
+
+    override fun onFavoriteButtonClicked(item: CastAdapterModel) {
+        if (characterBookmark) {
+            model.removeBookmark(
+                item.toDomain(args.castId ?: -1)
+            )
+            characterBookmark = false
+            adapter.updateBookmark(false)
+        } else {
+            model.addBookmark(
+                item.toDomain(args.castId ?: -1)
+            )
+            characterBookmark = true
+            adapter.updateBookmark(true)
         }
     }
 
     override fun onCancelButtonClicked() {
         findNavController().popBackStack()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        characterBookmark = false
+        _binding = null
+
     }
 
 

@@ -191,8 +191,8 @@ class CastDetailAdapter(
 
     class ItemPlayDetailsHeaderViewHolder(private val binding: ItemCategoryDetailsHeaderBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        private var isOn = false
-        private var isPlay = true
+//        private var isOn = false
+//        private var isPlay = true
 
         @SuppressLint("SetTextI18n")
         fun bind(item: CastAdapterModel, interfaceListener: DetailsInterface) {
@@ -202,6 +202,19 @@ class CastDetailAdapter(
             binding.favoriteBtn.setOnClickListener {
                 interfaceListener.onFavoriteButtonClicked(item)
             }
+            binding.favoriteBtn.animate()
+                .scaleX(1.05f)
+                .scaleY(1.05f)
+                .setDuration(200)
+                .withEndAction {
+                    binding.favoriteBtn.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(200)
+                        .start()
+                }
+                .start()
+
             if (characterBookmark) {
                 binding.favoriteBtn.setImageResource(R.drawable.ic_favorite_filled)
             } else {
@@ -693,6 +706,11 @@ class CastDetailAdapter(
         itemList.clear()
         itemList.addAll(list)
         result.dispatchUpdatesTo(this)
+    }
+
+    fun updateBookmark(it: Boolean) {
+        LocalData.characterBookmark = it
+        notifyItemChanged(0)
     }
 
 
