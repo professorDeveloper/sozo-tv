@@ -24,7 +24,6 @@ class ProfileActivity : AppCompatActivity() {
 
     private lateinit var profileAdapter: ProfileAdapter
 
-    //    private val model: ProfileViewModel by viewModel()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityProfileBinding.inflate(layoutInflater)
@@ -44,7 +43,6 @@ class ProfileActivity : AppCompatActivity() {
                 2 -> {
                     Log.d("GGG", "onCreate:2BackPress ")
                     viewBinding.profileRv.requestFocus()
-//                    LocalData.isBookmarkClicked = false
                     backPressCount = 0
                 }
 
@@ -117,7 +115,6 @@ class ProfileActivity : AppCompatActivity() {
                     )
                 }
                 1 -> {
-//                    LocalData.isBookmarkClicked = false
                     if (currentPageId != R.id.sourceScreen) navController.navigate(
                         R.id.sourceScreen,
                         null,
