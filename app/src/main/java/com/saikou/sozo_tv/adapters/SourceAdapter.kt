@@ -93,14 +93,4 @@ class SourceAdapter(
         }
     }
 
-    fun upsertItem(item: SubSource) {
-        val index = items.indexOfFirst { it.sourceId == item.sourceId }
-        if (index != -1) {
-            items[index] = item
-            notifyItemChanged(index)
-        } else {
-            items.add(item)
-            notifyItemInserted(items.size - 1)
-        }
-    }
 }
