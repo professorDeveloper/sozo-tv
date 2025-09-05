@@ -19,7 +19,7 @@ class SourceAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: SubSource, isSelected: Boolean) {
-            binding.tvCode.text = item.sourceId.uppercase()
+            binding.tvCode.text = item.country.uppercase()
             binding.tvTitle.text = item.title
 
             val bgRes = if (isSelected)
