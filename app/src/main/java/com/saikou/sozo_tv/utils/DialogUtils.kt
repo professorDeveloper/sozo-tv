@@ -11,7 +11,6 @@ import com.saikou.sozo_tv.R
 object DialogUtils {
 
     fun checkAndShowNetworkDialog(ctx: Context) {
-
     }
 
     fun loadingDialog(ctx: Context): Dialog {
