@@ -28,25 +28,10 @@ fun String.getYearFromDate(): String? {
         calendar.time = date!!
         calendar.get(Calendar.YEAR).toString()
     } catch (e: Exception) {
-        null // Return null if the format is invalid
+        null
     }
 }
 
-//
-//fun handleSectionClick(section: SectionItem, position: Int):Fragment? {
-//    val fragment = when (position) {
-//        0 -> MyFilmsPage()
-//        1 -> MyAccountsPage()
-//        2 -> MyCardsPage()
-//        3 -> BookmarkPage()
-//        4 -> HistoryPage()
-//        5 -> SubscriptionPage()
-//        6 -> TransactionPage()
-//        else -> null
-//    }
-//
-//    return fragment
-//}
 fun TextView.convertToTime(time: Int? = -1, context: Context) {
     if (time == null || time <= 0) {
         text = "0"
@@ -84,52 +69,11 @@ fun ImageView.loadImage(url: String?) {
         .apply(
             RequestOptions()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .error(R.drawable.placeholder)  // If image fails to load
+                .error(R.drawable.placeholder)
         )
         .into(this)
 }
 
-
-class ZoomOutPageTransformer() :
-    ViewPager2.PageTransformer {
-    override fun transformPage(view: View, position: Float) {
-        if (position == 0.0f) {
-
-            ObjectAnimator.ofFloat(view, "alpha", 0f, 1.0f)
-                .setDuration((200 * 700).toLong()).start()
-        }
-    }
-}
-
-class CardTransformer(private val context: Context) : ViewPager2.PageTransformer {
-    private val nextItemVisiblePx = 36.dp
-    private val currentItemHorizontalMarginPx = 16.dp
-    private val pageTranslationX = nextItemVisiblePx + currentItemHorizontalMarginPx
-
-    override fun transformPage(page: View, position: Float) {
-        val displayMetrics = context.resources.displayMetrics
-        val dpHeight = displayMetrics.heightPixels / displayMetrics.density
-
-        page.translationX = -pageTranslationX * position  /*dpHeight/(100)*/
-        page.scaleY = 1 - (0.12f * kotlin.math.abs(position))
-        page.alpha = 0.5f + (1 - kotlin.math.abs(position))
-    }
-
-}
-
-class MediaPageTransformer : ViewPager2.PageTransformer {
-    private fun parallax(view: View, position: Float) {
-        if (position > -1 && position < 1) {
-            val width = view.width.toFloat()
-            view.translationX = -(position * width * 0.8f)
-        }
-    }
-
-    override fun transformPage(view: View, position: Float) {
-//        val bannerContainer = view.findViewById<View>(R.id.bannerImg)
-//        parallax(bannerContainer, position)
-    }
-}
 
 fun View.showKeyboard() {
     val inputMethodManager =
@@ -154,19 +98,4 @@ fun View.applyFocusedStyle(scaleY: Float = 1.07f, elevation: Float = 40f) {
     this.scaleX = 1.0f
     this.scaleY = scaleY
     this.elevation = elevation
-}
-
-class HomeScrollTransformer : ViewPager2.PageTransformer {
-    override fun transformPage(page: View, position: Float) {
-        //page.translationX = -position * page.width / 2.0f
-
-        //val params = RecyclerView.LayoutParams(
-        //    RecyclerView.LayoutParams.MATCH_PARENT,
-        //    0
-        //)
-        //page.layoutParams = params
-        //progressBar?.layoutParams = params
-
-
-    }
 }
