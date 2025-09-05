@@ -85,8 +85,12 @@ class SourceAdapter(
 
     fun setSelectedIndex(item: SubSource) {
         val index = items.indexOfFirst { it.sourceId == item.sourceId }
-        selectedIndex = index
-        notifyDataSetChanged()
+        if (
+            index >= 0
+        ) {
+            selectedIndex = index
+            notifyDataSetChanged()
+        }
     }
 
     fun upsertItem(item: SubSource) {

@@ -15,13 +15,14 @@ import com.saikou.sozo_tv.data.model.SubSource
 import com.saikou.sozo_tv.databinding.SourceScreenBinding
 import androidx.leanback.widget.VerticalGridView
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.utils.readData
 
 class SourceScreen : Fragment() {
     private var _binding: SourceScreenBinding? = null
     private val binding get() = _binding!!
     private lateinit var dbRef: DatabaseReference
     private lateinit var adapter: SourceAdapter
-
+    private var currentSelectedSource = readData<SubSource>("subSource")?: SubSource()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -38,6 +39,7 @@ class SourceScreen : Fragment() {
         adapter = SourceAdapter(
             onClick = { sub -> /* Handle click */ },
         )
+
 
         binding.sourceRv.adapter = adapter
         binding.progressBar.visibility = View.VISIBLE
@@ -60,6 +62,9 @@ class SourceScreen : Fragment() {
                     binding.sourcePlaceHolder.root.visibility = View.GONE
                     binding.sourceRv.visibility = View.VISIBLE
                     adapter.updateList(list)
+                    adapter.setSelectedIndex(
+                        currentSelectedSource
+                    )
                 }
             }
 
