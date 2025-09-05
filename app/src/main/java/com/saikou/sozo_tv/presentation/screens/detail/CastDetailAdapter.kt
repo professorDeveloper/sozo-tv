@@ -3,7 +3,6 @@ package com.saikou.sozo_tv.presentation.screens.detail
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -14,8 +13,6 @@ import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.Shape
-import android.text.Html
-import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -24,8 +21,6 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AnimationUtils
 import android.view.animation.LinearInterpolator
 import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.DiffUtil
@@ -33,37 +28,23 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import com.google.android.material.animation.AnimatorSetCompat.playTogether
 import com.saikou.sozo_tv.R
-import com.saikou.sozo_tv.adapters.CastAdapter
 import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.databinding.ItemCastRecommendedBinding
 import com.saikou.sozo_tv.databinding.ItemCategoryDetailsHeaderBinding
-import com.saikou.sozo_tv.databinding.ItemPlayCastBinding
-import com.saikou.sozo_tv.databinding.ItemPlayDetailsHeaderBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsSectionBinding
-import com.saikou.sozo_tv.databinding.ItemPlayRecommendedBinding
-import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.CastAdapterModel
-import com.saikou.sozo_tv.domain.model.CastDetailModel
-import com.saikou.sozo_tv.domain.model.CategoryDetails
-import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 import com.saikou.sozo_tv.presentation.screens.home.vh.ViewHolderFactory
 import com.saikou.sozo_tv.utils.LocalData
-import com.saikou.sozo_tv.utils.LocalData.castList
 import com.saikou.sozo_tv.utils.LocalData.characterBookmark
-import com.saikou.sozo_tv.utils.LocalData.recommendedMovies
 import com.saikou.sozo_tv.utils.LocalData.recommendedMoviesCast
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.loadImage
 import com.saikou.sozo_tv.utils.setupGridLayoutForCategories
-import com.saikou.sozo_tv.utils.toYear
 import com.saikou.sozo_tv.utils.visible
-import java.lang.Math.sin
-import kotlin.io.path.Path
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
@@ -72,8 +53,6 @@ class CastDetailAdapter(
     val itemList: MutableList<HomeAdapter.HomeData> = mutableListOf(),
     private val detailsButtonListener: DetailsInterface
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-    // Placeholder for the third ite
-//    val castResponse = mutableListOf<CastItem>()
 
     interface DetailsInterface {
         fun onCancelButtonClicked()
@@ -206,16 +185,16 @@ class CastDetailAdapter(
             binding.favoriteBtn.setOnFocusChangeListener { view, hasFocus ->
                 val animation = when {
                     hasFocus -> AnimationUtils.loadAnimation(
-                        binding.root.context,
+                        binding.favoriteBtn.context,
                         R.anim.zoom_in
                     )
 
                     else -> AnimationUtils.loadAnimation(
-                        binding.root.context,
+                        binding.favoriteBtn.context,
                         R.anim.zoom_out
                     )
                 }
-                binding.root.startAnimation(animation)
+                binding.favoriteBtn.startAnimation(animation)
                 animation.fillAfter = true
             }
             binding.favoriteBtn.animate()
@@ -315,8 +294,7 @@ class CastDetailAdapter(
                                 palette?.getDominantColor(Color.BLACK) ?: Color.BLACK
                             val vibrantColor =
                                 palette?.getVibrantColor(dominantColor) ?: dominantColor
-                            val darkVibrantColor =
-                                palette?.getDarkVibrantColor(Color.BLACK) ?: Color.BLACK
+
                             val lightVibrantColor =
                                 palette?.getLightVibrantColor(Color.WHITE) ?: Color.WHITE
 
@@ -648,13 +626,7 @@ class CastDetailAdapter(
                     }
 
                     private fun addCharacterGlow(imageView: ImageView, glowColor: Int) {
-                        val glowRadius = 20f
-                        val glowDrawable = GradientDrawable().apply {
-                            shape = GradientDrawable.OVAL
-                            setColor(adjustColorAlpha(glowColor, 0.3f))
-                        }
 
-                        // Create glow animation
                         val scaleAnimator =
                             ObjectAnimator.ofFloat(imageView, "scaleX", 1f, 1.05f, 1f).apply {
                                 duration = 3000
@@ -725,7 +697,7 @@ class CastDetailAdapter(
     }
 
     fun updateBookmark(it: Boolean) {
-        LocalData.characterBookmark = it
+        characterBookmark = it
         notifyItemChanged(0)
     }
 
