@@ -104,7 +104,7 @@ fun VerticalGridView.setupGridLayoutForCategories(pageAdapter: CategoriesPageAda
         isFocusableInTouchMode = true
         descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
         this.isFocusDrawingOrderEnabled = true
-        setNumColumns(5) // ← agar siz `VerticalGridView` ishlatsangiz, bu juda muhim
+        setNumColumns(5)
     }
 
 }
@@ -115,7 +115,7 @@ fun VerticalGridView.setupGridLayoutForBookmarks(pageAdapter: CategoriesPageAdap
         isFocusableInTouchMode = true
         descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
         this.isFocusDrawingOrderEnabled = true
-        setNumColumns(4) // ← agar siz `VerticalGridView` ishlatsangiz, bu juda muhim
+        setNumColumns(4)
     }
 
 }
@@ -124,12 +124,10 @@ fun VerticalGridView.setupGridLayoutForBookmarks(pageAdapter: CategoriesPageAdap
 fun String.toDateFromIso8601ForTxt(): String? {
     return try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Android 8+ versiyalar uchun java.time API
             val instant = LocalDateTime.parse(this, DateTimeFormatter.ISO_DATE_TIME)
             val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.getDefault())
             instant.format(formatter)
         } else {
-            // Android 5-7 versiyalar uchun SimpleDateFormat
             val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
             val outputFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
 
@@ -150,68 +148,6 @@ fun View.visible() {
 fun View.gone() {
     this.visibility = View.GONE
 }
-//
-//
-//var selectedCategory = ArrayList<SubCategoryItem>()
-//
-//
-//fun ArrayList<SubCategoryItem>.filterChannelsByCategory(
-//    categoryId: Int
-//): ArrayList<SubCategoryItem> {
-//    return this.filter { it.category.toInt() == categoryId } as ArrayList<SubCategoryItem>
-//}
-//
-//fun ArrayList<ChannelResponseItem>.filterByKeywords(
-//    keywords: List<SubCategoryItem>
-//): List<ChannelResponseItem> {
-//    Log.d("GG", "filterByKeywords:${keywords} ")
-//    Log.d("GG", "filterByKeywords:${this} ")
-//    return this.filter { item ->
-//        keywords.any { keyword ->
-//            if (item.categoryProperty == null) false else item.categoryProperty.contains(
-//                keyword.property_name,
-//                ignoreCase = true
-//            )
-//        }
-//    }
-//}
-//
-//
-//fun ArrayList<MovieBookmark>.toMovieList(): ArrayList<Movie> {
-//    return this.map {
-//        Movie(
-//            id = it.id,
-//            name = it.title,
-//            image = it.image,
-//            categoryProperty = it.categoryProperty,
-//            categoryid = it.categoryid ?: "Unknown",
-//            country = it.country ?: "Unknown",
-//            description = it.description,
-//            language = it.language ?: "Unknown",
-//            rating = it.rating ?: 0.0,
-//            release_year = it.release_year
-//        )
-//    } as ArrayList<Movie>
-//}
-//
-//
-//fun RecyclerView.setupGridLayoutForCategories(adapter: CategoriesPageAdapter) {
-//    val gridLayoutManager =
-//        GridLayoutManager(this.context, CategoriesPageAdapter.COLUMN_COUNT)
-//    gridLayoutManager.orientation = RecyclerView.VERTICAL
-//    gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
-//        override fun getSpanSize(position: Int): Int {
-//            return when (adapter.getItemViewType(position)) {
-//                CategoriesPageAdapter.TYPE_CATEGORY -> 1
-//                else -> CategoriesPageAdapter.COLUMN_COUNT
-//            }
-//        }
-//    }
-//    this.layoutManager = gridLayoutManager
-//    this.descendantFocusability = RecyclerView.FOCUS_AFTER_DESCENDANTS
-//    this.isFocusable = true
-//    this.isFocusableInTouchMode = true
-//}
 
 fun makeCustomHttpClient(sslContext: SSLContext): OkHttpClient {
     return OkHttpClient.Builder()
@@ -271,7 +207,6 @@ suspend fun extractTarFile(tarUrl: String, outputDir: File) {
 
 fun disableSSLCertificateChecking(connection: HttpsURLConnection) {
     try {
-        // Ishonchsiz TrustManager: barcha sertifikatlarni tekshiruvsiz qabul qiladi
         val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
             override fun checkClientTrusted(
                 chain: Array<out X509Certificate>?,
@@ -291,64 +226,12 @@ fun disableSSLCertificateChecking(connection: HttpsURLConnection) {
         val sslContext = SSLContext.getInstance("TLS")
         sslContext.init(null, trustAllCerts, SecureRandom())
         connection.sslSocketFactory = sslContext.socketFactory
-        // Barcha host nomlarini qabul qilish
         connection.hostnameVerifier = HostnameVerifier { _, _ -> true }
     } catch (e: Exception) {
         e.printStackTrace()
     }
 }
 
-
-fun makeSslForTrailer(sslContext: SSLContext) {
-    sslContext.init(null, arrayOf(object : X509TrustManager {
-        override fun checkClientTrusted(
-            chain: Array<out X509Certificate>?,
-            authType: String?
-        ) {
-        }
-
-        override fun checkServerTrusted(
-            chain: Array<out X509Certificate>?,
-            authType: String?
-        ) {
-        }
-
-        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-    }), SecureRandom())
-}
-//
-//fun RecyclerView.setupGridLayoutForCategoriesNum4(adapter: CategoriesPageAdapter) {
-//    val gridLayoutManager =
-//        GridLayoutManager(this.context, CategoriesPageAdapter.COLUMN_COUNT_NUM4)
-//    gridLayoutManager.orientation = RecyclerView.VERTICAL
-//    gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
-//        override fun getSpanSize(position: Int): Int {
-//            return when (adapter.getItemViewType(position)) {
-//                CategoriesPageAdapter.TYPE_CATEGORY -> 1
-//                else -> CategoriesPageAdapter.COLUMN_COUNT_NUM4
-//            }
-//        }
-//    }
-//    this.layoutManager = gridLayoutManager
-//    this.descendantFocusability = RecyclerView.FOCUS_AFTER_DESCENDANTS
-//    this.isFocusable = true
-//    this.isFocusableInTouchMode = true
-//}
-//
-//fun CategoryDetails.toBookmark(): MovieBookmark {
-//    return MovieBookmark(
-//        id = this.content.id,
-//        title = this.content.name,
-//        image = this.content.image ?: "",
-//        categoryProperty = this.content.categoryProperty,
-//        categoryid = this.content.categoryid,
-//        country = this.content.country,
-//        description = this.content.description,
-//        language = this.content.language,
-//        rating = this.content.rating,
-//        release_year = this.content.release_year
-//    )
-//}
 
 fun <T> readData(fileName: String, context: Context? = null, toast: Boolean = true): T? {
     val a = context ?: MyApp.context
