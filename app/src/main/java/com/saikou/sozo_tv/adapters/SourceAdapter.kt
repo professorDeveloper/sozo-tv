@@ -20,8 +20,8 @@ class SourceAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: SubSource, isSelected: Boolean) {
-            binding.tvCode.text = item.country.uppercase()
-            binding.tvTitle.text = item.title
+            binding.tvCode.text = item.title.uppercase()
+            binding.tvTitle.text = item.country
 
             val bgRes = if (isSelected)
                 R.drawable.bg_item_selected
@@ -37,6 +37,21 @@ class SourceAdapter(
                 notifyItemChanged(oldIndex)
                 notifyItemChanged(selectedIndex)
                 onClick(item)
+            }
+            binding.root.setOnFocusChangeListener { view, hasFocus ->
+                val animation = when {
+                    hasFocus -> AnimationUtils.loadAnimation(
+                        binding.root.context,
+                        R.anim.zoom_in
+                    )
+
+                    else -> AnimationUtils.loadAnimation(
+                        binding.root.context,
+                        R.anim.zoom_out
+                    )
+                }
+                binding.root.startAnimation(animation)
+                animation.fillAfter = true
             }
 
         }
