@@ -167,13 +167,13 @@ class SplashScreen : Fragment() {
 //        findNavController().navigate(R.id.phoneScreen, null, navOptions())
 //    }
 
-    private fun navOptions(): NavOptions = NavOptions.Builder()
-        .setPopUpTo(R.id.splashScreen, true)
-        .setEnterAnim(R.anim.fade_in)
-        .setExitAnim(R.anim.fade_out)
-        .setPopEnterAnim(R.anim.fade_in)
-        .setPopExitAnim(R.anim.fade_out)
-        .build()
+//    private fun navOptions(): NavOptions = NavOptions.Builder()
+//        .setPopUpTo(R.id.splashScreen, true)
+//        .setEnterAnim(R.anim.fade_in)
+//        .setExitAnim(R.anim.fade_out)
+//        .setPopEnterAnim(R.anim.fade_in)
+//        .setPopExitAnim(R.anim.fade_out)
+//        .build()
 
     override fun onDestroyView() {
         super.onDestroyView()
