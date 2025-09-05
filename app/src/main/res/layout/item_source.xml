@@ -6,15 +6,13 @@
     android:layout_height="wrap_content"
     android:layout_margin="12dp"
     android:background="@drawable/bg_item_normal"
-    android:elevation="4dp"
     android:focusable="true"
-    android:focusableInTouchMode="true"
-    android:foreground="?android:attr/selectableItemBackground">
+    android:focusableInTouchMode="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="12dp">
+        android:padding="8dp">
 
         <TextView
             android:id="@+id/tvCode"
@@ -44,20 +42,10 @@
             android:textColor="@android:color/white"
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/selectionIndicator"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_chainStyle="packed" />
 
-        <ImageView
-            android:id="@+id/selectionIndicator"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:contentDescription="Selected Indicator"
-            android:src="@android:drawable/btn_radio_on"
-            android:visibility="visible"
-            app:layout_constraintBottom_toBottomOf="@id/tvTitle"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </LinearLayout>

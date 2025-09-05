@@ -39,9 +39,7 @@ class SourceAdapter(
                 onClick(item)
             }
 
-            binding.btnDelete.setOnClickListener {
-                onDelete(item)
-            }
+
         }
     }
 
