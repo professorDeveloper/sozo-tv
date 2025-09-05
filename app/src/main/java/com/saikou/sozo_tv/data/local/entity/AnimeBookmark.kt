@@ -11,4 +11,14 @@ data class AnimeBookmark(
     val idMal: Int = -1,
     val image: String,
 
+    )
+
+@Entity(tableName = "characterbookmark")
+data class CharacterEntity(
+    @PrimaryKey
+    val id: Int,
+    val image: String,
+    val name: String,
+    val role: String,
+    val age: String,
 )
