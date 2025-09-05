@@ -31,7 +31,6 @@ import kotlinx.coroutines.launch
 class SplashScreen : Fragment() {
     private var _binding: SplashScreenBinding? = null
     private val binding get() = _binding!!
-//    private val viewModel: SplashViewModel by viewModel()
     private lateinit var exoPlayer: ExoPlayer
     private lateinit var loadingDialog: Dialog
 
@@ -47,20 +46,17 @@ class SplashScreen : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         loadingDialog = DialogUtils.loadingDialog(requireContext())
-//        viewModel.checkSubscribe()
         setupNavigationLogic()
     }
 
     private fun setupNavigationLogic() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-//            binding.splashImage.visible()
             binding.playerView.gone()
             lifecycleScope.launch {
-                delay(1000) // wait 1 second
+                delay(1000)
                 observeAndNavigate()
             }
         } else {
-//            binding.splashImage.gone()
             binding.playerView.visible()
             initVideoPlayer()
         }
@@ -98,7 +94,7 @@ class SplashScreen : Fragment() {
 
                     Player.STATE_ENDED -> {
                         exoPlayer.release()
-                        observeAndNavigate()  // navigate only after video completes
+                        observeAndNavigate()
                     }
 
                     Player.STATE_IDLE -> binding.loadingIndicator.visible()
