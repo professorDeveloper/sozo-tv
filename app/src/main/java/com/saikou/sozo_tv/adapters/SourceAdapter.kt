@@ -10,7 +10,6 @@ import com.saikou.sozo_tv.databinding.ItemSourceBinding
 
 class SourceAdapter(
     private val onClick: (SubSource) -> Unit,
-    private val onDelete: (SubSource) -> Unit
 ) : RecyclerView.Adapter<SourceAdapter.SourceViewHolder>() {
 
     private val items = mutableListOf<SubSource>()

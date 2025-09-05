@@ -37,7 +37,6 @@ class SourceScreen : Fragment() {
 
         adapter = SourceAdapter(
             onClick = { sub -> /* Handle click */ },
-            onDelete = { sub -> }
         )
 
         binding.sourceRv.adapter = adapter
