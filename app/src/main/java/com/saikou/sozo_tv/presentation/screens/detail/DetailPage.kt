@@ -38,7 +38,6 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     private val detailsAdapter = MovieDetailsAdapter(detailsButtonListener = this)
     private val playerListener = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
-
             error.cause?.let { cause -> Log.e("Tekshirish", "Cause: ${cause.message}") }
         }
 
