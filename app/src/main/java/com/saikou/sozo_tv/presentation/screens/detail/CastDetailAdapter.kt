@@ -397,7 +397,7 @@ class CastDetailAdapter(
                         val random = Random(System.currentTimeMillis())
 
                         for (i in 0 until starCount) {
-                            val starType = random.nextInt(2) // Smaller stars for bottom
+                            val starType = random.nextInt(2)
                             val starSize = when (starType) {
                                 0 -> 8
                                 1 -> 12
@@ -448,7 +448,7 @@ class CastDetailAdapter(
                         val random = Random(System.currentTimeMillis())
 
                         for (i in 0 until elementCount) {
-                            val elementType = random.nextInt(3) // 0: dot, 1: small star, 2: sparkle
+                            val elementType = random.nextInt(3)
                             val elementSize = when (elementType) {
                                 0 -> 6
                                 1 -> 10
@@ -540,7 +540,6 @@ class CastDetailAdapter(
                                     paint
                                 )
 
-                                // Draw diagonal lines
                                 val diagonalSize = size * 0.7f
                                 canvas.drawLine(
                                     centerX - diagonalSize, centerY - diagonalSize,
@@ -567,9 +566,8 @@ class CastDetailAdapter(
                             2 -> {
                                 LayerDrawable(
                                     arrayOf(
-                                        // Glow layer
                                         createStarShape(adjustColorAlpha(color, 0.4f), 6, 12f, 6f),
-                                        // Core star
+
                                         createStarShape(Color.WHITE, 6, 10f, 5f)
                                     )
                                 )
@@ -596,9 +594,9 @@ class CastDetailAdapter(
                                 val centerY = height / 2f
 
                                 val angleStep = (2 * Math.PI / (points * 2)).toFloat()
-                                var angle = -Math.PI.toFloat() / 2 // Start from top
+                                var angle = -Math.PI.toFloat() / 2
 
-                                // Create star path
+
                                 for (i in 0 until points * 2) {
                                     val radius = if (i % 2 == 0) outerRadius else innerRadius
                                     val x = centerX + (radius * cos(angle))
@@ -613,7 +611,6 @@ class CastDetailAdapter(
                                 }
                                 path.close()
 
-                                // Draw star with white outline
                                 paint.style = Paint.Style.FILL
                                 canvas.drawPath(path, paint)
 
