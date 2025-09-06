@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.bookmark
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -34,9 +35,16 @@ class BookmarkScreen : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         model.getAllBookmarks()
+        model.getAllCharacterBookmarks()
+        model.characterData.observe(viewLifecycleOwner) {
+            if (it.isNotEmpty()) {
+                binding.topBar.characterTxt.text = "Characters (${it.size})"
+            }
+        }
         model.bookmarkData.observe(viewLifecycleOwner) {
             if (it.isNotEmpty()) {
                 binding.bookmarkRv.visible()
