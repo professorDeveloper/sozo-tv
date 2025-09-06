@@ -38,7 +38,7 @@ class BookmarkScreen : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         model.getAllBookmarks()
         model.bookmarkData.observe(viewLifecycleOwner) {
-            if(it.isNotEmpty()){
+            if (it.isNotEmpty()) {
                 binding.bookmarkRv.visible()
                 binding.bookmarkPlaceHolder.root.gone()
                 adapter.setClickDetail {
@@ -52,6 +52,13 @@ class BookmarkScreen : Fragment() {
                     }
 
                 })
+                adapter.setCategoriesPageInterface(
+                    object : CategoriesPageAdapter.CategoriesPageInterface {
+                        override fun onCategorySelected(category: MainModel, position: Int) {
+
+                        }
+                    }
+                )
                 binding.bookmarkRv.adapter = adapter
                 binding.bookmarkRv.setupGridLayoutForBookmarks(adapter)
                 adapter.updateCategoriesAll(
@@ -59,7 +66,7 @@ class BookmarkScreen : Fragment() {
                         it.toDomain()
                     } as ArrayList<MainModel>
                 )
-            }else{
+            } else {
                 binding.bookmarkRv.gone()
                 binding.bookmarkPlaceHolder.root.visible()
 
