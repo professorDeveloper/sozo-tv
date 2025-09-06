@@ -79,7 +79,6 @@ class CategoriesPageAdapter(
         notifyDataSetChanged()
     }
 
-    /*** ViewHolders ***/
     inner class NavBarViewHolder(private val binding: ItemBottombarBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind() {
@@ -98,7 +97,6 @@ class CategoriesPageAdapter(
         }
 
         private fun updateNavSelection() {
-            // navAnime tanlanganda background selected bo'ladi
             binding.navAnime.background = ContextCompat.getDrawable(
                 binding.root.context,
                 if (isAnimeSelected) R.drawable.tab_background_selector else R.drawable.tab_background_unselected
