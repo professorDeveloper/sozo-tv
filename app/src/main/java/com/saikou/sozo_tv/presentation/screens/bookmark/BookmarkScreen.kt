@@ -40,6 +40,16 @@ class BookmarkScreen : Fragment() {
         model.bookmarkData.observe(viewLifecycleOwner) {
             if (it.isNotEmpty()) {
                 binding.bookmarkRv.visible()
+                binding.topBar.navAnime.setBackgroundResource(R.drawable.tab_background_selector)
+                binding.topBar.navAnime.setOnClickListener {
+                    binding.topBar.navAnime.setBackgroundResource(R.drawable.tab_background_selector)
+                    binding.topBar.navCharacters.setBackgroundResource(R.drawable.tab_background_unselected)
+                }
+                binding.topBar.navCharacters.setOnClickListener {
+                    binding.topBar.navCharacters.setBackgroundResource(R.drawable.tab_background_selector)
+                    binding.topBar.navAnime.setBackgroundResource(R.drawable.tab_background_unselected)
+                }
+
                 binding.bookmarkPlaceHolder.root.gone()
                 adapter.setClickDetail {
                     val intent = Intent(requireActivity(), PlayerActivity::class.java)

@@ -15,6 +15,8 @@
         android:layout_marginEnd="4dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
+        app:focusOutEnd="true"
+        app:focusOutFront="true"
         android:focusableInTouchMode="true"
         android:padding="8dp"
         android:background="@drawable/tab_background_unselected"
@@ -44,6 +46,8 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
+        app:focusOutEnd="true"
+        app:focusOutFront="true"
         android:background="@drawable/tab_background_unselected"
         android:layout_marginStart="4dp"
         android:focusableInTouchMode="true"
@@ -55,7 +59,7 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:contentDescription="Characters"
-            android:src="@drawable/ic_users"
+            android:src="@drawable/tv_retro"
             app:tint="@color/white" />
 
         <TextView
