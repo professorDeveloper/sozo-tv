@@ -1,22 +1,25 @@
 package com.saikou.sozo_tv.presentation.screens.category
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.databinding.ItemBottombarBinding
 import com.saikou.sozo_tv.databinding.ItemMovieBinding
 import com.saikou.sozo_tv.domain.model.MainModel
-import com.saikou.sozo_tv.utils.loadImage
 
-class CategoriesPageAdapter(val isDetail: Boolean = false) :
-    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class CategoriesPageAdapter(
+    private val isDetail: Boolean = false,
+    private val showBottomBar: Boolean = false
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
+        const val VIEW_TYPE_NAVBAR = 0
+        const val VIEW_TYPE_MOVIE = 1
         var isUpdated = false
-        const val COLUMN_COUNT = 5
     }
 
     lateinit var clickDetaill: (MainModel) -> Unit
@@ -24,110 +27,134 @@ class CategoriesPageAdapter(val isDetail: Boolean = false) :
         clickDetaill = listener
     }
 
+    var onAnimeClick: (() -> Unit)? = null
+    var onCharactersClick: (() -> Unit)? = null
+
     lateinit var categoriesPageInterfaceg: CategoriesPageInterface
     fun setCategoriesPageInterface(categoriesPageInterface: CategoriesPageInterface) {
         this.categoriesPageInterfaceg = categoriesPageInterface
     }
 
-
     interface CategoriesPageInterface {
         fun onCategorySelected(category: MainModel, position: Int)
     }
 
-    var categoryTabs: ArrayList<String> = arrayListOf()
     var categoryList: ArrayList<MainModel> = arrayListOf()
 
+    private var selectedPosition: Int = RecyclerView.NO_POSITION
+    private var isAnimeSelected = true
+
     override fun getItemViewType(position: Int): Int {
-        return when (position) {
-            else -> COLUMN_COUNT
-        }
+        return if (showBottomBar && position == 0) VIEW_TYPE_NAVBAR else VIEW_TYPE_MOVIE
     }
 
     override fun getItemCount(): Int {
-        return categoryList.size
+        return if (showBottomBar) categoryList.size + 1 else categoryList.size
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
+            VIEW_TYPE_NAVBAR -> NavBarViewHolder(ItemBottombarBinding.inflate(inflater, parent, false))
             else -> CategoryViewHolder(ItemMovieBinding.inflate(inflater, parent, false))
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
+            is NavBarViewHolder -> holder.bind()
             is CategoryViewHolder -> {
-                val categoryIndex = position
-                if (categoryIndex in categoryList.indices) {
-                    holder.bind(categoryList[categoryIndex])
+                val index = if (showBottomBar) position - 1 else position
+                if (index in categoryList.indices) {
+                    holder.bind(categoryList[index], index)
                 }
             }
         }
     }
 
-    fun updateTabs(tabList: ArrayList<String>) {
-        this.categoryTabs = tabList
-        notifyItemChanged(0)
-    }
-
     fun updateCategoriesAll(newCategoryList: ArrayList<MainModel>) {
         categoryList.clear()
         categoryList.addAll(newCategoryList)
+        selectedPosition = RecyclerView.NO_POSITION
         notifyDataSetChanged()
     }
 
-    fun updateCategories(newCategories: ArrayList<MainModel>) {
-        val startPosition = categoryList.size
-        categoryList.addAll(newCategories)
-        notifyItemRangeInserted(startPosition + 1, newCategories.size)
-        isUpdated = false
-    }
+    /*** ViewHolders ***/
+    inner class NavBarViewHolder(private val binding: ItemBottombarBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind() {
+            updateNavSelection()
 
+            binding.navAnime.setOnClickListener {
+                isAnimeSelected = true
+                updateNavSelection()
+                onAnimeClick?.invoke()
+            }
+            binding.navCharacters.setOnClickListener {
+                isAnimeSelected = false
+                updateNavSelection()
+                onCharactersClick?.invoke()
+            }
+        }
+
+        private fun updateNavSelection() {
+            // navAnime tanlanganda background selected bo'ladi
+            binding.navAnime.background = ContextCompat.getDrawable(
+                binding.root.context,
+                if (isAnimeSelected) R.drawable.tab_background_selector else R.drawable.tab_background_unselected
+            )
+            binding.navCharacters.background = ContextCompat.getDrawable(
+                binding.root.context,
+                if (!isAnimeSelected) R.drawable.tab_background_selector else R.drawable.tab_background_unselected
+            )
+        }
+    }
 
     inner class CategoryViewHolder(private val binding: ItemMovieBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(data: MainModel) {
+        fun bind(data: MainModel, index: Int) {
             binding.apply {
-                Glide.with(binding.root.context).load(data.image).into(binding.itemImg)
-                binding.topContainer.text = data.title
-                binding.root.setOnClickListener {
-                    if (isDetail) {
-                        clickDetaill.invoke(data)
-                    } else {
-                        clickDetaill.invoke(data)
-                    }
-                }
-                binding.root.setOnFocusChangeListener { _, hasFocus ->
-                    if (hasFocus) {
-                        if (bindingAdapterPosition == categoryList.size - 2 || bindingAdapterPosition == categoryList.size - 1 || bindingAdapterPosition == categoryList.size - 3 || bindingAdapterPosition == categoryList.size - 4 || bindingAdapterPosition == categoryList.size - 5) {
-                            Log.d("GGG", "bind:FOCUUSEDDD ")
-                            categoriesPageInterfaceg.onCategorySelected(
-                                data, absoluteAdapterPosition
-                            )
-                        }
-                    }
-                    val animation = when {
-                        hasFocus -> AnimationUtils.loadAnimation(
-                            binding.root.context,
-                            R.anim.zoom_in
-                        )
+                Glide.with(root.context).load(data.image).into(itemImg)
+                topContainer.text = data.title
 
-                        else -> AnimationUtils.loadAnimation(
-                            binding.root.context,
-                            R.anim.zoom_out
-                        )
+                updateSelectedState(index)
+
+                root.setOnClickListener {
+                    val oldPosition = selectedPosition
+                    selectedPosition = index
+                    if (oldPosition != RecyclerView.NO_POSITION)
+                        notifyItemChanged(oldPosition + if (showBottomBar) 1 else 0)
+                    notifyItemChanged(index + if (showBottomBar) 1 else 0)
+                    clickDetaill.invoke(data)
+                }
+
+                root.setOnFocusChangeListener { _, hasFocus ->
+                    if (hasFocus && absoluteAdapterPosition >= itemCount - 5) {
+                        categoriesPageInterfaceg.onCategorySelected(data, absoluteAdapterPosition)
                     }
-                    binding.root.startAnimation(animation)
+                    val animation = AnimationUtils.loadAnimation(
+                        root.context,
+                        if (hasFocus) R.anim.zoom_in else R.anim.zoom_out
+                    )
+                    root.startAnimation(animation)
                     animation.fillAfter = true
                 }
-                binding.root.isFocusable = true
-                binding.root.isFocusableInTouchMode = true
-                val layoutParams = binding.root.layoutParams as ViewGroup.MarginLayoutParams
-                layoutParams.topMargin = 14
-                layoutParams.bottomMargin = 14
-                binding.root.layoutParams = layoutParams
 
+                root.isFocusable = true
+                root.isFocusableInTouchMode = true
+                (root.layoutParams as ViewGroup.MarginLayoutParams).apply {
+                    topMargin = 14
+                    bottomMargin = 14
+                }
             }
+        }
+
+        private fun updateSelectedState(index: Int) {
+            val isSelected = index == selectedPosition
+            binding.root.background = ContextCompat.getDrawable(
+                binding.root.context,
+                if (isSelected) R.drawable.tab_background_selector else R.drawable.tab_background_unselected
+            )
         }
     }
 }
