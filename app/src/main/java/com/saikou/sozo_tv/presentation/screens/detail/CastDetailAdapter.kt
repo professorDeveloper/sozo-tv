@@ -356,7 +356,6 @@ class CastDetailAdapter(
                             if (view is ViewGroup) {
                                 view.addView(star)
 
-                                // Enhanced twinkling animation with floating effect
                                 val twinkleAnimator =
                                     ObjectAnimator.ofFloat(star, "alpha", 0f, 0.9f, 0f).apply {
                                         duration = 2000 + random.nextInt(1000).toLong()
@@ -365,7 +364,6 @@ class CastDetailAdapter(
                                         interpolator = AccelerateDecelerateInterpolator()
                                     }
 
-                                // Floating animation
                                 val floatAnimator = ObjectAnimator.ofFloat(
                                     star, "translationY",
                                     0f, -15f + random.nextFloat() * 30f
@@ -376,7 +374,6 @@ class CastDetailAdapter(
                                     interpolator = LinearInterpolator()
                                 }
 
-                                // Subtle rotation for sparkle effect
                                 val rotateAnimator =
                                     ObjectAnimator.ofFloat(star, "rotation", 0f, 360f).apply {
                                         duration = 6000 + random.nextInt(3000).toLong()
