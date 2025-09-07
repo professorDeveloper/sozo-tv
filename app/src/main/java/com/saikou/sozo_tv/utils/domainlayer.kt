@@ -25,7 +25,6 @@ import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.SearchModel
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 
-
 fun GetRelationsByIdQuery.Media.toDomain(): MainModel {
     return MainModel(
         this.id,
