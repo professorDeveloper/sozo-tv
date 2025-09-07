@@ -24,7 +24,6 @@ import com.saikou.sozo_tv.domain.model.GenreModel
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.SearchModel
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
-import org.mozilla.javascript.tools.jsc.Main
 
 
 fun GetRelationsByIdQuery.Media.toDomain(): MainModel {
