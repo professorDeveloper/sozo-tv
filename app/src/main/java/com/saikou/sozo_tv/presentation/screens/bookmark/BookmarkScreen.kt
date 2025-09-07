@@ -144,8 +144,9 @@ class BookmarkScreen : Fragment() {
     }
 
     private fun openPlayerCharacter(id: Int) {
-        Log.d("GGG", "openPlayerCharacter:${id} ")
-    }
+        val intent = Intent(requireActivity(), PlayerActivity::class.java)
+        intent.putExtra("character", id)
+        requireActivity().startActivity(intent)    }
 
     private fun openPlayer(id: Int) {
         val intent = Intent(requireActivity(), PlayerActivity::class.java)

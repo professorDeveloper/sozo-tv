@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ActivityPlayerBinding
+import com.saikou.sozo_tv.presentation.screens.detail.CastDetailScreenArgs
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -27,10 +28,22 @@ class PlayerActivity : AppCompatActivity() {
             intent.getIntExtra("model", -1)
         }
 
-
+        val character = intent.getIntExtra("character", -1)
+        if (character != -1) {
+            val navInflater = navController.navInflater
+            val graph = navInflater.inflate(R.navigation.play_graph)
+            graph.setStartDestination(R.id.castDetailScreen)
+            navController.setGraph(
+                graph,
+                startDestinationArgs = CastDetailScreenArgs(character).toBundle()
+            )
+        } else {
             playerViewModel.loadAnimeById(id = categoryDetails)
             playerViewModel.loadCast(id = categoryDetails)
             playerViewModel.loadRelations(id = categoryDetails)
             playerViewModel.checkBookmark(id = categoryDetails)
         }
+
+
+    }
 }
