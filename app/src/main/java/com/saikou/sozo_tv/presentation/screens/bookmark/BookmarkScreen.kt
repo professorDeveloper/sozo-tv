@@ -54,7 +54,7 @@ class BookmarkScreen : Fragment() {
 
         val concatAdapter = ConcatAdapter(tabAdapter, animeAdapter) // default: anime first
         binding.bookmarkRv.adapter = concatAdapter
-        binding.bookmarkRv.setupGridLayoutForBookmarks(animeAdapter)
+        binding.bookmarkRv.setupGridLayoutForBookmarks()
 
         animeAdapter.setClickDetail { openPlayer(it.id) }
         characterAdapter.setClickListener { openPlayerCharacter(it.id) }

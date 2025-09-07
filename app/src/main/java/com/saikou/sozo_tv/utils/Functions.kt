@@ -117,8 +117,6 @@ fun VerticalGridView.setupGridLayoutForBookmarks() {
         isFocusableInTouchMode = true
         descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
         isFocusDrawingOrderEnabled = true
-
-        // Dynamic columns: each item ~200dp wide (bigger for bookmarks)
         val columnCount = calculateDynamicColumns(200)
         setNumColumns(columnCount)
     }
