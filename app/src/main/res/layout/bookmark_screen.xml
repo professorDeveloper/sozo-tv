@@ -1,36 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:background="@color/main_background">
+    android:background="@color/main_background">
 
     <TextView
         android:id="@+id/textView6"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="8dp"
         android:fontFamily="@font/days"
         android:paddingVertical="4dp"
         android:text="@string/bookmark"
         android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textSize="20sp" />
 
-    <LinearLayout
+    <include
+        android:id="@+id/topBar"
+        layout="@layout/item_bottombar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingVertical="4dp">
-
-        <include
-            android:id="@+id/topBar"
-            layout="@layout/item_bottombar" />
-    </LinearLayout>
+        android:paddingVertical="8dp" />
 
     <androidx.leanback.widget.VerticalGridView
         android:id="@+id/bookmarkRv"
@@ -40,24 +33,13 @@
         android:clipChildren="false"
         android:clipToPadding="false"
         android:paddingHorizontal="8dp"
-        android:visibility="visible"
+        android:paddingBottom="16dp"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         app:focusOutEnd="true"
-        app:focusOutFront="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textView6"
-        tools:ignore="RtlSymmetry"
-        tools:listitem="@layout/item_movie" />
-
+        app:focusOutFront="true" />
 
     <include
         android:id="@+id/bookmarkPlaceHolder"
         layout="@layout/bookmark_place_holder"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-
+        android:visibility="gone" />
 </LinearLayout>

@@ -54,11 +54,11 @@ fun DetailModel.toDomain(): AnimeBookmark {
 
 fun CastAdapterModel.toDomain(id: Int): CharacterEntity {
     return CharacterEntity(
-        id,
-        this.name,
-        this.image,
-        this.role,
-        this.age
+        id = id,
+        name = this.name,
+        image = this.image,
+        role = this.role,
+        age = this.age
     )
 }
 
