@@ -73,7 +73,6 @@ class BookmarkScreen : Fragment() {
                 if (characters.isEmpty() && !isAnimeSelected) View.GONE else View.VISIBLE
         }
 
-        // Handle tab switching
         binding.topBar.navAnime.setOnClickListener {
             isAnimeSelected = true
             binding.bookmarkRv.adapter = animeAdapter
@@ -90,11 +89,8 @@ class BookmarkScreen : Fragment() {
             showTopBar()
         }
 
-        // Optional: Interface for category selection
         animeAdapter.setCategoriesPageInterface(object : CategoriesPageAdapter.CategoriesPageInterface {
             override fun onCategorySelected(category: MainModel, position: Int) {
-                // Uncomment if needed
-                // openPlayer(category.id)
             }
         })
     }
@@ -148,7 +144,6 @@ class BookmarkScreen : Fragment() {
     }
 
     private fun openPlayerCharacter(id: Int) {
-        // Implement character player logic if needed
     }
 
     private fun openPlayer(id: Int) {
