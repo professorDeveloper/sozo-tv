@@ -15,6 +15,7 @@ import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.characterBookmark
+import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
 import com.saikou.sozo_tv.utils.snackString
 import com.saikou.sozo_tv.utils.toDomain
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -42,6 +43,7 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         binding.vgvMovieDetails.adapter = adapter
         model.loadDetail(args.castId ?: -1)
         model.checkBookmark(args.castId ?: -1)
@@ -115,7 +117,8 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
     }
 
     override fun onCancelButtonClicked() {
-        findNavController().popBackStack()
+
+            findNavController().popBackStack()
     }
 
     override fun onDestroyView() {

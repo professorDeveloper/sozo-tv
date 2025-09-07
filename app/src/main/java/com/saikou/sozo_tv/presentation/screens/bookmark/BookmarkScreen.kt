@@ -18,6 +18,7 @@ import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
 import com.saikou.sozo_tv.utils.toDomain
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
 
 class BookmarkScreen : Fragment() {
     private var _binding: BookmarkScreenBinding? = null
@@ -89,7 +90,8 @@ class BookmarkScreen : Fragment() {
             showTopBar()
         }
 
-        animeAdapter.setCategoriesPageInterface(object : CategoriesPageAdapter.CategoriesPageInterface {
+        animeAdapter.setCategoriesPageInterface(object :
+            CategoriesPageAdapter.CategoriesPageInterface {
             override fun onCategorySelected(category: MainModel, position: Int) {
             }
         })
@@ -103,7 +105,8 @@ class BookmarkScreen : Fragment() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 val layoutManager = binding.bookmarkRv.layoutManager as? GridLayoutManager
-                val firstVisibleItemPosition = layoutManager?.findFirstCompletelyVisibleItemPosition() ?: 0
+                val firstVisibleItemPosition =
+                    layoutManager?.findFirstCompletelyVisibleItemPosition() ?: 0
                 val isScrollingDown = dy > 0 && dy > lastScrollY
                 lastScrollY = dy
 
@@ -146,7 +149,9 @@ class BookmarkScreen : Fragment() {
     private fun openPlayerCharacter(id: Int) {
         val intent = Intent(requireActivity(), PlayerActivity::class.java)
         intent.putExtra("character", id)
-        requireActivity().startActivity(intent)    }
+        requireActivity().startActivity(intent)
+        isBookmarkClicked = true
+    }
 
     private fun openPlayer(id: Int) {
         val intent = Intent(requireActivity(), PlayerActivity::class.java)

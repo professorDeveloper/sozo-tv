@@ -24,6 +24,7 @@ import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
 import com.saikou.sozo_tv.utils.loadImage
 import com.saikou.sozo_tv.utils.toDomain
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
@@ -63,6 +64,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     ): View {
         LocalData.trailer = ""
         LocalData.bookmark = false
+        isBookmarkClicked = false
         _binding = DetailPageBinding.inflate(inflater, container, false)
         return binding.root
     }
