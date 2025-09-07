@@ -64,7 +64,6 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     ): View {
         LocalData.trailer = ""
         LocalData.bookmark = false
-        isBookmarkClicked = false
         _binding = DetailPageBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -217,6 +216,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     }
 
     override fun onCastItemClicked(item: Cast) {
+        isBookmarkClicked = false
         Log.d("GGG", "onCastItemClicked:${item.id} ")
         findNavController().navigate(
             DetailPageDirections.actionDetailPage2ToCastDetailScreen(
