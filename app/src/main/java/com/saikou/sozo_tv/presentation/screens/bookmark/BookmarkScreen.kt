@@ -8,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ConcatAdapter
-import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.CharactersPageAdapter
 import com.saikou.sozo_tv.adapters.TabAdapter
 import com.saikou.sozo_tv.databinding.BookmarkScreenBinding
@@ -16,12 +15,8 @@ import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
-import com.saikou.sozo_tv.utils.LocalData
-import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.setupGridLayoutForBookmarks
-import com.saikou.sozo_tv.utils.setupGridLayoutForCategories
 import com.saikou.sozo_tv.utils.toDomain
-import com.saikou.sozo_tv.utils.visible
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class BookmarkScreen : Fragment() {
