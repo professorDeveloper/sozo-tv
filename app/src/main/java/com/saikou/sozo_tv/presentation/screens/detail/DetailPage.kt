@@ -131,7 +131,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         val mediaSourceFactory =
             androidx.media3.exoplayer.source.DefaultMediaSourceFactory(dataSourceFactory)
 
-        player = androidx.media3.exoplayer.ExoPlayer.Builder(context)
+        player = ExoPlayer.Builder(context)
             .setMediaSourceFactory(mediaSourceFactory).build().apply {
                 setAudioAttributes(
                     androidx.media3.common.AudioAttributes.Builder()
@@ -211,7 +211,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         findNavController().navigate(
             DetailPageDirections.actionDetailPage2ToTrailerPlayerScreen(
                 LocalData.trailer,
-                item.content.title ?: ""
+                item.content.title
             )
         )
     }

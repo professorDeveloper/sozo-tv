@@ -8,18 +8,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.CastDetailScreenBinding
 import com.saikou.sozo_tv.domain.model.CastAdapterModel
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.characterBookmark
-import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
 import com.saikou.sozo_tv.utils.snackString
 import com.saikou.sozo_tv.utils.toDomain
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
     private var _binding: CastDetailScreenBinding? = null
@@ -45,8 +42,8 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
         super.onViewCreated(view, savedInstanceState)
 
         binding.vgvMovieDetails.adapter = adapter
-        model.loadDetail(args.castId ?: -1)
-        model.checkBookmark(args.castId ?: -1)
+        model.loadDetail(args.castId)
+        model.checkBookmark(args.castId)
         model.error.observe(viewLifecycleOwner) {
             snackString(it ?: "", requireActivity())
         }
@@ -103,13 +100,13 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
     override fun onFavoriteButtonClicked(item: CastAdapterModel) {
         if (characterBookmark) {
             model.removeBookmark(
-                item.toDomain(args.castId ?: -1)
+                item.toDomain(args.castId)
             )
             characterBookmark = false
             adapter.updateBookmark(false)
         } else {
             model.addBookmark(
-                item.toDomain(args.castId ?: -1)
+                item.toDomain(args.castId)
             )
             characterBookmark = true
             adapter.updateBookmark(true)

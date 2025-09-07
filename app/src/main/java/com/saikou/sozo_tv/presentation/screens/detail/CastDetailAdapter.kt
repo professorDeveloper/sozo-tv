@@ -624,7 +624,7 @@ class CastDetailAdapter(
                     }
 
                     private fun addCharacterGlow(imageView: ImageView, glowColor: Int) {
-
+                        glowColor.let {}
                         val scaleAnimator =
                             ObjectAnimator.ofFloat(imageView, "scaleX", 1f, 1.05f, 1f).apply {
                                 duration = 3000

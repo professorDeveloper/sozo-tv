@@ -2,7 +2,6 @@ package com.saikou.sozo_tv.presentation.screens.bookmark
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,6 +41,8 @@ class BookmarkScreen : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        model.getAllCharacterBookmarks()
+        model.getAllBookmarks()
 
         setupVerticalGridView()
 
@@ -51,11 +52,6 @@ class BookmarkScreen : Fragment() {
         animeAdapter.setClickDetail { openPlayer(it.id) }
         characterAdapter.setClickListener { openPlayerCharacter(it.id) }
 
-        if (isAnimeSelected) {
-            model.getAllBookmarks()
-        } else {
-            model.getAllCharacterBookmarks()
-        }
 
         model.bookmarkData.observe(viewLifecycleOwner) { list ->
             val domainList = list.map { it.toDomain() } as ArrayList<MainModel>
