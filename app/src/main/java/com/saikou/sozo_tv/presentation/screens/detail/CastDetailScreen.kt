@@ -17,6 +17,7 @@ import com.saikou.sozo_tv.utils.LocalData.characterBookmark
 import com.saikou.sozo_tv.utils.snackString
 import com.saikou.sozo_tv.utils.toDomain
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
     private var _binding: CastDetailScreenBinding? = null
@@ -114,8 +115,11 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
     }
 
     override fun onCancelButtonClicked() {
-
+        if (LocalData.isBookmarkClicked) {
+            requireActivity().finish()
+        } else {
             findNavController().popBackStack()
+        }
     }
 
     override fun onDestroyView() {

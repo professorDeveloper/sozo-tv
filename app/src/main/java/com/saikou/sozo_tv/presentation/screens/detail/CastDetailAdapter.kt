@@ -176,13 +176,11 @@ class CastDetailAdapter(
 
         @SuppressLint("SetTextI18n")
         fun bind(item: CastAdapterModel, interfaceListener: DetailsInterface) {
-            if (LocalData.isBookmarkClicked) {
-                binding.backBtn.gone()
-            } else {
+
                 binding.backBtn.setOnClickListener {
                     interfaceListener.onCancelButtonClicked()
                 }
-            }
+
             binding.favoriteBtn.setOnClickListener {
                 interfaceListener.onFavoriteButtonClicked(item)
             }
