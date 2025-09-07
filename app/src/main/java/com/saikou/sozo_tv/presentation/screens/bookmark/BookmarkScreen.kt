@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.presentation.screens.bookmark
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -143,6 +144,7 @@ class BookmarkScreen : Fragment() {
     }
 
     private fun openPlayerCharacter(id: Int) {
+        Log.d("GGG", "openPlayerCharacter:${id} ")
     }
 
     private fun openPlayer(id: Int) {
