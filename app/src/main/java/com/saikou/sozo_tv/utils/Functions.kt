@@ -8,6 +8,7 @@ import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.RoundRectShape
 import android.os.Build
 import android.provider.Settings
+import android.util.DisplayMetrics
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +18,7 @@ import androidx.leanback.widget.VerticalGridView
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.adapters.CharactersPageAdapter
 import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import kotlinx.coroutines.Dispatchers
@@ -96,29 +98,45 @@ fun snackString(s: String?, activity: Activity? = null, clipboard: String? = nul
         }
     }
 }
-
 fun VerticalGridView.setupGridLayoutForCategories(pageAdapter: CategoriesPageAdapter) {
-
     this.apply {
         isFocusable = true
         isFocusableInTouchMode = true
         descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
-        this.isFocusDrawingOrderEnabled = true
-        setNumColumns(5)
+        isFocusDrawingOrderEnabled = true
+
+        // Dynamic columns: each item ~180dp wide
+        val columnCount = calculateDynamicColumns(180)
+        setNumColumns(columnCount)
     }
-
 }
-fun VerticalGridView.setupGridLayoutForBookmarks(pageAdapter: CategoriesPageAdapter) {
 
+fun VerticalGridView.setupGridLayoutForBookmarks() {
     this.apply {
         isFocusable = true
         isFocusableInTouchMode = true
         descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
-        this.isFocusDrawingOrderEnabled = true
-        setNumColumns(4)
-    }
+        isFocusDrawingOrderEnabled = true
 
+        // Dynamic columns: each item ~200dp wide (bigger for bookmarks)
+        val columnCount = calculateDynamicColumns(200)
+        setNumColumns(columnCount)
+    }
 }
+
+/**
+ * Calculates number of columns based on screen width and item width in dp.
+ */
+private fun VerticalGridView.calculateDynamicColumns(itemWidthDp: Int): Int {
+    val displayMetrics = context.resources.displayMetrics
+    val screenWidthPx = displayMetrics.widthPixels
+    val itemWidthPx = (itemWidthDp * displayMetrics.density).toInt()
+    val calculated = screenWidthPx / itemWidthPx
+
+    return if (calculated < 4) 4 else calculated
+}
+
+
 
 
 fun String.toDateFromIso8601ForTxt(): String? {
