@@ -204,6 +204,13 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         title: String,
         isFree: Boolean
     ) {
+        findNavController().navigate(
+            DetailPageDirections.actionDetailPage2ToEpisodeScreen(
+                id,
+                title,
+                isFree
+            )
+        )
     }
 
     override fun onTrailerButtonClicked(item: DetailCategory) {

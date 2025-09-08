@@ -356,7 +356,7 @@ class MovieDetailsAdapter(
                         id = item.content.id,
                         url = item.content.bannerImage ?: "",
                         title = item.content.title,
-                        isFree = item.content.title.isEmpty()
+                        isFree =true
                     )
                 }
             }

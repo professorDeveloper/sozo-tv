@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_detailPage2_to_castDetailScreen"
             app:destination="@id/castDetailScreen" />
+        <action
+            android:id="@+id/action_detailPage2_to_episodeScreen"
+            app:destination="@id/episodeScreen" />
     </fragment>
     <fragment
         android:id="@+id/castDetailScreen"
@@ -37,5 +40,21 @@
         <argument
             android:name="trailerName"
             app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/episodeScreen"
+        android:name="com.saikou.sozo_tv.presentation.screens.episodes.EpisodeScreen"
+        android:label="EpisodeScreen"
+        tools:layout="@layout/episode_screen">
+        <argument
+            android:name="mediaId"
+            app:argType="integer" />
+        <argument
+            android:name="episodeTitle"
+            app:argType="string" />
+        <argument
+            android:name="isFree"
+            app:argType="boolean" />
+
     </fragment>
 </navigation>

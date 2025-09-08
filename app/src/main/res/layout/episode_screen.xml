@@ -1,14 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".presentation.screens.episodes.EpisodeScreen">
+    android:orientation="vertical"
+    tools:background="@color/main_background">
 
-    <!-- TODO: Update blank fragment layout -->
+
     <TextView
+        android:id="@+id/textView6"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:fontFamily="@font/days"
+        android:paddingVertical="4dp"
+        android:text="@string/sources"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp" />
+
+    <androidx.leanback.widget.VerticalGridView
+        android:id="@+id/topContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:focusedByDefault="true"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:visibility="visible"
+        app:numberOfColumns="5"
+        tools:itemCount="12"
+        tools:listitem="@layout/episode_item" />
+
+    <LinearLayout
+        android:id="@+id/loading_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:visibility="gone">
 
-</FrameLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/days"
+            android:padding="8dp"
+            android:text="Series Data is loading..."
+            android:textAlignment="center"
+            android:textColor="@color/lb_tv_white"
+
+            android:textSize="16sp" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="4dp"
+            app:indicatorColor="@color/white40"
+            app:trackColor="@color/red" />
+    </LinearLayout>
+
+    <include
+        android:id="@+id/placeHolder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        layout="@layout/bookmark_place_holder" />
+</LinearLayout>
