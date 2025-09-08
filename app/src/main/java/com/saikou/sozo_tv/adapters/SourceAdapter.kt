@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.model.SubSource
 import com.saikou.sozo_tv.databinding.ItemSourceBinding
+import com.saikou.sozo_tv.utils.snackString
 
 class SourceAdapter(
     private val onClick: (SubSource) -> Unit,
@@ -61,12 +62,12 @@ class SourceAdapter(
     }
 
 
-    fun setSelectedIndex(item: SubSource) {
-        val index = items.indexOfFirst { it.sourceId == item.sourceId }
+    fun setSelectedIndex(item: String) {
+        selectedIndex = items.indexOfFirst { it.sourceId == item }
         if (
-            index >= 0
+            selectedIndex != -1
         ) {
-            selectedIndex = index
+            snackString(selectedIndex.toString())
             notifyDataSetChanged()
         }
     }

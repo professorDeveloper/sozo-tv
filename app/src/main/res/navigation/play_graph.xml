@@ -11,11 +11,11 @@
         android:label="DetailPage"
         tools:layout="@layout/detail_page">
         <action
-            android:id="@+id/action_detailPage2_to_castDetailScreen"
-            app:destination="@id/castDetailScreen" />
-        <action
             android:id="@+id/action_detailPage2_to_trailerPlayerScreen"
             app:destination="@id/trailerPlayerScreen" />
+        <action
+            android:id="@+id/action_detailPage2_to_castDetailScreen"
+            app:destination="@id/castDetailScreen" />
     </fragment>
     <fragment
         android:id="@+id/castDetailScreen"

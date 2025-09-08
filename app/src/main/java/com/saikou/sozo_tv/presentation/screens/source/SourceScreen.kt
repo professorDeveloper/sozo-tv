@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.source
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -16,13 +17,14 @@ import com.saikou.sozo_tv.databinding.SourceScreenBinding
 import androidx.leanback.widget.VerticalGridView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.utils.readData
+import com.saikou.sozo_tv.utils.saveData
 
 class SourceScreen : Fragment() {
     private var _binding: SourceScreenBinding? = null
     private val binding get() = _binding!!
     private lateinit var dbRef: DatabaseReference
     private lateinit var adapter: SourceAdapter
-    private var currentSelectedSource = readData<SubSource>("subSource")?: SubSource()
+    private var currentSelectedSource = readData<String>("subSource") ?: ""
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -32,12 +34,16 @@ class SourceScreen : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         dbRef = FirebaseDatabase.getInstance().getReference("sources")
 
         adapter = SourceAdapter(
-            onClick = { sub -> /* Handle click */ },
+            onClick = { sub ->
+                binding.textView6.text = "Current Selected Source: ${sub.title}"
+                saveData("subSource", sub.sourceId)
+            },
         )
 
 
@@ -65,6 +71,12 @@ class SourceScreen : Fragment() {
                     adapter.setSelectedIndex(
                         currentSelectedSource
                     )
+                    val selected = list.find { it.sourceId == currentSelectedSource }
+                    if (selected != null) {
+                        binding.textView6.text = "Current Selected Source: ${selected.title}"
+                    } else {
+                        binding.textView6.text = "Source"
+                    }
                 }
             }
 
