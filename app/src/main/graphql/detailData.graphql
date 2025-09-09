@@ -2,7 +2,7 @@ query getAnimeById($id: Int) {
     Media(id: $id) {
         id
         idMal
-
+        episodes
         countryOfOrigin
         trailer {
             site

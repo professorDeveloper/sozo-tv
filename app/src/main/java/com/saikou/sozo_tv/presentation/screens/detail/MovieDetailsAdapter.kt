@@ -418,7 +418,20 @@ class MovieDetailsAdapter(
                 }
                 container.addView(textView)
             }
-
+            val textViewEp= TextView(binding.root.context).apply {
+                text = "Episodes:"+item.content.episodes.toString()
+                textSize = 12f
+                setTextColor(Color.WHITE)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    rightMargin = 7 * resources.displayMetrics.density.toInt()
+                }
+                setBackgroundResource(R.drawable.bg_cat_tv)
+                setPadding(18, 10, 18, 10)
+            }
+            container.addView(textViewEp)
             binding.filmTitleTv.text = item.content.title
             binding.filmDescriptionTv.text = item.content.description
 

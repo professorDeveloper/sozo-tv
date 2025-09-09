@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.EpisodeTabAdapter
@@ -27,6 +28,7 @@ class EpisodeScreen : Fragment() {
     private lateinit var adapter: SeriesPageAdapter
     private lateinit var categoriesAdapter: EpisodeTabAdapter
     private lateinit var currentMediaId: String
+    private var selectedPosition = 0
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -37,8 +39,11 @@ class EpisodeScreen : Fragment() {
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val currentSource = readData<String>("subSource") ?: ""
-        if (currentSource =="animepahe") {
+        binding.backBtn.setOnClickListener {
+            findNavController().popBackStack()
+        }
+        val currentSource = readData<String>("subSource") ?: "animepahe"
+        if (currentSource != "animepahe") {
             binding.topContainer.gone()
             binding.loadingLayout.gone()
             binding.textView6.gone()
@@ -59,13 +64,19 @@ class EpisodeScreen : Fragment() {
 
                     Resource.Loading -> {
                         binding.placeHolder.root.gone()
+                        binding.topContainer.gone()
+                        binding.tabRv.gone()
                         binding.loadingLayout.visible()
                         binding.loadingText.text = "Media is loading.."
                     }
 
                     is Resource.Success -> {
+                        binding.textView6.text = "Selected Media: ${it.data.name}"
                         currentMediaId = it.data.link
                         adapter = SeriesPageAdapter()
+                        adapter.setOnItemClickedListener {
+
+                        }
                         binding.topContainer.adapter = adapter
                         viewModel.loadEpisodeByPage(1, currentMediaId)
                         binding.placeHolder.root.gone()
@@ -81,6 +92,7 @@ class EpisodeScreen : Fragment() {
                                 Resource.Loading -> {
                                     binding.placeHolder.root.gone()
                                     binding.loadingLayout.visible()
+                                    binding.topContainer.gone()
                                     binding.loadingText.text = "Episodes are loading.."
 
                                 }
@@ -90,12 +102,14 @@ class EpisodeScreen : Fragment() {
                                         if (it.data.last_page == 1) {
                                             binding.tabRv.gone()
                                             binding.placeHolder.root.gone()
+                                            binding.topContainer.visible()
                                             binding.loadingLayout.gone()
                                             adapter.updateEpisodeItems(
                                                 it.data.data
                                             )
 
                                         } else {
+                                            binding.topContainer.visible()
                                             adapter.updateEpisodeItems(
                                                 it.data.data
                                             )
@@ -112,12 +126,14 @@ class EpisodeScreen : Fragment() {
                                                 )
                                             }
                                             categoriesAdapter.submitList(partList)
-                                            categoriesAdapter.setSelectedPosition(0)
+                                            categoriesAdapter.setSelectedPosition(selectedPosition)
+                                            binding.tabRv.scrollToPosition(selectedPosition)
                                             categoriesAdapter.setFocusedItemListener { part, i ->
                                                 viewModel.loadEpisodeByPage(
                                                     i + 1,
                                                     currentMediaId
                                                 )
+                                                selectedPosition = i
                                             }
                                         }
                                     }

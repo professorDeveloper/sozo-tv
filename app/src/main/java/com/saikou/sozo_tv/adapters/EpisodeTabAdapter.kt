@@ -59,7 +59,9 @@ class EpisodeTabAdapter(private var isFiltered: Boolean = false) :
                 binding.root.startAnimation(animation)
                 animation.fillAfter = true
             }
-            binding.filterIcon.isVisible = position == 0
+            if (isFiltered) {
+                binding.filterIcon.isVisible = position == 0
+            }
             binding.root.setOnClickListener {
                 if (isFiltered) {
                     if (position == 0) {

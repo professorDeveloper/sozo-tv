@@ -10,6 +10,7 @@ data class DetailModel(
     val bannerImage:String,
     val description:String,
     val title:String,
+
     val episodes:Int?,
     val genres:List<String?>?,
     val extraLinks:List<String?>?,
