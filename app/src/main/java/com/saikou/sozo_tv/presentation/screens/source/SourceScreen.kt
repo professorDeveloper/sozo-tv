@@ -55,6 +55,7 @@ class SourceScreen : Fragment() {
 
     private fun loadSources() {
         dbRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            @SuppressLint("SetTextI18n")
             override fun onDataChange(snapshot: DataSnapshot) {
                 binding.progressBar.visibility = View.GONE
                 if (!snapshot.exists() || snapshot.children.count() == 0) {
