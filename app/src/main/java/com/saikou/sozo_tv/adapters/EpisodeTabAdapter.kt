@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.adapters
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
@@ -87,6 +88,7 @@ class EpisodeTabAdapter(private var isFiltered: Boolean = false) :
         )
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setSelectedPosition(position: Int) {
         selectedPosition = position
         notifyDataSetChanged()
