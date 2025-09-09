@@ -55,7 +55,7 @@ class SeriesPageAdapter(
 //                    progressBar.max = getLocalEp.episodeDuration.toInt()
 //                    progressBar.progress = getLocalEp.currPosition.toInt()
 //                }
-                binding.country.text = data.episode.toString() ?: ""
+                binding.country.text = data.episode.toString()
                 root.setOnClickListener { onItemClicked.invoke(data) }
                 topContainer.text = "Episode ${data.episode ?: 0}"
 
