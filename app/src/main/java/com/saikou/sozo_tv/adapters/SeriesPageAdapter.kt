@@ -1,18 +1,14 @@
 package com.saikou.sozo_tv.adapters
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.databinding.EpisodeItemBinding
-import com.saikou.sozo_tv.databinding.TvEpisodeItemBinding
 import com.saikou.sozo_tv.parser.models.Data
-import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.utils.loadImage
 import java.util.concurrent.TimeUnit
-import kotlin.random.Random
 
 class SeriesPageAdapter(
     val localEpisode: ArrayList<Data> = arrayListOf()

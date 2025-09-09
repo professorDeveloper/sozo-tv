@@ -43,7 +43,7 @@
             android:background="@drawable/status_background"
             android:paddingHorizontal="6dp"
             android:paddingVertical="2dp"
-            android:text="1"
+            tools:text="1"
             android:textSize="12sp" />
 
 
@@ -87,13 +87,14 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="2dp"
         android:fontFamily="@font/rubik_regular"
-        android:text="01:15:27 daqiqada to’xtatildi"
+        tools:text="01:15:27 daqiqada to’xtatildi"
         android:textColor="@color/lb_grey"
         android:textSize="10sp"
         android:textStyle="bold"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/cardView"
         app:layout_constraintStart_toStartOf="@+id/cardView"
-        app:layout_constraintTop_toBottomOf="@+id/topContainer" />
+        app:layout_constraintTop_toBottomOf="@+id/topContainer"
+        tools:ignore="SmallSp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
