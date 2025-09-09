@@ -19,12 +19,12 @@
         android:text="@string/sources"
         android:textColor="#FFFFFF"
         android:textSize="18sp" />
+
     <androidx.leanback.widget.HorizontalGridView
         android:id="@+id/tabRv"
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:layout_marginTop="4dp"
-        android:paddingStart="4dp"
         android:orientation="horizontal"
         android:paddingVertical="4dp"
         app:focusOutEnd="true"
@@ -41,7 +41,6 @@
         android:layout_height="wrap_content"
         android:focusable="true"
         android:focusableInTouchMode="true"
-        android:focusedByDefault="true"
         android:orientation="horizontal"
         android:padding="8dp"
         android:visibility="visible"
@@ -65,11 +64,10 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/days"
             android:padding="8dp"
-            android:text="Series Data is loading..."
             android:textAlignment="center"
             android:textColor="@color/lb_tv_white"
-
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            tools:text="Series Data is loading..." />
 
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:layout_width="250dp"
@@ -83,7 +81,7 @@
 
     <include
         android:id="@+id/placeHolder"
+        layout="@layout/bookmark_place_holder"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        layout="@layout/bookmark_place_holder" />
+        android:layout_height="match_parent" />
 </LinearLayout>

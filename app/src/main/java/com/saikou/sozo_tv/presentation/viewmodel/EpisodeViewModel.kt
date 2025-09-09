@@ -13,7 +13,6 @@ class EpisodeViewModel : ViewModel() {
     val episodeData: MutableLiveData<Resource<EpisodeData>> =
         MutableLiveData<Resource<EpisodeData>>(Resource.Idle)
     val dataFound: MutableLiveData<Resource<ShowResponse>> = MutableLiveData()
-    val errorData: MutableLiveData<String> = MutableLiveData()
     private val animePahe = AnimePahe()
     fun loadEpisodeByPage(page: Int, id: String) {
         episodeData.value = Resource.Loading
@@ -27,8 +26,9 @@ class EpisodeViewModel : ViewModel() {
         }
     }
 
-    fun findEpisodes(title: String, romanji: String) {
+    fun findEpisodes(title: String, ) {
         viewModelScope.launch {
+            dataFound.value = Resource.Loading
             val medias = animePahe.search(title)
             if (medias.isNotEmpty()) {
                 val media = medias[0]

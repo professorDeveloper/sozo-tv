@@ -45,7 +45,7 @@ class EpisodeScreen : Fragment() {
                 "No Source Selected \n Please Select Source First "
         } else {
             binding.textView6.text = "Current Selected Source: $currentSource"
-            viewModel.findEpisodes(args.episodeTitle, args.episodeTitle)
+            viewModel.findEpisodes(args.episodeTitle, )
             viewModel.dataFound.observe(viewLifecycleOwner) {
                 when (it) {
                     is Resource.Error -> {

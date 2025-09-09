@@ -18,6 +18,7 @@ import com.saikou.sozo_tv.domain.repository.SearchRepository
 import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
@@ -66,6 +67,7 @@ val koinModule = module {
 //
 //
     viewModel { HomeViewModel(repo = get()) }
+    viewModel { EpisodeViewModel() }
     viewModel { PlayViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
     viewModel { SearchViewModel(repo = get()) }
