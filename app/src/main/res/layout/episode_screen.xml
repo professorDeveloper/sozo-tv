@@ -7,7 +7,6 @@
     android:orientation="vertical"
     tools:background="@color/main_background">
 
-
     <TextView
         android:id="@+id/textView6"
         android:layout_width="match_parent"
@@ -20,6 +19,21 @@
         android:text="@string/sources"
         android:textColor="#FFFFFF"
         android:textSize="18sp" />
+    <androidx.leanback.widget.HorizontalGridView
+        android:id="@+id/tabRv"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="4dp"
+        android:paddingStart="4dp"
+        android:orientation="horizontal"
+        android:paddingVertical="4dp"
+        app:focusOutEnd="true"
+        app:focusOutFront="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView6"
+        tools:itemCount="2"
+        tools:listitem="@layout/item_tv_category" />
 
     <androidx.leanback.widget.VerticalGridView
         android:id="@+id/topContainer"
@@ -46,6 +60,7 @@
         android:visibility="gone">
 
         <TextView
+            android:id="@+id/loadingText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/days"

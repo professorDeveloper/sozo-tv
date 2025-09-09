@@ -24,6 +24,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+
         <androidx.appcompat.widget.AppCompatImageView
 
             android:id="@+id/item_img"
@@ -31,6 +32,20 @@
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
             android:src="@drawable/joker" />
+
+        <TextView
+            android:id="@+id/country"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/status_background"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:text="1"
+            android:textSize="12sp" />
+
 
     </androidx.cardview.widget.CardView>
 
@@ -40,11 +55,11 @@
         android:layout_height="3dp"
         android:layout_gravity="bottom|center"
         android:layout_marginTop="8dp"
-        android:visibility="gone"
         android:indeterminate="false"
         android:max="100"
         android:progress="20"
         android:progressDrawable="@drawable/custom_progress"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/cardView"
         app:layout_constraintStart_toStartOf="@+id/cardView"
         app:layout_constraintTop_toBottomOf="@id/cardView" />
@@ -72,11 +87,11 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="2dp"
         android:fontFamily="@font/rubik_regular"
-        android:visibility="gone"
         android:text="01:15:27 daqiqada to’xtatildi"
         android:textColor="@color/lb_grey"
         android:textSize="10sp"
         android:textStyle="bold"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/cardView"
         app:layout_constraintStart_toStartOf="@+id/cardView"
         app:layout_constraintTop_toBottomOf="@+id/topContainer" />
