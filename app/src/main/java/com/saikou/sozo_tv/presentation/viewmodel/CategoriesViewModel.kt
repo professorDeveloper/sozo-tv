@@ -14,7 +14,6 @@ class CategoriesViewModel(private val repo: CategoriesRepository) : ViewModel() 
     val nextPageResult: MutableLiveData<SearchResults?> = MutableLiveData()
     val updateFilter: MutableLiveData<UiState<SearchResults>?> = MutableLiveData()
     lateinit var searchResults: SearchResults
-    // UI-da ko‘rsatish uchun ViewModel'ga LiveData qo‘shing
 
 
     fun loadCategories(r: SearchResults) {
