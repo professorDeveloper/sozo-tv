@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -62,7 +63,10 @@ class EpisodeScreen : Fragment() {
                 "No Source Selected \n Please Select Source First "
         } else {
             val sourceText = "Current Selected Source: $currentSource"
-            binding.textView6.text = sourceText.highlightPart(currentSource,                ContextCompat.getColor(requireContext(), R.color.orange))
+            binding.textView6.text = sourceText.highlightPart(
+                currentSource,
+                ContextCompat.getColor(requireContext(), R.color.orange)
+            )
 
             viewModel.findEpisodes(args.episodeTitle)
             viewModel.dataFound.observe(viewLifecycleOwner) {
@@ -83,11 +87,19 @@ class EpisodeScreen : Fragment() {
 
                     is Resource.Success -> {
                         val mediaText = "Selected Media: ${it.data.name}"
-                        binding.textView7.text = mediaText.highlightPart(it.data.name,ContextCompat.getColor(requireContext(), R.color.red80))
-
+                        binding.textView7.gone()
+                        val anim = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
+                        binding.textView7.text = mediaText.highlightPart(
+                            it.data.name,
+                            ContextCompat.getColor(requireContext(), R.color.red80)
+                        )
+                        binding.textView7.visible()
+                        binding.textView7.startAnimation(anim)
                         currentMediaId = it.data.link
                         adapter = SeriesPageAdapter()
                         adapter.setOnItemClickedListener { }
+                        binding.wrongTitleContainer.visibility = View.VISIBLE
+                        binding.wrongTitleContainer.startAnimation(anim)
 
                         binding.topContainer.adapter = adapter
                         viewModel.loadEpisodeByPage(1, currentMediaId)
@@ -98,7 +110,8 @@ class EpisodeScreen : Fragment() {
                                 is Resource.Error -> {
                                     binding.placeHolder.root.visible()
                                     binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
-                                    binding.placeHolder.placeholderTxt.text = result.throwable.message
+                                    binding.placeHolder.placeholderTxt.text =
+                                        result.throwable.message
                                 }
 
                                 Resource.Loading -> {
@@ -147,6 +160,7 @@ class EpisodeScreen : Fragment() {
             }
         }
     }
+
     private fun String.highlightPart(
         highlight: String,
         color: Int,
@@ -178,7 +192,7 @@ class EpisodeScreen : Fragment() {
         val start = this.indexOf(highlight)
         if (start >= 0) {
             spannable.setSpan(
-                ForegroundColorSpan(ContextCompat.getColor(requireContext(),R.color.red)),
+                ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.red)),
                 start,
                 start + highlight.length,
                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE

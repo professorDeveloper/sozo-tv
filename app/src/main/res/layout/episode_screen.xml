@@ -43,6 +43,7 @@
             android:layout_marginStart="12dp"
             android:orientation="vertical"
             android:paddingVertical="4dp">
+
             <TextView
                 android:id="@+id/textView6"
                 android:layout_width="wrap_content"
@@ -50,17 +51,47 @@
                 android:fontFamily="@font/days"
                 android:text="@string/sources"
                 android:textColor="#FFFFFF"
-                android:textSize="15sp"/>
+                android:textSize="15sp" />
 
             <TextView
                 android:id="@+id/textView7"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/days"
-                tools:text="@string/sources"
                 android:textColor="#FFFFFF"
-                android:textSize="13sp"/>
+                android:textSize="13sp"
+                tools:text="@string/sources" />
         </LinearLayout>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <LinearLayout
+            android:id="@+id/wrongTitleContainer"
+            android:layout_width="wrap_content"
+            android:focusableInTouchMode="true"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:visibility="gone"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/background_button_login"
+            android:padding="9dp">
+
+            <TextView
+                android:id="@+id/custom_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:fontFamily="@font/days"
+                android:duplicateParentState="true"
+                android:textColor="@color/login_button_text_color"
+                android:text="Wrong Title"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
     </LinearLayout>
 
 
@@ -71,8 +102,8 @@
         android:layout_marginTop="4dp"
         android:orientation="horizontal"
         android:paddingVertical="4dp"
-        android:visibility="gone"
         android:paddingStart="8dp"
+        android:visibility="gone"
         app:focusOutEnd="true"
         app:focusOutFront="true"
         app:layout_constraintEnd_toEndOf="parent"
