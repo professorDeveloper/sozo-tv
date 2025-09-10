@@ -1,11 +1,18 @@
 package com.saikou.sozo_tv.presentation.screens.episodes
 
 import android.annotation.SuppressLint
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.saikou.sozo_tv.R
@@ -42,17 +49,22 @@ class EpisodeScreen : Fragment() {
         binding.backBtn.setOnClickListener {
             findNavController().popBackStack()
         }
+
         val currentSource = readData<String>("subSource") ?: "animepahe"
         if (currentSource != "animepahe") {
             binding.topContainer.gone()
             binding.loadingLayout.gone()
             binding.textView6.gone()
+            binding.textView7.gone() // ✅ qo‘shimcha
             binding.placeHolder.root.visible()
             binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_source)
             binding.placeHolder.placeholderTxt.text =
                 "No Source Selected \n Please Select Source First "
         } else {
-            binding.textView6.text = "Current Selected Source: $currentSource"
+            // ✅ Spannable qo‘llash
+            val sourceText = "Current Selected Source: $currentSource"
+            binding.textView6.text = sourceText.toSpannable(currentSource)
+
             viewModel.findEpisodes(args.episodeTitle)
             viewModel.dataFound.observe(viewLifecycleOwner) {
                 when (it) {
@@ -71,22 +83,25 @@ class EpisodeScreen : Fragment() {
                     }
 
                     is Resource.Success -> {
-                        binding.textView6.text = "Selected Media: ${it.data.name}"
+                        // ✅ Endi textView7 ham ishlatiladi
+                        val mediaText = "Selected Media: ${it.data.name}"
+                        binding.textView7.text = mediaText.toSpannable(it.data.name)
+
                         currentMediaId = it.data.link
                         adapter = SeriesPageAdapter()
-                        adapter.setOnItemClickedListener {
+                        adapter.setOnItemClickedListener { }
 
-                        }
                         binding.topContainer.adapter = adapter
                         viewModel.loadEpisodeByPage(1, currentMediaId)
                         binding.placeHolder.root.gone()
                         binding.loadingLayout.gone()
-                        viewModel.episodeData.observe(viewLifecycleOwner) {
-                            when (it) {
+                        viewModel.episodeData.observe(viewLifecycleOwner) { result ->
+                            when (result) {
                                 is Resource.Error -> {
                                     binding.placeHolder.root.visible()
                                     binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
-                                    binding.placeHolder.placeholderTxt.text = it.throwable.message
+                                    binding.placeHolder.placeholderTxt.text =
+                                        result.throwable.message
                                 }
 
                                 Resource.Loading -> {
@@ -94,64 +109,65 @@ class EpisodeScreen : Fragment() {
                                     binding.loadingLayout.visible()
                                     binding.topContainer.gone()
                                     binding.loadingText.text = "Episodes are loading.."
-
                                 }
 
                                 is Resource.Success -> {
-                                    if (it.data.last_page != null && it.data.data != null) {
-                                        if (it.data.last_page == 1) {
+                                    if (result.data.last_page != null && result.data.data != null) {
+                                        if (result.data.last_page == 1) {
                                             binding.tabRv.gone()
                                             binding.placeHolder.root.gone()
                                             binding.topContainer.visible()
                                             binding.loadingLayout.gone()
-                                            adapter.updateEpisodeItems(
-                                                it.data.data
-                                            )
-
+                                            adapter.updateEpisodeItems(result.data.data)
                                         } else {
                                             binding.topContainer.visible()
-                                            adapter.updateEpisodeItems(
-                                                it.data.data
-                                            )
+                                            adapter.updateEpisodeItems(result.data.data)
                                             val partList = ArrayList<Part>()
                                             categoriesAdapter = EpisodeTabAdapter()
                                             binding.tabRv.visible()
                                             binding.tabRv.adapter = categoriesAdapter
-                                            for (i in 1..it.data.last_page) {
-                                                partList.add(
-                                                    Part(
-                                                        "Part $i",
-                                                        i,
-                                                    )
-                                                )
+                                            for (i in 1..result.data.last_page) {
+                                                partList.add(Part("Part $i", i))
                                             }
                                             categoriesAdapter.submitList(partList)
                                             categoriesAdapter.setSelectedPosition(selectedPosition)
                                             binding.tabRv.scrollToPosition(selectedPosition)
-                                            categoriesAdapter.setFocusedItemListener { part, i ->
-                                                viewModel.loadEpisodeByPage(
-                                                    i + 1,
-                                                    currentMediaId
-                                                )
+                                            categoriesAdapter.setFocusedItemListener { _, i ->
+                                                viewModel.loadEpisodeByPage(i + 1, currentMediaId)
                                                 selectedPosition = i
                                             }
                                         }
                                     }
-
                                 }
 
-                                else -> {
-
-                                }
+                                else -> {}
                             }
                         }
                     }
 
-                    else -> {
-
-                    }
+                    else -> {}
                 }
             }
         }
+    }
+
+    private fun String.toSpannable(highlight: String): SpannableString {
+        val spannable = SpannableString(this)
+        val start = this.indexOf(highlight)
+        if (start >= 0) {
+            spannable.setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.red)),
+                start,
+                start + highlight.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            spannable.setSpan(
+                StyleSpan(Typeface.BOLD),
+                start,
+                start + highlight.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+        return spannable
     }
 }

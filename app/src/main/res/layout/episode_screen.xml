@@ -36,16 +36,30 @@
                 app:tint="@color/color_item_tv_category_tv" />
         </FrameLayout>
 
-        <TextView
-            android:id="@+id/textView6"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:fontFamily="@font/days"
-            android:paddingVertical="4dp"
-            android:text="@string/sources"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp" />
+            android:orientation="vertical"
+            android:paddingVertical="4dp">
+            <TextView
+                android:id="@+id/textView6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/days"
+                android:text="@string/sources"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"/>
+
+            <TextView
+                android:id="@+id/textView7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/days"
+                android:text="@string/sources"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"/>
+        </LinearLayout>
     </LinearLayout>
 
 
