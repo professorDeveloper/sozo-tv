@@ -51,6 +51,8 @@ class EpisodeScreen : Fragment() {
             findNavController().popBackStack()
         }
 
+        addAnimFocus()
+
         val currentSource = readData<String>("subSource") ?: "animepahe"
         if (currentSource != "animepahe") {
             binding.topContainer.gone()
@@ -159,6 +161,34 @@ class EpisodeScreen : Fragment() {
                 }
             }
         }
+    }
+
+    private fun addAnimFocus() {
+        binding.backBtn.setOnFocusChangeListener { _, hasFocus ->
+            val animation = when {
+                hasFocus -> AnimationUtils.loadAnimation(
+                    binding.root.context, R.anim.zoom_in
+                )
+                else -> AnimationUtils.loadAnimation(
+                    binding.root.context, R.anim.zoom_out
+                )
+            }
+            binding.backBtn.startAnimation(animation)
+            animation.fillAfter = true
+        }
+        binding.wrongTitleContainer.setOnFocusChangeListener { _, hasFocus ->
+            val animation = when {
+                hasFocus -> AnimationUtils.loadAnimation(
+                    binding.root.context, R.anim.zoom_in
+                )
+                else -> AnimationUtils.loadAnimation(
+                    binding.root.context, R.anim.zoom_out
+                )
+            }
+            binding.wrongTitleContainer.startAnimation(animation)
+            animation.fillAfter = true
+        }
+
     }
 
     private fun String.highlightPart(
