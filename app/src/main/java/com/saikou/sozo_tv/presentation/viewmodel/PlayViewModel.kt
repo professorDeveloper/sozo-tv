@@ -89,7 +89,7 @@ class PlayViewModel(private val repo: DetailRepository,private val bookmarkRepo:
                 trailerData.postValue("")
             } else {
                 val parser = DubsMp4Parser()
-                parser.parseYt(ytList[0].mediaLink)?.let {
+                parser.parseYt(ytList[0].mediaLink).let {
                     trailerData.postValue(it)
                 }
             }
