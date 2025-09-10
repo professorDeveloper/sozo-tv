@@ -190,7 +190,7 @@ class MovieDetailsAdapter(
         private fun setFocusChangeListener(view: View, indicator: View, layoutResId: Int) {
             view.setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
-                    Log.d("GGG", "setFocusChangeListener:${layoutResId} || ${currentLayoutId} ")
+                    Log.d("GGG", "setFocusChangeListener:${layoutResId} || $currentLayoutId ")
                     if (currentLayoutId != layoutResId) {
                         indicator.visibility = View.VISIBLE
                         replaceLayout(layoutResId, binding.root.context)
@@ -209,7 +209,7 @@ class MovieDetailsAdapter(
         }
 
         @SuppressLint("SetTextI18n", "NewApi")
-        private fun updateTextViews(isAbout: Boolean = true) {
+        private fun updateTextViews() {
             val yearContainer =
                 binding.frame.findViewById<LinearLayout>(R.id.container_date) ?: null
             val countryContainer =
