@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.presentation.screens.episodes
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.text.Spannable
@@ -61,10 +62,7 @@ class EpisodeScreen : Fragment() {
                 "No Source Selected \n Please Select Source First "
         } else {
             val sourceText = "Current Selected Source: $currentSource"
-            binding.textView6.text = sourceText.highlightPart(
-                currentSource,
-                ContextCompat.getColor(requireContext(), R.color.orange)
-            )
+            binding.textView6.text = sourceText.highlightPart(currentSource,                ContextCompat.getColor(requireContext(), R.color.orange))
 
             viewModel.findEpisodes(args.episodeTitle)
             viewModel.dataFound.observe(viewLifecycleOwner) {
@@ -85,11 +83,7 @@ class EpisodeScreen : Fragment() {
 
                     is Resource.Success -> {
                         val mediaText = "Selected Media: ${it.data.name}"
-                        binding.textView7.text = mediaText.highlightPart(
-                            it.data.name,
-                            ContextCompat.getColor(requireContext(), R.color.red)
-                        )
-
+                        binding.textView7.text = mediaText.highlightPart(it.data.name,ContextCompat.getColor(requireContext(), R.color.red80))
 
                         currentMediaId = it.data.link
                         adapter = SeriesPageAdapter()
@@ -104,8 +98,7 @@ class EpisodeScreen : Fragment() {
                                 is Resource.Error -> {
                                     binding.placeHolder.root.visible()
                                     binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
-                                    binding.placeHolder.placeholderTxt.text =
-                                        result.throwable.message
+                                    binding.placeHolder.placeholderTxt.text = result.throwable.message
                                 }
 
                                 Resource.Loading -> {
@@ -185,7 +178,7 @@ class EpisodeScreen : Fragment() {
         val start = this.indexOf(highlight)
         if (start >= 0) {
             spannable.setSpan(
-                ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.red)),
+                ForegroundColorSpan(ContextCompat.getColor(requireContext(),R.color.red)),
                 start,
                 start + highlight.length,
                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE

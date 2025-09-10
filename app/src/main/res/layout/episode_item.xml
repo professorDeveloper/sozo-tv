@@ -5,11 +5,10 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
-
     android:background="@drawable/episode_bg"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:padding="8dp"
+    android:padding="2dp"
     tools:layout_gravity="center">
 
     <androidx.cardview.widget.CardView

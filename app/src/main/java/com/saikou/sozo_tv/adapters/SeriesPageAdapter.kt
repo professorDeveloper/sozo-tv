@@ -3,8 +3,10 @@ package com.saikou.sozo_tv.adapters
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.EpisodeItemBinding
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.utils.loadImage
@@ -58,6 +60,19 @@ class SeriesPageAdapter(
                 binding.country.text = data.episode.toString()
                 root.setOnClickListener { onItemClicked.invoke(data) }
                 topContainer.text = "Episode ${data.episode ?: 0}"
+                binding.root.setOnFocusChangeListener { _, hasFocus ->
+                    val animation = when {
+                        hasFocus -> AnimationUtils.loadAnimation(
+                            binding.root.context, R.anim.zoom_in
+                        )
+
+                        else -> AnimationUtils.loadAnimation(
+                            binding.root.context, R.anim.zoom_out
+                        )
+                    }
+                    binding.root.startAnimation(animation)
+                    animation.fillAfter = true
+                }
 
                 itemImg.loadImage(data.snapshot ?: "")
             }

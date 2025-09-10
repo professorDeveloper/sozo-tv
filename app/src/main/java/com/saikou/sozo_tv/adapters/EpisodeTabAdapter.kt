@@ -30,6 +30,18 @@ class EpisodeTabAdapter(private var isFiltered: Boolean = false) :
         RecyclerView.ViewHolder(binding.root) {
         fun onBind(data: Part, position: Int) {
             binding.title.text = data.name
+            binding.root.setOnFocusChangeListener { _, hasFocus ->
+                val animation = when {
+                    hasFocus -> AnimationUtils.loadAnimation(
+                        binding.root.context, R.anim.zoom_in
+                    )
+                    else -> AnimationUtils.loadAnimation(
+                        binding.root.context, R.anim.zoom_out
+                    )
+                }
+                binding.root.startAnimation(animation)
+                animation.fillAfter = true
+            }
 
             val context = binding.root.context
             val selectedColor = ContextCompat.getColor(context, R.color.selected_category_color)
@@ -45,19 +57,6 @@ class EpisodeTabAdapter(private var isFiltered: Boolean = false) :
                 }
             } else {
                 binding.root.setBackgroundResource(if (isSelected) R.drawable.background_item_tv_category_tv_selected else R.drawable.background_item_tv_category_tv)
-            }
-            binding.root.setOnFocusChangeListener { _, hasFocus ->
-                val animation = when {
-                    hasFocus -> AnimationUtils.loadAnimation(
-                        binding.root.context, R.anim.zoom_in
-                    )
-
-                    else -> AnimationUtils.loadAnimation(
-                        binding.root.context, R.anim.zoom_out
-                    )
-                }
-                binding.root.startAnimation(animation)
-                animation.fillAfter = true
             }
             if (isFiltered) {
                 binding.filterIcon.isVisible = position == 0
