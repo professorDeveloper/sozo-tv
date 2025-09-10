@@ -1,6 +1,9 @@
 <resources>
     <color name="navigation_background">#EE1A1E25</color>
     <color name="main_background">#1B1E23</color>
+    <color name="orange">#FF9800</color>
+    <color name="red">#F44336</color>
+
     <color name="selected_bg">#0F141C</color>
     <color name="nav_item_text_selected">#FFFFFFFF</color>
     <color name="nav_item_text_unselected">#99FFFFFF</color>

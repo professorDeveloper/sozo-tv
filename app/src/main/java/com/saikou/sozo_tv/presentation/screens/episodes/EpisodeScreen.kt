@@ -61,7 +61,10 @@ class EpisodeScreen : Fragment() {
                 "No Source Selected \n Please Select Source First "
         } else {
             val sourceText = "Current Selected Source: $currentSource"
-            binding.textView6.text = sourceText.toSpannable(currentSource)
+            binding.textView6.text = sourceText.highlightPart(
+                currentSource,
+                ContextCompat.getColor(requireContext(), R.color.orange)
+            )
 
             viewModel.findEpisodes(args.episodeTitle)
             viewModel.dataFound.observe(viewLifecycleOwner) {
@@ -82,7 +85,11 @@ class EpisodeScreen : Fragment() {
 
                     is Resource.Success -> {
                         val mediaText = "Selected Media: ${it.data.name}"
-                        binding.textView7.text = mediaText.toSpannable(it.data.name)
+                        binding.textView7.text = mediaText.highlightPart(
+                            it.data.name,
+                            ContextCompat.getColor(requireContext(), R.color.red)
+                        )
+
 
                         currentMediaId = it.data.link
                         adapter = SeriesPageAdapter()
@@ -146,6 +153,31 @@ class EpisodeScreen : Fragment() {
                 }
             }
         }
+    }
+    private fun String.highlightPart(
+        highlight: String,
+        color: Int,
+        isBold: Boolean = true
+    ): SpannableString {
+        val spannable = SpannableString(this)
+        val start = this.indexOf(highlight)
+        if (start >= 0) {
+            spannable.setSpan(
+                ForegroundColorSpan(color),
+                start,
+                start + highlight.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            if (isBold) {
+                spannable.setSpan(
+                    StyleSpan(Typeface.BOLD),
+                    start,
+                    start + highlight.length,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+        }
+        return spannable
     }
 
     private fun String.toSpannable(highlight: String): SpannableString {

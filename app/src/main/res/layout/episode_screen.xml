@@ -50,7 +50,7 @@
                 android:fontFamily="@font/days"
                 android:text="@string/sources"
                 android:textColor="#FFFFFF"
-                android:textSize="13sp"/>
+                android:textSize="15sp"/>
 
             <TextView
                 android:id="@+id/textView7"
@@ -59,7 +59,7 @@
                 android:fontFamily="@font/days"
                 android:text="@string/sources"
                 android:textColor="#FFFFFF"
-                android:textSize="15sp"/>
+                android:textSize="13sp"/>
         </LinearLayout>
     </LinearLayout>
 
