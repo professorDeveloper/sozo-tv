@@ -87,9 +87,9 @@
                 android:duplicateParentState="true"
                 android:fontFamily="@font/days"
                 android:gravity="center"
-                android:text="Wrong Title"
+                android:text="Wrong Title?"
                 android:textColor="@color/login_button_text_color"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
 
         </LinearLayout>
 
