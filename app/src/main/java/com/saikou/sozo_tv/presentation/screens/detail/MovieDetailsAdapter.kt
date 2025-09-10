@@ -45,8 +45,6 @@ class MovieDetailsAdapter(
     val itemList: MutableList<HomeAdapter.HomeData> = mutableListOf(),
     private val detailsButtonListener: DetailsInterface
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-    // Placeholder for the third ite
-//    val castResponse = mutableListOf<CastItem>()
 
 
     interface DetailsInterface {
@@ -69,8 +67,8 @@ class MovieDetailsAdapter(
     companion object {
         const val DETAILS_ITEM_HEADER = 11
         const val DETAILS_ITEM_SECTION = 12
-        const val DETAILS_ITEM_THIRD = 13 // New ViewType for the third item
-        const val DETAILS_ITEM_FOUR = 14 // New ViewType for the third item
+        const val DETAILS_ITEM_THIRD = 13
+        const val DETAILS_ITEM_FOUR = 14
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -166,7 +164,6 @@ class MovieDetailsAdapter(
         RecyclerView.ViewHolder(binding.root) {
         private var currentLayoutId: Int? = null
         private var currentItem: DetailCategory? = null
-        private var isAboutFilmMode = true
 
         init {
             setFocusChangeListener(
@@ -250,7 +247,6 @@ class MovieDetailsAdapter(
                 descriptionTextView?.text =
                     Html.fromHtml(item.content.description, Html.FROM_HTML_MODE_COMPACT)
                 descriptionTextView?.isFocusable = false
-//                descriptionTextView?.isfocu
                 languageContainer?.removeAllViews()
                 countryContainer?.removeAllViews()
                 yearContainer?.removeAllViews()
@@ -276,8 +272,7 @@ class MovieDetailsAdapter(
                 languageContainer?.addView(textView)
                 val year = createCategoryTextView(
                     binding.root.context,
-                    LocalData.years[Random.nextInt(0, LocalData.years.size)]!!.title.toYear()
-                        .toString()
+                    LocalData.years[Random.nextInt(0, LocalData.years.size)].title.toYear()
                 )
                 yearContainer?.addView(year)
                 image?.loadImage(item.content.coverImage.large)
@@ -349,15 +344,17 @@ class MovieDetailsAdapter(
             binding.icBookmark.setImageResource(if (bookmark) R.drawable.ic_bookmark_fill else R.drawable.ic_bookmark)
 
             binding.watchButton.setOnClickListener {
-                item.content.id?.let { it1 ->
+                item.content.id.let {
 
-                    interfaceListener.onWatchButtonClicked(
-                        item,
-                        id = item.content.id,
-                        url = item.content.bannerImage ?: "",
-                        title = item.content.title,
-                        isFree =true
-                    )
+                    interfaceListener.run {
+                        onWatchButtonClicked(
+                                        item,
+                                        id = item.content.id,
+                                        url = item.content.bannerImage,
+                                        title = item.content.title,
+                                        isFree =true
+                                    )
+                    }
                 }
             }
             binding.filmDescriptionTv.text =
@@ -403,7 +400,7 @@ class MovieDetailsAdapter(
             }
             container.addView(textView)
             genres.forEach { category ->
-                val textView = TextView(binding.root.context).apply {
+                val textViewd = TextView(binding.root.context).apply {
                     text = category
                     textSize = 12f
                     setTextColor(Color.WHITE)
@@ -416,7 +413,7 @@ class MovieDetailsAdapter(
                     setBackgroundResource(R.drawable.bg_cat_tv)
                     setPadding(16, 8, 16, 8)
                 }
-                container.addView(textView)
+                container.addView(textViewd)
             }
             val textViewEp= TextView(binding.root.context).apply {
                 text = "Episodes:"+item.content.episodes.toString()
