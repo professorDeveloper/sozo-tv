@@ -82,7 +82,6 @@ class EpisodeScreen : Fragment() {
                     }
 
                     is Resource.Success -> {
-                        // ✅ Endi textView7 ham ishlatiladi
                         val mediaText = "Selected Media: ${it.data.name}"
                         binding.textView7.text = mediaText.toSpannable(it.data.name)
 
