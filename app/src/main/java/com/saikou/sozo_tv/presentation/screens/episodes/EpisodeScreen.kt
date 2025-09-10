@@ -1,7 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.episodes
 
 import android.annotation.SuppressLint
-import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.text.Spannable

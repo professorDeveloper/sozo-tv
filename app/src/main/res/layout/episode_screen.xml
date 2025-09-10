@@ -25,7 +25,8 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:focusedByDefault="true"
-            app:cardCornerRadius="100dp">
+            app:cardCornerRadius="100dp"
+            tools:ignore="UnusedAttribute">
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="25dp"

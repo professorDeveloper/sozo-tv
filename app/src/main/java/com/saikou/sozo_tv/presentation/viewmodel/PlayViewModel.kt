@@ -79,7 +79,7 @@ class PlayViewModel(private val repo: DetailRepository,private val bookmarkRepo:
     }
 
     fun loadTrailer(name: String) {
-        trailerJob?.cancel() // eski jobni to‘xtatib yuboramiz
+        trailerJob?.cancel()
         trailerJob = viewModelScope.launch {
             val liveChartTrailer = LiveChartTrailer()
             val link = liveChartTrailer.searchAndGetTrailer(name)
