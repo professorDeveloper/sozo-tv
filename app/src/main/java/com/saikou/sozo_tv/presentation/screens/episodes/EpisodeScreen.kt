@@ -55,13 +55,12 @@ class EpisodeScreen : Fragment() {
             binding.topContainer.gone()
             binding.loadingLayout.gone()
             binding.textView6.gone()
-            binding.textView7.gone() // ✅ qo‘shimcha
+            binding.textView7.gone()
             binding.placeHolder.root.visible()
             binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_source)
             binding.placeHolder.placeholderTxt.text =
                 "No Source Selected \n Please Select Source First "
         } else {
-            // ✅ Spannable qo‘llash
             val sourceText = "Current Selected Source: $currentSource"
             binding.textView6.text = sourceText.toSpannable(currentSource)
 
