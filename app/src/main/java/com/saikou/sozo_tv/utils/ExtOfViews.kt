@@ -69,7 +69,7 @@ fun ImageView.loadImage(url: String?) {
         .apply(
             RequestOptions()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .error(R.drawable.placeholder)
+                .error(R.drawable.ic_place_holder_search)
         )
         .into(this)
 }

@@ -9,8 +9,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.EpisodeItemBinding
 import com.saikou.sozo_tv.parser.models.Data
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.loadImage
 import java.util.concurrent.TimeUnit
+import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 class SeriesPageAdapter(
     val localEpisode: ArrayList<Data> = arrayListOf()
@@ -74,7 +76,7 @@ class SeriesPageAdapter(
                     animation.fillAfter = true
                 }
 
-                itemImg.loadImage(data.snapshot ?: "")
+                itemImg.loadImage(data.snapshot ?: LocalData.anime404)
             }
         }
     }

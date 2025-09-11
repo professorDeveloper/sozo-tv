@@ -22,6 +22,7 @@ import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.WrongTitleViewModel
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -68,6 +69,7 @@ val koinModule = module {
 //
     viewModel { HomeViewModel(repo = get()) }
     viewModel { EpisodeViewModel() }
+    viewModel { WrongTitleViewModel() }
     viewModel { PlayViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
     viewModel { SearchViewModel(repo = get()) }

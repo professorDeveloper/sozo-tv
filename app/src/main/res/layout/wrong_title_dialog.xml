@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="550dp"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:background="@drawable/main_round"
+    android:minWidth="550dp"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center_vertical"
+            android:layout_marginStart="12dp"
+            android:drawableStart="@drawable/ic_wrongic"
+            android:drawablePadding="8dp"
+            android:fontFamily="@font/days"
+            android:text="@string/find_correct_anime_title"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/closeBtn"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/close_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:scaleType="centerInside"
+            android:src="@drawable/close"
+            app:tint="@color/color_item_tv_section_profile" />
+    </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="12dp"
+        android:background="@color/white20" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <androidx.leanback.widget.SearchEditText
+            android:id="@+id/inputAnimeName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:paddingVertical="12dp"
+            android:layout_weight="1"
+            android:background="@drawable/search_input_bg"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:focusedByDefault="true"
+
+            android:hint="e.g. 夏目友人帳, Natsume Yuujinchou"
+            android:imeOptions="actionSearch"
+            android:paddingHorizontal="12dp"
+            android:singleLine="true"
+            android:textColor="@android:color/white"
+            android:textColorHint="@color/white40"
+            android:textSize="14sp"
+            app:focusOutFront="true" />
+
+        <FrameLayout
+            android:id="@+id/searchBtn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/search_button_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:duplicateParentState="true"
+                android:src="@drawable/ic_search"
+                app:tint="@android:color/white" />
+        </FrameLayout>
+    </LinearLayout>
+
+
+    <androidx.leanback.widget.VerticalGridView
+        android:id="@+id/vgvSearch"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginTop="8dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:paddingTop="8dp"
+        android:visibility="gone"
+        app:focusOutEnd="true"
+        app:focusOutFront="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/search_edt"
+        app:numberOfColumns="1"
+        tools:listitem="@layout/search_item" />
+
+    <LinearLayout
+        android:id="@+id/bookmarkPlaceHolder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp">
+
+        <include
+            android:id="@+id/placeholderTxt"
+            layout="@layout/wrongtitle_place_holder"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/loadingPlaceHolder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp">
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:layout_width="450dp"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="4dp"
+            app:indicatorColor="@color/white40"
+            app:trackColor="@color/red" />
+
+    </LinearLayout>
+
+</LinearLayout>

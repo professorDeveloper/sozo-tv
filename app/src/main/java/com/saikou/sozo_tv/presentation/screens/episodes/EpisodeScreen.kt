@@ -21,6 +21,8 @@ import com.saikou.sozo_tv.adapters.EpisodeTabAdapter
 import com.saikou.sozo_tv.adapters.SeriesPageAdapter
 import com.saikou.sozo_tv.databinding.EpisodeScreenBinding
 import com.saikou.sozo_tv.parser.models.Part
+import com.saikou.sozo_tv.presentation.screens.category.dialog.FilterDialog
+import com.saikou.sozo_tv.presentation.screens.wrong_title.WrongTitleDialog
 import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
@@ -102,7 +104,9 @@ class EpisodeScreen : Fragment() {
                         adapter.setOnItemClickedListener { }
                         binding.wrongTitleContainer.visibility = View.VISIBLE
                         binding.wrongTitleContainer.startAnimation(anim)
-
+                        binding.wrongTitleContainer.setOnClickListener { gg ->
+                            showWrongTitleDialog(it.data.name)
+                        }
                         binding.topContainer.adapter = adapter
                         viewModel.loadEpisodeByPage(1, currentMediaId)
                         binding.placeHolder.root.gone()
@@ -130,6 +134,7 @@ class EpisodeScreen : Fragment() {
                                             binding.placeHolder.root.gone()
                                             binding.topContainer.visible()
                                             binding.loadingLayout.gone()
+
                                             adapter.updateEpisodeItems(result.data.data)
                                         } else {
                                             binding.topContainer.visible()
@@ -163,12 +168,26 @@ class EpisodeScreen : Fragment() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
+    private fun showWrongTitleDialog(animeTitle: String) {
+        val dialog: WrongTitleDialog = WrongTitleDialog.newInstance(animeTitle = animeTitle)
+        dialog.onWrongTitleChanged = {
+            dialog.dismiss()
+            viewModel.findEpisodes(it.name)
+            currentMediaId = it.link
+            binding.textView7.text = "Selected Media: ${it.name}"
+
+        }
+        dialog.show(parentFragmentManager, "FilterDialog")
+    }
+
     private fun addAnimFocus() {
         binding.backBtn.setOnFocusChangeListener { _, hasFocus ->
             val animation = when {
                 hasFocus -> AnimationUtils.loadAnimation(
                     binding.root.context, R.anim.zoom_in
                 )
+
                 else -> AnimationUtils.loadAnimation(
                     binding.root.context, R.anim.zoom_out
                 )
@@ -181,6 +200,7 @@ class EpisodeScreen : Fragment() {
                 hasFocus -> AnimationUtils.loadAnimation(
                     binding.root.context, R.anim.zoom_in
                 )
+
                 else -> AnimationUtils.loadAnimation(
                     binding.root.context, R.anim.zoom_out
                 )
