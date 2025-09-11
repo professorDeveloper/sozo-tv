@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.utils
 
-import android.animation.ObjectAnimator
 import android.content.Context
 import android.content.res.Resources
 import android.view.View
@@ -9,7 +8,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.EditText
 import androidx.core.content.ContextCompat
-import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
