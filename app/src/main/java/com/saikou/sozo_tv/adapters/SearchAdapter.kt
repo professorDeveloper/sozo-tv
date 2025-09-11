@@ -12,7 +12,7 @@ import com.bumptech.glide.Glide
 import com.saikou.sozo_tv.databinding.SearchItemBinding
 import com.saikou.sozo_tv.domain.model.SearchModel
 
-class SearchAdapter() :
+class SearchAdapter :
     RecyclerView.Adapter<SearchAdapter.MovieViewHolder>() {
     private var movieList = ArrayList<SearchModel>()
     var query: String = ""
