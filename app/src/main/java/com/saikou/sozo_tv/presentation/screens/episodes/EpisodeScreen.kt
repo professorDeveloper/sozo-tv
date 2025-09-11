@@ -105,6 +105,7 @@ class EpisodeScreen : Fragment() {
                         binding.wrongTitleContainer.setOnClickListener { gg ->
                             showWrongTitleDialog(it.data.name)
                         }
+
                         binding.topContainer.adapter = adapter
                         viewModel.loadEpisodeByPage(1, currentMediaId)
                         binding.placeHolder.root.gone()
@@ -137,6 +138,9 @@ class EpisodeScreen : Fragment() {
                                         } else {
                                             binding.topContainer.visible()
                                             adapter.updateEpisodeItems(result.data.data)
+                                            adapter.setOnItemClickedListener {
+                                                
+                                            }
                                             val partList = ArrayList<Part>()
                                             categoriesAdapter = EpisodeTabAdapter()
                                             binding.tabRv.visible()

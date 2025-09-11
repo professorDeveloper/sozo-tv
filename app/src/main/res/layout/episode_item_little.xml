@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+
+    android:background="@drawable/episode_bg"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:padding="8dp"
+    tools:layout_gravity="center">
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardView"
+        android:layout_width="123dp"
+        android:layout_height="85dp"
+        android:layout_margin="4dp"
+        app:cardCornerRadius="10dp"
+        app:cardElevation="0dp"
+        app:layout_constraintDimensionRatio="2.5:1.6"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.appcompat.widget.AppCompatImageView
+
+            android:id="@+id/item_img"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/img_2" />
+
+    </androidx.cardview.widget.CardView>
+
+    <androidx.core.widget.ContentLoadingProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="0dp"
+        android:layout_height="3dp"
+        android:layout_gravity="bottom|center"
+        android:layout_marginTop="8dp"
+        android:indeterminate="false"
+        android:max="100"
+        android:progress="20"
+        android:progressDrawable="@drawable/custom_progress"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@+id/cardView"
+        app:layout_constraintStart_toStartOf="@+id/cardView"
+        app:layout_constraintTop_toBottomOf="@id/cardView" />
+
+
+    <TextView
+        android:id="@+id/topContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:fontFamily="@font/rubik_regular"
+        android:maxLines="1"
+        android:textColor="#ffffff"
+
+        android:textSize="11sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/progressBar"
+        tools:text="The Most Beautiful Flower S01E01" />
+
+    <TextView
+        android:id="@+id/timeStr"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="2dp"
+        android:fontFamily="@font/rubik_regular"
+        android:text="01:15:27 daqiqada to’xtatildi"
+        android:textColor="@color/lb_grey"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@+id/cardView"
+        app:layout_constraintStart_toStartOf="@+id/cardView"
+        app:layout_constraintTop_toBottomOf="@+id/topContainer" />
+
+    <com.skydoves.androidribbon.ShimmerRibbonView
+        android:id="@+id/shimmerRibbonView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/cardView"
+        app:layout_constraintEnd_toEndOf="@+id/cardView"
+        app:layout_constraintStart_toStartOf="@+id/cardView"
+        app:shimmer_base_alpha="1.0"
+        app:shimmer_highlight_alpha="1"
+        app:shimmer_repeat_count="0"
+        app:shimmer_ribbon_background_color="@color/red"
+        app:shimmer_ribbon_ribbonRadius="4dp"
+        app:shimmer_ribbon_text="Now Playing"
+        app:shimmer_ribbon_textColor="@android:color/white"
+        app:shimmer_ribbon_textSize="6sp"
+        app:shimmer_ribbon_textStyle="bold"
+        app:shimmer_shape="radial" />
+
+    <com.skydoves.androidribbon.ShimmerRibbonView
+        android:id="@+id/shimmerTopRibbon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="@+id/cardView"
+        app:layout_constraintTop_toTopOf="@+id/cardView"
+        app:shimmer_base_alpha="1.0"
+        app:shimmer_highlight_alpha="1"
+        app:shimmer_repeat_count="0"
+        app:shimmer_ribbon_background_color="@color/red"
+        app:shimmer_ribbon_ribbonRadius="2dp"
+        app:shimmer_ribbon_rotation="-45"
+        app:shimmer_ribbon_text="Now Playing"
+        app:shimmer_ribbon_textColor="@android:color/white"
+        app:shimmer_ribbon_textSize="4sp"
+        app:shimmer_ribbon_textStyle="bold"
+        app:shimmer_shape="radial" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

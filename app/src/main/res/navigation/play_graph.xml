@@ -55,6 +55,30 @@
         <argument
             android:name="isFree"
             app:argType="boolean" />
+        <action
+            android:id="@+id/action_episodeScreen_to_seriesPlayerScreen"
+            app:destination="@id/seriesPlayerScreen" />
 
+    </fragment>
+    <fragment
+        android:id="@+id/seriesPlayerScreen"
+        android:name="com.saikou.sozo_tv.presentation.screens.play.SeriesPlayerScreen"
+        android:label="SeriesPlayerScreen" >
+        <argument
+            android:name="id"
+            app:argType="string" />
+        <argument
+            android:name="name"
+            app:argType="string" />
+        <argument
+            android:name="image"
+            app:argType="string" />
+        <argument
+            android:name="seriesMainId"
+            app:argType="string" />
+
+        <argument
+            android:name="currentEpisode"
+            app:argType="string" />
     </fragment>
 </navigation>
