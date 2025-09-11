@@ -10,10 +10,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.saikou.sozo_tv.databinding.SearchItemBinding
-import com.saikou.sozo_tv.domain.model.SearchModel
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.utils.gone
-import com.saikou.sozo_tv.utils.visible
 
 class WrongTitleSearchAdapter() :
     RecyclerView.Adapter<WrongTitleSearchAdapter.MovieViewHolder>() {

@@ -12,7 +12,6 @@ import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.loadImage
 import java.util.concurrent.TimeUnit
-import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 class SeriesPageAdapter(
     val localEpisode: ArrayList<Data> = arrayListOf()
@@ -88,12 +87,4 @@ class SeriesPageAdapter(
         val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % 60
         return String.format("%02d:%02d:%02d", hours, minutes, seconds)
     }
-}
-
-fun RecyclerView.setupGridLayoutForEpisodes(adapter: SeriesPageAdapter) {
-    val gridLayoutManager = GridLayoutManager(this.context, 5)
-    gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
-        override fun getSpanSize(position: Int): Int = 1 // endi faqat 1 span
-    }
-    this.layoutManager = gridLayoutManager
 }
