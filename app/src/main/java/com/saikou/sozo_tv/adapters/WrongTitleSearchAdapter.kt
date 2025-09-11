@@ -33,7 +33,7 @@ class WrongTitleSearchAdapter() :
             val start = mainText.indexOf(query)
 
             if (start != -1) {
-                val end = start!!.plus(query.length)
+                val end = start.plus(query.length)
                 spannableString.setSpan(
                     ForegroundColorSpan(Color.WHITE),
                     start,
