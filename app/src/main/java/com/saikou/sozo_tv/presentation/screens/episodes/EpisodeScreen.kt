@@ -37,7 +37,7 @@ class EpisodeScreen : Fragment() {
     private lateinit var adapter: SeriesPageAdapter
     private lateinit var categoriesAdapter: EpisodeTabAdapter
     private lateinit var currentMediaId: String
-    private var selectedPosition = 1
+    private var selectedPosition = 0
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -139,14 +139,11 @@ class EpisodeScreen : Fragment() {
                                             adapter.setOnItemClickedListener {
                                                 findNavController().navigate(
                                                     EpisodeScreenDirections.actionEpisodeScreenToSeriesPlayerScreen(
-                                                        id = it.session?:"",
-                                                        name = it.title?:"",
-                                                        currentEpisode = (it.episode?:0).toString(),
+                                                        id = LocalData.itemMovieWatch!!.id.toString(),
+                                                        name = LocalData.itemMovieWatch!!.title.toString(),
+                                                        currentEpisode = LocalData.itemMovieWatch!!.epIndex.toString(),
                                                         image = it.snapshot ?: LocalData.anime404,
                                                         seriesMainId = currentMediaId ?: "",
-                                                        currentPage = selectedPosition
-
-
                                                     )
                                                 )
                                             }
@@ -168,7 +165,7 @@ class EpisodeScreen : Fragment() {
                                             binding.tabRv.scrollToPosition(selectedPosition)
                                             categoriesAdapter.setFocusedItemListener { _, i ->
                                                 viewModel.loadEpisodeByPage(i + 1, currentMediaId)
-                                                selectedPosition = i+1
+                                                selectedPosition = i
                                             }
                                         }
                                     }

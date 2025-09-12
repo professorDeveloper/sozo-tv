@@ -31,7 +31,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@drawable/joker" />
+            android:src="@drawable/img_2" />
 
     </androidx.cardview.widget.CardView>
 

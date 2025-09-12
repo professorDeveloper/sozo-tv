@@ -21,35 +21,39 @@ import java.util.concurrent.TimeUnit
 const val JIKAN_BASE_URL = "https://api.jikan.moe/"
 const val BASE_URL = "https://graphql.anilist.co/"
 
+
 val NetworkModule = module {
-    single { EncryptedPreferencesManager(androidContext()) }
-    single { createOkHttpClient(get(), androidContext()) }
-    single { createRetrofit(get(), JIKAN_BASE_URL) }
+
     single { createService(get()) }
+
     single {
         ApolloClient.Builder()
             .serverUrl(BASE_URL)
             .okHttpClient(get())
+
             .build()
     }
+    single { createRetrofit(get(), JIKAN_BASE_URL) }
+
+    single { createOkHttpClient(get(), androidContext()) }
     single { UserPreferenceManager(androidContext()) }
+    single { EncryptedPreferencesManager(androidContext()) }
+
 }
 
 fun createOkHttpClient(pref: EncryptedPreferencesManager, context: Context): OkHttpClient {
-    val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
-    }
 
+
+    val httpLoggingInterceptor = HttpLoggingInterceptor()
+    httpLoggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
     return OkHttpClient.Builder()
-        .connectionPool(ConnectionPool(5, 5, TimeUnit.MINUTES))
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
+        .connectionPool(ConnectionPool(1, 1, TimeUnit.NANOSECONDS))
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
         .addInterceptor(httpLoggingInterceptor)
-        .retryOnConnectionFailure(true)
         .build()
 }
-
 
 fun createRetrofit(okHttpClient: OkHttpClient, url: String): Retrofit {
     val gson: Gson = GsonBuilder().create()

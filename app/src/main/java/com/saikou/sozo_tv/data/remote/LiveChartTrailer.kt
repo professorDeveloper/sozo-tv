@@ -12,7 +12,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.jsoup.Jsoup
-import java.util.concurrent.CancellationException
 
 class LiveChartTrailer() {
     private val BASE_URL = "https://www.livechart.me"
@@ -65,7 +64,8 @@ class DubsMp4Parser {
 
         var progressId: String? = null
 
-        repeat(40) { attempt ->
+        repeat(40) { attempt -> // ~120s kutish (40*3s)
+            // Agar progressId bo‘lmasa yangidan olish
             if (progressId == null) {
                 val initUrl = "$BASE_URL/download-video?id=$videoId&format=720"
                 val initResp = Requests(baseClient = Utils.httpClient, responseParser = parser).get(initUrl)
@@ -75,16 +75,7 @@ class DubsMp4Parser {
                 val initBody = initResp.body.string() ?: throw Exception("Empty response")
                 val initJson = gson.fromJson(initBody, JsonObject::class.java)
 
-                Log.d("GGG", "Init response: $initBody")
-
-                // 🔥 Agar message bo‘lsa va "Something went wrong" bo‘lsa — ishni to‘xtatamiz
-                if (initJson.has("message") && initJson["message"].asString.contains("Something went wrong", true)) {
-                    throw CancellationException("Download cancelled: ${initJson["message"].asString}")
-                }
-
-                if (!initJson.has("success") || !initJson["success"].asBoolean) {
-                    throw Exception("Download init failed: $initBody")
-                }
+                if (!initJson["success"].asBoolean) throw Exception("Download init failed: $initBody")
 
                 progressId = initJson["progressId"].asString
                 Log.d("GGG", "New progressId: $progressId")
@@ -100,23 +91,19 @@ class DubsMp4Parser {
 
             Log.d("GGG", "Status [$attempt]: $statusBody")
 
-            // 🔥 Agar serverdan "Something went wrong" qaytsa — darhol to‘xtatamiz
-            if (statusJson.has("message") && statusJson["message"].asString.contains("Something went wrong", true)) {
-                throw CancellationException("Status cancelled: ${statusJson["message"].asString}")
-            }
-
             if (statusJson["finished"]?.asBoolean == true) {
                 val downloadUrl = statusJson["downloadUrl"].asString
                 Log.d("GGG", "Download ready: $downloadUrl")
-                return downloadUrl
+                return downloadUrl // 🔥 finished true bo‘lsa loopni to‘xtatamiz
             }
 
+            // progressId yangilansa — update
             if (statusJson.has("progressId") && statusJson["progressId"].asString != progressId) {
                 progressId = statusJson["progressId"].asString
                 Log.d("GGG", "ProgressId updated: $progressId")
             }
 
-            delay(3000)
+            delay(3000) // 3 sekund kutish
         }
 
         return ""
