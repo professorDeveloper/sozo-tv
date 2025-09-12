@@ -16,6 +16,7 @@ android {
     compileSdk = 35
     kapt {
         correctErrorTypes = true
+        useBuildCache = true
     }
 
     apollo {

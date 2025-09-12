@@ -16,7 +16,7 @@
             android:layout_height="0dp"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:visibility="gone"
+            android:visibility="visible"
             app:bar_height="90dp"
             app:controller_layout_id="@layout/content_controller_tv_series"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -36,6 +36,7 @@
             android:id="@+id/loading_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:visibility="gone"
             android:layout_gravity="center"
             android:background="@color/black"
             android:gravity="center"
@@ -43,6 +44,7 @@
             android:padding="10dp">
 
             <TextView
+                android:id="@+id/loading_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/days"
@@ -73,9 +75,8 @@
         android:elevation="8dp"
         android:orientation="vertical"
         android:paddingEnd="8dp"
-        android:translationX="380dp"
 
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -117,11 +118,13 @@
                 android:layout_marginTop="8dp"
                 android:fontFamily="@font/days"
                 android:padding="8dp"
-                android:text="Episode List"
+                android:text="Part:4 Episode List"
                 android:textColor="#FFFFFF"
                 android:textSize="14sp"
                 android:textStyle="bold" />
         </FrameLayout>
+
+
 
         <androidx.leanback.widget.VerticalGridView
             android:id="@+id/episodeRv"
