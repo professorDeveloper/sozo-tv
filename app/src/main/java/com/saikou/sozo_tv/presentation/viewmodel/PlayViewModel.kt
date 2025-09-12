@@ -40,7 +40,7 @@ class PlayViewModel(
     var seriesResponse: VodMovieResponse? = null
     val allEpisodeData = MutableLiveData<Resource<EpisodeData>>(Resource.Idle)
     fun getAllEpisodeByPage(page: Int, mediaId: String) {
-        viewModelScope.launch {
+        viewModelScope.launch (Dispatchers.IO){
             allEpisodeData.postValue(Resource.Loading)
             animePahe.loadEpisodes(id = mediaId, curPage = page)?.let {
                 allEpisodeData.postValue(Resource.Success(it))
@@ -49,7 +49,7 @@ class PlayViewModel(
     }
 
     fun getCurrentEpisodeVod(episodeId: String, mediaId: String) {
-        viewModelScope.launch {
+        viewModelScope.launch (Dispatchers.IO){
             currentEpisodeData.postValue(Resource.Loading)
             animePahe.getEpisodeVideo(epId = episodeId, id = mediaId).let {
                 animePahe.extractVideo(it.url).let {
