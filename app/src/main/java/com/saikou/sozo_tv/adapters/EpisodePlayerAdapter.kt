@@ -35,7 +35,7 @@ class EpisodePlayerAdapter(
 
                 itemBinding.itemImg.loadImage(data.snapshot ?: defaultImg)
 
-                topContainer.text = data.title
+                topContainer.text =  "Episode ${position + 1}"
                 shimmerTopRibbon.ribbon.text = "Episde ${data.episode?:-1}"
                 root.setOnClickListener {
                     val previousIndex = currentIndex

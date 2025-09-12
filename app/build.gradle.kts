@@ -181,4 +181,8 @@ dependencies {
     val apolloVersion = "3.7.0"
     implementation("com.apollographql.apollo3:apollo-runtime:$apolloVersion")
 
+    //Ffmpeg
+
+
+
 }

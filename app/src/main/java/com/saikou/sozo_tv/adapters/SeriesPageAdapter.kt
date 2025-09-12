@@ -18,9 +18,9 @@ class SeriesPageAdapter(
 ) : RecyclerView.Adapter<SeriesPageAdapter.EpisodeViewHolder>() {
 
     var episodeList: ArrayList<Data> = arrayListOf()
-    private lateinit var onItemClicked: (Data) -> Unit
+    private lateinit var onItemClicked: (Data,Int) -> Unit
 
-    fun setOnItemClickedListener(listener: (Data) -> Unit) {
+    fun setOnItemClickedListener(listener: (Data,Int) -> Unit) {
         onItemClicked = listener
     }
 
@@ -59,7 +59,7 @@ class SeriesPageAdapter(
 //                    progressBar.progress = getLocalEp.currPosition.toInt()
 //                }
                 binding.country.text = data.episode.toString()
-                root.setOnClickListener { onItemClicked.invoke(data) }
+                root.setOnClickListener { onItemClicked.invoke(data,absoluteAdapterPosition) }
                 topContainer.text = "Episode ${data.episode ?: 0}"
                 binding.root.setOnFocusChangeListener { _, hasFocus ->
                     val animation = when {

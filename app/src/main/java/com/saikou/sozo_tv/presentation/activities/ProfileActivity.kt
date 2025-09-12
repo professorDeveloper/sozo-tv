@@ -23,7 +23,7 @@ class ProfileActivity : AppCompatActivity() {
     private var backPressCount = 0
 
     private lateinit var profileAdapter: ProfileAdapter
-
+    private var  isSettingsOpen = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityProfileBinding.inflate(layoutInflater)
@@ -31,6 +31,7 @@ class ProfileActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             viewBinding.navProfile.isFocusedByDefault = true
         }
+        isSettingsOpen = intent.getBooleanExtra("isSettings",false)
         setUpRv()
         onBackPressedDispatcher.addCallback(this) {
             when (backPressCount) {
@@ -98,6 +99,7 @@ class ProfileActivity : AppCompatActivity() {
 
         }
 
+        profileAdapter.setSectionSelected(if (isSettingsOpen) 3 else 0)
 
         profileAdapter.sectionClickListener { _, position ->
             val navController = findNavController(R.id.nav_profile)
@@ -133,9 +135,8 @@ class ProfileActivity : AppCompatActivity() {
         profileAdapter.setOnExitClickListener {
 
         }
-        profileAdapter.updateAccountType(
-            "Guest"
-        )
+        profileAdapter
+        profileAdapter.updateAccountType("Guest")
 
     }
 

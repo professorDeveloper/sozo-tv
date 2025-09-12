@@ -15,6 +15,9 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.core.view.updateLayoutParams
 import androidx.leanback.widget.VerticalGridView
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import com.saikou.sozo_tv.R
@@ -303,4 +306,17 @@ inline fun <reified T> String.toDataClass(): T {
 
 fun String.toYear(): String {
     return this.substring(0, 4)
+}
+
+inline fun <T> LiveData<T>.observeOnce(
+    lifecycleOwner: LifecycleOwner,
+    crossinline observer: (T) -> Unit
+) {
+    val internalObserver = object : Observer<T> {
+        override fun onChanged(value: T) {
+            observer(value)
+            removeObserver(this)
+        }
+    }
+    observe(lifecycleOwner, internalObserver)
 }

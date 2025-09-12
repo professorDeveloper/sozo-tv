@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.presentation.screens.episodes
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
 import android.text.Spannable
@@ -20,6 +21,7 @@ import com.saikou.sozo_tv.adapters.EpisodeTabAdapter
 import com.saikou.sozo_tv.adapters.SeriesPageAdapter
 import com.saikou.sozo_tv.databinding.EpisodeScreenBinding
 import com.saikou.sozo_tv.parser.models.Part
+import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.screens.wrong_title.WrongTitleDialog
 import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.utils.LocalData
@@ -37,7 +39,7 @@ class EpisodeScreen : Fragment() {
     private lateinit var adapter: SeriesPageAdapter
     private lateinit var categoriesAdapter: EpisodeTabAdapter
     private lateinit var currentMediaId: String
-    private var selectedPosition = 1
+    private var selectedPosition = 0
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -54,7 +56,7 @@ class EpisodeScreen : Fragment() {
 
         addAnimFocus()
 
-        val currentSource = readData<String>("subSource") ?: "animepahe"
+        val currentSource = readData<String>("subSource") ?: ""
         if (currentSource != "animepahe") {
             binding.topContainer.gone()
             binding.loadingLayout.gone()
@@ -63,7 +65,13 @@ class EpisodeScreen : Fragment() {
             binding.placeHolder.root.visible()
             binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_source)
             binding.placeHolder.placeholderTxt.text =
-                "No Source Selected \n Please Select Source First "
+                "No Source Selected \n Please Select Source First from Settings"
+            binding.placeHolder.placeHolderBtn.visible()
+            binding.placeHolder.placeHolderBtn.setOnClickListener {
+                val intent =Intent(requireActivity(),ProfileActivity::class.java)
+                intent.putExtra("openSettings",true)
+                requireActivity().startActivity(intent)
+            }
         } else {
             val sourceText = "Current Selected Source: $currentSource"
             binding.textView6.text = sourceText.highlightPart(
@@ -72,12 +80,12 @@ class EpisodeScreen : Fragment() {
             )
 
             viewModel.findEpisodes(args.episodeTitle)
-            viewModel.dataFound.observe(viewLifecycleOwner) {
-                when (it) {
+            viewModel.dataFound.observe(viewLifecycleOwner) { dataFound ->
+                when (dataFound) {
                     is Resource.Error -> {
                         binding.placeHolder.root.visible()
                         binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
-                        binding.placeHolder.placeholderTxt.text = it.throwable.message
+                        binding.placeHolder.placeholderTxt.text = dataFound.throwable.message
                     }
 
                     Resource.Loading -> {
@@ -89,22 +97,21 @@ class EpisodeScreen : Fragment() {
                     }
 
                     is Resource.Success -> {
-                        val mediaText = "Selected Media: ${it.data.name}"
+                        val mediaText = "Selected Media: ${dataFound.data.name}"
                         binding.textView7.gone()
                         val anim = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
                         binding.textView7.text = mediaText.highlightPart(
-                            it.data.name,
+                            dataFound.data.name,
                             ContextCompat.getColor(requireContext(), R.color.red80)
                         )
                         binding.textView7.visible()
                         binding.textView7.startAnimation(anim)
-                        currentMediaId = it.data.link
+                        currentMediaId = dataFound.data.link
                         adapter = SeriesPageAdapter()
-                        adapter.setOnItemClickedListener { }
                         binding.wrongTitleContainer.visibility = View.VISIBLE
                         binding.wrongTitleContainer.startAnimation(anim)
                         binding.wrongTitleContainer.setOnClickListener { gg ->
-                            showWrongTitleDialog(it.data.name)
+                            showWrongTitleDialog(dataFound.data.name)
                         }
 
                         binding.topContainer.adapter = adapter
@@ -136,25 +143,36 @@ class EpisodeScreen : Fragment() {
                                             binding.loadingLayout.gone()
 
                                             adapter.updateEpisodeItems(result.data.data)
-                                            adapter.setOnItemClickedListener {
+                                            adapter.setOnItemClickedListener { it, currentIndex ->
                                                 findNavController().navigate(
                                                     EpisodeScreenDirections.actionEpisodeScreenToSeriesPlayerScreen(
-                                                        id = it.session?:"",
-                                                        name = it.title?:"",
-                                                        currentEpisode = (it.episode?:0).toString(),
+                                                        id = it.session ?: "",
+                                                        name = dataFound.data.name,
+                                                        currentEpisode = (it.episode
+                                                            ?: 0).toString(),
                                                         image = it.snapshot ?: LocalData.anime404,
                                                         seriesMainId = currentMediaId ?: "",
-                                                        currentPage = selectedPosition
-
-
+                                                        currentPage = selectedPosition + 1,
+                                                        currentIndex = currentIndex
                                                     )
                                                 )
                                             }
                                         } else {
                                             binding.topContainer.visible()
                                             adapter.updateEpisodeItems(result.data.data)
-                                            adapter.setOnItemClickedListener {
-
+                                            adapter.setOnItemClickedListener { it, index ->
+                                                findNavController().navigate(
+                                                    EpisodeScreenDirections.actionEpisodeScreenToSeriesPlayerScreen(
+                                                        id = it.session ?: "",
+                                                        name = dataFound.data.name,
+                                                        currentEpisode = (it.episode
+                                                            ?: 0).toString(),
+                                                        image = it.snapshot ?: LocalData.anime404,
+                                                        seriesMainId = currentMediaId ?: "",
+                                                        currentPage = selectedPosition + 1,
+                                                        currentIndex = index
+                                                    )
+                                                )
                                             }
                                             val partList = ArrayList<Part>()
                                             categoriesAdapter = EpisodeTabAdapter()
@@ -168,7 +186,7 @@ class EpisodeScreen : Fragment() {
                                             binding.tabRv.scrollToPosition(selectedPosition)
                                             categoriesAdapter.setFocusedItemListener { _, i ->
                                                 viewModel.loadEpisodeByPage(i + 1, currentMediaId)
-                                                selectedPosition = i+1
+                                                selectedPosition = i
                                             }
                                         }
                                     }

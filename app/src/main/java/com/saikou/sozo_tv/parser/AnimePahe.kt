@@ -128,6 +128,7 @@ class AnimePahe : BaseParser() {
 
     private fun extractFileUrl(input: String): String? {
         val regex = Regex("https?://\\S+\\.m3u8")
+        println("Input: ${regex.find(input)?.value}")
         return regex.find(input)?.value
     }
 
@@ -171,7 +172,7 @@ class AnimePahe : BaseParser() {
     }
 
     companion object {
-        private const val USER_AGENT =
+         const val USER_AGENT =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
     }
 }

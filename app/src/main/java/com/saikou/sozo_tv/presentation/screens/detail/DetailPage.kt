@@ -79,6 +79,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         playViewModel.castResponseData.observe(viewLifecycleOwner) {
             detailsAdapter.submitCast(it)
         }
+        detailsAdapter.updateTrailer("ggg")
         playViewModel.trailerData.observe(viewLifecycleOwner) {
             if (it.isNotEmpty()) {
                 trailerUrlPlayer = it

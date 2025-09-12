@@ -16,15 +16,16 @@ import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 class ProfileAdapter(
     private val accounts: MutableList<String>,
     private val sectionList: List<SectionItem>,
-
     private val recyclerView: RecyclerView
-) :
-    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
     private var accounType = ""
     private lateinit var exitItemListener: () -> Unit
     private lateinit var itemListener: () -> Unit
     private lateinit var onSectionClick: (SectionItem, Int) -> Unit
 
+    // ✅ Yangi: tanlangan section index
+    private var selectedSectionIndex: Int = RecyclerView.NO_POSITION
 
     fun setOnExitClickListener(listener: () -> Unit) {
         exitItemListener = listener
@@ -67,10 +68,8 @@ class ProfileAdapter(
             binding.phoneTxt.alpha = 0.7f
             binding.root.isFocusable = true
             binding.root.isFocusableInTouchMode = true
-
         }
     }
-
 
     inner class AccountTypeViewHolder(private val binding: AccountTypeItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -78,58 +77,49 @@ class ProfileAdapter(
             binding.accountTypeTxt.text = type
             binding.root.isFocusable = false
             binding.root.isFocusableInTouchMode = false
-
         }
     }
 
     inner class SectionViewHolder(private val binding: ProfileSectionItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        init {
-
-        }
 
         fun bind(section: SectionItem) {
             binding.sectionTxt.text = section.sectionTitle
             binding.sectionImg.setImageResource(section.sectionImg)
+
+            val sectionPosition = sectionList.indexOf(section)
+            val isSelected = sectionPosition == selectedSectionIndex
+
+
+            if (isSelected) {
+                binding.root.requestFocus()
+                setSectionSelected(sectionPosition)
+
+            } else {
+                binding.root.clearFocus()
+            }
+
             binding.root.isFocusable = true
             binding.root.isFocusableInTouchMode = true
+
             binding.root.setOnFocusChangeListener { _, hasFocus ->
-
                 if (hasFocus) {
-                    onSectionClick(section, sectionList.indexOf(section))
+                    setSectionSelected(sectionPosition)
+                    onSectionClick(section, sectionPosition)
                 }
-                if (hasFocus && adapterPosition == 0) {
-                    val addAccountPosition = accounts.size + 1
-                    val addAccountView =
-                        recyclerView.findViewHolderForAdapterPosition(addAccountPosition)?.itemView
-                    addAccountView?.requestFocus()
-                    recyclerView.adapter?.notifyItemChanged(addAccountPosition)
-                }
-                val animation = when {
-                    hasFocus -> AnimationUtils.loadAnimation(
-                        binding.root.context,
-                        R.anim.zoom_in
-                    )
-
-                    else -> AnimationUtils.loadAnimation(
-                        binding.root.context,
-                        R.anim.zoom_out
-                    )
+                val animation = if (hasFocus) {
+                    AnimationUtils.loadAnimation(binding.root.context, R.anim.zoom_in)
+                } else {
+                    AnimationUtils.loadAnimation(binding.root.context, R.anim.zoom_out)
                 }
                 binding.root.startAnimation(animation)
                 animation.fillAfter = true
             }
 
-
-
-            if (sectionList[sectionList.size - 1] != section) {
-                binding.spaceVw1.visibility = View.GONE
-                binding.spaceVw2.visibility = View.GONE
-                binding.root.setBackgroundResource(R.drawable.background_button)
-            } else {
+            // Exit item click listener
+            if (sectionList.last() == section) {
                 binding.spaceVw1.visibility = View.VISIBLE
                 binding.spaceVw2.visibility = View.VISIBLE
-                binding.root.setBackgroundResource(R.drawable.background_button_exit)
                 val context = binding.root.context
                 val layoutParams = binding.root.layoutParams as ViewGroup.MarginLayoutParams
                 layoutParams.topMargin =
@@ -142,7 +132,9 @@ class ProfileAdapter(
                         exitItemListener.invoke()
                     }
                 }
-
+            } else {
+                binding.spaceVw1.visibility = View.GONE
+                binding.spaceVw2.visibility = View.GONE
             }
         }
     }
@@ -156,7 +148,6 @@ class ProfileAdapter(
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
-
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
@@ -180,7 +171,6 @@ class ProfileAdapter(
                 AccountViewHolder(binding)
             }
 
-
             VIEW_TYPE_SECTION -> {
                 val binding = ProfileSectionItemBinding.inflate(
                     LayoutInflater.from(parent.context), parent, false
@@ -200,7 +190,7 @@ class ProfileAdapter(
         when (holder) {
             is BackButtonViewHolder -> holder.bind()
             is AccountViewHolder -> {
-                if (position - 1 >= 0 && position - 1 < accounts.size) {
+                if (position - 1 in 0 until accounts.size) {
                     holder.bind(accounts[position - 1])
                 }
             }
@@ -208,13 +198,12 @@ class ProfileAdapter(
             is AccountTypeViewHolder -> holder.bind(accounType)
             is SectionViewHolder -> {
                 val sectionPosition = position - accounts.size - 2
-                if (sectionPosition >= 0 && sectionPosition < sectionList.size) {
+                if (sectionPosition in sectionList.indices) {
                     holder.bind(sectionList[sectionPosition])
                 }
             }
         }
     }
-
 
     fun updateAccountType(newAccounType: String) {
         accounType = newAccounType
@@ -224,5 +213,17 @@ class ProfileAdapter(
     fun addAccount(account: String) {
         accounts.add(account)
         notifyItemInserted(accounts.size)
+    }
+
+    // ✅ Custom section selection
+    fun setSectionSelected(index: Int) {
+        if (index == selectedSectionIndex) return
+        val previousIndex = selectedSectionIndex
+        selectedSectionIndex = index
+
+        if (previousIndex != RecyclerView.NO_POSITION) {
+            notifyItemChanged(previousIndex + accounts.size + 2)
+        }
+        notifyItemChanged(selectedSectionIndex + accounts.size + 2)
     }
 }

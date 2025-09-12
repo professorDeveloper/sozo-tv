@@ -70,6 +70,9 @@
         <argument
             android:name="currentPage"
             app:argType="integer" />
+        <argument
+            android:name="currentIndex"
+            app:argType="integer" />
 
         <argument
             android:name="name"

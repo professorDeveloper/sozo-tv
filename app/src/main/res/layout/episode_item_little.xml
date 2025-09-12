@@ -60,7 +60,6 @@
         android:ellipsize="end"
         android:fontFamily="@font/rubik_regular"
         android:maxLines="1"
-        android:textColor="#ffffff"
 
         android:textSize="11sp"
         app:layout_constraintEnd_toEndOf="parent"

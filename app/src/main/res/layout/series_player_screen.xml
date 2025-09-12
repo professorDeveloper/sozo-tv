@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
-    tools:context=".presentation.screens.play.player.PlayerScreen">
+    android:background="@color/black">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -92,6 +91,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end|center"
+
                 android:layout_marginTop="4dp"
                 android:layout_marginEnd="4dp"
                 android:background="@drawable/shape_play_pause_circle_bottom"
@@ -113,6 +113,7 @@
 
 
             <TextView
+                android:id="@+id/textView9"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -133,9 +134,9 @@
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:focusedByDefault="false"
+            android:nextFocusDown="@id/btn_hide_menu_right"
             android:nextFocusUp="@id/btn_hide_menu_right"
             android:orientation="horizontal"
-            app:focusOutEnd="true"
             app:focusOutFront="true"
             android:padding="8dp"
             app:layout_constraintBottom_toBottomOf="parent"

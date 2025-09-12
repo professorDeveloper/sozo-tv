@@ -29,5 +29,32 @@
         android:textColor="#ffffff"
         android:textSize="18sp" />
 
+    <LinearLayout
+        android:id="@+id/placeHolderBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="16dp"
+        android:background="@drawable/background_button_login"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:padding="10dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            android:id="@+id/custom_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:duplicateParentState="true"
+            android:fontFamily="@font/days"
+            android:gravity="center"
+            android:text="Go to Settings"
+            android:textColor="@color/login_button_text_color"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+
 
 </LinearLayout>
