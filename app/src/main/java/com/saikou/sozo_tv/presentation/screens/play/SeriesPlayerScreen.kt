@@ -35,6 +35,7 @@ import androidx.navigation.fragment.navArgs
 import com.bugsnag.android.Bugsnag
 import com.lagradost.nicehttp.ignoreAllSSLErrors
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.adapters.EpisodePlayerAdapter
 import com.saikou.sozo_tv.databinding.ContentControllerTvSeriesBinding
 import com.saikou.sozo_tv.databinding.SeriesPlayerScreenBinding
 import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
