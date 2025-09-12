@@ -22,6 +22,7 @@ import com.saikou.sozo_tv.databinding.EpisodeScreenBinding
 import com.saikou.sozo_tv.parser.models.Part
 import com.saikou.sozo_tv.presentation.screens.wrong_title.WrongTitleDialog
 import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.readData
@@ -135,11 +136,22 @@ class EpisodeScreen : Fragment() {
                                             binding.loadingLayout.gone()
 
                                             adapter.updateEpisodeItems(result.data.data)
+                                            adapter.setOnItemClickedListener {
+                                                findNavController().navigate(
+                                                    EpisodeScreenDirections.actionEpisodeScreenToSeriesPlayerScreen(
+                                                        id = LocalData.itemMovieWatch!!.id.toString(),
+                                                        name = LocalData.itemMovieWatch!!.title.toString(),
+                                                        currentEpisode = LocalData.itemMovieWatch!!.epIndex.toString(),
+                                                        image = it.snapshot ?: LocalData.anime404,
+                                                        seriesMainId = currentMediaId ?: "",
+                                                    )
+                                                )
+                                            }
                                         } else {
                                             binding.topContainer.visible()
                                             adapter.updateEpisodeItems(result.data.data)
                                             adapter.setOnItemClickedListener {
-                                                
+
                                             }
                                             val partList = ArrayList<Part>()
                                             categoriesAdapter = EpisodeTabAdapter()
