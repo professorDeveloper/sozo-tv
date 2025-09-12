@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
+import com.saikou.sozo_tv.data.model.VodMovieResponse
 import com.saikou.sozo_tv.data.remote.DubsMp4Parser
 import com.saikou.sozo_tv.data.remote.LiveChartTrailer
 import com.saikou.sozo_tv.domain.model.Cast
@@ -12,24 +13,76 @@ import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.DetailRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
+import com.saikou.sozo_tv.parser.AnimePahe
+import com.saikou.sozo_tv.parser.models.EpisodeData
+import com.saikou.sozo_tv.parser.models.ShowResponse
+import com.saikou.sozo_tv.utils.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-class PlayViewModel(private val repo: DetailRepository,private val bookmarkRepo: MovieBookmarkRepository) : ViewModel() {
+class PlayViewModel(
+    private val repo: DetailRepository,
+    private val bookmarkRepo: MovieBookmarkRepository
+) : ViewModel() {
+    var lastPosition: Long = 0
+
+    var currentEpIndex = -1
+
     val detailData = MutableLiveData<DetailCategory>()
     val relationsData = MutableLiveData<List<MainModel>>()
     val errorData = MutableLiveData<String>()
     val castResponseData = MutableLiveData<List<Cast>>()
     val trailerData = MutableLiveData<String>()
-
     val isBookmark = MutableLiveData<Boolean>()
+    val animePahe = AnimePahe()
+    val currentEpisodeData = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
+    var seriesResponse: VodMovieResponse? = null
+    val allEpisodeData = MutableLiveData<Resource<EpisodeData>>(Resource.Idle)
+    fun getAllEpisodeByPage(page: Int, mediaId: String) {
+        viewModelScope.launch {
+            allEpisodeData.postValue(Resource.Loading)
+            animePahe.loadEpisodes(id = mediaId, curPage = page)?.let {
+                allEpisodeData.postValue(Resource.Success(it))
+            }
+        }
+    }
+
+    fun getCurrentEpisodeVod(episodeId: String, mediaId: String) {
+        viewModelScope.launch {
+            currentEpisodeData.postValue(Resource.Loading)
+            animePahe.getEpisodeVideo(epId = episodeId, id = mediaId).let {
+                animePahe.extractVideo(it.url).let {
+                    seriesResponse =  VodMovieResponse(
+                        authInfo = "",
+                        subtitleList = "",
+                        urlobj = it
+
+                    )
+                    currentEpisodeData.postValue(
+                        Resource.Success(
+                            VodMovieResponse(
+                                authInfo = "",
+                                subtitleList = "",
+                                urlobj = it
+
+                            )
+                        )
+                    )
+
+                }
+            }
+
+        }
+    }
+
+
     fun checkBookmark(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             val result = bookmarkRepo.getAllBookmarks()
             if (result.isNotEmpty()) {
                 isBookmark.postValue(result.any { it.id == id })
-            }else {
+            } else {
                 isBookmark.postValue(false)
             }
         }
@@ -46,6 +99,7 @@ class PlayViewModel(private val repo: DetailRepository,private val bookmarkRepo:
             bookmarkRepo.removeBookmark(movie)
         }
     }
+
     fun loadRelations(id: Int) {
         viewModelScope.launch {
             val result = repo.loadAnimeRelations(id)
@@ -65,6 +119,7 @@ class PlayViewModel(private val repo: DetailRepository,private val bookmarkRepo:
             }
         }
     }
+
     private var trailerJob: Job? = null
 
     fun loadCast(id: Int) {

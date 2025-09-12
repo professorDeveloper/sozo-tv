@@ -68,6 +68,10 @@
             android:name="id"
             app:argType="string" />
         <argument
+            android:name="currentPage"
+            app:argType="int" />
+
+        <argument
             android:name="name"
             app:argType="string" />
         <argument

@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.parser
 
+import androidx.lifecycle.MutableLiveData
 import com.bugsnag.android.Bugsnag
 import com.lagradost.nicehttp.Requests
 import com.saikou.sozo_tv.p_a_c_k_e_r.JsUnpacker
@@ -28,6 +29,8 @@ class AnimePahe : BaseParser() {
     override val saveName: String = "anipahe"
     override val hostUrl: String = "https://animepahe.ru/"
     override val language: String = "en"
+
+    val errorData = MutableLiveData<String>()
 
     // DDoS-Guard va Cloudflare bypass uchun umumiy headerlar
     private suspend fun getDefaultHeaders(): Map<String, String> {
