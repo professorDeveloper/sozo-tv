@@ -307,7 +307,7 @@ class SeriesPlayerScreen : Fragment() {
         } else {
             val historyBuild = WatchHistoryEntity(
                 episodeList[model.currentEpIndex].session ?: return,
-                "Episode ${model.currentEpIndex + 1}" ?: return,
+                "$ ${args.name} - Episode ${model.currentEpIndex + 1}" ?: return,
                 episodeList[model.currentEpIndex].snapshot ?: return,
                 "",
                 "",

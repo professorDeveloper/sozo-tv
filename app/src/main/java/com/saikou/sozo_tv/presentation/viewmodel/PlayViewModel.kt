@@ -140,6 +140,9 @@ class PlayViewModel(
         }
     }
 
+    suspend fun getAllWatchHistory(): List<WatchHistoryEntity> {
+        return watchHistoryRepository.getAllHistory()
+    }
     fun loadRelations(id: Int) {
         viewModelScope.launch {
             val result = repo.loadAnimeRelations(id)
