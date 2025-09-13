@@ -3,6 +3,7 @@ package com.saikou.sozo_tv.presentation.screens.play
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.os.Bundle
@@ -14,6 +15,7 @@ import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.OptIn
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -48,6 +50,7 @@ import com.bugsnag.android.Bugsnag
 import com.lagradost.nicehttp.ignoreAllSSLErrors
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.EpisodePlayerAdapter
+import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.model.HlsVariant
 import com.saikou.sozo_tv.databinding.ContentControllerTvSeriesBinding
 import com.saikou.sozo_tv.databinding.SeriesPlayerScreenBinding
@@ -55,6 +58,7 @@ import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import com.saikou.sozo_tv.parser.AnimePahe
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.EpisodeData
+import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
@@ -94,12 +98,33 @@ class SeriesPlayerScreen : Fragment() {
         return binding.root
     }
 
+
+    private fun navigateBack() {
+        if (LocalData.isHistoryItemClicked) {
+            val intent = Intent(requireContext(), ProfileActivity::class.java)
+            startActivity(intent)
+            requireActivity().finishAffinity()
+        } else {
+            if (isAdded) {
+                findNavController().navigateUp()
+            }
+        }
+    }
+
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.pvPlayer.controller.binding.frameBackButton.setOnClickListener {
-            findNavController().popBackStack()
+            navigateBack()
         }
+
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    navigateBack()
+                }
+            })
         model.currentEpIndex = args.currentIndex
         model.getAllEpisodeByPage(args.currentPage, args.seriesMainId)
         binding.pvPlayer.controller.binding.filmTitle.text =
@@ -154,6 +179,10 @@ class SeriesPlayerScreen : Fragment() {
 
                                 episodeAdapter.setOnEpisodeClick { position, data ->
                                     toggleSidebarRight(false)
+                                    lifecycleScope.launch {
+                                        saveWatchHistory()
+                                    }
+                                    model.doNotAsk = false
                                     model.currentEpIndex = position
                                     model.lastPosition = 0
 
@@ -206,10 +235,10 @@ class SeriesPlayerScreen : Fragment() {
                                 binding.pvPlayer.controller.binding.exoPrevContainer.setOnClickListener {
                                     if (model.currentEpIndex > 0) {
                                         lifecycleScope.launch() {
-//                                            saveWatchHistory()
+                                            saveWatchHistory()
                                             withContext(Dispatchers.Main) {
                                                 model.currentEpIndex -= 1
-//                                                model.doNotAsk = false
+                                                model.doNotAsk = false
                                                 model.getCurrentEpisodeVod(
                                                     episodeList[model.currentEpIndex].session.toString(),
                                                     args.seriesMainId
@@ -225,7 +254,8 @@ class SeriesPlayerScreen : Fragment() {
                                                             resource.data.urlobj
 
                                                         playNewEpisode(newUrl, args.name)
-                                                        binding.pvPlayer.controller.binding.filmTitle.text = "${args.name} - Episode ${model.currentEpIndex + 1}"
+                                                        binding.pvPlayer.controller.binding.filmTitle.text =
+                                                            "${args.name} - Episode ${model.currentEpIndex + 1}"
                                                     }
                                                 }
                                             }
@@ -256,6 +286,47 @@ class SeriesPlayerScreen : Fragment() {
 
         }
     }
+
+
+    private suspend fun saveWatchHistory() {
+        if (!::player.isInitialized) return // Ensure player is initialized
+        if (player.duration <= 0 && player.currentPosition >= 100_000 && player.currentPosition >= player.duration - 50) return  // Avoid saving if player hasn't loaded video yet
+
+        if (model.isWatched) {
+            val getEpIndex = model.getWatchedHistoryEntity
+            val newEp = getEpIndex!!.copy(
+                totalDuration = player.duration,
+                lastEpisodeWatchedIndex = args.seriesMainId.toInt(),
+                isEpisode = true,
+                epIndex = model.currentEpIndex,
+                lastPosition = player.currentPosition,
+                videoUrl = model.seriesResponse!!.urlobj,
+            )
+            model.updateHistory(newEp)
+            model.getWatchedHistoryEntity = null
+        } else {
+            val historyBuild = WatchHistoryEntity(
+                episodeList[model.currentEpIndex].session ?: return,
+                "Episode ${model.currentEpIndex + 1}" ?: return,
+                episodeList[model.currentEpIndex].snapshot ?: return,
+                "",
+                "",
+                "",
+                "",
+                "",
+                0.0,
+                "2024/01/01",
+                model.seriesResponse?.urlobj.toString(),
+                totalDuration = player.duration,
+                lastPosition = player.currentPosition,
+                lastEpisodeWatchedIndex = args.seriesMainId.toInt(),
+                epIndex = model.currentEpIndex,
+                isEpisode = true,
+            )
+            model.addHistory(historyBuild)
+        }
+    }
+
     @SuppressLint("WrongConstant")
     @OptIn(UnstableApi::class)
     private fun initializeVideo() {
@@ -265,7 +336,8 @@ class SeriesPlayerScreen : Fragment() {
             .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.CLEARTEXT))
             .ignoreAllSSLErrors().build()
 
-        dataSourceFactory = DefaultDataSource.Factory(requireContext(), OkHttpDataSource.Factory(client))
+        dataSourceFactory =
+            DefaultDataSource.Factory(requireContext(), OkHttpDataSource.Factory(client))
 
         val renderersFactory = DefaultRenderersFactory(requireContext())
             .setEnableDecoderFallback(true)
@@ -327,10 +399,16 @@ class SeriesPlayerScreen : Fragment() {
         binding.pvPlayer.controller.binding.exoQuality.setOnClickListener {
             val tracks: Tracks = player.currentTracks
             if (!tracks.groups.any { it.type == C.TRACK_TYPE_VIDEO }) {
-                Toast.makeText(requireContext(), "No video tracks available", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "No video tracks available", Toast.LENGTH_SHORT)
+                    .show()
                 return@setOnClickListener
             }
-            TrackSelectionDialogBuilder(requireContext(), "Choose Quality", player, C.TRACK_TYPE_VIDEO)
+            TrackSelectionDialogBuilder(
+                requireContext(),
+                "Choose Quality",
+                player,
+                C.TRACK_TYPE_VIDEO
+            )
                 .setTrackNameProvider { format ->
                     val height = format.height.takeIf { it > 0 } ?: 0
                     val bitrate = format.bitrate.takeIf { it > 0 }?.div(1000) ?: 0
@@ -375,7 +453,7 @@ class SeriesPlayerScreen : Fragment() {
         lifecycleScope.launch {
             val videoUrl = model.seriesResponse!!.urlobj
 
-//            val lastPosition = model.getWatchedHistoryEntity?.lastPosition ?: 0L
+            val lastPosition = model.getWatchedHistoryEntity?.lastPosition ?: 0L
 //            Log.d("GGG", "displayVideo:${lastPosition} ")
 
             val mediaItem =
@@ -387,16 +465,16 @@ class SeriesPlayerScreen : Fragment() {
 
             player.setMediaItem(mediaItem)
 
-//            if (!model.doNotAsk) {
-//                if (lastPosition > 0) {
-//                    Log.d("PlayerScreen", "Resuming from last position: $lastPosition")
-//                    player.seekTo(lastPosition)
-//                } else {
-//                    Log.d("PlayerScreen", "Starting from the beginning")
-//                }
-//            } else {
-//                player.seekTo(model.lastPosition)
-//            }
+            if (!model.doNotAsk) {
+                if (lastPosition > 0) {
+                    Log.d("PlayerScreen", "Resuming from last position: $lastPosition")
+                    player.seekTo(lastPosition)
+                } else {
+                    Log.d("PlayerScreen", "Starting from the beginning")
+                }
+            } else {
+                player.seekTo(model.lastPosition)
+            }
 
             player.prepare()
             player.play()
@@ -407,29 +485,28 @@ class SeriesPlayerScreen : Fragment() {
                 binding.pvPlayer.controller.binding.exoPlayPaused
                     .setImageResource(R.drawable.anim_pause_to_play)
             }
-//            if (model.isWatched && model.getWatchedHistoryEntity != null && model.getWatchedHistoryEntity!!.lastPosition > 0 && !model.doNotAsk) {
-//                player.pause()
-//                val dialog = AlertPlayerDialog(model.getWatchedHistoryEntity!!)
-//                dialog.setNoClearListener {
-//                    lifecycleScope.launch {
-//                        dialog.dismiss()
-//                        model.removeHistory(args.id)
-//                        withContext(Dispatchers.Main) {
-//                            player.seekTo(0)
-//                            player.play()
-//                        }
-//                    }
-//                }
-//                dialog.setYesContinueListener {
-//                    dialog.dismiss()
-//                    player.play()
-//                }
-//                dialog.show(parentFragmentManager, "ConfirmationDialog")
-//
-//            }
+            if (model.isWatched && model.getWatchedHistoryEntity != null && model.getWatchedHistoryEntity!!.lastPosition > 0 && !model.doNotAsk) {
+                player.pause()
+                val dialog = AlertPlayerDialog(model.getWatchedHistoryEntity!!)
+                dialog.setNoClearListener {
+                    lifecycleScope.launch {
+                        dialog.dismiss()
+                        model.removeHistory(args.id)
+                        withContext(Dispatchers.Main) {
+                            player.seekTo(0)
+                            player.play()
+                        }
+                    }
+                }
+                dialog.setYesContinueListener {
+                    dialog.dismiss()
+                    player.play()
+                }
+                dialog.show(parentFragmentManager, "ConfirmationDialog")
+
+            }
         }
     }
-
 
 
     private fun toggleSidebarRight(show: Boolean) {
@@ -470,29 +547,29 @@ class SeriesPlayerScreen : Fragment() {
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        if (player.currentPosition > 10) {
+            lifecycleScope.launch {
+                saveWatchHistory()
+            }
+        }
+        if (::player.isInitialized) {
+            player.release()
+            mediaSession.release()
+        }
+        _binding = null
+    }
+
+
     override fun onPause() {
         super.onPause()
         if (::player.isInitialized) {
             player.pause()
             lifecycleScope.launch {
-//                saveWatchHistory()
+                saveWatchHistory()
             }
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        if (player.currentPosition > 10) {
-            lifecycleScope.launch {
-//                saveWatchHistory()
-            }
-        }
-        if (::player.isInitialized) {
-//            LocalData.isSeries = false
-            player.release()
-            mediaSession.release()
-        }
-        _binding = null
     }
 
     override fun onResume() {

@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
+import com.saikou.sozo_tv.data.local.entity.EpisodeInfoEntity
+import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.model.VodMovieResponse
 import com.saikou.sozo_tv.data.remote.DubsMp4Parser
 import com.saikou.sozo_tv.data.remote.LiveChartTrailer
@@ -13,6 +15,7 @@ import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.DetailRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
+import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.AnimePahe
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
@@ -23,8 +26,11 @@ import kotlinx.coroutines.launch
 
 class PlayViewModel(
     private val repo: DetailRepository,
-    private val bookmarkRepo: MovieBookmarkRepository
-) : ViewModel() {
+    private val bookmarkRepo: MovieBookmarkRepository,
+    private val watchHistoryRepository: WatchHistoryRepository,
+
+    ) : ViewModel() {
+    var doNotAsk: Boolean = false
     var lastPosition: Long = 0
 
     var currentEpIndex = -1
@@ -35,25 +41,59 @@ class PlayViewModel(
     val castResponseData = MutableLiveData<List<Cast>>()
     val trailerData = MutableLiveData<String>()
     val isBookmark = MutableLiveData<Boolean>()
+    var isWatched = false
+    var epListFromLocal = ArrayList<EpisodeInfoEntity>()
+    var getWatchedHistoryEntity: WatchHistoryEntity? = null
+
     val animePahe = AnimePahe()
     val currentEpisodeData = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     var seriesResponse: VodMovieResponse? = null
     val allEpisodeData = MutableLiveData<Resource<EpisodeData>>(Resource.Idle)
     fun getAllEpisodeByPage(page: Int, mediaId: String) {
-        viewModelScope.launch (Dispatchers.IO){
+        viewModelScope.launch(Dispatchers.IO) {
             allEpisodeData.postValue(Resource.Loading)
             animePahe.loadEpisodes(id = mediaId, curPage = page)?.let {
+
                 allEpisodeData.postValue(Resource.Success(it))
             }
         }
     }
 
+    suspend fun isWatched(videoUrl: String): Boolean {
+        return watchHistoryRepository.isWatched(videoUrl)
+    }
+
+    suspend fun addHistory(history: WatchHistoryEntity) {
+        watchHistoryRepository.addHistory(history)
+    }
+
+    suspend fun getWatchedEntity(id: String): WatchHistoryEntity? {
+        return watchHistoryRepository.getWatchHistoryByVideoUrl(id)
+    }
+
+    suspend fun removeHistory(videoUrl: String) {
+        watchHistoryRepository.removeHistory(videoUrl)
+    }
+
+    suspend fun updateHistory(history: WatchHistoryEntity) {
+//        getWatchedHistoryEntity = history
+        watchHistoryRepository.addHistory(history)
+    }
+
     fun getCurrentEpisodeVod(episodeId: String, mediaId: String) {
-        viewModelScope.launch (Dispatchers.IO){
+        viewModelScope.launch(Dispatchers.IO) {
             currentEpisodeData.postValue(Resource.Loading)
+            isWatched = isWatched(episodeId.toString())
+            if (isWatched) {
+                getWatchedHistoryEntity = getWatchedEntity(episodeId.toString())
+                epListFromLocal = getWatchedHistoryEntity!!.epList
+
+            }
             animePahe.getEpisodeVideo(epId = episodeId, id = mediaId).let {
                 animePahe.extractVideo(it.url).let {
-                    seriesResponse =  VodMovieResponse(
+
+
+                    seriesResponse = VodMovieResponse(
                         authInfo = "",
                         subtitleList = "",
                         urlobj = it
