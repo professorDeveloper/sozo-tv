@@ -455,10 +455,17 @@ class SeriesPlayerScreen : Fragment() {
     private fun displayVideo() {
         lifecycleScope.launch {
             val videoUrl = model.seriesResponse!!.urlobj
-
             val lastPosition = model.getWatchedHistoryEntity?.lastPosition ?: 0L
 //            Log.d("GGG", "displayVideo:${lastPosition} ")
-
+            if (LocalData.isHistoryItemClicked) {
+                binding.pvPlayer.controller.binding.exoNextContainer.gone()
+                binding.pvPlayer.controller.binding.exoPrevContainer.gone()
+                binding.pvPlayer.controller.binding.epListContainer.gone()
+            } else {
+                binding.pvPlayer.controller.binding.exoNextContainer.visible()
+                binding.pvPlayer.controller.binding.exoPrevContainer.visible()
+                binding.pvPlayer.controller.binding.epListContainer.visible()
+            }
             val mediaItem =
                 MediaItem.Builder()
                     .setUri(videoUrl)
@@ -481,6 +488,7 @@ class SeriesPlayerScreen : Fragment() {
 
             player.prepare()
             player.play()
+
             if (player.isPlaying) {
                 binding.pvPlayer.controller.binding.exoPlayPaused
                     .setImageResource(R.drawable.anim_play_to_pause)
@@ -549,6 +557,7 @@ class SeriesPlayerScreen : Fragment() {
             binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
         }
     }
+
     override fun onDestroyView() {
         if (player.currentPosition > 10 && ::player.isInitialized) {
             runBlocking {
