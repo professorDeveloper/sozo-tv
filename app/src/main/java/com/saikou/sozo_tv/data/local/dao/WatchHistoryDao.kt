@@ -16,14 +16,14 @@ interface WatchHistoryDao {
     suspend fun getAllWatchHistory(): List<WatchHistoryEntity>
 
     @Query("SELECT * FROM watch_history WHERE session= :id LIMIT 1")
-    suspend fun getWatchHistoryByVideoUrl(id: Int): WatchHistoryEntity?
+    suspend fun getWatchHistoryByVideoUrl(id: String): WatchHistoryEntity?
 
     @Query("SELECT * FROM watch_history WHERE session= :id LIMIT 1")
-    suspend fun getWatchHistoryById(id: Int): WatchHistoryEntity?
+    suspend fun getWatchHistoryById(id: String): WatchHistoryEntity?
 
 
     @Query("DELETE FROM watch_history WHERE session= :id")
-    suspend fun deleteByVideoUrl(id: Int)
+    suspend fun deleteByVideoUrl(id: String)
 
 
     @Query("DELETE FROM watch_history")

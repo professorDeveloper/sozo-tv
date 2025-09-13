@@ -7,20 +7,23 @@ import android.view.animation.AnimationUtils
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.databinding.EpisodeItemBinding
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.loadImage
+import com.saikou.sozo_tv.utils.visible
 import java.util.concurrent.TimeUnit
 
 class SeriesPageAdapter(
-    val localEpisode: ArrayList<Data> = arrayListOf()
+    val localEpisode: ArrayList<WatchHistoryEntity> = arrayListOf()
 ) : RecyclerView.Adapter<SeriesPageAdapter.EpisodeViewHolder>() {
 
     var episodeList: ArrayList<Data> = arrayListOf()
-    private lateinit var onItemClicked: (Data,Int) -> Unit
+    private lateinit var onItemClicked: (Data, Int) -> Unit
 
-    fun setOnItemClickedListener(listener: (Data,Int) -> Unit) {
+    fun setOnItemClickedListener(listener: (Data, Int) -> Unit) {
         onItemClicked = listener
     }
 
@@ -49,17 +52,20 @@ class SeriesPageAdapter(
         fun bind(data: Data) {
             binding.apply {
                 // progress data
-//                val getLocalEp = localEpisode.find { it. == data.id }
-//                if (getLocalEp != null) {
-//                    timeStr.visible()
-//                    progressBar.visible()
-//                    timeStr.text =
-//                        "Stopped at ${formatMillisToTime(getLocalEp.currPosition.toLong())}"
-//                    progressBar.max = getLocalEp.episodeDuration.toInt()
-//                    progressBar.progress = getLocalEp.currPosition.toInt()
-//                }
+                val getLocalEp = localEpisode.find { it.session == data.session }
+                if (getLocalEp != null) {
+                    timeStr.visible()
+                    progressBar.visible()
+                    timeStr.text =
+                        "Stopped at ${formatMillisToTime(getLocalEp.lastPosition.toLong())}"
+                    progressBar.max = getLocalEp.totalDuration.toInt()
+                    progressBar.progress = getLocalEp.lastPosition.toInt()
+                }else {
+                    timeStr.gone()
+                    progressBar.gone()
+                }
                 binding.country.text = data.episode.toString()
-                root.setOnClickListener { onItemClicked.invoke(data,absoluteAdapterPosition) }
+                root.setOnClickListener { onItemClicked.invoke(data, absoluteAdapterPosition) }
                 topContainer.text = "Episode ${data.episode ?: 0}"
                 binding.root.setOnFocusChangeListener { _, hasFocus ->
                     val animation = when {

@@ -50,6 +50,6 @@ data class WatchHistoryEntity(
     val lastPosition: Long,
     val watchedAt: Long = System.currentTimeMillis(),
     val isEpisode: Boolean = false,
-    val lastEpisodeWatchedIndex: Int = 0,
+    val lastEpisodeWatchedIndex: String = "-1",
     var epIndex: Int = -1,
 )

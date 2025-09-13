@@ -76,7 +76,7 @@ val koinModule = module {
 //
 //
     viewModel { HomeViewModel(repo = get()) }
-    viewModel { EpisodeViewModel() }
+    viewModel { EpisodeViewModel(watchHistoryRepository = get()) }
     viewModel { WrongTitleViewModel() }
     viewModel { PlayViewModel(repo = get(), bookmarkRepo = get(), watchHistoryRepository = get()) }
     viewModel { CategoriesViewModel(repo = get()) }

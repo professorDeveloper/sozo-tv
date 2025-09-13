@@ -13,11 +13,11 @@ class WatchHistoryRepositoryImpl(private val watchHistoryDao: WatchHistoryDao) :
     }
 
     override suspend fun removeHistory(videoUrl: String) {
-        watchHistoryDao.deleteByVideoUrl(videoUrl.toInt())
+        watchHistoryDao.deleteByVideoUrl(videoUrl)
     }
 
     override suspend fun isWatched(id: String): Boolean {
-        return watchHistoryDao.getWatchHistoryByVideoUrl(id.toInt()) != null
+        return watchHistoryDao.getWatchHistoryByVideoUrl(id) != null
     }
 
 
@@ -27,11 +27,11 @@ class WatchHistoryRepositoryImpl(private val watchHistoryDao: WatchHistoryDao) :
 
     override suspend fun getWatchHistoryByVideoUrl(id: String): WatchHistoryEntity? {
 
-        return watchHistoryDao.getWatchHistoryByVideoUrl(id.toInt())
+        return watchHistoryDao.getWatchHistoryByVideoUrl(id)
     }
 
     override suspend fun getWatchHistoryById(id: String): WatchHistoryEntity? {
-        return watchHistoryDao.getWatchHistoryById(id.toInt())
+        return watchHistoryDao.getWatchHistoryById(id)
     }
 
     override suspend fun clearAllHistory() {

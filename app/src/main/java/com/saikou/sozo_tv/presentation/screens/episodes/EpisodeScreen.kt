@@ -68,8 +68,8 @@ class EpisodeScreen : Fragment() {
                 "No Source Selected \n Please Select Source First from Settings"
             binding.placeHolder.placeHolderBtn.visible()
             binding.placeHolder.placeHolderBtn.setOnClickListener {
-                val intent =Intent(requireActivity(),ProfileActivity::class.java)
-                intent.putExtra("openSettings",true)
+                val intent = Intent(requireActivity(), ProfileActivity::class.java)
+                intent.putExtra("openSettings", true)
                 requireActivity().startActivity(intent)
             }
         } else {
@@ -80,7 +80,8 @@ class EpisodeScreen : Fragment() {
             )
 
             viewModel.findEpisodes(args.episodeTitle)
-            viewModel.dataFound.observe(viewLifecycleOwner) { dataFound ->
+            viewModel.dataFound.observe(viewLifecycleOwner)
+            { dataFound ->
                 when (dataFound) {
                     is Resource.Error -> {
                         binding.placeHolder.root.visible()
@@ -107,7 +108,7 @@ class EpisodeScreen : Fragment() {
                         binding.textView7.visible()
                         binding.textView7.startAnimation(anim)
                         currentMediaId = dataFound.data.link
-                        adapter = SeriesPageAdapter()
+                        adapter = SeriesPageAdapter(localEpisode = viewModel.epListFromLocal)
                         binding.wrongTitleContainer.visibility = View.VISIBLE
                         binding.wrongTitleContainer.startAnimation(anim)
                         binding.wrongTitleContainer.setOnClickListener { gg ->
