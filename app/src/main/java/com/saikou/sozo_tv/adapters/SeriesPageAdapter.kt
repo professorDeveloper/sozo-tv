@@ -56,8 +56,6 @@ class SeriesPageAdapter(
                 if (getLocalEp != null) {
 //                    timeStr.visible()
                     progressBar.visible()
-//                    timeStr.text =
-//                        "Stopped at ${formatMillisToTime(getLocalEp.lastPosition.toLong())}"
                     progressBar.max = getLocalEp.totalDuration.toInt()
                     progressBar.progress = getLocalEp.lastPosition.toInt()
                 }else {
