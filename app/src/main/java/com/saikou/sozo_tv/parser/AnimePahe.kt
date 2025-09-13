@@ -78,6 +78,21 @@ class AnimePahe : BaseParser() {
         }
     }
 
+    private fun m3u8ToMp4(m3u8Url: String, fileName: String): String {
+        val uri = java.net.URI(m3u8Url)
+        val cleanPath = uri.path
+            .replaceFirst("/stream", "/mp4")
+            .substringBeforeLast("/")
+
+        return java.net.URI(
+            uri.scheme,
+            uri.authority,
+            cleanPath,
+            "file=$fileName.mp4",
+            null
+        ).toString()
+    }
+
     fun getEpisodeVideo(epId: String, id: String): Kiwi {
         val doc =
             getJsoup("https://animepahe.ru/play/${id}/${epId}", mapOf("User-Agent" to USER_AGENT))
@@ -115,7 +130,7 @@ class AnimePahe : BaseParser() {
             }
         }
 
-        return extractFileUrl(getAndUnpack(evalContent ?: "")) ?: ""
+        return m3u8ToMp4(extractFileUrl(getAndUnpack(evalContent ?: "")) ?: "", fileName = "file")
     }
 
     private val packedRegex = Regex("""eval\(function\(p,a,c,k,e,.*\)\)""")
@@ -172,7 +187,7 @@ class AnimePahe : BaseParser() {
     }
 
     companion object {
-         const val USER_AGENT =
+        const val USER_AGENT =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
     }
 }

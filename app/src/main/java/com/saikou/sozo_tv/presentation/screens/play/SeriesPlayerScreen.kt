@@ -35,6 +35,7 @@ import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.exoplayer.hls.HlsMediaSource
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.session.MediaSession
@@ -149,6 +150,8 @@ class SeriesPlayerScreen : Fragment() {
                                 )
                                 episodeAdapter.submitList(episodeList)
                                 binding.episodeRv.adapter = episodeAdapter
+
+
                                 episodeAdapter.setOnEpisodeClick { position, data ->
                                     toggleSidebarRight(false)
                                     model.currentEpIndex = position
@@ -256,48 +259,46 @@ class SeriesPlayerScreen : Fragment() {
     @SuppressLint("WrongConstant")
     @OptIn(UnstableApi::class)
     private fun initializeVideo() {
+        if (::player.isInitialized) return // Player allaqachon yaratilgan bo'lsa, qayt
 
-        // Http factory bilan timeout va redirectlar
-        val httpFactory = DefaultHttpDataSource.Factory()
-            .setAllowCrossProtocolRedirects(true)
-            .setConnectTimeoutMs(15_000)
-            .setReadTimeoutMs(15_000)
+        val client = OkHttpClient.Builder()
+            .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.CLEARTEXT))
+            .ignoreAllSSLErrors().build()
 
-        dataSourceFactory = DefaultDataSource.Factory(requireContext(), httpFactory)
+        dataSourceFactory = DefaultDataSource.Factory(requireContext(), OkHttpDataSource.Factory(client))
 
         val renderersFactory = DefaultRenderersFactory(requireContext())
-            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
             .setEnableDecoderFallback(true)
+            .setMediaCodecSelector(MediaCodecSelector.DEFAULT)
+            .setEnableAudioFloatOutput(false)
+
+        httpDataSource = DefaultHttpDataSource.Factory()
 
         player = ExoPlayer.Builder(requireContext(), renderersFactory)
             .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
-            .build()
-            .also { exoPlayer ->
-                // HLS uchun seek parameters
-                exoPlayer.setSeekParameters(SeekParameters.CLOSEST_SYNC)
+            .setRenderersFactory(renderersFactory)
+            .setVideoChangeFrameRateStrategy(
+                C.VIDEO_CHANGE_FRAME_RATE_STRATEGY_ONLY_IF_SEAMLESS
+            ).build()
 
-                exoPlayer.setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(C.USAGE_MEDIA)
-                        .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-                        .build(),
-                    true,
-                )
-                exoPlayer.playWhenReady = true
-                exoPlayer.volume = 1f
+        player.setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+                .build(),
+            true
+        )
 
-                val uniqueSessionId = UUID.randomUUID().toString()
-                mediaSession =
-                    MediaSession.Builder(requireContext(), exoPlayer).setId(uniqueSessionId).build()
+        // faqat bitta marta MediaSession yaratamiz
+        if (!::mediaSession.isInitialized) {
+            mediaSession = MediaSession.Builder(requireContext(), player).build()
+        }
 
-                exoPlayer.addListener(object : Player.Listener {
-                    override fun onPlayerError(error: PlaybackException) {
-                        super.onPlayerError(error)
-                        Bugsnag.notify(error)
-                        Toast.makeText(requireContext(), "Video Error: ${error.message}", Toast.LENGTH_SHORT).show()
-                    }
-                })
+        player.addListener(object : Player.Listener {
+            override fun onPlayerError(error: PlaybackException) {
+                Bugsnag.notify(error)
             }
+        })
 
         binding.pvPlayer.player = player
 
@@ -353,17 +354,17 @@ class SeriesPlayerScreen : Fragment() {
         player.stop()
         player.clearMediaItems()
 
-        // HLS uchun maxsus HlsMediaSource ishlatish
-        val hlsSource = HlsMediaSource.Factory(dataSourceFactory)
-            .setAllowChunklessPreparation(true)
-            .createMediaSource(MediaItem.Builder()
-                .setUri(videoUrl)
-                .setMimeType(MimeTypes.APPLICATION_M3U8)
-                .setTag(title)
-                .build()
-            )
+        val mediaItem = MediaItem.Builder()
+            .setUri(videoUrl)
+            .setMimeType(MimeTypes.VIDEO_MP4) // MP4 uchun to'g'ri MIME type
+            .setTag(title)
+            .build()
 
-        player.setMediaSource(hlsSource)
+        // MP4 uchun ProgressiveMediaSource ishlatamiz
+        val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
+            .createMediaSource(mediaItem)
+
+        player.setMediaSource(mediaSource)
         player.prepare()
         player.play()
     }
@@ -380,7 +381,7 @@ class SeriesPlayerScreen : Fragment() {
             val mediaItem =
                 MediaItem.Builder()
                     .setUri(videoUrl)
-                    .setMimeType(MimeTypes.APPLICATION_M3U8)
+                    .setMimeType(MimeTypes.APPLICATION_MP4)
                     .setTag(args.name)
                     .build()
 
@@ -435,31 +436,37 @@ class SeriesPlayerScreen : Fragment() {
         val sidebarWidth = binding.sidebarRight.width.toFloat()
 
         if (show) {
+            binding.pvPlayer.controller.binding.epListContainer.isFocusable = false
+            binding.pvPlayer.controller.binding.epListContainer.gone()
             binding.sidebarRight.isVisible = true
-            binding.sidebarRight.translationX =
-                sidebarWidth  // boshlang'ich holati (o'ngda yashirin)
+            binding.sidebarRight.translationX = sidebarWidth
             binding.sidebarRight.animate()
-                .translationX(0f) // chapga chiqib keladi
+                .translationX(0f)
                 .setDuration(900)
+                .withEndAction {
+                    binding.btnHideMenuRight.requestFocus()
+                }
                 .start()
 
             binding.btnHideMenuRight.isFocusable = true
             binding.btnHideMenuRight.isFocusableInTouchMode = true
             binding.btnHideMenuRight.isEnabled = true
-
-            binding.episodeRv.requestFocus()
         } else {
             binding.sidebarRight.animate()
-                .translationX(sidebarWidth) // o'ng tomonga yashirinadi
+                .translationX(sidebarWidth)
                 .setDuration(900)
                 .withEndAction {
                     binding.sidebarRight.isVisible = false
                 }.start()
 
+            binding.pvPlayer.controller.binding.epListContainer.isFocusable = true
+            binding.pvPlayer.controller.binding.epListContainer.visible()
             binding.btnHideMenuRight.isFocusable = false
             binding.btnHideMenuRight.isFocusableInTouchMode = false
             binding.btnHideMenuRight.isEnabled = false
             binding.episodeRv.clearFocus()
+
+            binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
         }
     }
 
