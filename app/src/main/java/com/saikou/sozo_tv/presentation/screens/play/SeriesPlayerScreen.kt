@@ -290,43 +290,82 @@ class SeriesPlayerScreen : Fragment() {
 
 
     private suspend fun saveWatchHistory() {
-        if (!::player.isInitialized) return // Ensure player is initialized
-        if (player.duration <= 0 && player.currentPosition >= 100_000 && player.currentPosition >= player.duration - 50) return  // Avoid saving if player hasn't loaded video yet
+        try {
+            if (!::player.isInitialized) {
+                Log.w("SaveHistory", "Player is not initialized -> returning")
+                return
+            }
 
-        if (model.isWatched) {
-            val getEpIndex = model.getWatchedHistoryEntity
-            val newEp = getEpIndex!!.copy(
-                totalDuration = player.duration,
-                lastEpisodeWatchedIndex = args.seriesMainId,
-                isEpisode = true,
-                epIndex = model.currentEpIndex,
-                lastPosition = player.currentPosition,
-                videoUrl = model.seriesResponse!!.urlobj,
-            )
-            model.updateHistory(newEp)
-            model.getWatchedHistoryEntity = null
-        } else {
-            val historyBuild = WatchHistoryEntity(
-                episodeList[model.currentEpIndex].session ?: return,
-                "${args.name} - Episode ${model.currentEpIndex + 1}" ?: return,
-                mediaName = args.name,
-                episodeList[model.currentEpIndex].snapshot ?: return,
-                "",
-                args.seriesMainId,
-                "",
-                "",
-                "",
-                0.0,
-                args.currentPage,
-                "2024/01/01",
-                model.seriesResponse?.urlobj.toString(),
-                totalDuration = player.duration,
-                lastPosition = player.currentPosition,
-                lastEpisodeWatchedIndex = args.seriesMainId,
-                epIndex = model.currentEpIndex,
-                isEpisode = true,
-            )
-            model.addHistory(historyBuild)
+            Log.d("SaveHistory", "player.duration=${player.duration}, player.currentPosition=${player.currentPosition}")
+            if (player.duration <= 0 && player.currentPosition >= 100_000 && player.currentPosition >= player.duration - 50) {
+                Log.w("SaveHistory", "Skipping save: player not fully loaded")
+                return
+            }
+
+            Log.d("SaveHistory", "model.isWatched=${model.isWatched}")
+            if (model.isWatched) {
+                val getEpIndex = model.getWatchedHistoryEntity
+                Log.d("SaveHistory", "getWatchedHistoryEntity=$getEpIndex")
+                Log.d("SaveHistory", "model.seriesResponse=${model.seriesResponse}")
+
+                if (getEpIndex == null) {
+                    Log.e("SaveHistory", "getWatchedHistoryEntity is NULL!")
+                    return
+                }
+                if (model.seriesResponse == null) {
+                    Log.e("SaveHistory", "seriesResponse is NULL!")
+                    return
+                }
+
+                val newEp = getEpIndex.copy(
+                    totalDuration = player.duration,
+                    lastEpisodeWatchedIndex = args.seriesMainId,
+                    isEpisode = true,
+                    epIndex = model.currentEpIndex,
+                    lastPosition = player.currentPosition,
+                    videoUrl = model.seriesResponse!!.urlobj,
+                )
+                model.updateHistory(newEp)
+                model.getWatchedHistoryEntity = null
+            } else {
+                if (episodeList.isEmpty() || model.currentEpIndex !in episodeList.indices) {
+                    Log.e("SaveHistory", "episodeList is empty or currentEpIndex out of range!")
+                    return
+                }
+                if (episodeList[model.currentEpIndex].session == null) {
+                    Log.e("SaveHistory", "session is NULL!")
+                    return
+                }
+                if (episodeList[model.currentEpIndex].snapshot == null) {
+                    Log.e("SaveHistory", "snapshot is NULL!")
+                    return
+                }
+
+                Log.d("SaveHistory", "Building new history entity...")
+                val historyBuild = WatchHistoryEntity(
+                    episodeList[model.currentEpIndex].session ?: return,
+                    "${args.name} - Episode ${model.currentEpIndex + 1}" ?: return,
+                    mediaName = args.name,
+                    episodeList[model.currentEpIndex].snapshot ?: return,
+                    "",
+                    args.seriesMainId,
+                    "",
+                    "",
+                    "",
+                    0.0,
+                    args.currentPage,
+                    "2024/01/01",
+                    model.seriesResponse?.urlobj.toString(),
+                    totalDuration = player.duration,
+                    lastPosition = player.currentPosition,
+                    lastEpisodeWatchedIndex = args.seriesMainId,
+                    epIndex = model.currentEpIndex,
+                    isEpisode = true,
+                )
+                model.addHistory(historyBuild)
+            }
+        } catch (e: Exception) {
+            Log.e("SaveHistory", "Exception in saveWatchHistory: ${e.message}", e)
         }
     }
 
