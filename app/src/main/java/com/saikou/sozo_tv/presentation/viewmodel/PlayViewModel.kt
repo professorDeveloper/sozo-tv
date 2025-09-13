@@ -86,7 +86,7 @@ class PlayViewModel(
             isWatched = isWatched(episodeId.toString())
             if (isWatched) {
                 getWatchedHistoryEntity = getWatchedEntity(episodeId.toString())
-                epListFromLocal = getWatchedHistoryEntity!!.epList
+//                epListFromLocal = getWatchedHistoryEntity!!.epList
 
             }
             animePahe.getEpisodeVideo(epId = episodeId, id = mediaId).let {
