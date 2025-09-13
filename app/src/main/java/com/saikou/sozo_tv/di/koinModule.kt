@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.di
 
 import androidx.room.Room
+import com.google.firebase.database.FirebaseDatabase
 import com.saikou.sozo_tv.data.local.dao.WatchHistoryDao
 import com.saikou.sozo_tv.data.local.database.AppDatabase
 import com.saikou.sozo_tv.data.repository.CategoriesRepositoryImpl
@@ -25,7 +26,9 @@ import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.SplashViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.WrongTitleViewModel
+import com.saikou.sozo_tv.services.FirebaseService
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -78,6 +81,7 @@ val koinModule = module {
     viewModel { HomeViewModel(repo = get()) }
     viewModel { EpisodeViewModel(watchHistoryRepository = get()) }
     viewModel { WrongTitleViewModel() }
+    viewModel { SplashViewModel(firebaseService = get()) }
     viewModel { PlayViewModel(repo = get(), bookmarkRepo = get(), watchHistoryRepository = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
     viewModel { SearchViewModel(repo = get()) }
@@ -98,4 +102,11 @@ val koinModule = module {
 //    viewModel { HomeViewModel(repo = get(), liveTvUseCase = get()) }
 //    viewModel { BookmarkViewModel(bookmarkRepository = get(), homeRepo = get()) }
 
+}
+
+val firebaseModule = module {
+    single<FirebaseDatabase> {
+        FirebaseDatabase.getInstance("https://ipsat-a6060-default-rtdb.firebaseio.com/")
+    }
+    single { FirebaseService(get()) }
 }
