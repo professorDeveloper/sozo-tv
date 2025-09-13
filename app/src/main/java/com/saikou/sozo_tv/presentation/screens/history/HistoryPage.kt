@@ -13,6 +13,7 @@ import com.saikou.sozo_tv.databinding.HistoryPageBinding
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.LocalData.isHistoryItemClicked
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -47,9 +48,14 @@ class HistoryPage : Fragment() {
                 historyAdapter.setItemHistoryListener {
                     if (it.isEpisode) {
                         val intent = Intent(binding.root.context, PlayerActivity::class.java)
-                        intent.putExtra("model", it.session)
+                        intent.putExtra("session", it.session)
+                        intent.putExtra("page", it.page)
+                        intent.putExtra("epIndex", it.epIndex)
+                        intent.putExtra("mediaId", it.categoryid)
+                        intent.putExtra("animeTitle", it.title)
                         intent.putExtra("isHistory", true)
 //                        LocalData.itemMovieWatch = it
+                        isHistoryItemClicked =true
 //                        LocalData.isSeries = true
                         requireContext().startActivity(intent)
                         binding.root.context.startActivity(intent)
@@ -64,27 +70,30 @@ class HistoryPage : Fragment() {
         binding.clearHistoryBtn.setOnClickListener {
             val dialog = HistoryAlertDialog()
             dialog.setNoClearListener {
-                lifecycleScope.launch {
-                    val watchHistoryList = withContext(Dispatchers.IO) {
-                        model.clearAllHistory()
-                        model.getAllWatchHistory()
-                    }
-                    dialog.dismiss()
-                    if (watchHistoryList.isNotEmpty()) {
-                        binding.historyGroup.visibility = View.VISIBLE
-                        binding.placeHolder.root.visibility = View.GONE
-                        historyAdapter.submitList(watchHistoryList)
-                    } else {
-                        binding.placeHolder.root.visibility = View.VISIBLE
-                        binding.historyGroup.visibility = View.GONE
-                    }
-                }
-
+                dialog.dismiss()
+                clearHistory()
             }
             dialog.setYesContinueListener {
                 dialog.dismiss()
             }
             dialog.show(parentFragmentManager, "ConfirmationDialog")
+        }
+    }
+
+    private fun clearHistory() {
+        lifecycleScope.launch {
+            model.clearAllHistory()
+            val watchHistoryList = withContext(Dispatchers.IO) {
+                model.getAllWatchHistory()
+            }
+            if (watchHistoryList.isNotEmpty()) {
+                binding.historyGroup.visibility = View.VISIBLE
+                binding.placeHolder.root.visibility = View.GONE
+                historyAdapter.submitList(watchHistoryList)
+            } else {
+                binding.placeHolder.root.visibility = View.VISIBLE
+                binding.historyGroup.visibility = View.GONE
+            }
         }
     }
 }

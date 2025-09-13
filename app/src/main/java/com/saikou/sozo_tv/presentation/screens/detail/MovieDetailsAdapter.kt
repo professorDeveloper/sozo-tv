@@ -345,7 +345,6 @@ class MovieDetailsAdapter(
 
             binding.watchButton.setOnClickListener {
                 item.content.id.let {
-
                     interfaceListener.run {
                         onWatchButtonClicked(
                                         item,

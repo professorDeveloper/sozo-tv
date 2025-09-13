@@ -15,6 +15,7 @@ import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.ProfileAdapter
 import com.saikou.sozo_tv.databinding.ActivityProfileBinding
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.LocalData.isHistoryItemClicked
 import com.saikou.sozo_tv.utils.LocalData.sectionList
 import kotlinx.coroutines.launch
 
@@ -23,15 +24,16 @@ class ProfileActivity : AppCompatActivity() {
     private var backPressCount = 0
 
     private lateinit var profileAdapter: ProfileAdapter
-    private var  isSettingsOpen = false
+    private var isSettingsOpen = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityProfileBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
+        LocalData.isHistoryItemClicked = false
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             viewBinding.navProfile.isFocusedByDefault = true
         }
-        isSettingsOpen = intent.getBooleanExtra("isSettings",false)
+        isSettingsOpen = intent.getBooleanExtra("isSettings", false)
         setUpRv()
         onBackPressedDispatcher.addCallback(this) {
             when (backPressCount) {
@@ -56,6 +58,7 @@ class ProfileActivity : AppCompatActivity() {
         }
 
     }
+
     private fun focusRecyclerViewToPosition(position: Int) {
         viewBinding.apply {
             profileRv.post {
@@ -117,6 +120,7 @@ class ProfileActivity : AppCompatActivity() {
                         NavOptions.Builder().setPopUpTo(R.id.myAccountPage, true).build()
                     )
                 }
+
                 1 -> {
                     if (currentPageId != R.id.sourceScreen) navController.navigate(
                         R.id.sourceScreen,
@@ -124,6 +128,7 @@ class ProfileActivity : AppCompatActivity() {
                         NavOptions.Builder().setPopUpTo(R.id.sourceScreen, true).build()
                     )
                 }
+
                 3 -> {
                     if (currentPageId != R.id.bookmarkScreen) navController.navigate(
                         R.id.bookmarkScreen,
@@ -131,7 +136,8 @@ class ProfileActivity : AppCompatActivity() {
                         NavOptions.Builder().setPopUpTo(R.id.bookmarkScreen, true).build()
                     )
                 }
-                2-> {
+
+                2 -> {
                     if (currentPageId != R.id.historyPage) navController.navigate(
                         R.id.historyPage,
                         null,

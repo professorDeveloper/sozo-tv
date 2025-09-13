@@ -44,6 +44,7 @@ data class WatchHistoryEntity(
     val description: String?,
     val language: String?,
     val rating: Double?,
+    val page: Int?,
     val release_year: String?,
     val videoUrl: String,
     val totalDuration: Long,

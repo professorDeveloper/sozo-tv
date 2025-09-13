@@ -234,7 +234,7 @@ class SeriesPlayerScreen : Fragment() {
 
                                 binding.pvPlayer.controller.binding.exoPrevContainer.setOnClickListener {
                                     if (model.currentEpIndex > 0) {
-                                        lifecycleScope.launch() {
+                                        lifecycleScope.launch {
                                             saveWatchHistory()
                                             withContext(Dispatchers.Main) {
                                                 model.currentEpIndex -= 1
@@ -289,41 +289,58 @@ class SeriesPlayerScreen : Fragment() {
 
 
     private suspend fun saveWatchHistory() {
-        if (!::player.isInitialized) return // Ensure player is initialized
-        if (player.duration <= 0 && player.currentPosition >= 100_000 && player.currentPosition >= player.duration - 50) return  // Avoid saving if player hasn't loaded video yet
+        if (!::player.isInitialized) return // player initialize bo'lmagan bo'lsa chiqamiz
+
+        val duration = player.duration
+        val position = player.currentPosition
+
+        // Player hali video yuklamagan bo'lsa yoki juda qisqa vaqt ko'rilgan bo'lsa chiqib ketamiz
+        if (duration <= 0 || position < 5000) return // Only skip if less than 5 seconds watched
+
+        val currentEpisode = episodeList.getOrNull(model.currentEpIndex)
+        val seriesResponse = model.seriesResponse
+
+        if (currentEpisode == null || seriesResponse == null) return
 
         if (model.isWatched) {
-            val getEpIndex = model.getWatchedHistoryEntity
-            val newEp = getEpIndex!!.copy(
-                totalDuration = player.duration,
+            val getEpIndex = model.getWatchedHistoryEntity ?: return // null bo'lsa chiqib ketamiz
+
+            val newEp = getEpIndex.copy(
+                totalDuration = duration,
                 lastEpisodeWatchedIndex = args.seriesMainId,
                 isEpisode = true,
                 epIndex = model.currentEpIndex,
-                lastPosition = player.currentPosition,
-                videoUrl = model.seriesResponse!!.urlobj,
+                lastPosition = position,
+                videoUrl = seriesResponse.urlobj,
             )
             model.updateHistory(newEp)
             model.getWatchedHistoryEntity = null
         } else {
+            val session = currentEpisode.session ?: return
+            val snapshot = currentEpisode.snapshot ?: ""
+
             val historyBuild = WatchHistoryEntity(
-                episodeList[model.currentEpIndex].session ?: return,
-                "${args.name} - Episode ${model.currentEpIndex + 1}" ?: return,
-                episodeList[model.currentEpIndex].snapshot ?: return,
+                session,
+                "${args.name} - Episode ${model.currentEpIndex + 1}",
+                snapshot,
                 "",
-                "",
+                args.seriesMainId,
                 "",
                 "",
                 "",
                 0.0,
+                args.currentPage,
                 "2024/01/01",
-                model.seriesResponse?.urlobj.toString(),
-                totalDuration = player.duration,
-                lastPosition = player.currentPosition,
+                seriesResponse.urlobj.toString(),
+                totalDuration = duration,
+                lastPosition = position,
                 lastEpisodeWatchedIndex = args.seriesMainId,
                 epIndex = model.currentEpIndex,
                 isEpisode = true,
             )
             model.addHistory(historyBuild)
+            model.isWatched = true
+            model.getWatchedHistoryEntity = historyBuild
         }
     }
 
