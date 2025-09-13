@@ -177,27 +177,28 @@ class SeriesPlayerScreen : Fragment() {
                                 episodeAdapter.submitList(episodeList)
                                 binding.episodeRv.adapter = episodeAdapter
 
-
                                 episodeAdapter.setOnEpisodeClick { position, data ->
                                     toggleSidebarRight(false)
-                                    lifecycleScope.launch {
-                                        saveWatchHistory()
-                                    }
-                                    model.doNotAsk = false
-                                    model.currentEpIndex = position
-                                    model.lastPosition = 0
+                                    if (position != model.currentEpIndex) {
+                                        lifecycleScope.launch {
+                                            saveWatchHistory()
+                                        }
+                                        model.doNotAsk = false
+                                        model.currentEpIndex = position
+                                        model.lastPosition = 0
 
-                                    model.getCurrentEpisodeVod(
-                                        episodeList[position].session.toString(),
-                                        args.seriesMainId
-                                    )
+                                        model.getCurrentEpisodeVod(
+                                            episodeList[position].session.toString(),
+                                            args.seriesMainId
+                                        )
 
-                                    model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
-                                        if (resource is Resource.Success) {
-                                            val newUrl = resource.data.urlobj ?: return@observeOnce
-                                            playNewEpisode(newUrl, args.name)
-                                            binding.pvPlayer.controller.binding.filmTitle.text =
-                                                "${args.name} - Episode ${position + 1}"
+                                        model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
+                                            if (resource is Resource.Success) {
+                                                val newUrl = resource.data.urlobj ?: return@observeOnce
+                                                playNewEpisode(newUrl, args.name)
+                                                binding.pvPlayer.controller.binding.filmTitle.text =
+                                                    "${args.name} - Episode ${position + 1}"
+                                            }
                                         }
                                     }
                                 }
@@ -572,7 +573,7 @@ class SeriesPlayerScreen : Fragment() {
                     translationX = sidebarWidth
                     animate()
                         .translationX(0f)
-                        .setDuration(300) // 900ms -> 300ms tezroq
+                        .setDuration(100) // 900ms -> 300ms tezroq
                         .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
                         .start()
                 }
@@ -591,7 +592,7 @@ class SeriesPlayerScreen : Fragment() {
             } else {
                 sidebar.animate()
                     .translationX(sidebarWidth)
-                    .setDuration(300)
+                    .setDuration(100)
                     .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
                     .withEndAction {
                         sidebar.isVisible = false
