@@ -106,7 +106,7 @@ val koinModule = module {
 
 val firebaseModule = module {
     single<FirebaseDatabase> {
-        FirebaseDatabase.getInstance("https://ipsat-a6060-default-rtdb.firebaseio.com/")
+        FirebaseDatabase.getInstance("https://sozo-app-a36e6-default-rtdb.asia-southeast1.firebasedatabase.app/")
     }
     single { FirebaseService(get()) }
 }

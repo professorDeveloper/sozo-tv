@@ -17,7 +17,22 @@ query getRecommendations($page: Int) {
     }
 }
 
-
+query getBanner{
+    Page(page: 1,perPage: 9){
+        mediaTrends {
+            media {
+                id
+                idMal
+                description
+                genres
+                seasonYear
+                format
+                source
+                bannerImage
+            }
+        }
+    }
+}
 
 query getPopular($page: Int) {
     Page(page: $page, perPage: 7) {

@@ -55,6 +55,7 @@ class SplashScreen : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         loadingDialog = DialogUtils.loadingDialog(requireContext())
         setupNavigationLogic()
+        viewModel.checkSubscribe()
     }
 
     private fun setupNavigationLogic() {
@@ -126,6 +127,7 @@ class SplashScreen : Fragment() {
         }
 
     }
+
     private fun handleUserState(state: Resource<Unit>) {
         when (state) {
             is Resource.Loading -> loadingDialog.show()

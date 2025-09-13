@@ -6,9 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import com.google.firebase.database.FirebaseDatabase
 import com.saikou.sozo_tv.domain.model.AppUpdate
 
-class FirebaseService(
-    private val firebaseDatabase: FirebaseDatabase
-) {
+class FirebaseService(firebaseDatabase: FirebaseDatabase) {
     private val appUpdateRef = firebaseDatabase.reference.child("appUpdateTv")
 
     fun getAppUpdateInfo(): LiveData<AppUpdate?> {
