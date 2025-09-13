@@ -67,6 +67,7 @@ import com.saikou.sozo_tv.utils.observeOnce
 import com.saikou.sozo_tv.utils.visible
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
@@ -548,11 +549,9 @@ class SeriesPlayerScreen : Fragment() {
             binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
         }
     }
-
     override fun onDestroyView() {
-        super.onDestroyView()
-        if (player.currentPosition > 10) {
-            lifecycleScope.launch {
+        if (player.currentPosition > 10 && ::player.isInitialized) {
+            runBlocking {
                 saveWatchHistory()
             }
         }
@@ -561,6 +560,7 @@ class SeriesPlayerScreen : Fragment() {
             mediaSession.release()
         }
         _binding = null
+        super.onDestroyView()
     }
 
 
