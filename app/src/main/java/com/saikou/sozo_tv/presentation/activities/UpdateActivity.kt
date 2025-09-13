@@ -236,7 +236,7 @@ class UpdateViewModel : ViewModel() {
         val apkFile = File(updatesDir, "app_update_${System.currentTimeMillis()}.apk")
 
         val req = DownloadManager.Request(Uri.parse(apkUrl)).apply {
-            setTitle("IPSAT Update")
+            setTitle("Sozo Update")
             setDescription("Downloading new version…")
             setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
             setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "IPSAT_Updates/app_update_${System.currentTimeMillis()}.apk")
@@ -330,7 +330,7 @@ class UpdateViewModel : ViewModel() {
 
             val uri = FileProvider.getUriForFile(
                 context,
-                "${context.packageName}.provider",
+                "${context.packageName}.fileprovider",
                 apkFile
             )
 
