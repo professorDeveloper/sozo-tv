@@ -228,18 +228,18 @@ class UpdateViewModel : ViewModel() {
         _uiState.value = UiState.Downloading(0)
         downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 
-        val updatesDir = File(context.cacheDir, "updates").apply {
-            deleteRecursively()
-            mkdirs()
+        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val updatesDir = File(downloadsDir, "IPSAT_Updates").apply {
+            if (!exists()) mkdirs()
         }
 
         val apkFile = File(updatesDir, "app_update_${System.currentTimeMillis()}.apk")
 
         val req = DownloadManager.Request(Uri.parse(apkUrl)).apply {
-            setTitle("Sozo Update")
+            setTitle("IPSAT Update")
             setDescription("Downloading new version…")
             setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-            setDestinationUri(Uri.fromFile(apkFile))
+            setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "IPSAT_Updates/app_update_${System.currentTimeMillis()}.apk")
             setAllowedNetworkTypes(
                 DownloadManager.Request.NETWORK_WIFI or
                         DownloadManager.Request.NETWORK_MOBILE
@@ -317,7 +317,8 @@ class UpdateViewModel : ViewModel() {
                 return
             }
 
-            val updatesDir = File(context.cacheDir, "updates")
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val updatesDir = File(downloadsDir, "IPSAT_Updates")
             val apkFile = updatesDir
                 .listFiles { _, name -> name.startsWith("app_update") && name.endsWith(".apk") }
                 ?.maxByOrNull { it.lastModified() }
@@ -329,7 +330,7 @@ class UpdateViewModel : ViewModel() {
 
             val uri = FileProvider.getUriForFile(
                 context,
-                "${context.packageName}.cache.provider",
+                "${context.packageName}.provider",
                 apkFile
             )
 
