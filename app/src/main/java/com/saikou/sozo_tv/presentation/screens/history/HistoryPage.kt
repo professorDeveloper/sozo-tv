@@ -52,11 +52,10 @@ class HistoryPage : Fragment() {
                         intent.putExtra("page", it.page)
                         intent.putExtra("epIndex", it.epIndex)
                         intent.putExtra("mediaId", it.categoryid)
-                        LocalData.imagehistory=it.image
+                        intent.putExtra("image", it.image)
                         intent.putExtra("animeTitle", it.mediaName)
                         intent.putExtra("isHistory", true)
 //                        LocalData.itemMovieWatch = it
-                        isHistoryItemClicked =true
 //                        LocalData.isSeries = true
                         requireContext().startActivity(intent)
                         binding.root.context.startActivity(intent)

@@ -103,7 +103,7 @@ class SeriesPlayerScreen : Fragment() {
         if (LocalData.isHistoryItemClicked) {
             val intent = Intent(requireContext(), ProfileActivity::class.java)
             startActivity(intent)
-            requireActivity().finishAffinity()
+            requireActivity().finish()
         } else {
             if (isAdded) {
                 findNavController().navigateUp()
