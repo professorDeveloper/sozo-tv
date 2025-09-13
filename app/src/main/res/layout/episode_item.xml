@@ -1,23 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_margin="6dp"
+    android:layout_margin="4dp"
     android:background="@drawable/episode_bg"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:padding="2dp">
+    android:padding="2dp"
+    tools:layout_gravity="center">
 
-    <!-- Card (image container) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
-        android:layout_width="220dp"
-        android:layout_height="0dp"
+        android:layout_width="0dp"
+        android:layout_height="110dp"
         android:layout_margin="4dp"
         app:cardCornerRadius="10dp"
-        app:cardElevation="2dp"
-        app:layout_constraintDimensionRatio="16:9"
+        app:cardElevation="0dp"
+        app:layout_constraintDimensionRatio="2.5:1.6"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -27,69 +28,52 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            tools:src="@drawable/joker" />
+            android:src="@drawable/joker" />
 
-        <!-- Episode badge -->
         <TextView
             android:id="@+id/country"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="end|top"
-            android:layout_margin="6dp"
+            android:layout_gravity="end"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="8dp"
             android:background="@drawable/status_background"
             android:paddingHorizontal="6dp"
             android:paddingVertical="2dp"
-            android:textColor="@android:color/white"
             android:textSize="12sp"
-            tools:text="Ep 3" />
+            tools:text="1" />
+
     </androidx.cardview.widget.CardView>
 
-    <!-- Progress Bar -->
     <androidx.core.widget.ContentLoadingProgressBar
         android:id="@+id/progressBar"
         android:layout_width="0dp"
-        android:layout_height="4dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
         android:indeterminate="false"
         android:max="100"
-        android:progress="50"
+        android:progress="20"
         android:progressDrawable="@drawable/custom_progress"
         android:visibility="visible"
-        app:layout_constraintEnd_toEndOf="@id/cardView"
-        app:layout_constraintStart_toStartOf="@id/cardView"
+        app:layout_constraintEnd_toEndOf="@+id/cardView"
+        app:layout_constraintStart_toStartOf="@+id/cardView"
         app:layout_constraintTop_toBottomOf="@id/cardView" />
 
-    <!-- Title -->
     <TextView
         android:id="@+id/topContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:ellipsize="end"
-        android:fontFamily="@font/rubik_regular"
-        android:maxLines="2"
-        android:textColor="@android:color/white"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/progressBar"
-        tools:text="Fear, Mysterious Power! Pirate Clown Captain Buggy!" />
-
-    <!-- Subtext -->
-    <TextView
-        android:id="@+id/timeStr"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
+        android:layout_margin="4dp"
+        android:layout_marginTop="4dp"
         android:ellipsize="end"
         android:fontFamily="@font/rubik_regular"
         android:maxLines="1"
-        android:visibility="invisible"
-        android:textColor="@color/lb_grey"
-        android:textSize="12sp"
+        android:textColor="#ffffff"
+        android:textSize="13sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/topContainer"
-        tools:text="Stopped at 00:05:22" />
+        app:layout_constraintTop_toBottomOf="@id/cardView"
+        tools:text="The Most Beautiful Flower S01E01" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

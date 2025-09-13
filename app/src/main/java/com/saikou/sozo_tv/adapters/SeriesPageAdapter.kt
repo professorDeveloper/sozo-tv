@@ -54,14 +54,14 @@ class SeriesPageAdapter(
                 // progress data
                 val getLocalEp = localEpisode.find { it.session == data.session }
                 if (getLocalEp != null) {
-                    timeStr.visible()
+//                    timeStr.visible()
                     progressBar.visible()
-                    timeStr.text =
-                        "Stopped at ${formatMillisToTime(getLocalEp.lastPosition.toLong())}"
+//                    timeStr.text =
+//                        "Stopped at ${formatMillisToTime(getLocalEp.lastPosition.toLong())}"
                     progressBar.max = getLocalEp.totalDuration.toInt()
                     progressBar.progress = getLocalEp.lastPosition.toInt()
                 }else {
-                    timeStr.gone()
+//                    timeStr.gone()
                     progressBar.gone()
                 }
                 binding.country.text = data.episode.toString()
