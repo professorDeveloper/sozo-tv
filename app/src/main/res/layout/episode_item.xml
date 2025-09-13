@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_height="170dp"
     android:layout_margin="4dp"
     android:background="@drawable/episode_bg"
     android:focusable="true"
@@ -42,8 +42,8 @@
             android:background="@drawable/status_background"
             android:paddingHorizontal="6dp"
             android:paddingVertical="2dp"
-            tools:text="1"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            tools:text="1" />
 
 
     </androidx.cardview.widget.CardView>
@@ -86,7 +86,6 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="2dp"
         android:fontFamily="@font/rubik_regular"
-        tools:text="01:15:27 daqiqada to’xtatildi"
         android:textColor="@color/lb_grey"
         android:textSize="10sp"
         android:textStyle="bold"
@@ -94,6 +93,7 @@
         app:layout_constraintEnd_toEndOf="@+id/cardView"
         app:layout_constraintStart_toStartOf="@+id/cardView"
         app:layout_constraintTop_toBottomOf="@+id/topContainer"
-        tools:ignore="SmallSp" />
+        tools:ignore="SmallSp"
+        tools:text="01:15:27 daqiqada to’xtatildi" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
