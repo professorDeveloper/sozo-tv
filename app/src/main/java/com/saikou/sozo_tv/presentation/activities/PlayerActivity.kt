@@ -10,6 +10,7 @@ import com.saikou.sozo_tv.databinding.ActivityPlayerBinding
 import com.saikou.sozo_tv.presentation.screens.detail.CastDetailScreenArgs
 import com.saikou.sozo_tv.presentation.screens.episodes.EpisodeScreenArgs
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
+import com.saikou.sozo_tv.utils.LocalData
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class PlayerActivity : AppCompatActivity() {
@@ -38,6 +39,7 @@ class PlayerActivity : AppCompatActivity() {
             val page = intent.getIntExtra("page",-1)
             val epIndex = intent.getIntExtra("epIndex",-1)
             val navInflater = navController.navInflater
+            LocalData.bookmark
             val graph = navInflater.inflate(R.navigation.play_graph)
             graph.setStartDestination(R.id.episodeScreen)
             navController.setGraph(

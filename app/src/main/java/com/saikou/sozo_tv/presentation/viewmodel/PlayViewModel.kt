@@ -59,8 +59,8 @@ class PlayViewModel(
         }
     }
 
-    suspend fun isWatched(videoUrl: String): Boolean {
-        return watchHistoryRepository.isWatched(videoUrl)
+    suspend fun isWatched(session: String): Boolean {
+        return watchHistoryRepository.isWatched(session)
     }
 
     suspend fun addHistory(history: WatchHistoryEntity) {

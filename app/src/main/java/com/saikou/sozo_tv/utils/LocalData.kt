@@ -15,6 +15,7 @@ object LocalData {
     var isHistoryItemClicked = false
 
     var bookmark: Boolean = false
+    var imagehistory: String =""
     var isBookmarkClicked: Boolean = false
     var characterBookmark: Boolean = false
     const val FILE_NAME_GENRES: String = "genres"

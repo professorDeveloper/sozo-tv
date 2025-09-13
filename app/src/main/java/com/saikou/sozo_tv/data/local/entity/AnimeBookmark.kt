@@ -37,6 +37,7 @@ data class EpisodeInfoEntity(
 data class WatchHistoryEntity(
     @PrimaryKey val session: String,
     val title: String,
+    val mediaName: String,
     val image: String,
     val categoryProperty: String?,
     val categoryid: String?,

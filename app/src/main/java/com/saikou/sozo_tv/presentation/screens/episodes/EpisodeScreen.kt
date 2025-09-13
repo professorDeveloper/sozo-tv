@@ -230,7 +230,7 @@ class EpisodeScreen : Fragment() {
                             id = sessionPart,
                             name = animeTitlePart,
                             currentEpisode = epIndexPart,
-                            image = LocalData.anime404,
+                            image = LocalData.imagehistory,
                             seriesMainId = mediaIdPart ?: "",
                             currentPage = args.mediaId,
                             currentIndex = epIndexPart.toInt()
