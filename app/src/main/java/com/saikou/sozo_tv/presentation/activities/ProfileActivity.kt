@@ -47,6 +47,7 @@ class ProfileActivity : AppCompatActivity() {
                     backPressCount = 0
                 }
 
+
                 else -> {
                     Log.d("GGG", "onCreate:Home :${backPressCount} ")
                     navigateHome()
@@ -128,6 +129,13 @@ class ProfileActivity : AppCompatActivity() {
                         R.id.bookmarkScreen,
                         null,
                         NavOptions.Builder().setPopUpTo(R.id.bookmarkScreen, true).build()
+                    )
+                }
+                2-> {
+                    if (currentPageId != R.id.historyPage) navController.navigate(
+                        R.id.historyPage,
+                        null,
+                        NavOptions.Builder().setPopUpTo(R.id.historyPage, true).build()
                     )
                 }
             }

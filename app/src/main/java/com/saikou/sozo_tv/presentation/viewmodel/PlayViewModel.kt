@@ -212,4 +212,10 @@ class PlayViewModel(
             }
         }
     }
+
+    fun clearAllHistory() {
+        viewModelScope.launch {
+            watchHistoryRepository.clearAllHistory()
+        }
+    }
 }

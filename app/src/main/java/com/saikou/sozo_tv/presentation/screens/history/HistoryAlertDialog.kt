@@ -1,6 +1,14 @@
 package com.saikou.sozo_tv.presentation.screens.history
 
+import android.annotation.SuppressLint
+import android.graphics.drawable.ColorDrawable
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
+import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.databinding.HistoryAlertDialogBinding
 
 class HistoryAlertDialog() : DialogFragment() {
 

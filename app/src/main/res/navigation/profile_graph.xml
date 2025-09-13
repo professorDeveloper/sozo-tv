@@ -19,4 +19,8 @@
         android:id="@+id/sourceScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.source.SourceScreen"
         android:label="SourceScreen" />
+    <fragment
+        android:id="@+id/historyPage"
+        android:name="com.saikou.sozo_tv.presentation.screens.history.HistoryPage"
+        android:label="HistoryPage" />
 </navigation>
