@@ -46,6 +46,9 @@
         android:theme="@style/Theme.Tv"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".presentation.activities.UpdateActivity"
+            android:exported="false" />
+        <activity
             android:name=".presentation.activities.PlayerActivity"
             android:exported="false" />
         <activity

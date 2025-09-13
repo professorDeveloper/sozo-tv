@@ -19,7 +19,9 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.SplashScreenBinding
+import com.saikou.sozo_tv.domain.model.AppUpdate
 import com.saikou.sozo_tv.presentation.activities.MainActivity
+import com.saikou.sozo_tv.presentation.activities.UpdateActivity
 import com.saikou.sozo_tv.utils.DialogUtils
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.visible
@@ -32,6 +34,7 @@ class SplashScreen : Fragment() {
     private val binding get() = _binding!!
     private lateinit var exoPlayer: ExoPlayer
     private lateinit var loadingDialog: Dialog
+    private val viewModel: SplashViewModel by viewModel()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -105,26 +108,18 @@ class SplashScreen : Fragment() {
 
     private fun observeAndNavigate() {
 
-        startActivity(Intent(requireContext(), MainActivity::class.java).apply {
-            val options = ActivityOptions.makeCustomAnimation(
-                requireContext(), R.anim.fade_in, R.anim.fade_out
-            )
-            startActivity(this, options.toBundle())
-        })
-        requireActivity().finish()
+        viewModel.isUpdateAvailableLiveData.observe(viewLifecycleOwner) { isUpdate ->
+            if (isUpdate) {
+                viewModel.getAppUpdateInfo()
+                viewModel.getAppUpdateInfo.observe(viewLifecycleOwner) { update ->
+                    showUpdateDialog(update)
+                }
+            } else {
+                viewModel.initSplash.observe(viewLifecycleOwner) { handleUserState(it) }
+                viewModel.isFirst.observe(viewLifecycleOwner, openLoginObserver)
+            }
+        }
 
-
-//        viewModel.isUpdateAvailableLiveData.observe(viewLifecycleOwner) { isUpdate ->
-//            if (isUpdate) {
-//                viewModel.getAppUpdateInfo()
-//                viewModel.getAppUpdateInfo.observe(viewLifecycleOwner) { update ->
-//                    showUpdateDialog(update)
-//                }
-//            } else {
-//                viewModel.initSplash.observe(viewLifecycleOwner) { handleUserState(it) }
-//                viewModel.isFirst.observe(viewLifecycleOwner, openLoginObserver)
-//            }
-//        }
     }
 
 //    private fun showUpdateDialog(appUpdate: AppUpdate) {
@@ -166,13 +161,22 @@ class SplashScreen : Fragment() {
 //        findNavController().navigate(R.id.phoneScreen, null, navOptions())
 //    }
 
-//    private fun navOptions(): NavOptions = NavOptions.Builder()
+    //    private fun navOptions(): NavOptions = NavOptions.Builder()
 //        .setPopUpTo(R.id.splashScreen, true)
 //        .setEnterAnim(R.anim.fade_in)
 //        .setExitAnim(R.anim.fade_out)
 //        .setPopEnterAnim(R.anim.fade_in)
 //        .setPopExitAnim(R.anim.fade_out)
 //        .build()
+    private fun showUpdateDialog(appUpdate: AppUpdate) {
+        startActivity(
+            UpdateActivity.newIntent(
+                requireActivity(),
+                appUpdate
+            )
+        )
+        requireActivity().finish()
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
