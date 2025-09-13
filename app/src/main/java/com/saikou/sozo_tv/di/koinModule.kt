@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.di
 
 import androidx.room.Room
+import com.saikou.sozo_tv.data.local.dao.WatchHistoryDao
 import com.saikou.sozo_tv.data.local.database.AppDatabase
 import com.saikou.sozo_tv.data.repository.CategoriesRepositoryImpl
 import com.saikou.sozo_tv.data.repository.CharacterBookmarkRepositoryImpl
@@ -8,6 +9,7 @@ import com.saikou.sozo_tv.data.repository.DetailRepositoryImpl
 import com.saikou.sozo_tv.data.repository.HomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.MovieBookmarkRepositoryImpl
 import com.saikou.sozo_tv.data.repository.SearchRepositoryImpl
+import com.saikou.sozo_tv.data.repository.WatchHistoryRepositoryImpl
 import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import com.saikou.sozo_tv.domain.repository.CategoriesRepository
 import com.saikou.sozo_tv.domain.repository.CharacterBookmarkRepository
@@ -15,6 +17,7 @@ import com.saikou.sozo_tv.domain.repository.DetailRepository
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.SearchRepository
+import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
@@ -44,6 +47,10 @@ val koinModule = module {
     single<MovieBookmarkRepository> {
         MovieBookmarkRepositoryImpl(dao = get())
     }
+    single<WatchHistoryRepository> {
+        WatchHistoryRepositoryImpl(watchHistoryDao = get())
+    }
+
     single<CharacterBookmarkRepository> {
         CharacterBookmarkRepositoryImpl(dao = get())
     }
