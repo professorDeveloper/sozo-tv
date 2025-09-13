@@ -1,14 +1,19 @@
 package com.saikou.sozo_tv.presentation.viewmodel
+
+import android.util.Log
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import com.saikou.sozo_tv.app.MyApp
+import com.saikou.sozo_tv.domain.model.AppUpdate
+import com.saikou.sozo_tv.services.FirebaseService
+import com.saikou.sozo_tv.utils.AppUtils
+import com.saikou.sozo_tv.utils.Resource
+
 class SplashViewModel(
-    private val repo: AuthRepository,
-    private val pref: EncryptedPreferencesManager,
     private val firebaseService: FirebaseService
-) :
-    ViewModel() {
-    private val _initSplash = MutableLiveData<Resource<SubscriptionResponse>>(Resource.Idle)
-    private val _isFirst = MutableLiveData<Unit>()
+) : ViewModel() {
+    private val _initSplash = MutableLiveData<Resource<Unit>>(Resource.Idle)
     val initSplash = _initSplash
-    val isFirst = _isFirst
     val isUpdateAvailableLiveData: MutableLiveData<Boolean> = MutableLiveData()
     val getAppUpdateInfo: MutableLiveData<AppUpdate> = MutableLiveData()
 
@@ -36,7 +41,6 @@ class SplashViewModel(
     }
 
     fun getAppUpdateInfo() {
-
         firebaseService.getAppUpdateInfo().observeForever { appUpdate ->
             appUpdate?.let {
                 getAppUpdateInfo.postValue(appUpdate!!)
@@ -67,22 +71,6 @@ class SplashViewModel(
     }
 
     fun checkSubscribe() {
-        if (pref.getSubCode() != null) {
-            _initSplash.value = Resource.Loading
-            repo.subscriptionDetails().onEach {
-                it.onFailure {
-                    _initSplash.value = Resource.Error(
-                        Exception(it.message)
-                    )
-                }
-
-                it.onSuccess {
-                    _initSplash.value = Resource.Success(it)
-
-                }
-            }.launchIn(viewModelScope)
-        } else {
-            _isFirst.postValue(Unit)
-        }
+        _initSplash.value = Resource.Success(Unit)
     }
 }

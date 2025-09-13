@@ -7,9 +7,11 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
@@ -17,16 +19,20 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.navigation.fragment.findNavController
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.SplashScreenBinding
 import com.saikou.sozo_tv.domain.model.AppUpdate
 import com.saikou.sozo_tv.presentation.activities.MainActivity
 import com.saikou.sozo_tv.presentation.activities.UpdateActivity
+import com.saikou.sozo_tv.presentation.viewmodel.SplashViewModel
 import com.saikou.sozo_tv.utils.DialogUtils
+import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.visible
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 @SuppressLint("CustomSplashScreen")
 class SplashScreen : Fragment() {
@@ -116,10 +122,32 @@ class SplashScreen : Fragment() {
                 }
             } else {
                 viewModel.initSplash.observe(viewLifecycleOwner) { handleUserState(it) }
-                viewModel.isFirst.observe(viewLifecycleOwner, openLoginObserver)
             }
         }
 
+    }
+    private fun handleUserState(state: Resource<Unit>) {
+        when (state) {
+            is Resource.Loading -> loadingDialog.show()
+            is Resource.Success -> {
+                loadingDialog.dismiss()
+                startActivity(Intent(requireContext(), MainActivity::class.java).apply {
+                    val options = ActivityOptions.makeCustomAnimation(
+                        requireContext(), R.anim.fade_in, R.anim.fade_out
+                    )
+                    startActivity(this, options.toBundle())
+                })
+                requireActivity().finish()
+            }
+
+            is Resource.Error -> {
+                loadingDialog.dismiss()
+                Toast.makeText(requireContext(), state.throwable.message, Toast.LENGTH_SHORT).show()
+                Log.e("SplashScreen", "Subscription error", state.throwable)
+            }
+
+            else -> {}
+        }
     }
 
 //    private fun showUpdateDialog(appUpdate: AppUpdate) {
