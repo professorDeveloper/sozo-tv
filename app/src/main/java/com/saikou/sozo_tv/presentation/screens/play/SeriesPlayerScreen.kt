@@ -560,40 +560,58 @@ class SeriesPlayerScreen : Fragment() {
 
 
     private fun toggleSidebarRight(show: Boolean) {
-        val sidebarWidth = binding.sidebarRight.width.toFloat()
+        val sidebar = binding.sidebarRight
+        val epListContainer = binding.pvPlayer.controller.binding.epListContainer
 
-        if (show) {
-            binding.btnHideMenuRight.requestFocus()
-            binding.pvPlayer.controller.binding.epListContainer.isFocusable = false
-            binding.pvPlayer.controller.binding.epListContainer.gone()
-            binding.sidebarRight.isVisible = true
-            binding.sidebarRight.translationX = sidebarWidth
-            binding.sidebarRight.animate()
-                .translationX(0f)
-                .setDuration(900)
-                .withEndAction {
+        sidebar.post { // width tayyor bo‘lganda bajariladi
+            val sidebarWidth = sidebar.width.toFloat()
+
+            if (show) {
+                sidebar.apply {
+                    isVisible = true
+                    translationX = sidebarWidth
+                    animate()
+                        .translationX(0f)
+                        .setDuration(300) // 900ms -> 300ms tezroq
+                        .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
+                        .start()
                 }
-                .start()
 
-            binding.btnHideMenuRight.isFocusable = true
-            binding.btnHideMenuRight.isFocusableInTouchMode = true
-            binding.btnHideMenuRight.isEnabled = true
-        } else {
-            binding.sidebarRight.animate()
-                .translationX(sidebarWidth)
-                .setDuration(900)
-                .withEndAction {
-                    binding.sidebarRight.isVisible = false
-                }.start()
+                binding.btnHideMenuRight.apply {
+                    isFocusable = true
+                    isFocusableInTouchMode = true
+                    isEnabled = true
+                    requestFocus()
+                }
 
-            binding.pvPlayer.controller.binding.epListContainer.isFocusable = true
-            binding.pvPlayer.controller.binding.epListContainer.visible()
-            binding.btnHideMenuRight.isFocusable = false
-            binding.btnHideMenuRight.isFocusableInTouchMode = false
-            binding.btnHideMenuRight.isEnabled = false
-            binding.episodeRv.clearFocus()
+                epListContainer.apply {
+                    isFocusable = false
+                    gone()
+                }
+            } else {
+                sidebar.animate()
+                    .translationX(sidebarWidth)
+                    .setDuration(300)
+                    .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
+                    .withEndAction {
+                        sidebar.isVisible = false
+                    }
+                    .start()
 
-            binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
+                epListContainer.apply {
+                    isFocusable = true
+                    visible()
+                }
+
+                binding.btnHideMenuRight.apply {
+                    isFocusable = false
+                    isFocusableInTouchMode = false
+                    isEnabled = false
+                }
+
+                binding.episodeRv.clearFocus()
+                binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
+            }
         }
     }
 
