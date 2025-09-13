@@ -563,6 +563,7 @@ class SeriesPlayerScreen : Fragment() {
         val sidebarWidth = binding.sidebarRight.width.toFloat()
 
         if (show) {
+            binding.btnHideMenuRight.requestFocus()
             binding.pvPlayer.controller.binding.epListContainer.isFocusable = false
             binding.pvPlayer.controller.binding.epListContainer.gone()
             binding.sidebarRight.isVisible = true
@@ -571,7 +572,6 @@ class SeriesPlayerScreen : Fragment() {
                 .translationX(0f)
                 .setDuration(900)
                 .withEndAction {
-                    binding.btnHideMenuRight.requestFocus()
                 }
                 .start()
 
