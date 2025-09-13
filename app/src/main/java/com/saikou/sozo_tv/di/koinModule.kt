@@ -35,6 +35,7 @@ val koinModule = module {
         ).build()
     }
     single { get<AppDatabase>().movieDao() }
+    single { get<AppDatabase>().watchHistoryDao() }
     single { get<AppDatabase>().characterDao() }
     factory { UserPreferenceManager(androidContext()) }
     single<HomeRepository> {
@@ -70,7 +71,7 @@ val koinModule = module {
     viewModel { HomeViewModel(repo = get()) }
     viewModel { EpisodeViewModel() }
     viewModel { WrongTitleViewModel() }
-    viewModel { PlayViewModel(repo = get(), bookmarkRepo = get()) }
+    viewModel { PlayViewModel(repo = get(), bookmarkRepo = get(), watchHistoryRepository = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
     viewModel { SearchViewModel(repo = get()) }
     viewModel { CastDetailViewModel(repo = get(), bookmarkRepo = get()) }
