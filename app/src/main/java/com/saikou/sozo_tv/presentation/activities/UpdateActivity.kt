@@ -5,7 +5,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.saikou.sozo_tv.R
 
-
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -73,7 +72,7 @@ class UpdateActivity : AppCompatActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                 packageManager.canRequestPackageInstalls()
             ) vm.installApk(this)
-            else snackString("Cannot install from unknown sources")
+            else snackString("Cannot install from unknown sources. Please enable 'Install unknown apps' in Settings.")
         }
 
     private val askInstall =
@@ -169,6 +168,7 @@ class UpdateActivity : AppCompatActivity() {
         vm.installEvent.observe(this) { ev ->
             when (ev) {
                 is UpdateViewModel.InstallEvent.RequestUnknownSources -> {
+                    snackString("To install updates, please allow 'Install unknown apps' for this app in the next screen.")
                     val i = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES)
                         .setData(Uri.parse("package:$packageName"))
                     askUnknown.launch(i)
@@ -228,19 +228,15 @@ class UpdateViewModel : ViewModel() {
         _uiState.value = UiState.Downloading(0)
         downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 
-        // 1) prepare your “updates” folder
-        val updatesDir = File(context.getExternalFilesDir(null), "IPSAT")
-            .apply {
-                deleteRecursively()
-                mkdirs()
-            }
+        val updatesDir = File(context.cacheDir, "updates").apply {
+            deleteRecursively()
+            mkdirs()
+        }
 
-        // 2) name your new apk
         val apkFile = File(updatesDir, "app_update_${System.currentTimeMillis()}.apk")
 
-        // 3) enqueue it
         val req = DownloadManager.Request(Uri.parse(apkUrl)).apply {
-            setTitle("IPSAT Update")
+            setTitle("Sozo Update")
             setDescription("Downloading new version…")
             setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
             setDestinationUri(Uri.fromFile(apkFile))
@@ -321,21 +317,22 @@ class UpdateViewModel : ViewModel() {
                 return
             }
 
-            val updatesDir = File(context.getExternalFilesDir(null), "IPSAT")
+            val updatesDir = File(context.cacheDir, "updates")
             val apkFile = updatesDir
                 .listFiles { _, name -> name.startsWith("app_update") && name.endsWith(".apk") }
                 ?.maxByOrNull { it.lastModified() }
 
             if (apkFile == null || !apkFile.exists()) {
-                _installEvent.postValue(InstallEvent.Error("APK not found"))
+                _installEvent.postValue(InstallEvent.Error("APK file not found. Please download again."))
                 return
             }
 
             val uri = FileProvider.getUriForFile(
                 context,
-                "${context.packageName}.provider",
+                "${context.packageName}.cache.provider",
                 apkFile
             )
+
             val intent = Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
                 data = uri
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -345,11 +342,10 @@ class UpdateViewModel : ViewModel() {
 
             _installEvent.postValue(InstallEvent.StartInstall(intent))
         } catch (e: Exception) {
-            Log.e("UpdateVM", "installApk", e)
+            Log.e("UpdateVM", "installApk error", e)
             _installEvent.postValue(
-                InstallEvent.Error("Installation failed: ${e.localizedMessage}")
+                InstallEvent.Error("Installation failed: ${e.localizedMessage ?: "Unknown error"}")
             )
         }
     }
-
 }

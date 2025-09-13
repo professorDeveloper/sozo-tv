@@ -1,4 +1,4 @@
-package com.ipsat.ipsat_tv.components.navigation
+package com.saikou.sozo_tv.components.navigation
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -11,7 +11,6 @@ import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.view.menu.MenuItemImpl
 import androidx.appcompat.view.menu.MenuView
 import androidx.core.view.forEachIndexed
-import com.saikou.sozo_tv.components.navigation.NavigationSlideView
 import kotlin.math.min
 
 

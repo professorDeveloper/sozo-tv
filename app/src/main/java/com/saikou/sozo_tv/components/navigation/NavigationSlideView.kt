@@ -12,9 +12,6 @@ import androidx.annotation.LayoutRes
 import androidx.appcompat.view.SupportMenuInflater
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.core.content.res.getResourceIdOrThrow
-import com.ipsat.ipsat_tv.components.navigation.NavigationSlideMenu
-import com.ipsat.ipsat_tv.components.navigation.NavigationSlideMenuView
-import com.ipsat.ipsat_tv.components.navigation.NavigationSlidePresenter
 import com.saikou.sozo_tv.R
 
 @SuppressLint("RestrictedApi")

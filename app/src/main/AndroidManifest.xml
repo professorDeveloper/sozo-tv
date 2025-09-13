@@ -83,34 +83,22 @@
 
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
-        </activity> <!-- <activity -->
-        <!-- android:name=".presentation.activities.ProfileActivity" -->
-        <!-- android:exported="false" /> -->
-        <!-- <activity -->
-        <!-- android:name=".presentation.activities.LoginActivity" -->
-        <!-- android:banner="@mipmap/ic_launcher" -->
-        <!-- android:exported="true" -->
-        <!-- android:icon="@mipmap/ic_launcher" -->
-        <!-- android:logo="@mipmap/ic_launcher" -->
-        <!-- android:screenOrientation="landscape"> -->
-        <!-- <intent-filter> -->
-        <!-- <action android:name="android.intent.action.MAIN" /> -->
-        <!-- <category android:name="android.intent.category.LEANBACK_LAUNCHER" /> -->
-        <!-- </intent-filter> -->
-        <!-- </activity> -->
+        </activity>
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
             android:value="4b29bbcd3db7f7125f312efde4e3dd2a" />
 
+        <!-- Added FileProvider for APK installation -->
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.provider"
+            android:authorities="${applicationId}.cache.provider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
+                android:resource="@xml/cache_file_paths" />
         </provider>
+
     </application>
 
 </manifest>

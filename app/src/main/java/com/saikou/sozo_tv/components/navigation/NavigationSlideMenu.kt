@@ -1,4 +1,4 @@
-package com.ipsat.ipsat_tv.components.navigation
+package com.saikou.sozo_tv.components.navigation
 
 import android.annotation.SuppressLint
 import android.content.Context

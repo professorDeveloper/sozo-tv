@@ -42,7 +42,7 @@ class SpoilerPlugin : AbstractMarkwonPlugin() {
     companion object {
         private val RE = Pattern.compile("~!(.+?)!~")
 
-        private const val AUTO_SPOILER_PHRASE = "Downloads/IPSAT"
+        private const val AUTO_SPOILER_PHRASE = "Downloads/SozoTv"
 
         private fun applySpoilerSpans(spannable: Spannable) {
             val text = spannable.toString()
