@@ -8,6 +8,7 @@
         <domain includeSubdomains="true">www.imdb.com</domain>
         <domain includeSubdomains="true">www.livechart.me</domain>
         <domain includeSubdomains="true">www.dubs.io</domain>
+        <domain includeSubdomains="true">www.jikan.moe</domain>
         <domain includeSubdomains="true">sat24shop.com</domain>
         <domain includeSubdomains="true">infinity-loop-21.biz</domain>
         <domain includeSubdomains="true">cdn.dotstream.buzz</domain>
