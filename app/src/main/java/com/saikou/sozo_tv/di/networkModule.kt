@@ -1,7 +1,6 @@
 package com.saikou.sozo_tv.di
 
 import android.annotation.SuppressLint
-import android.content.Context
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.network.okHttpClient
 import com.google.gson.Gson
@@ -29,7 +28,7 @@ const val BASE_URL = "https://graphql.anilist.co/"
 
 val NetworkModule = module {
     single { EncryptedPreferencesManager(androidContext()) }
-    single { createOkHttpClient(get(), androidContext()) }
+    single { createOkHttpClient() }
     single { createRetrofit(get(), JIKAN_BASE_URL) }
     single { createService(get()) }
     single {
@@ -40,7 +39,7 @@ val NetworkModule = module {
     }
     single { UserPreferenceManager(androidContext()) }
 }
-fun createOkHttpClient(pref: EncryptedPreferencesManager, context: Context): OkHttpClient {
+fun createOkHttpClient(): OkHttpClient {
     val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
