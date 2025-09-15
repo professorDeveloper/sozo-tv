@@ -36,9 +36,8 @@ class AnimePahe : BaseParser() {
     private suspend fun getDefaultHeaders(): Map<String, String> {
         return mapOf(
             "User-Agent" to USER_AGENT,
-            "Accept" to "application/json, text/javascript, */*; q=0.01",
+            "Accept" to "application/json",
             "Accept-Language" to "en-US,en;q=0.9",
-            "Referer" to hostUrl,
             "DNT" to "1",
             "Cookie" to getFreshCookies()
         )
