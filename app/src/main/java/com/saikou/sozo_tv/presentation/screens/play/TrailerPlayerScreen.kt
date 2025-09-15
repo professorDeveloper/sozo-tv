@@ -73,7 +73,7 @@ class TrailerPlayerScreen : Fragment() {
     @UnstableApi
     @OptIn(UnstableApi::class)
     private fun playVideo() {
-        val videoUrl = "https://vault-04.padorupado.ru/mp4/04/14/6f846cd601e697f234ea1fda42bf3f45b8a044c74a4e10f602a7f427dfff4c2a?file=AnimePahe_One_Piece_-_001_720p_HorribleSubs.mp4"
+        val videoUrl = "https://yt1s-worker-2.dlsrv.online/tunnel?id=mEyydRq1QOw_EUxyMwwcm&exp=1757791022363&sig=fnln_kdhN8vK7SNQPBfuaplpnqZzZMRCvG6CLf7yvVg&sec=XwA5n-vKDMnRlhlbHcS8MsSTuMV8WKGCk3kVS7MTu_A&iv=a36WF6ifshbGowlCDnsgLQ"
         val mediaItem = MediaItem.Builder().setUri(videoUrl).build()
         val mediaSource =
             ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)

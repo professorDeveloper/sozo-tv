@@ -30,9 +30,7 @@ class AnimePahe : BaseParser() {
     override val hostUrl: String = "https://animepahe.ru/"
     override val language: String = "en"
 
-    val errorData = MutableLiveData<String>()
 
-    // DDoS-Guard va Cloudflare bypass uchun umumiy headerlar
     private suspend fun getDefaultHeaders(): Map<String, String> {
         return mapOf(
             "User-Agent" to USER_AGENT,
