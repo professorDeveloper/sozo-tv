@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- TV focus state with border and background change -->
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#2A2A2A" />
+            <stroke android:width="2dp" android:color="@color/tv_focus_border" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
 
+    <!-- Default state with specified notification background -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#2A2A2A" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
 </selector>
