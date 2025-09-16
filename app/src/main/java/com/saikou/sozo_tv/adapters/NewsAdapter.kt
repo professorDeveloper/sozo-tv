@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.adapters
 
+import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -15,7 +16,7 @@ class NewsAdapter(
         fun bind(item: NewsItem) {
             binding.newsTitle.text = item.title
             binding.newsDescription.text = item.description
-            binding.publishedTime.text = item.time
+            binding.publishedTime.text = item.timestamp.toTimeAgo() // <-- readable time
             binding.actionButton.text = item.action
         }
     }
@@ -39,4 +40,13 @@ class NewsAdapter(
         items = newItems
         notifyDataSetChanged()
     }
+
+    fun Long.toTimeAgo(): String {
+        return DateUtils.getRelativeTimeSpanString(
+            this,
+            System.currentTimeMillis(),
+            DateUtils.MINUTE_IN_MILLIS
+        ).toString()
+    }
+
 }
