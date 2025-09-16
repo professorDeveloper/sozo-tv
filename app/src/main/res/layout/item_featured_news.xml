@@ -17,6 +17,7 @@
         android:layout_height="24dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="4dp"
+        app:tint="@color/red"
         app:srcCompat="@drawable/ic_notification_icon"/>
 
     <!-- Content Container -->
