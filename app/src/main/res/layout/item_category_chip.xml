@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.chip.Chip xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-compat"
+    android:id="@+id/categoryChip"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="8dp"
+    android:text="Category"
+    android:textColor="@color/tv_chip_text"
+    app:chipBackgroundColor="@color/tv_chip_background"
+    app:chipCornerRadius="20dp"
+    app:chipStrokeColor="@color/tv_accent"
+    app:chipStrokeWidth="1dp" />

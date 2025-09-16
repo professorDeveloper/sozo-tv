@@ -2,7 +2,20 @@
     <color name="navigation_background">#EE1A1E25</color>
     <color name="main_background">#1B1E23</color>
     <color name="orange">#FF9800</color>
+    <color name="tv_background">#0F0F23</color>
+    <color name="anime_card_background">#1A1A2E</color>
+    <color name="anime_focus_color">#00CEC9</color>
 
+    <color name="tv_background_overlay">#80000000</color>
+    <color name="tv_card_background">#1A1A2E</color>
+    <color name="tv_primary_text">#FFFFFF</color>
+    <color name="tv_secondary_text">#B8B8CC</color>
+    <color name="tv_tertiary_text">#8A8A9E</color>
+    <color name="tv_accent">#FF6B6B</color>
+    <color name="tv_accent_secondary">#4ECDC4</color>
+    <color name="tv_chip_background">#16213E</color>
+    <color name="tv_chip_text">#FFFFFF</color>
+    <color name="tv_badge_text">#FFFFFF</color>
     <color name="selected_bg">#0F141C</color>
     <color name="nav_item_text_selected">#FFFFFFFF</color>
     <color name="nav_item_text_unselected">#99FFFFFF</color>

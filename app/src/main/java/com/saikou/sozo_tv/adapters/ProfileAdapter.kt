@@ -116,26 +116,6 @@ class ProfileAdapter(
                 animation.fillAfter = true
             }
 
-            // Exit item click listener
-            if (sectionList.last() == section) {
-                binding.spaceVw1.visibility = View.VISIBLE
-                binding.spaceVw2.visibility = View.VISIBLE
-                val context = binding.root.context
-                val layoutParams = binding.root.layoutParams as ViewGroup.MarginLayoutParams
-                layoutParams.topMargin =
-                    context.resources.getDimensionPixelSize(R.dimen.exit_margin_top)
-                layoutParams.bottomMargin =
-                    context.resources.getDimensionPixelSize(R.dimen.exit_margin_bottom)
-                binding.root.layoutParams = layoutParams
-                binding.root.setOnClickListener {
-                    if (section.sectionTitle.equals("Exit Account", ignoreCase = true)) {
-                        exitItemListener.invoke()
-                    }
-                }
-            } else {
-                binding.spaceVw1.visibility = View.GONE
-                binding.spaceVw2.visibility = View.GONE
-            }
         }
     }
 

@@ -1,8 +1,10 @@
 package com.saikou.sozo_tv.parser
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.MutableLiveData
 import com.bugsnag.android.Bugsnag
 import com.lagradost.nicehttp.Requests
+import com.saikou.sozo_tv.di.BASE_URL
 import com.saikou.sozo_tv.p_a_c_k_e_r.JsUnpacker
 import com.saikou.sozo_tv.parser.models.AnimePaheData
 import com.saikou.sozo_tv.parser.models.EpisodeData
@@ -27,7 +29,7 @@ import javax.security.cert.X509Certificate
 class AnimePahe : BaseParser() {
     override val name: String = "AniPahe"
     override val saveName: String = "anipahe"
-    override val hostUrl: String = "https://animepahe.ru/"
+    override val hostUrl: String = "https://animepahe.si/"
     override val language: String = "en"
 
 
@@ -92,7 +94,7 @@ class AnimePahe : BaseParser() {
 
     fun getEpisodeVideo(epId: String, id: String): Kiwi {
         val doc =
-            getJsoup("https://animepahe.ru/play/${id}/${epId}", mapOf("User-Agent" to USER_AGENT))
+            getJsoup("https://animepahe.si/play/${id}/${epId}", mapOf("User-Agent" to USER_AGENT))
 
         val scriptContent = doc.select("script")
             .map { it.html() }
@@ -146,7 +148,9 @@ class AnimePahe : BaseParser() {
 
     suspend fun getFreshCookies(): String = withContext(Dispatchers.IO) {
         val trustAllCerts = arrayOf<TrustManager>(
+            @SuppressLint("CustomX509TrustManager")
             object : X509TrustManager {
+                @SuppressLint("TrustAllX509TrustManager")
                 override fun checkClientTrusted(
                     p0: Array<out java.security.cert.X509Certificate>?,
                     p1: String?

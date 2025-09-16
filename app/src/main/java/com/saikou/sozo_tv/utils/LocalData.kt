@@ -81,8 +81,6 @@ object LocalData {
         SectionItem(MyApp.context.getString(R.string.sources), R.drawable.ic_round_star_24),
         SectionItem(MyApp.context.getString(R.string.my_history), R.drawable.ic_time_history),
         SectionItem(MyApp.context.getString(R.string.bookmark), R.drawable.ic_bookmark),
-        SectionItem(MyApp.context.getString(R.string.message_page), R.drawable.ic_chat),
-        SectionItem(MyApp.context.getString(R.string.exit), R.drawable.ic_exit),
     )
     lateinit var listenerItemCategory: (isAbout: CategoryDetails) -> Unit
     fun setonClickedListenerItemCategory(listener: (isAbout: CategoryDetails) -> Unit) {

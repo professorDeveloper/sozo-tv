@@ -7,6 +7,7 @@
         <domain includeSubdomains="true">api.jikan.moe</domain>
         <domain includeSubdomains="true">www.imdb.com</domain>
         <domain includeSubdomains="true">www.livechart.me</domain>
+        <domain includeSubdomains="true">animepahe.ru</domain>
         <domain includeSubdomains="true">www.dubs.io</domain>
         <domain includeSubdomains="true">www.jikan.moe</domain>
         <domain includeSubdomains="true">sat24shop.com</domain>
