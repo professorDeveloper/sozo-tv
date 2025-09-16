@@ -35,4 +35,14 @@
     <color name="red60">#48FE4545</color>
     <color name="red80">#80FE4545</color>
     <color name="yellow">#FE4545</color>
+
+
+    <!-- Notification Style Colors -->
+    <color name="notification_background">#2A2A2A</color>
+    <color name="notification_title_color">#FFFFFF</color>
+    <color name="notification_description_color">#B3B3B3</color>
+    <color name="notification_time_color">#808080</color>
+    <color name="notification_action_color">#FFFFFF</color>
+    <color name="notification_action_bg">#404040</color>
+    <color name="notification_icon_tint">#4A9EFF</color>
 </resources>

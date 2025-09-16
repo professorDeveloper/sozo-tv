@@ -1,16 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-compat"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="320dp"
-    android:layout_height="240dp"
-    xmlns:app1="http://schemas.android.com/apk/res-auto"
-    android:layout_marginEnd="20dp"
-    android:layout_marginBottom="16dp"
+<!-- Redesigned as notification-style item matching the reference image -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@color/notification_background"
+    android:padding="16dp"
     android:focusable="true"
     android:clickable="true"
-    android:foreground="?android:attr/selectableItemBackground"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="8dp">
+    android:foreground="?android:attr/selectableItemBackground">
 
-</androidx.cardview.widget.CardView>
+    <!-- Play/Action Icon -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/actionIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="4dp"
+        app:srcCompat="@drawable/ic_notification_icon"
+        app:tint="@color/red" />
+
+    <!-- Content Container -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/newsTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Watchlist Update"
+            android:textColor="@color/notification_title_color"
+            android:textSize="16sp"
+            android:textStyle="normal"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Description -->
+        <TextView
+            android:id="@+id/newsDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Your watchlist has been updated with 5 new releases. Don't miss out on the latest content."
+            android:textColor="@color/notification_description_color"
+            android:textSize="14sp"
+            android:lineSpacingExtra="2dp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Bottom Row: Time and Action -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Time -->
+            <TextView
+                android:id="@+id/publishedTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="5 hours ago"
+                android:textColor="@color/notification_time_color"
+                android:textSize="12sp"
+                android:drawableStart="@drawable/ic_time_small"
+                android:drawablePadding="6dp"
+                android:gravity="center_vertical" />
+
+            <!-- Action Button -->
+            <TextView
+                android:id="@+id/actionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="update"
+                android:textColor="@color/notification_action_color"
+                android:textSize="12sp"
+                android:background="@drawable/notification_action_bg"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>
