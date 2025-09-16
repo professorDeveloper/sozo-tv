@@ -23,4 +23,9 @@
         android:id="@+id/historyPage"
         android:name="com.saikou.sozo_tv.presentation.screens.history.HistoryPage"
         android:label="HistoryPage" />
+    <fragment
+        android:id="@+id/newsPage"
+        android:name="com.saikou.sozo_tv.presentation.screens.news.NewsPage"
+        android:label="news_page"
+        tools:layout="@layout/news_page" />
 </navigation>

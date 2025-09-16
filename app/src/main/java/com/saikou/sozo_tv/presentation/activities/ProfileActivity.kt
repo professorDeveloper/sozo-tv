@@ -144,6 +144,14 @@ class ProfileActivity : AppCompatActivity() {
                         NavOptions.Builder().setPopUpTo(R.id.historyPage, true).build()
                     )
                 }
+
+                4 -> {
+                    if (currentPageId != R.id.newsPage) navController.navigate(
+                        R.id.newsPage,
+                        null,
+                        NavOptions.Builder().setPopUpTo(R.id.newsPage, true).build()
+                    )
+                }
             }
         }
         profileAdapter.setOnExitClickListener {

@@ -39,7 +39,7 @@
     <!-- TV Specific Colors -->
     <color name="tv_card_background">#16213E</color>
     <color name="tv_badge_text">#FFFFFF</color>
-    <color name="tv_focus_border">#00CEC9</color>
+    <color name="tv_focus_border">@color/red</color>
 
     <!-- Notification Style Colors -->
     <color name="notification_background">#2A2A2A</color>
