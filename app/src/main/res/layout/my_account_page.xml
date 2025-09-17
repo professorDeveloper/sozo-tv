@@ -208,7 +208,7 @@
                     android:layout_marginBottom="16dp"
                     android:fontFamily="sans-serif-medium"
                     android:letterSpacing="0.1"
-                    android:text="CONTENT SETTINGS"
+                    android:text="@string/content_settings"
                     android:textColor="@color/netflix_gray"
                     android:textSize="11sp" />
 
