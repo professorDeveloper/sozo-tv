@@ -237,7 +237,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="4dp"
                             android:fontFamily="sans-serif-medium"
-                            android:text="Adult Content (NSFW)"
+                            android:text="@string/adult_content_nsfw"
                             android:textColor="@color/netflix_white"
                             android:textSize="16sp" />
 
