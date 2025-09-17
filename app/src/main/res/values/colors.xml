@@ -41,6 +41,7 @@
     <color name="tv_badge_text">#FFFFFF</color>
     <color name="tv_focus_border">@color/red</color>
     <!-- Updated to Telegram-style colors with provided color scheme -->
+    <color name="netflix_green">#46D369</color>
     <!-- Telegram Ad Colors -->
     <color name="telegram_ad_background">#2B2E33</color>
     <color name="telegram_title_color">#FFFFFF</color>
