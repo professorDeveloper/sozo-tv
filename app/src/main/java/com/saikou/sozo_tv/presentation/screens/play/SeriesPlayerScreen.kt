@@ -3,10 +3,16 @@ package com.saikou.sozo_tv.presentation.screens.play
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.media.MediaMetadataRetriever
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.AttributeSet
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -88,6 +94,12 @@ class SeriesPlayerScreen : Fragment() {
     private lateinit var mediaSession: MediaSession
     private val args by navArgs<SeriesPlayerScreenArgs>()
     private val episodeList = arrayListOf<Data>()
+
+    private var countdownShown = false
+    private var isCountdownActive = false
+    private var progressHandler: Handler? = null
+    private var progressRunnable: Runnable? = null
+
     private val PlayerControlView.binding
         @OptIn(UnstableApi::class) get() = ContentControllerTvSeriesBinding.bind(this.findViewById(R.id.cl_exo_controller_tv))
 
@@ -101,37 +113,110 @@ class SeriesPlayerScreen : Fragment() {
 
     private fun showNextEpisodeCountdown() {
         binding.apply {
-             if (!LocalData.isHistoryItemClicked){
-                 countdownOverlay.startCountdown(
-                     seconds = 10,
-                     nextEpisode = model.currentEpIndex + 2,
-                     currentEpisode = model.currentEpIndex + 1,
-                     title = args.name,
-                     useEnglish = true,
-                     onFinished = {
-//                  playNextEpisode()
-                     },
-                     onCancelled = {
-                         // User cancelled, stay on current episode
-//                  pauseVideo()
-                     }
-                 )
-             }
+            if (!LocalData.isHistoryItemClicked && !countdownShown) {
+                val nextEpisodeIndex = model.currentEpIndex + 1
+                if (nextEpisodeIndex < episodeList.size) {
+                    countdownShown = true
+                    isCountdownActive = true
 
-
+                    countdownOverlay.startCountdown(
+                        seconds = 10,
+                        nextEpisode = nextEpisodeIndex + 1,
+                        currentEpisode = model.currentEpIndex + 1,
+                        title = args.name,
+                        useEnglish = true,
+                        onFinished = {
+                            playNextEpisodeAutomatically()
+                        },
+                        onCancelled = {
+                            isCountdownActive = false
+                            player.play()
+                        }
+                    )
+                }
+            }
         }
     }
 
-    private fun navigateBack() {
-        if (LocalData.isHistoryItemClicked) {
-            val intent = Intent(requireContext(), ProfileActivity::class.java)
-            startActivity(intent)
-            requireActivity().finish()
-        } else {
-            if (isAdded) {
-                findNavController().navigateUp()
+    private fun playNextEpisodeAutomatically() {
+        if (model.currentEpIndex < episodeList.size - 1) {
+            lifecycleScope.launch {
+                saveWatchHistory()
+                withContext(Dispatchers.Main) {
+                    model.currentEpIndex += 1
+                    model.doNotAsk = false
+                    model.lastPosition = 0
+
+                    model.getCurrentEpisodeVod(
+                        episodeList[model.currentEpIndex].session.toString(),
+                        args.seriesMainId
+                    )
+
+                    model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
+                        if (resource is Resource.Success) {
+                            val newUrl = resource.data.urlobj
+                            playNewEpisode(newUrl, args.name)
+                            binding.pvPlayer.controller.binding.filmTitle.text =
+                                "${args.name} - Episode ${model.currentEpIndex + 1}"
+
+                            resetCountdownState()
+                        }
+                    }
+                }
             }
         }
+    }
+
+    private fun resetCountdownState() {
+        countdownShown = false
+        isCountdownActive = false
+    }
+
+    private fun startProgressTracking() {
+        stopProgressTracking()
+        progressHandler = Handler(Looper.getMainLooper())
+        progressRunnable = object : Runnable {
+            override fun run() {
+                if (::player.isInitialized && player.isPlaying) {
+                    val currentPosition = player.currentPosition
+                    val duration = player.duration
+
+                    if (duration > 0 && currentPosition > 0) {
+                        val remainingTime = duration - currentPosition
+
+                        if (remainingTime in 9001..10000 && !countdownShown && !isCountdownActive) {
+                            showNextEpisodeCountdown()
+                        }
+                    }
+                }
+
+                progressHandler?.postDelayed(this, 1000) // Check every second
+            }
+        }
+        progressHandler?.post(progressRunnable!!)
+    }
+
+    private fun navigateBack() {
+        if (!isAdded) return // Skip if Fragment isn't attached
+
+        if (LocalData.isHistoryItemClicked) {
+            val intent = Intent(context, ProfileActivity::class.java)
+            startActivity(intent)
+            activity?.finish()
+        } else {
+            runCatching {
+                findNavController().navigateUp()
+            }.onFailure { e ->
+                // Log or handle navigation failure
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun stopProgressTracking() {
+        progressRunnable?.let { progressHandler?.removeCallbacks(it) }
+        progressHandler = null
+        progressRunnable = null
     }
 
     @SuppressLint("SetTextI18n")
@@ -140,6 +225,7 @@ class SeriesPlayerScreen : Fragment() {
         binding.pvPlayer.controller.binding.frameBackButton.setOnClickListener {
             navigateBack()
         }
+
 
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
@@ -183,7 +269,6 @@ class SeriesPlayerScreen : Fragment() {
                                     "Part ${args.currentPage} • Episode ${episodeList.size}"
                                 initializeVideo()
                                 displayVideo()
-                                showNextEpisodeCountdown()
                                 binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
                                 binding.pvPlayer.controller.binding.epListContainer.setOnClickListener {
                                     binding.episodeRv.scrollToPosition(model.currentEpIndex)
@@ -230,9 +315,11 @@ class SeriesPlayerScreen : Fragment() {
 
                                 binding.pvPlayer.controller.binding.exoNextContainer.setOnClickListener {
                                     if (model.currentEpIndex < episodeList.size - 1) {
-//                                            saveWatchHistory()
+                                        lifecycleScope.launch {
+                                            saveWatchHistory()
+                                        }
                                         model.currentEpIndex += 1
-//                                            model.doNotAsk = false
+                                        model.doNotAsk = false
                                         model.getCurrentEpisodeVod(
                                             episodeList[model.currentEpIndex].session.toString(),
                                             args.seriesMainId
@@ -260,7 +347,7 @@ class SeriesPlayerScreen : Fragment() {
 
                                 binding.pvPlayer.controller.binding.exoPrevContainer.setOnClickListener {
                                     if (model.currentEpIndex > 0) {
-                                        lifecycleScope.launch() {
+                                        lifecycleScope.launch {
                                             saveWatchHistory()
                                             withContext(Dispatchers.Main) {
                                                 model.currentEpIndex -= 1
@@ -440,20 +527,23 @@ class SeriesPlayerScreen : Fragment() {
                 Bugsnag.notify(error)
             }
 
-            @SuppressLint("SwitchIntDef")
             override fun onPlaybackStateChanged(playbackState: Int) {
                 when (playbackState) {
-                    Player.STATE_READY, Player.STATE_BUFFERING -> {
-                        if (player.playWhenReady) {
-                            val currentPosition = player.currentPosition
-                            val duration = player.duration
-                            if (duration != C.TIME_UNSET && duration - currentPosition <= 10000) {
-                            }
+                    Player.STATE_READY -> {
+                        if (!LocalData.isHistoryItemClicked) {
+                            resetCountdownState()
+                            startProgressTracking()
                         }
                     }
 
-                    else -> {
+                    Player.STATE_ENDED -> {
+                        if (!LocalData.isHistoryItemClicked) {
+                            stopProgressTracking()
+                            if (!isCountdownActive) {
+                                playNextEpisodeAutomatically()
+                            }
 
+                        }
                     }
                 }
             }
@@ -516,16 +606,18 @@ class SeriesPlayerScreen : Fragment() {
     private fun playNewEpisode(videoUrl: String, title: String) {
         if (!::player.isInitialized) initializeVideo()
 
+        resetCountdownState()
+        stopProgressTracking()
+
         player.stop()
         player.clearMediaItems()
 
         val mediaItem = MediaItem.Builder()
             .setUri(videoUrl)
-            .setMimeType(MimeTypes.VIDEO_MP4) // MP4 uchun to'g'ri MIME type
+            .setMimeType(MimeTypes.VIDEO_MP4)
             .setTag(title)
             .build()
 
-        // MP4 uchun ProgressiveMediaSource ishlatamiz
         val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
             .createMediaSource(mediaItem)
 
@@ -580,6 +672,8 @@ class SeriesPlayerScreen : Fragment() {
                 binding.pvPlayer.controller.binding.exoPlayPaused
                     .setImageResource(R.drawable.anim_pause_to_play)
             }
+
+
             if (model.isWatched && model.getWatchedHistoryEntity != null && model.getWatchedHistoryEntity!!.lastPosition > 0 && !model.doNotAsk) {
                 player.pause()
                 val dialog = AlertPlayerDialog(model.getWatchedHistoryEntity!!)
@@ -661,6 +755,8 @@ class SeriesPlayerScreen : Fragment() {
     }
 
     override fun onDestroyView() {
+        stopProgressTracking()
+
         if (player.currentPosition > 10 && ::player.isInitialized) {
             runBlocking {
                 saveWatchHistory()
@@ -674,9 +770,10 @@ class SeriesPlayerScreen : Fragment() {
         super.onDestroyView()
     }
 
-
     override fun onPause() {
         super.onPause()
+        stopProgressTracking()
+
         if (::player.isInitialized) {
             player.pause()
             lifecycleScope.launch {
@@ -687,6 +784,8 @@ class SeriesPlayerScreen : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        if (::player.isInitialized && player.isPlaying) {
+            startProgressTracking()
+        }
     }
-
 }
