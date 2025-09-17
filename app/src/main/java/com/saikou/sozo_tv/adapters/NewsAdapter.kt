@@ -6,6 +6,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.data.model.NewsItem
 import com.saikou.sozo_tv.databinding.ItemFeaturedNewsBinding
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class NewsAdapter(
     private var items: List<NewsItem> = emptyList()
@@ -40,13 +43,33 @@ class NewsAdapter(
         items = newItems
         notifyDataSetChanged()
     }
-
     fun Long.toTimeAgo(): String {
-        return DateUtils.getRelativeTimeSpanString(
-            this,
-            System.currentTimeMillis(),
-            DateUtils.MINUTE_IN_MILLIS
-        ).toString()
+        if (this <= 0) return "Unknown time"
+
+        val now = System.currentTimeMillis()
+        val diff = now - this
+
+        val seconds = diff / 1000
+        val minutes = seconds / 60
+        val hours = minutes / 60
+        val days = hours / 24
+
+        return when {
+            seconds < 60 -> "just now"
+            minutes < 60 -> "$minutes minute${if (minutes > 1) "s" else ""} ago"
+            hours < 24 -> "$hours hour${if (hours > 1) "s" else ""} ago"
+            days < 7 -> "$days day${if (days > 1) "s" else ""} ago"
+            days < 30 -> "${days / 7} week${if (days / 7 > 1) "s" else ""} ago"
+            days < 365 -> "${days / 30} month${if (days / 30 > 1) "s" else ""} ago"
+            days <= 365 * 5 -> "${days / 365} year${if (days / 365 > 1) "s" else ""} ago"
+            else -> {
+                // Juda eski bo'lsa normal sana formatida chiqaramiz
+                val sdf = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+                sdf.format(Date(this))
+            }
+        }
     }
+
+
 
 }
