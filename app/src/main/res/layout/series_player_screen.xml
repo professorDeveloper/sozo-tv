@@ -30,8 +30,6 @@
             app:show_subtitle_button="true"
             app:show_timeout="2000"
             app:show_vr_button="true" />
-
-
         <LinearLayout
             android:id="@+id/loading_layout"
             android:layout_width="match_parent"
@@ -64,6 +62,10 @@
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+    <com.saikou.sozo_tv.components.CountdownOverlayView
+        android:id="@+id/countdown_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <LinearLayout
         android:id="@+id/sidebar_right"

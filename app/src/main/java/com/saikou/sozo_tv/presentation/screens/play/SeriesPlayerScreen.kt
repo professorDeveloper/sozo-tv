@@ -99,6 +99,28 @@ class SeriesPlayerScreen : Fragment() {
         return binding.root
     }
 
+    private fun showNextEpisodeCountdown() {
+        binding.apply {
+             if (!LocalData.isHistoryItemClicked){
+                 countdownOverlay.startCountdown(
+                     seconds = 10,
+                     nextEpisode = model.currentEpIndex + 2,
+                     currentEpisode = model.currentEpIndex + 1,
+                     title = args.name,
+                     useEnglish = true,
+                     onFinished = {
+//                  playNextEpisode()
+                     },
+                     onCancelled = {
+                         // User cancelled, stay on current episode
+//                  pauseVideo()
+                     }
+                 )
+             }
+
+
+        }
+    }
 
     private fun navigateBack() {
         if (LocalData.isHistoryItemClicked) {
@@ -161,6 +183,7 @@ class SeriesPlayerScreen : Fragment() {
                                     "Part ${args.currentPage} • Episode ${episodeList.size}"
                                 initializeVideo()
                                 displayVideo()
+                                showNextEpisodeCountdown()
                                 binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
                                 binding.pvPlayer.controller.binding.epListContainer.setOnClickListener {
                                     binding.episodeRv.scrollToPosition(model.currentEpIndex)
@@ -194,7 +217,8 @@ class SeriesPlayerScreen : Fragment() {
 
                                         model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
                                             if (resource is Resource.Success) {
-                                                val newUrl = resource.data.urlobj ?: return@observeOnce
+                                                val newUrl =
+                                                    resource.data.urlobj ?: return@observeOnce
                                                 playNewEpisode(newUrl, args.name)
                                                 binding.pvPlayer.controller.binding.filmTitle.text =
                                                     "${args.name} - Episode ${position + 1}"
@@ -297,7 +321,10 @@ class SeriesPlayerScreen : Fragment() {
                 return
             }
 
-            Log.d("SaveHistory", "player.duration=${player.duration}, player.currentPosition=${player.currentPosition}")
+            Log.d(
+                "SaveHistory",
+                "player.duration=${player.duration}, player.currentPosition=${player.currentPosition}"
+            )
             if (player.duration <= 0 && player.currentPosition >= 100_000 && player.currentPosition >= player.duration - 50) {
                 Log.w("SaveHistory", "Skipping save: player not fully loaded")
                 return
@@ -404,7 +431,6 @@ class SeriesPlayerScreen : Fragment() {
             true
         )
 
-        // faqat bitta marta MediaSession yaratamiz
         if (!::mediaSession.isInitialized) {
             mediaSession = MediaSession.Builder(requireContext(), player).build()
         }
@@ -412,6 +438,24 @@ class SeriesPlayerScreen : Fragment() {
         player.addListener(object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
                 Bugsnag.notify(error)
+            }
+
+            @SuppressLint("SwitchIntDef")
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                when (playbackState) {
+                    Player.STATE_READY, Player.STATE_BUFFERING -> {
+                        if (player.playWhenReady) {
+                            val currentPosition = player.currentPosition
+                            val duration = player.duration
+                            if (duration != C.TIME_UNSET && duration - currentPosition <= 10000) {
+                            }
+                        }
+                    }
+
+                    else -> {
+
+                    }
+                }
             }
         })
 
