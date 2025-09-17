@@ -1,6 +1,8 @@
 package com.saikou.sozo_tv.parser
 
 import com.lagradost.nicehttp.Requests
+import com.saikou.sozo_tv.parser.models.Data
+import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.utils.Utils
 import com.saikou.sozo_tv.utils.parser
@@ -24,4 +26,29 @@ class HentaiMama : BaseParser() {
             ShowResponse(title, link, cover)
         }
     }
+
+    suspend fun loadEpisodes(
+        animeLink: String,
+        extra: Map<String, String>?
+    ): List<Data> {
+        val pageBody = Utils.getJsoup(animeLink)
+
+        val episodes =
+            pageBody.select("div#episodes.sbox.fixidtab div.module.series div.content.series div.items article")
+                .reversed()
+                .map { article ->
+                    // Extract episode number from the h3 text
+                    val epNum = article.select("div.data h3").text().replace("Episode", "").trim()
+
+                    // Extract episode URL from the season_m div (remove .animation-3 class)
+                    val url = article.select("div.poster div.season_m a").attr("href")
+
+                    // Extract thumbnail from img data-src attribute
+                    val thumb = article.select("div.poster img").attr("data-src")
+                    Data(episode = epNum.toInt(), session = url ?: "", snapshot = thumb ?: "")
+                }
+
+        return episodes
+    }
+
 }

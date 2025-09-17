@@ -10,6 +10,7 @@ data class EpisodeData(
     val to: Int,
     val total: Int
 )
+
 data class AnimePaheData(
     val current_page: Int,
     val `data`: List<DataD>,
@@ -33,17 +34,17 @@ data class DataD(
 )
 
 data class Data(
-    val anime_id: Int?,
-    val audio: String?,
-    val created_at: String?,
-    val disc: String?,
-    val duration: String?,
-    val edition: String?,
-    val episode: Int?,
-    val episode2: Int?,
-    val filler: Int?,
-    val id: Int?,
-    val session: String?,
-    val snapshot: String?,
-    val title: String?
+    val anime_id: Int?=null,
+    val audio: String? = null,
+    val created_at: String? = null,
+    val disc: String? = null,
+    val duration: String? = null,
+    val edition: String? = null,
+    val episode: Int? = null,
+    val episode2: Int?  = null,
+    val filler: Int? = null,
+    val id: Int? = null,
+    val session: String? = null,
+    val snapshot: String? = null,
+    val title: String? = null
 )
