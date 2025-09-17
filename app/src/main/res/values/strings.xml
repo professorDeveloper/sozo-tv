@@ -98,5 +98,6 @@
     <string name="amp_sozoapp">&amp; @sozoApp</string>
     <string name="about_character">About Character</string>
     <string name="find_correct_anime_title">Wrong Title?</string>
+    <string name="enable_or_disable_adult_content_visibility">Enable or disable adult content visibility</string>
 
 </resources>
