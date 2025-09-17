@@ -26,7 +26,7 @@ class MyAccountPage : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        preferenceManager = com.saikou.sozo_tv.data.local.pref.PreferenceManager(requireContext())
+        preferenceManager = com.saikou.sozo_tv.data.local.pref.PreferenceManager()
         loadNsfwPreference()
         binding.nsfwToggleContainer.setOnClickListener {
             binding.nsfwSwitch.toggle()

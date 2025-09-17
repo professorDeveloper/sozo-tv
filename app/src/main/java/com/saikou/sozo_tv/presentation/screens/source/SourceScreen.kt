@@ -16,6 +16,7 @@ import com.saikou.sozo_tv.data.model.SubSource
 import com.saikou.sozo_tv.databinding.SourceScreenBinding
 import androidx.leanback.widget.VerticalGridView
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.utils.readData
 import com.saikou.sozo_tv.utils.saveData
 
@@ -45,8 +46,6 @@ class SourceScreen : Fragment() {
                 saveData("subSource", sub.sourceId)
             },
         )
-
-
         binding.sourceRv.adapter = adapter
         binding.progressBar.visibility = View.VISIBLE
         binding.sourcePlaceHolder.root.visibility = View.GONE
