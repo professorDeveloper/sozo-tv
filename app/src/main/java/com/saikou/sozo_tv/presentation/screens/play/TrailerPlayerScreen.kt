@@ -39,9 +39,10 @@ import com.saikou.sozo_tv.databinding.ContentControllerTvBinding
 import com.saikou.sozo_tv.databinding.TrailerPlayerScreenBinding
 import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 
 class TrailerPlayerScreen : Fragment() {
-    private var _binding:TrailerPlayerScreenBinding?=null
+    private var _binding: TrailerPlayerScreenBinding? = null
     private val binding get() = _binding!!
     private lateinit var mediaSession: MediaSession
 
@@ -52,10 +53,11 @@ class TrailerPlayerScreen : Fragment() {
         _binding = TrailerPlayerScreenBinding.inflate(inflater, container, false)
         return binding.root
     }
+
     private val PlayerControlView.binding
         @OptIn(UnstableApi::class) get() = ContentControllerTvBinding.bind(this.findViewById(R.id.cl_exo_controller))
+
     private lateinit var player: ExoPlayer
-    private lateinit var httpDataSource: HttpDataSource.Factory
     private lateinit var dataSourceFactory: DataSource.Factory
     private val args by navArgs<TrailerPlayerScreenArgs>()
 
@@ -73,32 +75,82 @@ class TrailerPlayerScreen : Fragment() {
     @UnstableApi
     @OptIn(UnstableApi::class)
     private fun playVideo() {
-        val videoUrl = "https://yt1s-worker-2.dlsrv.online/tunnel?id=mEyydRq1QOw_EUxyMwwcm&exp=1757791022363&sig=fnln_kdhN8vK7SNQPBfuaplpnqZzZMRCvG6CLf7yvVg&sec=XwA5n-vKDMnRlhlbHcS8MsSTuMV8WKGCk3kVS7MTu_A&iv=a36WF6ifshbGowlCDnsgLQ"
+        val videoUrl = "https://na-01.javprovider.com/hls/I/imaizumin-chi-wa-douyara-gal-no-tamariba-ni-natteru-rashii/1/playlist.m3u8"
         val mediaItem = MediaItem.Builder().setUri(videoUrl).build()
-        val mediaSource =
-            ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+        val mediaSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
         player.setMediaSource(mediaSource)
         player.setMediaItem(mediaItem)
         player.prepare()
         player.play()
-
     }
 
     @SuppressLint("WrongConstant")
     @OptIn(UnstableApi::class)
     private fun initializeVideo() {
+        val customHeaders = mapOf(
+            "Origin" to "https://hentaimama.io",
+            "Referer" to "https://hentaimama.io/new1.php?p=SS9pbWFpenVtaW4tY2hpLXdhLWRvdXlhcmEtZ2FsLW5vLXRhbWFyaWJhLW5pLW5hdHRlcnUtcmFzaGlpLzEvcGxheWxpc3QubTN1OD9JL0ltYWl6dW1pbi1jaGlfd2FfRG91eWFyYV9HYWxfbm9fVGFtYXJpYmFfbmlfTmF0dGVydV9SYXNoaWlfVm9sLl8xLm1wNA==",
+            "User-Agent" to "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36",
+            "Accept" to "*/*",
+            "Accept-Language" to "en-US,en;q=0.9,uz-UZ;q=0.8,uz;q=0.7",
+            "DNT" to "1",
+            "Sec-Fetch-Dest" to "empty",
+            "Sec-Fetch-Mode" to "cors",
+            "Sec-Fetch-Site" to "cross-site",
+            "sec-ch-ua" to "\"Chromium\";v=\"140\", \"Not=A?Brand\";v=\"24\", \"Google Chrome\";v=\"140\"",
+            "sec-ch-ua-mobile" to "?1",
+            "sec-ch-ua-platform" to "\"Android\""
+        )
 
         val client = OkHttpClient.Builder()
-            .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.CLEARTEXT))
-            .ignoreAllSSLErrors().build()
-        dataSourceFactory =
-            DefaultDataSource.Factory(requireContext(), OkHttpDataSource.Factory(client))
+            .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.COMPATIBLE_TLS, ConnectionSpec.CLEARTEXT))
+            .ignoreAllSSLErrors()
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .callTimeout(120, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
+            .addInterceptor { chain ->
+                val originalRequest = chain.request()
+                val newRequest = originalRequest.newBuilder().apply {
+                    customHeaders.forEach { (key, value) ->
+                        addHeader(key, value)
+                    }
+                }.build()
+
+                var response: okhttp3.Response? = null
+                var exception: Exception? = null
+
+                for (attempt in 1..3) {
+                    try {
+                        response = chain.proceed(newRequest)
+                        if (response.isSuccessful) {
+                            return@addInterceptor response
+                        }
+                        response.close()
+                    } catch (e: Exception) {
+                        exception = e
+                        if (attempt < 3) {
+                            Thread.sleep(1000L * attempt) // Exponential backoff
+                        }
+                    }
+                }
+
+                // If all retries failed, throw the last exception
+                throw exception ?: RuntimeException("All retry attempts failed")
+            }
+            .build()
+
+        dataSourceFactory = DefaultDataSource.Factory(
+            requireContext(),
+            OkHttpDataSource.Factory(client).setDefaultRequestProperties(customHeaders)
+        )
 
         val renderersFactory = DefaultRenderersFactory(requireContext())
             .setEnableDecoderFallback(true)
             .setMediaCodecSelector(MediaCodecSelector.DEFAULT)
             .setEnableAudioFloatOutput(false)
-        httpDataSource = DefaultHttpDataSource.Factory()
+
         player = ExoPlayer.Builder(requireContext(), renderersFactory)
             .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
             .setRenderersFactory(renderersFactory)
@@ -112,7 +164,6 @@ class TrailerPlayerScreen : Fragment() {
                     true,
                 )
                 mediaSession = MediaSession.Builder(requireContext(), player).build()
-
             }
 
         player.addListener(object : Player.Listener {
@@ -120,10 +171,7 @@ class TrailerPlayerScreen : Fragment() {
                 super.onPlayerError(error)
                 Bugsnag.notify(error)
             }
-
-
         })
-
 
         binding.pvPlayer.controller.binding.exoNextTenContainer.setOnClickListener {
             player.seekTo(player.currentPosition + 10_000)
@@ -141,12 +189,10 @@ class TrailerPlayerScreen : Fragment() {
                 player.play()
                 binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_pause_to_play)
             }
-
         }
 
         binding.pvPlayer.controller.findViewById<ExtendedTimeBar>(R.id.exo_progress)
             .setKeyTimeIncrement(10_000)
-
     }
 
     @SuppressLint("UnsafeOptInUsageError")
