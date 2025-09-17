@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.profile
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -48,6 +49,7 @@ class MyAccountPage : Fragment() {
         updateNsfwStatus(isEnabled)
     }
 
+    @SuppressLint("SetTextI18n")
     private fun updateNsfwStatus(isEnabled: Boolean) {
         binding.apply {
             if (isEnabled) {
