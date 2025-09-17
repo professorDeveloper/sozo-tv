@@ -182,7 +182,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif"
-                        android:text="0 unread"
+                        android:text="@string/_0_unread"
                         android:textColor="@color/netflix_white"
                         android:textSize="14sp" />
 
