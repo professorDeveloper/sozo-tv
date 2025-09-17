@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    android:background="@drawable/ad_background"
+    android:padding="12dp">
+
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:scaleType="centerCrop"
+        app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
+        />
+
+
+</FrameLayout>
