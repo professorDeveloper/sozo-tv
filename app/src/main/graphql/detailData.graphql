@@ -4,6 +4,7 @@ query getAnimeById($id: Int) {
         idMal
         episodes
         countryOfOrigin
+#        detail graph
         trailer {
             site
             thumbnail
