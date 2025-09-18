@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.parser
 
+import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lagradost.nicehttp.Requests
@@ -9,6 +10,10 @@ import com.saikou.sozo_tv.parser.models.Kiwi
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.utils.Utils
 import com.saikou.sozo_tv.utils.parser
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 
 data class ResponseElement(
     val type: String,
@@ -40,14 +45,24 @@ enum class VideoType {
 class HentaiMama : BaseParser() {
     override val name: String = "hentaimama"
     override val saveName: String = "hentai_mama"
-    override val hostUrl: String = "https://hentaimama.io"
+    override val hostUrl = "https://hentaimama.io"
     override val isNSFW: Boolean = true
     override val language: String = "jp"
 
-    suspend fun search(query: String): List<ShowResponse> {
-        val client = Requests(Utils.httpClient, responseParser = parser)
-        val url = "$hostUrl/?s=${query.replace(" ", "+")}"
-        val document = client.get(url).document
+    var httpClient = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+
+        .callTimeout(2, TimeUnit.MINUTES)
+        .build()
+    val client = Requests(httpClient, responseParser = parser)
+
+    suspend fun search(query: String): List<ShowResponse>  {
+        val updatedQuery = if (query.length > 7) query.substring(0, 7) else query
+        val url = "$hostUrl/?s=${updatedQuery.replace(" ", "+")}"
+        val document = Utils.getJsoup(url)
+
+        Log.d("GGG", "search:$document ")
 
         return document.select("div.result-item article").map {
             val link = it.select("div.details div.title a").attr("href")
@@ -56,6 +71,7 @@ class HentaiMama : BaseParser() {
             ShowResponse(title, link, cover)
         }
     }
+
 
     suspend fun loadEpisodes(
         animeLink: String,
@@ -127,7 +143,12 @@ class HentaiMama : BaseParser() {
 
         // Extract sources from JavaScript
         val unSanitized =
-            doc.text.findBetween("sources: [", "],") ?: return Video(null, VideoType.CONTAINER, "", null)
+            doc.text.findBetween("sources: [", "],") ?: return Video(
+                null,
+                VideoType.CONTAINER,
+                "",
+                null
+            )
 
         // Sanitize the JSON string
         val sanitizedJson = "[${

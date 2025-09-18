@@ -11,7 +11,9 @@ import com.saikou.sozo_tv.parser.HentaiMama
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.utils.Resource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class EpisodeViewModel(private val watchHistoryRepository: WatchHistoryRepository) : ViewModel() {
     val episodeData: MutableLiveData<Resource<EpisodeData>> =
@@ -70,16 +72,22 @@ class EpisodeViewModel(private val watchHistoryRepository: WatchHistoryRepositor
                 }
             }
         } else {
+
             dataFound.value = Resource.Loading
-            viewModelScope.launch {
+            viewModelScope.launch(Dispatchers.IO) { // <-- Add Dispatchers.IO
+                Log.d("GGG", "findEpisodes:Tushdi ")
                 val medias = adultSource.search(title)
                 Log.d("GGG", "findEpisodes:${medias} ")
                 if (medias.isNotEmpty()) {
                     val media = medias[0]
-                    dataFound.value = Resource.Success(media)
+                    withContext(Dispatchers.Main) { // Switch back to main for UI updates
+                        dataFound.value = Resource.Success(media)
+                    }
                 } else {
                     Log.d("GGG", "findEpisodes 666 } ")
-                    dataFound.value =  Resource.Error(Exception("Media not found wrong title or romanji"))
+                    withContext(Dispatchers.Main) {
+                        dataFound.value = Resource.Error(Exception("Media not found wrong title or romanji"))
+                    }
                 }
             }
         }
