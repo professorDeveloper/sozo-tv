@@ -4,7 +4,8 @@ query getAnimeById($id: Int) {
         idMal
         episodes
         countryOfOrigin
-#        detail graph
+        #        detail graph
+        isAdult
         trailer {
             site
             thumbnail
