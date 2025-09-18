@@ -6,6 +6,7 @@
         <domain includeSubdomains="true">cdn.jwplayer.com</domain>
         <domain includeSubdomains="true">api.jikan.moe</domain>
         <domain includeSubdomains="true">www.imdb.com</domain>
+        <domain includeSubdomains="true">hentaimama.io</domain>
         <domain includeSubdomains="true">www.livechart.me</domain>
         <domain includeSubdomains="true">animepahe.ru</domain>
         <domain includeSubdomains="true">animepahe.si</domain>
