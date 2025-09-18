@@ -57,14 +57,14 @@ class HentaiMama : BaseParser() {
         .build()
     val client = Requests(httpClient, responseParser = parser)
 
-    suspend fun search(query: String): List<ShowResponse>  {
+    suspend fun search(query: String): List<ShowResponse> = withContext(Dispatchers.IO) {
         val updatedQuery = if (query.length > 7) query.substring(0, 7) else query
         val url = "$hostUrl/?s=${updatedQuery.replace(" ", "+")}"
         val document = Utils.getJsoup(url)
 
         Log.d("GGG", "search:$document ")
 
-        return document.select("div.result-item article").map {
+        return@withContext document.select("div.result-item article").map {
             val link = it.select("div.details div.title a").attr("href")
             val title = it.select("div.details div.title a").text()
             val cover = it.select("div.image div a img").attr("src")
@@ -76,7 +76,7 @@ class HentaiMama : BaseParser() {
     suspend fun loadEpisodes(
         animeLink: String,
         extra: Map<String, String>?
-    ): List<Data> {
+    ): List<Data> = withContext(Dispatchers.IO) {
         val pageBody = Utils.getJsoup(animeLink)
 
         val episodes =
@@ -94,7 +94,7 @@ class HentaiMama : BaseParser() {
                     Data(episode = epNum.toInt(), session = url ?: "", snapshot = thumb ?: "")
                 }
 
-        return episodes
+        return@withContext episodes
     }
 
     suspend fun loadVideoServers(
