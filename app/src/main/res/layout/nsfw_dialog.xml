@@ -39,7 +39,6 @@
                 android:textColor="#ffffff"
                 android:textSize="20sp" />
 
-            <!-- Updated description text with proper wrapping and max width -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -52,14 +51,12 @@
 
         </LinearLayout>
 
-        <!-- Items Section with consistent widths and better spacing -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
             android:orientation="vertical">
 
-            <!-- Age Verification -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -76,7 +73,6 @@
                     android:src="@drawable/ic_shield"
                     app:tint="#60a5fa" />
 
-                <!-- Fixed text container with proper width and wrapping -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -104,7 +100,6 @@
 
             </LinearLayout>
 
-            <!-- Content Visibility -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -148,7 +143,6 @@
 
             </LinearLayout>
 
-            <!-- Easy to Disable -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

@@ -103,7 +103,8 @@ fun GetAnimeByIdQuery.Media.toDomain(): DetailModel {
         studios = studiosD,
         this.seasonYear ?: 0,
         this.source,
-        airingSchedule = airingSchedule
+        airingSchedule = airingSchedule,
+        isAdult = this.isAdult ?: false
     )
     return detail
 }

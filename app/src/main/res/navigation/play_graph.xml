@@ -47,6 +47,9 @@
         android:label="EpisodeScreen"
         tools:layout="@layout/episode_screen">
         <argument
+            android:name="isAdult"
+            app:argType="boolean" />
+        <argument
             android:name="mediaId"
             app:argType="integer" />
         <argument
@@ -58,6 +61,7 @@
         <action
             android:id="@+id/action_episodeScreen_to_seriesPlayerScreen"
             app:destination="@id/seriesPlayerScreen" />
+
 
     </fragment>
     <fragment

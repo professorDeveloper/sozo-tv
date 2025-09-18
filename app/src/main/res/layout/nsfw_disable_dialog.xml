@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Updated to match exact Netflix-style dialog with fixed 520dp width -->
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/dialogContainer"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:layout_marginHorizontal="32dp"
+    android:backgroundTint="@color/netflix_dark_gray"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="16dp"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="520dp"
+        android:layout_height="wrap_content"
+        android:background="@color/netflix_dark_gray"
+        android:padding="32dp">
+
+        <!-- Increased icon size back to 80dp as specified -->
+        <com.saikou.sozo_tv.components.circleView.CircleWarningView
+            android:id="@+id/largeWarningIcon"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginBottom="24dp"
+            app:layout_constraintBottom_toTopOf="@+id/titleText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Restored title font size to 24sp for better visibility -->
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:text="NSFW Content Disabled"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/messageText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/largeWarningIcon" />
+
+        <!-- Restored message font size to 16sp and proper spacing -->
+        <TextView
+            android:id="@+id/messageText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:lineSpacingExtra="4dp"
+            android:text="Adult content is currently disabled. To access this content, you need to enable NSFW settings in your preferences."
+            android:textColor="#B3B3B3"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toTopOf="@+id/buttonsContainer"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/titleText" />
+
+        <!-- Restored button height to 56dp and proper spacing -->
+        <LinearLayout
+            android:id="@+id/buttonsContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/messageText">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/goToSettingsButton"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/days"
+                android:text="Go to Settings"
+                android:layout_gravity="center"
+                android:textAllCaps="false"
+                android:gravity="center"
+                android:textColor="@color/color_black_white_text"
+                android:textSize="14sp"
+                android:background="@drawable/background_button_login"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/hideButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:focusable="true"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:backgroundTint="#2F2F2F"
+                android:fontFamily="sans-serif-medium"
+                android:text="Hide"
+                android:textAllCaps="false"
+                android:textColor="@color/color_item_tv_category_tv"
+                android:textSize="14sp"
+                app:cornerRadius="4dp"
+                app:strokeColor="#2F2F2F"
+                app:strokeWidth="1dp" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>

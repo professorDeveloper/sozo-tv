@@ -18,10 +18,13 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.DetailPageBinding
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
+import com.saikou.sozo_tv.presentation.activities.ProfileActivity
+import com.saikou.sozo_tv.presentation.screens.profile.NfcDisabledDialog
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
@@ -205,13 +208,30 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         title: String,
         isFree: Boolean
     ) {
-        findNavController().navigate(
-            DetailPageDirections.actionDetailPage2ToEpisodeScreen(
-                id,
-                title,
-                isFree
+        val isAdult = item.content.isAdult
+        val canWatchAdult = PreferenceManager().isNsfwEnabled()
+        if (isAdult && !canWatchAdult) {
+            val dialog = NfcDisabledDialog()
+            dialog.setYesContinueListener {
+                val intent = Intent(binding.root.context, ProfileActivity::class.java)
+                requireActivity().startActivity(intent)
+                requireActivity().finish()
+            }
+            dialog.setOnBackPressedListener {
+                dialog.dismiss()
+            }
+
+            dialog.show(childFragmentManager, "dialog")
+        } else {
+            findNavController().navigate(
+                DetailPageDirections.actionDetailPage2ToEpisodeScreen(
+                    isAdult = isAdult,
+                    id,
+                    title,
+                    isFree
+                )
             )
-        )
+        }
     }
 
     override fun onTrailerButtonClicked(item: DetailCategory) {

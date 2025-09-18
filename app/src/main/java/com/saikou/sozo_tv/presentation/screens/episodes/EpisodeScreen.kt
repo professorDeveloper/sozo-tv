@@ -20,6 +20,7 @@ import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.EpisodeTabAdapter
 import com.saikou.sozo_tv.adapters.SeriesPageAdapter
 import com.saikou.sozo_tv.databinding.EpisodeScreenBinding
+import com.saikou.sozo_tv.parser.HentaiMama
 import com.saikou.sozo_tv.parser.models.Part
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.screens.wrong_title.WrongTitleDialog
@@ -57,7 +58,7 @@ class EpisodeScreen : Fragment() {
         addAnimFocus()
 
         val currentSource = readData<String>("subSource") ?: ""
-        if (currentSource != "animepahe") {
+        if (currentSource != "animepahe" && !args.isAdult) {
             binding.topContainer.gone()
             binding.loadingLayout.gone()
             binding.textView6.gone()
@@ -72,17 +73,14 @@ class EpisodeScreen : Fragment() {
                 intent.putExtra("openSettings", true)
                 requireActivity().startActivity(intent)
             }
-        }
-        else {
+        } else if (!args.isAdult) {
             val sourceText = "Current Selected Source: $currentSource"
             binding.textView6.text = sourceText.highlightPart(
-                currentSource,
-                ContextCompat.getColor(requireContext(), R.color.orange)
+                currentSource, ContextCompat.getColor(requireContext(), R.color.orange)
             )
 
             viewModel.findEpisodes(args.episodeTitle)
-            viewModel.dataFound.observe(viewLifecycleOwner)
-            { dataFound ->
+            viewModel.dataFound.observe(viewLifecycleOwner) { dataFound ->
                 when (dataFound) {
                     is Resource.Error -> {
                         binding.placeHolder.root.visible()
@@ -101,8 +99,7 @@ class EpisodeScreen : Fragment() {
                     is Resource.Success -> {
                         val mediaText = "Selected Media: ${dataFound.data.name}"
                         binding.textView7.gone()
-                        val anim =
-                            AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
+                        val anim = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
                         binding.textView7.text = mediaText.highlightPart(
                             dataFound.data.name,
                             ContextCompat.getColor(requireContext(), R.color.red80)
@@ -153,8 +150,7 @@ class EpisodeScreen : Fragment() {
                                                         name = dataFound.data.name,
                                                         currentEpisode = (it.episode
                                                             ?: 0).toString(),
-                                                        image = it.snapshot
-                                                            ?: LocalData.anime404,
+                                                        image = it.snapshot ?: LocalData.anime404,
                                                         seriesMainId = currentMediaId ?: "",
                                                         currentPage = selectedPosition + 1,
                                                         currentIndex = currentIndex
@@ -171,8 +167,7 @@ class EpisodeScreen : Fragment() {
                                                         name = dataFound.data.name,
                                                         currentEpisode = (it.episode
                                                             ?: 0).toString(),
-                                                        image = it.snapshot
-                                                            ?: LocalData.anime404,
+                                                        image = it.snapshot ?: LocalData.anime404,
                                                         seriesMainId = currentMediaId ?: "",
                                                         currentPage = selectedPosition + 1,
                                                         currentIndex = index
@@ -193,8 +188,7 @@ class EpisodeScreen : Fragment() {
                                             binding.tabRv.scrollToPosition(selectedPosition)
                                             categoriesAdapter.setFocusedItemListener { _, i ->
                                                 viewModel.loadEpisodeByPage(
-                                                    i + 1,
-                                                    currentMediaId
+                                                    i + 1, currentMediaId
                                                 )
                                                 selectedPosition = i
                                             }
@@ -209,7 +203,96 @@ class EpisodeScreen : Fragment() {
 
                     else -> {}
                 }
+            }
+        } else {
+            val sourceText = "Current Selected Source:${HentaiMama::class.java.simpleName}"
+            binding.textView6.text = sourceText.highlightPart(
+                HentaiMama::class.java.simpleName, ContextCompat.getColor(requireContext(), R.color.orange)
+            )
+            viewModel.findEpisodes(args.episodeTitle, isAdult = args.isAdult)
+            viewModel.dataFound.observe(viewLifecycleOwner) { dataFound ->
+                when (dataFound) {
+                    is Resource.Error -> {
+                        binding.placeHolder.root.visible()
+                        binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
+                        binding.placeHolder.placeholderTxt.text = dataFound.throwable.message
+                    }
 
+                    Resource.Loading -> {
+                        binding.placeHolder.root.gone()
+                        binding.topContainer.gone()
+                        binding.tabRv.gone()
+                        binding.loadingLayout.visible()
+                        binding.loadingText.text = "Media is loading.."
+                    }
+
+                    is Resource.Success -> {
+                        val mediaText = "Selected Media: ${dataFound.data.name}"
+                        binding.textView7.gone()
+                        val anim = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
+                        binding.textView7.text = mediaText.highlightPart(
+                            dataFound.data.name,
+                            ContextCompat.getColor(requireContext(), R.color.red80)
+                        )
+                        binding.textView7.visible()
+                        binding.textView7.startAnimation(anim)
+                        currentMediaId = dataFound.data.link
+                        adapter = SeriesPageAdapter()
+                        binding.wrongTitleContainer.visibility = View.VISIBLE
+                        binding.wrongTitleContainer.startAnimation(anim)
+                        binding.wrongTitleContainer.setOnClickListener { gg ->
+                            showWrongTitleDialog(dataFound.data.name)
+                        }
+
+                        binding.topContainer.adapter = adapter
+                        viewModel.loadAdultEpisodes(currentMediaId)
+                        binding.placeHolder.root.gone()
+                        binding.loadingLayout.gone()
+                        viewModel.episodeData.observe(viewLifecycleOwner) { result ->
+                            when (result) {
+                                is Resource.Error -> {
+                                    binding.placeHolder.root.visible()
+                                    binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
+                                    binding.placeHolder.placeholderTxt.text =
+                                        result.throwable.message
+                                }
+
+                                Resource.Loading -> {
+                                    binding.placeHolder.root.gone()
+                                    binding.loadingLayout.visible()
+                                    binding.topContainer.gone()
+                                    binding.loadingText.text = "Episodes are loading.."
+                                }
+
+                                is Resource.Success -> {
+                                    binding.tabRv.gone()
+                                    binding.placeHolder.root.gone()
+                                    binding.topContainer.visible()
+                                    binding.loadingLayout.gone()
+                                    adapter.updateEpisodeItems(result.data.data ?: arrayListOf())
+                                    adapter.setOnItemClickedListener { it, currentIndex ->
+                                        findNavController().navigate(
+                                            EpisodeScreenDirections.actionEpisodeScreenToSeriesPlayerScreen(
+                                                id = it.session ?: "",
+                                                name = dataFound.data.name,
+                                                currentEpisode = (it.episode
+                                                    ?: 0).toString(),
+                                                image = it.snapshot ?: LocalData.anime404,
+                                                seriesMainId = currentMediaId ?: "",
+                                                currentPage = selectedPosition + 1,
+                                                currentIndex = currentIndex
+                                            )
+                                        )
+                                    }
+                                }
+
+                                else -> {}
+                            }
+                        }
+                    }
+
+                    else -> {}
+                }
             }
         }
     }
@@ -258,9 +341,7 @@ class EpisodeScreen : Fragment() {
     }
 
     private fun String.highlightPart(
-        highlight: String,
-        color: Int,
-        isBold: Boolean = true
+        highlight: String, color: Int, isBold: Boolean = true
     ): SpannableString {
         val spannable = SpannableString(this)
         val start = this.indexOf(highlight)
