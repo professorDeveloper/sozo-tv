@@ -55,14 +55,14 @@ class HentaiMama : BaseParser() {
 
         .callTimeout(2, TimeUnit.MINUTES)
         .build()
-    val client = Requests(httpClient, responseParser = parser)
+//    val client = Requests(httpClient, responseParser = parser)
 
     suspend fun search(query: String): List<ShowResponse> = withContext(Dispatchers.IO) {
         val updatedQuery = if (query.length > 7) query.substring(0, 7) else query
         val url = "$hostUrl/?s=${updatedQuery.replace(" ", "+")}"
         val document = Utils.getJsoup(url)
 
-        Log.d("GGG", "search:$document ")
+//        Log.d("GGG", "search:$document ")
 
         return@withContext document.select("div.result-item article").map {
             val link = it.select("div.details div.title a").attr("href")
