@@ -33,10 +33,32 @@ class MyAccountPage : Fragment() {
             binding.nsfwSwitch.toggle()
         }
         binding.nsfwSwitch.setOnCheckedChangeListener { _, isChecked ->
-            updateNsfwStatus(isChecked)
-            saveNsfwPreference(isChecked)
+            if (isChecked && !preferenceManager.isNsfwEnabled()) {
+                showNsfwWarningDialog()
+            } else {
+                updateNsfwStatus(isChecked)
+                saveNsfwPreference(isChecked)
+            }
         }
 
+    }
+
+    private fun showNsfwWarningDialog() {
+        val dialog = NsfwAlertDialog()
+        dialog.setYesContinueListener {
+            updateNsfwStatus(true)
+            saveNsfwPreference(true)
+            dialog.dismiss()
+        }
+        dialog.setOnBackPressedListener {
+            binding.nsfwSwitch.isChecked = false
+            updateNsfwStatus(false)
+            saveNsfwPreference(false)
+            dialog.dismiss()
+        }
+
+
+        dialog.show(parentFragmentManager, "NsfwWarningDialog")
     }
 
     private fun saveNsfwPreference(isEnabled: Boolean) {

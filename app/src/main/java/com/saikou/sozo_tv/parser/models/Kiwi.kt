@@ -7,3 +7,4 @@ data class Kiwi(
     val provider: String,
     val url: String,
 )
+

@@ -72,7 +72,8 @@ class EpisodeScreen : Fragment() {
                 intent.putExtra("openSettings", true)
                 requireActivity().startActivity(intent)
             }
-        } else {
+        }
+        else {
             val sourceText = "Current Selected Source: $currentSource"
             binding.textView6.text = sourceText.highlightPart(
                 currentSource,

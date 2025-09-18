@@ -1,11 +1,41 @@
 package com.saikou.sozo_tv.parser
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.lagradost.nicehttp.Requests
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.EpisodeData
+import com.saikou.sozo_tv.parser.models.Kiwi
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.utils.Utils
 import com.saikou.sozo_tv.utils.parser
+
+data class ResponseElement(
+    val type: String,
+    val file: String
+)
+
+// Additional data classes you'll need:
+data class VideoContainer(
+    val videos: List<Video>
+)
+
+data class Video(
+    val id: String?,
+    val type: VideoType,
+    val url: String,
+    val size: Long?
+)
+
+data class VideoServer(
+    val url: String,
+    val index: String,
+)
+
+enum class VideoType {
+    M3U8,
+    CONTAINER
+}
 
 class HentaiMama : BaseParser() {
     override val name: String = "hentaimama"
@@ -51,4 +81,89 @@ class HentaiMama : BaseParser() {
         return episodes
     }
 
+    suspend fun loadVideoServers(
+        episodeLink: String,
+        extra: Map<String, String>?
+    ): Kiwi {
+        val client = Requests(Utils.httpClient, responseParser = parser)
+        val animeId = client.get(episodeLink).document
+            .select("#post_report > input:nth-child(5)")
+            .attr("value")
+
+        val response = client.post(
+            "https://hentaimama.io/wp-admin/admin-ajax.php",
+            data = mapOf(
+                "action" to "get_player_contents",
+                "a" to animeId
+            )
+        ).text
+
+        val gson = Gson()
+        val listType = object : TypeToken<List<String>>() {}.type
+        val videoUrls: List<String> = gson.fromJson(response, listType)
+
+        // Convert to VideoServer objects
+        val videoServers = videoUrls.mapIndexed { index, url ->
+            println(url.extractIframeSrc())
+            Kiwi(url.extractIframeSrc() ?: "", "Mirror $index", "")
+        }
+
+        return videoServers.first()
+    }
+
+    private fun String.extractIframeSrc(): String? {
+        val srcPattern = """src="([^"]+)"""".toRegex()
+        return srcPattern.find(this)?.groupValues?.get(1)
+    }
+
+    suspend fun extract(server: Kiwi): Video {
+        val client = Requests(Utils.httpClient, responseParser = parser)
+        val doc = client.get(server.session)
+
+        doc.document.selectFirst("video>source")?.attr("src")?.let { directSrc ->
+
+            return Video(null, VideoType.CONTAINER, directSrc, getSize(directSrc))
+        }
+
+        // Extract sources from JavaScript
+        val unSanitized =
+            doc.text.findBetween("sources: [", "],") ?: return Video(null, VideoType.CONTAINER, "", null)
+
+        // Sanitize the JSON string
+        val sanitizedJson = "[${
+            unSanitized
+                .replace("type:", "\"type\":")
+                .replace("file:", "\"file\":")
+        }]"
+
+        // Parse JSON using Gson
+        val gson = Gson()
+        val listType = object : TypeToken<List<ResponseElement>>() {}.type
+        val json: List<ResponseElement> = gson.fromJson(sanitizedJson, listType)
+
+        // Convert to Video objects
+        val videos = json.map { element ->
+            if (element.type == "hls")
+                Video(null, VideoType.M3U8, element.file, null)
+            else
+                Video(null, VideoType.CONTAINER, element.file, getSize(element.file))
+        }
+
+        return videos.first()
+    }
+
+    fun String.findBetween(start: String, end: String): String? {
+        val startIndex = this.indexOf(start)
+        if (startIndex == -1) return null
+
+        val actualStart = startIndex + start.length
+        val endIndex = this.indexOf(end, actualStart)
+        if (endIndex == -1) return null
+
+        return this.substring(actualStart, endIndex)
+    }
+
+    fun getSize(url: String): Long? {
+        return null
+    }
 }
