@@ -48,13 +48,13 @@ class HentaiMama : BaseParser() {
     override val hostUrl = "https://hentaimama.io"
     override val isNSFW: Boolean = true
     override val language: String = "jp"
-
-    var httpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-
-        .callTimeout(2, TimeUnit.MINUTES)
-        .build()
+//
+//    var httpClient = OkHttpClient.Builder()
+//        .connectTimeout(30, TimeUnit.SECONDS)
+//        .readTimeout(30, TimeUnit.SECONDS)
+//
+//        .callTimeout(2, TimeUnit.MINUTES)
+//        .build()
 //    val client = Requests(httpClient, responseParser = parser)
 
     suspend fun search(query: String): List<ShowResponse> = withContext(Dispatchers.IO) {
