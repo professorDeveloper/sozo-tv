@@ -61,7 +61,9 @@
         <action
             android:id="@+id/action_episodeScreen_to_seriesPlayerScreen"
             app:destination="@id/seriesPlayerScreen" />
-
+        <action
+            android:id="@+id/action_episodeScreen_to_adultPlayerScreen"
+            app:destination="@id/adultPlayerScreen" />
 
     </fragment>
     <fragment
@@ -90,6 +92,20 @@
 
         <argument
             android:name="currentEpisode"
+            app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/adultPlayerScreen"
+        android:name="com.saikou.sozo_tv.presentation.screens.play.AdultPlayerScreen"
+        android:label="AdultPlayerScreen" >
+        <argument
+            android:name="link"
+            app:argType="string" />
+        <argument
+            android:name="name"
+            app:argType="string" />
+        <argument
+            android:name="episodeNum"
             app:argType="string" />
     </fragment>
 </navigation>

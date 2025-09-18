@@ -20,6 +20,7 @@ import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.SearchRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.presentation.activities.UpdateViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.AdultPlayerViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
@@ -52,6 +53,7 @@ val koinModule = module {
     single<MovieBookmarkRepository> {
         MovieBookmarkRepositoryImpl(dao = get())
     }
+
     single<WatchHistoryRepository> {
         WatchHistoryRepositoryImpl(watchHistoryDao = get())
     }
@@ -84,6 +86,7 @@ val koinModule = module {
     viewModel { EpisodeViewModel(watchHistoryRepository = get()) }
     viewModel { WrongTitleViewModel() }
     viewModel { UpdateViewModel() }
+    viewModel { AdultPlayerViewModel() }
     viewModel { SplashViewModel(firebaseService = get()) }
     viewModel { PlayViewModel(repo = get(), bookmarkRepo = get(), watchHistoryRepository = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
