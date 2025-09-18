@@ -1,6 +1,7 @@
-<h1 align="center">Sozo Tv</h1>
+<div align="center">
 
-<br />
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/bffeadbe-77a8-4b2a-8f57-9cadfd11eaab" height="300px" />
-</p>
+# 🎌 Sozo TV
+### *Every anime, right in your hands!*
+
+<img width="2882" height="1622" alt="image" src="https://github.com/user-attachments/assets/d06a46f4-13d5-4f84-be46-679c074b7726" />
+
