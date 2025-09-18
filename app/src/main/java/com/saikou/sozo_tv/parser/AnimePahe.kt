@@ -111,7 +111,7 @@ class AnimePahe : BaseParser() {
             providerRegex.matcher(scriptContent).let { if (it.find()) it.group(1) else null }
         val url = urlRegex.matcher(scriptContent).let { if (it.find()) it.group(1) else null }
 
-        println("Session: $session | Provider: $provider | URL: $url")
+//        println("Session: $session | Provider: $provider | URL: $url")
 
         return Kiwi(session ?: "empty", provider ?: "empty", url ?: "empty")
     }

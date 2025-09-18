@@ -213,6 +213,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         if (isAdult && !canWatchAdult) {
             val dialog = NfcDisabledDialog()
             dialog.setYesContinueListener {
+                dialog.dismiss()
                 val intent = Intent(binding.root.context, ProfileActivity::class.java)
                 requireActivity().startActivity(intent)
                 requireActivity().finish()
