@@ -49,6 +49,7 @@ class WrongTitleDialog : DialogFragment() {
             dismiss()
         }
         val title = arguments?.getString("animeTitle")
+        val isAdult = arguments?.getBoolean("isAdult")
         binding.inputAnimeName.setText(arguments?.getString("animeTitle"))
         binding.inputAnimeName.requestFocus()
         binding.inputAnimeName.apply {
@@ -63,7 +64,7 @@ class WrongTitleDialog : DialogFragment() {
                 ) {
                     val query = text.toString()
                     if (query.isNotEmpty()) {
-                        model.findEpisodes(query)
+                        model.findEpisodes(query, isAdult = isAdult ?: false)
                         hideKeyboard()
                     }
                     true
@@ -72,11 +73,11 @@ class WrongTitleDialog : DialogFragment() {
                 }
             }
         }
-        model.findEpisodes(title.toString())
+        model.findEpisodes(title.toString(), isAdult = isAdult ?: false)
         dialog!!.window?.setWindowAnimations(R.style.DialogAnimation)
         dialog!!.window?.setBackgroundDrawable(ColorDrawable(0))
         binding.searchBtn.setOnClickListener {
-            model.findEpisodes(binding.inputAnimeName.text.toString())
+            model.findEpisodes(binding.inputAnimeName.text.toString(), isAdult = isAdult ?: false)
         }
         model.dataFound.observe(viewLifecycleOwner) { result ->
             when (result) {
@@ -135,11 +136,13 @@ class WrongTitleDialog : DialogFragment() {
 
     companion object {
         fun newInstance(
-            animeTitle: String
+            animeTitle: String,
+            isAdult : Boolean
         ): WrongTitleDialog {
             val dialog = WrongTitleDialog()
             val args = Bundle()
             args.putString("animeTitle", animeTitle)
+            args.putBoolean("isAdult", isAdult)
             dialog.arguments = args
             return dialog
         }

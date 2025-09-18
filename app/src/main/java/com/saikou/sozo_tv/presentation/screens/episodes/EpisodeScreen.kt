@@ -111,7 +111,7 @@ class EpisodeScreen : Fragment() {
                         binding.wrongTitleContainer.visibility = View.VISIBLE
                         binding.wrongTitleContainer.startAnimation(anim)
                         binding.wrongTitleContainer.setOnClickListener { gg ->
-                            showWrongTitleDialog(dataFound.data.name)
+                            showWrongTitleDialog(dataFound.data.name, args.isAdult)
                         }
 
                         binding.topContainer.adapter = adapter
@@ -207,7 +207,8 @@ class EpisodeScreen : Fragment() {
         } else {
             val sourceText = "Current Selected Source:${HentaiMama::class.java.simpleName}"
             binding.textView6.text = sourceText.highlightPart(
-                HentaiMama::class.java.simpleName, ContextCompat.getColor(requireContext(), R.color.orange)
+                HentaiMama::class.java.simpleName,
+                ContextCompat.getColor(requireContext(), R.color.orange)
             )
             viewModel.findEpisodes(args.episodeTitle, isAdult = args.isAdult)
             viewModel.dataFound.observe(viewLifecycleOwner) { dataFound ->
@@ -241,7 +242,7 @@ class EpisodeScreen : Fragment() {
                         binding.wrongTitleContainer.visibility = View.VISIBLE
                         binding.wrongTitleContainer.startAnimation(anim)
                         binding.wrongTitleContainer.setOnClickListener { gg ->
-                            showWrongTitleDialog(dataFound.data.name)
+                            showWrongTitleDialog(dataFound.data.name, isAdult = args.isAdult)
                         }
 
                         binding.topContainer.adapter = adapter
@@ -298,8 +299,9 @@ class EpisodeScreen : Fragment() {
     }
 
     @SuppressLint("SetTextI18n")
-    private fun showWrongTitleDialog(animeTitle: String) {
-        val dialog: WrongTitleDialog = WrongTitleDialog.newInstance(animeTitle = animeTitle)
+    private fun showWrongTitleDialog(animeTitle: String, isAdult: Boolean = false) {
+        val dialog: WrongTitleDialog =
+            WrongTitleDialog.newInstance(animeTitle = animeTitle, isAdult = isAdult)
         dialog.onWrongTitleChanged = {
             dialog.dismiss()
             viewModel.findEpisodes(it.name)
