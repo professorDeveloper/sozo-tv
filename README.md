@@ -7,10 +7,10 @@
    <a href="https://github.com/professorDeveloper/Kitsune-App/releases"><img src="https://img.shields.io/github/downloads/rebelonion/Dantotsu/total?color=%233DDC84&logo=android&logoColor=%23fff&style=for-the-badge"></a>
 </p>
 
-Kitsune is crafted based on simplistic yet state-of-the-art elegance. It is an [Anilist](https://anilist.co/) only client, which also lets you stream/download Anime & Manga. 
-<br><br>
-<i>Kitsune (狐; kʲi̥t͡sɯne̞) are foxes that possess paranormal abilities that increase as they get older and wiser. we would like to say this is the best open source app for anime  on Android, but hey, try it out yourself & judge!
-</i> 
+Sozo is crafted with a perfect blend of simplicity and state-of-the-art elegance. It is designed as an Anilist only client, offering users the ability to stream and download their favorite Anime & Manga.
+
+The name Sozo (meaning "creation" or "imagination" in Japanese) represents innovation and artistry in the anime world. While we think this is the best open-source anime app for Android, we encourage you to try it out yourself and decide!
+
 <br>
 <br>
 
