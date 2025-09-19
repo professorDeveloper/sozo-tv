@@ -23,7 +23,7 @@ Kitsune is crafted based on simplistic yet state-of-the-art elegance. It is an [
 
 # Photos
 
-<img width="4619" alt="Kitsune (3)" src="https://github.com/user-attachments/assets/696cef8e-b537-498a-bf19-004231a00434">
+<img width="4619" alt="Kitsune (3)" src="https://github.com/user-attachments/assets/30a8dade-66ac-4448-a411-fda1771dc804">
 <br>
 <br>
 
