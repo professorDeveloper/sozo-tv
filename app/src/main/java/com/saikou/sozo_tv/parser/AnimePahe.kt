@@ -67,6 +67,8 @@ class AnimePahe : BaseParser() {
     }
 
 
+
+
     suspend fun search(query: String): List<ShowResponse> {
         val headers = getDefaultHeaders()
         val formattedQuery = query.replace(" ", "%20")
@@ -90,11 +92,11 @@ class AnimePahe : BaseParser() {
 
     suspend fun loadEpisodes(id: String, curPage: Int): EpisodeData? {
         val headers = getDefaultHeaders()
-        val requests = Requests(httpClient, responseParser = parser, defaultHeaders = headers)
+        val requests = Requests(httpClient, responseParser = parser, defaultHeaders = headers )
         return try {
             requests.get(
                 "${hostUrl}api?m=release&id=$id&sort=episode_asc&page=$curPage",
-                headers = headers
+                headers =headers
             ).parsed()
         } catch (e: Exception) {
             Bugsnag.notify(e)
@@ -144,8 +146,8 @@ class AnimePahe : BaseParser() {
     }
 
     suspend fun extractVideo(url: String): String {
-        val headers = getDefaultHeaders()
-        val doc = getJsoup(url, headers)
+
+        val doc = getJsoup(url, mapOf("User-Agent" to USER_AGENT, "Referer" to hostUrl))
         val scripts: Elements = doc.getElementsByTag("script")
         var evalContent: String? = null
 
@@ -199,8 +201,7 @@ class AnimePahe : BaseParser() {
             cont.invokeOnCancellation {
                 try {
                     dbRef.removeEventListener(listener)
-                } catch (_: Exception) { /* ignore */
-                }
+                } catch (_: Exception) { /* ignore */ }
             }
         }
 

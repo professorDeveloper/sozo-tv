@@ -91,7 +91,7 @@ class PlayViewModel(
             }
             animePahe.getEpisodeVideo(epId = episodeId, id = mediaId).let {
                 animePahe.extractVideo(it.url).let {
-
+                    Log.d("GGG", "getCurrentEpisodeVod: ")
 
                     seriesResponse = VodMovieResponse(
                         authInfo = "",
