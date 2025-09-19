@@ -43,6 +43,14 @@ class AnimePahe : BaseParser() {
         )
     }
 
+
+
+    private fun isDDoSGuardResponse(response: String): Boolean {
+        return response.trim().startsWith("<!doctype html>") ||
+                response.contains("DDoS-Guard") ||
+                response.contains("ddos-guard") ||
+                response.contains("js-challenge")
+    }
     suspend fun search(query: String): List<ShowResponse> {
         val formattedQuery = query.replace(" ", "%20")
         val requests = Requests(httpClient, responseParser = parser)
