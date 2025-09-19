@@ -39,3 +39,7 @@ Stay updated with the newest versions, announcements, and fixes by following our
 <img width="2880" height="377" alt="image" src="https://github.com/user-attachments/assets/c531f8c9-9806-4d69-8d0b-a57c8cc7e1b8" />
 <br>
 <br>
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
+
