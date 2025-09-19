@@ -3,6 +3,7 @@ package com.saikou.sozo_tv.parser
 import android.annotation.SuppressLint
 import androidx.lifecycle.MutableLiveData
 import com.bugsnag.android.Bugsnag
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.lagradost.nicehttp.Requests
 import com.saikou.sozo_tv.di.BASE_URL
 import com.saikou.sozo_tv.p_a_c_k_e_r.JsUnpacker
@@ -51,24 +52,41 @@ class AnimePahe : BaseParser() {
                 response.contains("ddos-guard") ||
                 response.contains("js-challenge")
     }
+    val client = OkHttpClient.Builder()
+        .followRedirects(true)
+        .followSslRedirects(true)
+        .build()
+
     suspend fun search(query: String): List<ShowResponse> {
         val formattedQuery = query.replace(" ", "%20")
-        val requests = Requests(httpClient, responseParser = parser)
-        val headers = getDefaultHeaders()
+        val request = Request.Builder()
+            .url("https://animepahe.si/api?m=search&q=$formattedQuery")
+            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+                    "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                    "Chrome/120.0 Safari/537.36")
+            .header("Accept", "application/json, text/javascript, */*; q=0.01")
+            .header("Referer", "https://animepahe.si/")
+            .build()
 
-        val list = mutableListOf<ShowResponse>()
-        try {
-            val res = requests.get("${hostUrl}api?m=search&q=$formattedQuery", headers)
-                .parsed<AnimePaheData>()
+        return withContext(Dispatchers.IO) {
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    println("Error: ${response.code}")
+                    return@withContext emptyList()
+                }
+                val body = response.body?.string() ?: return@withContext emptyList()
 
-            res.data.forEach {
-                list.add(ShowResponse(it.title.toString(), it.session ?: "", it.poster ?: ""))
+                try {
+                    val res = ObjectMapper().readValue(body, AnimePaheData::class.java)
+                    res.data.map {
+                        ShowResponse(it.title ?: "", it.session ?: "", it.poster ?: "")
+                    }
+                } catch (e: Exception) {
+                    println("Parse error: ${e.message}")
+                    emptyList()
+                }
             }
-        } catch (e: Exception) {
-            Bugsnag.notify(e)
-            println("Search failed: ${e.message}")
         }
-        return list
     }
 
     suspend fun loadEpisodes(id: String, curPage: Int): EpisodeData? {
