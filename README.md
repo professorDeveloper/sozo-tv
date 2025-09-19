@@ -3,7 +3,7 @@
 <br> </br>
 <p align="center">
    <a href="https://discord.gg/n22URhYvMR"><img src="https://img.shields.io/badge/Discord-7289DA?style=for-the-badge&logo=discord&logoColor=white"></a>
-   <a href="https://telegram.me/kitsune_app" ><img src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white"></a> 
+   <a href="https://telegram.me/sozo_app" ><img src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white"></a> 
    <a href="https://github.com/professorDeveloper/Kitsune-App/releases"><img src="https://img.shields.io/github/downloads/rebelonion/Dantotsu/total?color=%233DDC84&logo=android&logoColor=%23fff&style=for-the-badge"></a>
 </p>
 
