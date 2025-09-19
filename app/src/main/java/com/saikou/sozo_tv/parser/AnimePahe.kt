@@ -57,7 +57,6 @@ class AnimePahe : BaseParser() {
             "Accept" to "application/json, text/javascript, */*; q=0.01",
             "Accept-Language" to "en-US,en;q=0.9",
             "DNT" to "1",
-            "Referer" to "https://animepahe.si/"
         )
 
         if (cookie.isNotBlank()) {
@@ -66,8 +65,6 @@ class AnimePahe : BaseParser() {
 
         return map
     }
-
-
 
 
     suspend fun search(query: String): List<ShowResponse> {
@@ -92,11 +89,12 @@ class AnimePahe : BaseParser() {
     }
 
     suspend fun loadEpisodes(id: String, curPage: Int): EpisodeData? {
-        val requests = Requests(httpClient, responseParser = parser)
+        val headers = getDefaultHeaders()
+        val requests = Requests(httpClient, responseParser = parser, defaultHeaders = headers)
         return try {
             requests.get(
                 "${hostUrl}api?m=release&id=$id&sort=episode_asc&page=$curPage",
-                getDefaultHeaders()
+                headers = headers
             ).parsed()
         } catch (e: Exception) {
             Bugsnag.notify(e)
@@ -120,9 +118,10 @@ class AnimePahe : BaseParser() {
         ).toString()
     }
 
-    fun getEpisodeVideo(epId: String, id: String): Kiwi {
+    suspend fun getEpisodeVideo(epId: String, id: String): Kiwi {
+        val headers = getDefaultHeaders()
         val doc =
-            getJsoup("https://animepahe.si/play/${id}/${epId}", mapOf("User-Agent" to USER_AGENT))
+            getJsoup("https://animepahe.si/play/${id}/${epId}", headers)
 
         val scriptContent = doc.select("script")
             .map { it.html() }
@@ -144,8 +143,9 @@ class AnimePahe : BaseParser() {
         return Kiwi(session ?: "empty", provider ?: "empty", url ?: "empty")
     }
 
-    fun extractVideo(url: String): String {
-        val doc = getJsoup(url, mapOf("User-Agent" to USER_AGENT, "Referer" to hostUrl))
+    suspend fun extractVideo(url: String): String {
+        val headers = getDefaultHeaders()
+        val doc = getJsoup(url, headers)
         val scripts: Elements = doc.getElementsByTag("script")
         var evalContent: String? = null
 
@@ -199,7 +199,8 @@ class AnimePahe : BaseParser() {
             cont.invokeOnCancellation {
                 try {
                     dbRef.removeEventListener(listener)
-                } catch (_: Exception) { /* ignore */ }
+                } catch (_: Exception) { /* ignore */
+                }
             }
         }
 
