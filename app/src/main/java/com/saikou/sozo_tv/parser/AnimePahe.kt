@@ -4,6 +4,11 @@ import android.annotation.SuppressLint
 import androidx.lifecycle.MutableLiveData
 import com.bugsnag.android.Bugsnag
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.lagradost.nicehttp.Requests
 import com.saikou.sozo_tv.di.BASE_URL
 import com.saikou.sozo_tv.p_a_c_k_e_r.JsUnpacker
@@ -15,7 +20,10 @@ import com.saikou.sozo_tv.utils.Utils.getJsoup
 import com.saikou.sozo_tv.utils.Utils.httpClient
 import com.saikou.sozo_tv.utils.parser
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import okhttp3.Headers
+import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -26,6 +34,8 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 import javax.security.cert.X509Certificate
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class AnimePahe : BaseParser() {
     override val name: String = "AniPahe"
@@ -33,60 +43,52 @@ class AnimePahe : BaseParser() {
     override val hostUrl: String = "https://animepahe.si/"
     override val language: String = "en"
 
-
     private suspend fun getDefaultHeaders(): Map<String, String> {
-        return mapOf(
+        val cookie = try {
+            getFreshCookiesFromFirebase("cookies")
+        } catch (e: Exception) {
+            Bugsnag.notify(e)
+            println("Failed to get cookies from Firebase: ${e.message}")
+            ""
+        }
+
+        val map = mutableMapOf(
             "User-Agent" to USER_AGENT,
-            "Accept" to "application/json",
+            "Accept" to "application/json, text/javascript, */*; q=0.01",
             "Accept-Language" to "en-US,en;q=0.9",
             "DNT" to "1",
-            "Cookie" to getFreshCookies()
+            "Referer" to "https://animepahe.si/"
         )
+
+        if (cookie.isNotBlank()) {
+            map["Cookie"] = cookie
+        }
+
+        return map
     }
 
 
 
-    private fun isDDoSGuardResponse(response: String): Boolean {
-        return response.trim().startsWith("<!doctype html>") ||
-                response.contains("DDoS-Guard") ||
-                response.contains("ddos-guard") ||
-                response.contains("js-challenge")
-    }
-    val client = OkHttpClient.Builder()
-        .followRedirects(true)
-        .followSslRedirects(true)
-        .build()
 
     suspend fun search(query: String): List<ShowResponse> {
+        val headers = getDefaultHeaders()
         val formattedQuery = query.replace(" ", "%20")
-        val request = Request.Builder()
-            .url("https://animepahe.si/api?m=search&q=$formattedQuery")
-            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-                    "AppleWebKit/537.36 (KHTML, like Gecko) " +
-                    "Chrome/120.0 Safari/537.36")
-            .header("Accept", "application/json, text/javascript, */*; q=0.01")
-            .header("Referer", "https://animepahe.si/")
-            .build()
+        val requests = Requests(httpClient, defaultHeaders = headers, responseParser = parser)
 
-        return withContext(Dispatchers.IO) {
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    println("Error: ${response.code}")
-                    return@withContext emptyList()
-                }
-                val body = response.body?.string() ?: return@withContext emptyList()
+        val list = mutableListOf<ShowResponse>()
+        try {
+            val res = requests.get("${hostUrl}api?m=search&q=$formattedQuery", headers)
+                .parsed<AnimePaheData>()
 
-                try {
-                    val res = ObjectMapper().readValue(body, AnimePaheData::class.java)
-                    res.data.map {
-                        ShowResponse(it.title ?: "", it.session ?: "", it.poster ?: "")
-                    }
-                } catch (e: Exception) {
-                    println("Parse error: ${e.message}")
-                    emptyList()
-                }
+            res.data.forEach {
+                list.add(ShowResponse(it.title.toString(), it.session ?: "", it.poster ?: ""))
             }
+        } catch (e: Exception) {
+            Bugsnag.notify(e)
+            println("Search failed: ${e.message}")
+            return list
         }
+        return list
     }
 
     suspend fun loadEpisodes(id: String, curPage: Int): EpisodeData? {
@@ -172,46 +174,34 @@ class AnimePahe : BaseParser() {
         return regex.find(input)?.value
     }
 
-    suspend fun getFreshCookies(): String = withContext(Dispatchers.IO) {
-        val trustAllCerts = arrayOf<TrustManager>(
-            @SuppressLint("CustomX509TrustManager")
-            object : X509TrustManager {
-                @SuppressLint("TrustAllX509TrustManager")
-                override fun checkClientTrusted(
-                    p0: Array<out java.security.cert.X509Certificate>?,
-                    p1: String?
-                ) {
+    suspend fun getFreshCookiesFromFirebase(path: String = "cookies"): String =
+        suspendCancellableCoroutine { cont ->
+            val dbRef: DatabaseReference = FirebaseDatabase.getInstance().getReference(path)
 
+            val listener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    try {
+                        val cookieString = snapshot.getValue(String::class.java) ?: ""
+                        cont.resume(cookieString)
+                        println("Cookies: $cookieString")
+                    } catch (e: Exception) {
+                        cont.resumeWithException(e)
+                    }
                 }
 
-                override fun checkServerTrusted(
-                    p0: Array<out java.security.cert.X509Certificate>?,
-                    p1: String?
-                ) {
+                override fun onCancelled(error: DatabaseError) {
+                    cont.resumeWithException(error.toException())
                 }
-
-                override fun getAcceptedIssuers(): Array<out java.security.cert.X509Certificate> =
-                    arrayOf()
             }
-        )
 
-        val sslContext = SSLContext.getInstance("SSL")
-        sslContext.init(null, trustAllCerts, SecureRandom())
-        val client = OkHttpClient.Builder()
-            .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
-            .hostnameVerifier { _, _ -> true }
-            .followRedirects(true).build()
-        val request = Request.Builder()
-            .url(hostUrl)
-            .header("User-Agent", USER_AGENT)
-            .header("DNT", "1")
-            .build()
+            dbRef.addListenerForSingleValueEvent(listener)
 
-        client.newCall(request).execute().use { response: Response ->
-            val cookies = response.headers("Set-Cookie")
-            return@withContext cookies.joinToString("; ") { it.substringBefore(";") }
+            cont.invokeOnCancellation {
+                try {
+                    dbRef.removeEventListener(listener)
+                } catch (_: Exception) { /* ignore */ }
+            }
         }
-    }
 
     companion object {
         const val USER_AGENT =
