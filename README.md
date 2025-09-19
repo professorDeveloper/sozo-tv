@@ -13,6 +13,16 @@ The name Sozo (meaning "creation" or "imagination" in Japanese) represents innov
 
 <br>
 
+## Note
+Due to **DMCA restrictions**, we cannot host the APK file directly in this repository. Instead, you can download the latest release from our **official Telegram channel**:
+<p align="center">
+    <a href="https://github.com/Sozo-app/sozo-tv/releases"><img src="https://img.shields.io/badge/GitHub-All%20Releases-333?style=for-the-badge&logo=github&logoColor=white"></a>
+</p>
+
+Stay updated with the newest versions, announcements, and fixes by following our channel. 🚀
+
+<br>
+
 ### Official Discord Server
  
 <p align="center">
