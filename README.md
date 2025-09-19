@@ -3,15 +3,24 @@
 <br> </br>
 <p align="center">
    <a href="https://discord.gg/n22URhYvMR"><img src="https://img.shields.io/badge/Discord-7289DA?style=for-the-badge&logo=discord&logoColor=white"></a>
-   <a href="https://telegram.me/kitsune_app" ><img src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white"></a> 
-   <a href="https://github.com/professorDeveloper/Kitsune-App/releases"><img src="https://img.shields.io/github/downloads/rebelonion/Dantotsu/total?color=%233DDC84&logo=android&logoColor=%23fff&style=for-the-badge"></a>
+   <a href="https://telegram.me/sozoapp" ><img src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white"></a> 
+   <a href="https://t.me/sozoapp"><img src="https://img.shields.io/badge/Download-Latest%20Release-brightgreen?style=for-the-badge&logo=download&logoColor=white"></a>
 </p>
 
-Kitsune is crafted based on simplistic yet state-of-the-art elegance. It is an [Anilist](https://anilist.co/) only client, which also lets you stream/download Anime & Manga. 
-<br><br>
-<i>Kitsune (狐; kʲi̥t͡sɯne̞) are foxes that possess paranormal abilities that increase as they get older and wiser. we would like to say this is the best open source app for anime  on Android, but hey, try it out yourself & judge!
-</i> 
+Sozo is crafted with a perfect blend of simplicity and state-of-the-art elegance. It is designed as an Anilist only client, offering users the ability to stream and download their favorite Anime & Manga.
+
+The name Sozo (meaning "creation" or "imagination" in Japanese) represents innovation and artistry in the anime world. While we think this is the best open-source anime app for Android, we encourage you to try it out yourself and decide!
+
 <br>
+
+## Note
+Due to **DMCA restrictions**, we cannot host the APK file directly in this repository. Instead, you can download the latest release from our **official Telegram channel**:
+<p align="center">
+    <a href="https://github.com/Sozo-app/sozo-tv/releases"><img src="https://img.shields.io/badge/GitHub-All%20Releases-333?style=for-the-badge&logo=github&logoColor=white"></a>
+</p>
+
+Stay updated with the newest versions, announcements, and fixes by following our channel. 🚀
+
 <br>
 
 ### Official Discord Server
