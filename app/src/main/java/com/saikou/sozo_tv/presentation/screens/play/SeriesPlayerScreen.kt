@@ -748,6 +748,8 @@ class SeriesPlayerScreen : Fragment() {
                     isEnabled = false
                 }
 
+
+
                 binding.episodeRv.clearFocus()
                 binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
             }
