@@ -177,21 +177,21 @@ class PlayViewModel(
     }
 
     fun loadTrailer(name: String) {
-        trailerJob?.cancel()
-        trailerJob = viewModelScope.launch {
-            val liveChartTrailer = LiveChartTrailer()
-            val link = liveChartTrailer.searchAndGetTrailer(name)
-            val ytList = liveChartTrailer.getTrailerByDetail(link.mediaLink)
-            Log.d("GGG", "loadTrailer:${ytList} ")
-            if (ytList.isEmpty()) {
-                trailerData.postValue("")
-            } else {
-                val parser = DubsMp4Parser()
-                parser.parseYt(ytList[0].mediaLink).let {
-                    trailerData.postValue(it)
-                }
-            }
-        }
+//        trailerJob?.cancel()
+//        trailerJob = viewModelScope.launch {
+//            val liveChartTrailer = LiveChartTrailer()
+//            val link = liveChartTrailer.searchAndGetTrailer(name)
+//            val ytList = liveChartTrailer.getTrailerByDetail(link.mediaLink)
+//            Log.d("GGG", "loadTrailer:${ytList} ")
+//            if (ytList.isEmpty()) {
+//                trailerData.postValue("")
+//            } else {
+//                val parser = DubsMp4Parser()
+//                parser.parseYt(ytList[0].mediaLink).let {
+//                    trailerData.postValue(it)
+//                }
+//            }
+//        }
     }
 
     fun cancelTrailerLoading() {
