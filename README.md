@@ -19,8 +19,6 @@ Due to **DMCA restrictions**, we cannot host the APK file directly in this repos
 
 Stay updated with the newest versions, announcements, and fixes by following our channel. 🚀
 
-<br>
-
 ### Official Discord Server
  
 <p align="center">
