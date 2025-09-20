@@ -11,8 +11,6 @@ Sozo is crafted with a perfect blend of simplicity and state-of-the-art elegance
 
 The name Sozo (meaning "creation" or "imagination" in Japanese) represents innovation and artistry in the anime world. While we think this is the best open-source anime app for Android, we encourage you to try it out yourself and decide!
 
-<br>
-
 ## Note
 Due to **DMCA restrictions**, we cannot host the APK file directly in this repository. Instead, you can download the latest release from our **official Telegram channel**:
 <p align="center">
