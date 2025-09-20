@@ -35,7 +35,7 @@
     <application
         android:name=".app.MyApp"
         android:allowBackup="true"
-        android:banner="@mipmap/ic_banner"
+        android:banner="@drawable/banner_img"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_channel"
         android:label="@string/app_name"
