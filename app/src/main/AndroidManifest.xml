@@ -73,7 +73,7 @@
         </activity>
         <activity
             android:name=".presentation.activities.LoginActivity"
-            android:banner="@mipmap/ic_banner"
+            android:banner="@drawable/banner_img"
             android:exported="true"
             android:icon="@drawable/img_1"
             android:logo="@drawable/img_1"
