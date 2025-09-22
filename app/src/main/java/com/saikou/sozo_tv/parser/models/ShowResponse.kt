@@ -12,3 +12,20 @@ data class ShowResponse(
 ) : Serializable {
 
 }
+
+
+
+data class VideoOption(
+    val kwikUrl: String,
+    val fansub: String,
+    val resolution: String,
+    val audioType: AudioType,
+    val quality: String,
+    val isActive: Boolean,
+    val fullText: String
+)
+
+
+enum class AudioType {
+    SUB, DUB
+}
