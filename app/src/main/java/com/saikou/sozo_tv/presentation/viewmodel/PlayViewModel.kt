@@ -34,7 +34,7 @@ class PlayViewModel(
     var lastPosition: Long = 0
 
     var currentEpIndex = -1
-
+    val currentSelectedVideoOptionIndex = 0
     val detailData = MutableLiveData<DetailCategory>()
     val relationsData = MutableLiveData<List<MainModel>>()
     val errorData = MutableLiveData<String>()
@@ -90,7 +90,7 @@ class PlayViewModel(
 
             }
             animePahe.getEpisodeVideo(epId = episodeId, id = mediaId).let {
-                animePahe.extractVideo(it.url).let {
+                animePahe.extractVideo(it[currentSelectedVideoOptionIndex].kwikUrl).let {
                     Log.d("GGG", "getCurrentEpisodeVod: ")
 
                     seriesResponse = VodMovieResponse(
@@ -143,6 +143,7 @@ class PlayViewModel(
     suspend fun getAllWatchHistory(): List<WatchHistoryEntity> {
         return watchHistoryRepository.getAllHistory()
     }
+
     fun loadRelations(id: Int) {
         viewModelScope.launch {
             val result = repo.loadAnimeRelations(id)
