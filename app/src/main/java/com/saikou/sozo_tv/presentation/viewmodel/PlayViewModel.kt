@@ -19,6 +19,7 @@ import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.AnimePahe
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
+import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.utils.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -34,7 +35,9 @@ class PlayViewModel(
     var lastPosition: Long = 0
 
     var currentEpIndex = -1
-    val currentSelectedVideoOptionIndex = 0
+    val videoOptionsData = MutableLiveData<List<VideoOption>>()
+    val videoOptions = ArrayList<VideoOption>()
+    var currentSelectedVideoOptionIndex = 0
     val detailData = MutableLiveData<DetailCategory>()
     val relationsData = MutableLiveData<List<MainModel>>()
     val errorData = MutableLiveData<String>()
@@ -80,6 +83,21 @@ class PlayViewModel(
         watchHistoryRepository.addHistory(history)
     }
 
+
+    fun changeQualityByIndex(index: Int, epId: String, mediaId: String) {
+        if (videoOptions.isNotEmpty()) {
+            currentSelectedVideoOptionIndex = index
+            viewModelScope.launch(Dispatchers.IO) {
+                animePahe.getEpisodeVideo(epId, mediaId).let {
+                    animePahe.extractVideo(videoOptions[index].kwikUrl).let {
+
+                    }
+                }
+            }
+        }
+    }
+
+
     fun getCurrentEpisodeVod(episodeId: String, mediaId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             currentEpisodeData.postValue(Resource.Loading)
@@ -90,6 +108,9 @@ class PlayViewModel(
 
             }
             animePahe.getEpisodeVideo(epId = episodeId, id = mediaId).let {
+                videoOptionsData.postValue(it)
+                videoOptions.clear()
+                videoOptions.addAll(it)
                 animePahe.extractVideo(it[currentSelectedVideoOptionIndex].kwikUrl).let {
                     Log.d("GGG", "getCurrentEpisodeVod: ")
 
