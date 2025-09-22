@@ -157,29 +157,29 @@ class AnimePahe : BaseParser() {
     }
 
 
-    suspend fun getEpisodeVideo(epId: String, id: String): Kiwi {
+    suspend fun getEpisodeVideo(epId: String, id: String): List<VideoOption> {
         val headers = getDefaultHeaders()
         val doc =
             getJsoup("https://animepahe.si/play/${id}/${epId}", headers)
-
-        val scriptContent = doc.select("script")
-            .map { it.html() }
-            .firstOrNull { it.contains("session") && it.contains("provider") && it.contains("url") }
-            ?: ""
-
-        val sessionRegex = Pattern.compile("""let\s+session\s*=\s*"([^"]+)"""")
-        val providerRegex = Pattern.compile("""let\s+provider\s*=\s*"([^"]+)"""")
-        val urlRegex = Pattern.compile("""let\s+url\s*=\s*"([^"]+)"""")
-
-        val session =
-            sessionRegex.matcher(scriptContent).let { if (it.find()) it.group(1) else null }
-        val provider =
-            providerRegex.matcher(scriptContent).let { if (it.find()) it.group(1) else null }
-        val url = urlRegex.matcher(scriptContent).let { if (it.find()) it.group(1) else null }
+        val videoOptions = getVideoOptions(doc)
+//        val scriptContent = doc.select("script")
+//            .map { it.html() }
+//            .firstOrNull { it.contains("session") && it.contains("provider") && it.contains("url") }
+//            ?: ""
+//
+//        val sessionRegex = Pattern.compile("""let\s+session\s*=\s*"([^"]+)"""")
+//        val providerRegex = Pattern.compile("""let\s+provider\s*=\s*"([^"]+)"""")
+//        val urlRegex = Pattern.compile("""let\s+url\s*=\s*"([^"]+)"""")
+//
+//        val session =
+//            sessionRegex.matcher(scriptContent).let { if (it.find()) it.group(1) else null }
+//        val provider =
+//            providerRegex.matcher(scriptContent).let { if (it.find()) it.group(1) else null }
+//        val url = urlRegex.matcher(scriptContent).let { if (it.find()) it.group(1) else null }
 
 //        println("Session: $session | Provider: $provider | URL: $url")
 
-        return Kiwi(session ?: "empty", provider ?: "empty", url ?: "empty")
+        return videoOptions
     }
 
     suspend fun extractVideo(url: String): String {
