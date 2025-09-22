@@ -13,9 +13,11 @@ import com.lagradost.nicehttp.Requests
 import com.saikou.sozo_tv.di.BASE_URL
 import com.saikou.sozo_tv.p_a_c_k_e_r.JsUnpacker
 import com.saikou.sozo_tv.parser.models.AnimePaheData
+import com.saikou.sozo_tv.parser.models.AudioType
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.Kiwi
 import com.saikou.sozo_tv.parser.models.ShowResponse
+import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.utils.Utils.getJsoup
 import com.saikou.sozo_tv.utils.Utils.httpClient
 import com.saikou.sozo_tv.utils.parser
@@ -27,6 +29,7 @@ import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import java.security.SecureRandom
 import java.util.regex.Pattern
@@ -67,8 +70,6 @@ class AnimePahe : BaseParser() {
     }
 
 
-
-
     suspend fun search(query: String): List<ShowResponse> {
         val headers = getDefaultHeaders()
         val formattedQuery = query.replace(" ", "%20")
@@ -92,11 +93,11 @@ class AnimePahe : BaseParser() {
 
     suspend fun loadEpisodes(id: String, curPage: Int): EpisodeData? {
         val headers = getDefaultHeaders()
-        val requests = Requests(httpClient, responseParser = parser, defaultHeaders = headers )
+        val requests = Requests(httpClient, responseParser = parser, defaultHeaders = headers)
         return try {
             requests.get(
                 "${hostUrl}api?m=release&id=$id&sort=episode_asc&page=$curPage",
-                headers =headers
+                headers = headers
             ).parsed()
         } catch (e: Exception) {
             Bugsnag.notify(e)
@@ -119,6 +120,42 @@ class AnimePahe : BaseParser() {
             null
         ).toString()
     }
+
+    private fun getVideoOptions(doc: Document): List<VideoOption> {
+        val videoOptions = mutableListOf<VideoOption>()
+
+        val videoButtons = doc.select("div#resolutionMenu button.dropdown-item")
+        videoButtons.forEach { button ->
+            val kwikUrl = button.attr("data-src")
+            val fansub = button.attr("data-fansub")
+            val resolution = button.attr("data-resolution")
+            val audio = button.attr("data-audio")
+            val isActive = button.hasClass("active")
+
+            val audioType = when (audio) {
+                "jpn" -> AudioType.SUB
+                "eng" -> AudioType.DUB
+                else -> AudioType.SUB
+            }
+
+            val badges = button.select("span.badge").map { it.text() }
+            val quality = badges.find { it.contains("BD") } ?: ""
+
+            videoOptions.add(
+                VideoOption(
+                    kwikUrl = kwikUrl,
+                    fansub = fansub,
+                    resolution = "${resolution}p",
+                    audioType = audioType,
+                    quality = quality,
+                    isActive = isActive,
+                    fullText = button.text()
+                )
+            )
+        }
+        return videoOptions
+    }
+
 
     suspend fun getEpisodeVideo(epId: String, id: String): Kiwi {
         val headers = getDefaultHeaders()
@@ -201,7 +238,8 @@ class AnimePahe : BaseParser() {
             cont.invokeOnCancellation {
                 try {
                     dbRef.removeEventListener(listener)
-                } catch (_: Exception) { /* ignore */ }
+                } catch (_: Exception) { /* ignore */
+                }
             }
         }
 
