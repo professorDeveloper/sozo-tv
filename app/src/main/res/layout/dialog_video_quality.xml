@@ -1,98 +1,105 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="600dp"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:orientation="vertical"
+    android:layout_margin="32dp"
     app:cardBackgroundColor="@color/netflix_dark_gray"
-    app:cardCornerRadius="12dp">
+    app:cardCornerRadius="16dp"
+    app:cardElevation="8dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center_horizontal"
-        android:padding="20dp">
+        android:padding="24dp">
 
+        <!-- Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="20dp"
             android:gravity="center_horizontal"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:layout_marginBottom="20dp">
 
             <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_margin="6dp"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_marginBottom="12dp"
                 android:src="@drawable/ic_video_settings"
                 app:tint="#60a5fa" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="Video Quality Settings"
                 android:textColor="#ffffff"
-                android:textSize="20sp" />
+                android:textSize="22sp"
+                android:gravity="center" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:maxWidth="360dp"
-                android:lineSpacingExtra="1dp"
+                android:maxWidth="520dp"
+                android:lineSpacingExtra="2dp"
+                android:layout_marginTop="8dp"
                 android:text="Choose your preferred video quality and audio type for the best viewing experience."
                 android:textColor="#9ca3af"
-                android:textSize="14sp" />
+                android:textSize="15sp" />
 
         </LinearLayout>
 
-        <!-- Video Options List -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_video_options"
+        <!-- TV uchun VerticalGridView -->
+        <androidx.leanback.widget.VerticalGridView
+            android:id="@+id/grid_video_options"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:maxHeight="300dp"
-            android:scrollbars="vertical" />
+            android:layout_height="300dp"
+            android:clipToPadding="false"
+            android:focusable="true"
+            android:scrollbars="none"
+            android:paddingBottom="12dp"
+            app:numberOfColumns="1"
+            tools:listitem="@layout/item_video_quality" />
 
+        <!-- Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center"
+            android:layout_marginTop="20dp"
+            android:gravity="end"
             android:orientation="horizontal">
 
-            <androidx.appcompat.widget.AppCompatTextView
+            <!-- Cancel -->
+            <Button
                 android:id="@+id/btn_cancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="12dp"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:paddingHorizontal="24dp"
-                android:paddingVertical="12dp"
-                android:textColor="@color/color_item_tv_category_tv"
-
+                android:layout_marginEnd="20dp"
+                android:backgroundTint="@android:color/darker_gray"
                 android:text="Cancel"
-                android:textSize="15sp"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:paddingHorizontal="32dp"
+                android:paddingVertical="14dp"
+                android:textSize="16sp"
                 android:fontFamily="sans-serif-medium" />
 
-            <androidx.appcompat.widget.AppCompatTextView
+            <!-- Apply -->
+            <Button
                 android:id="@+id/btn_apply"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/background_button_login"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:paddingHorizontal="32dp"
-                android:paddingVertical="12dp"
+                android:backgroundTint="@color/colorAccent"
                 android:text="Apply Quality"
-                android:textColor="@color/color_item_tv_category_tv"
-                android:textSize="15sp"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:paddingHorizontal="36dp"
+                android:paddingVertical="14dp"
+                android:textSize="16sp"
                 android:fontFamily="sans-serif-medium" />
 
         </LinearLayout>
