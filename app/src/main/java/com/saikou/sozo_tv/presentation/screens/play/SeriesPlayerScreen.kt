@@ -732,12 +732,15 @@ class SeriesPlayerScreen : Fragment() {
 
     override fun onDestroyView() {
         stopProgressTracking()
+        if (::player.isInitialized){
 
-        if (player.currentPosition > 10 && ::player.isInitialized) {
-            runBlocking {
-                saveWatchHistory()
+            if (player.currentPosition > 10 && ::player.isInitialized) {
+                runBlocking {
+                    saveWatchHistory()
+                }
             }
         }
+
         if (::player.isInitialized) {
             player.release()
             mediaSession.release()
