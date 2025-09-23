@@ -8,6 +8,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ItemVideoQualityBinding
+import com.saikou.sozo_tv.parser.models.AudioType
+import com.saikou.sozo_tv.parser.models.VideoOption
 
 class VideoOptionsAdapter(
     private var videoOptions: List<VideoOption>,
@@ -19,10 +21,8 @@ class VideoOptionsAdapter(
     inner class VideoOptionViewHolder(private val binding: ItemVideoQualityBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(videoOption: VideoOption, position: Int) {
-            // Set resolution text
             binding.tvResolution.text = videoOption.resolution
 
-            // Set audio type badge
             binding.tvAudioType.text = videoOption.audioType.name
             binding.tvAudioType.setBackgroundResource(
                 if (videoOption.audioType == AudioType.SUB)
@@ -119,18 +119,3 @@ class VideoOptionsAdapter(
         }
     }
 }
-
-data class VideoOption(
-    val kwikUrl: String,
-    val fansub: String,
-    val resolution: String,
-    val audioType: AudioType,
-    val quality: String,
-    val isActive: Boolean,
-    val fullText: String
-)
-
-enum class AudioType {
-    SUB, DUB
-}
-
