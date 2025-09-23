@@ -35,7 +35,6 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
-        Title
         <TextView
             android:id="@+id/newsTitle"
             android:layout_width="match_parent"
