@@ -16,8 +16,6 @@
         android:background="@drawable/background_search_edittext"
         android:drawableStart="@drawable/ic_search"
         android:drawablePadding="6dp"
-        android:textColor="@color/white40"
-        android:textColorHint="@color/white40"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:gravity="center_vertical"
@@ -29,6 +27,8 @@
         android:paddingVertical="8dp"
         android:scaleX="1.0"
         android:scaleY="1.0"
+        android:textColor="@color/white40"
+        android:textColorHint="@color/white40"
         app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
@@ -52,7 +52,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="@font/days"
-                android:text="Recent Searches"
+                android:text="@string/search_history"
                 android:textColor="@color/lb_tv_white"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -61,12 +61,12 @@
                 android:id="@+id/clearAllHistory"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:fontFamily="@font/rubik_regular"
+                android:background="?android:attr/selectableItemBackground"
+                android:fontFamily="@font/days"
                 android:padding="4dp"
-                android:text="Clear All"
+                android:text="@string/clear_all"
                 android:textColor="@color/white40"
-                android:textSize="12sp" />
+                android:textSize="14sp" />
 
         </LinearLayout>
 

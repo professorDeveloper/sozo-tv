@@ -103,5 +103,7 @@
     <string name="content_settings">CONTENT SETTINGS</string>
     <string name="_0_unread">0 unread</string>
     <string name="g">G</string>
+    <string name="search_history">Recent Searches</string>
+    <string name="clear_all">Clear All</string>
 
 </resources>

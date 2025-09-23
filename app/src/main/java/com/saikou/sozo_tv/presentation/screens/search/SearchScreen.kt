@@ -32,6 +32,7 @@ class SearchScreen : Fragment() {
     private lateinit var recentSearchAdapter: RecentSearchAdapter
     private lateinit var searchHistoryManager: SearchHistoryManager
     private val model: SearchViewModel by viewModel()
+    private var isInitialLoad = true
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,7 +50,10 @@ class SearchScreen : Fragment() {
         initializeSearch()
         observeViewModel()
         setupTVFocusHandling()
-        binding.searchEdt.requestFocus()
+        showInitialRecentSearches()
+        if (searchHistoryManager.getSearchHistory().isEmpty()) {
+            binding.searchEdt.requestFocus()
+        }
     }
 
     private fun setupTVFocusHandling() {
@@ -57,10 +61,8 @@ class SearchScreen : Fragment() {
             if (hasFocus) {
                 edit.showKeyboard()
                 edit.applyFocusedStyle()
-                showRecentSearchesIfEmpty()
             } else {
                 edit.resetStyle()
-                // Don't hide recent searches immediately to allow navigation
             }
         }
 
@@ -120,17 +122,12 @@ class SearchScreen : Fragment() {
         recentSearchAdapter.updateData(recentSearches)
     }
 
-    private fun showRecentSearchesIfEmpty() {
-        val query = binding.searchEdt.text.toString().trim()
-        if (query.isEmpty()) {
+    private fun showInitialRecentSearches() {
+        if (isInitialLoad && binding.searchEdt.text.toString().trim().isEmpty()) {
             clearSearchResults()
             loadRecentSearches()
             updateRecentSearchesVisibility()
-            if (recentSearchAdapter.itemCount > 0) {
-                binding.vgvRecentSearches.post {
-                    binding.vgvRecentSearches.requestFocus()
-                }
-            }
+            isInitialLoad = false
         }
     }
 
@@ -212,13 +209,9 @@ class SearchScreen : Fragment() {
 
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                     val query = s.toString().trim()
-                    if (query.isEmpty() && hasFocus()) {
-                        showRecentSearchesIfEmpty()
-                    } else {
+                    if (query.isNotEmpty()) {
                         hideRecentSearches()
-                        if (query.isNotEmpty()) {
-                            clearSearchResults()
-                        }
+                        clearSearchResults()
                     }
                 }
 

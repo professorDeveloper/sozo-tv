@@ -48,41 +48,6 @@ class RecentSearchAdapter : RecyclerView.Adapter<RecentSearchAdapter.RecentSearc
                 }
                 false
             }
-
-            binding.removeRecentSearch.isFocusable = true
-            binding.removeRecentSearch.isFocusableInTouchMode = false
-            binding.removeRecentSearch.isClickable = true
-
-            binding.removeRecentSearch.setOnClickListener {
-                if (::onRemoveClickListener.isInitialized) {
-                    onRemoveClickListener.invoke(query, position)
-                }
-            }
-
-            binding.removeRecentSearch.setOnKeyListener { _, keyCode, event ->
-                if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_CENTER ||
-                    keyCode == android.view.KeyEvent.KEYCODE_ENTER) {
-                    if (event.action == android.view.KeyEvent.ACTION_DOWN) {
-                        if (::onRemoveClickListener.isInitialized) {
-                            onRemoveClickListener.invoke(query, position)
-                        }
-                        return@setOnKeyListener true
-                    }
-                }
-                false
-            }
-
-            binding.root.setOnFocusChangeListener { view, hasFocus ->
-                if (hasFocus) {
-                    view.alpha = 1.0f
-                    view.scaleX = 1.05f
-                    view.scaleY = 1.05f
-                } else {
-                    view.alpha = 0.7f
-                    view.scaleX = 1.0f
-                    view.scaleY = 1.0f
-                }
-            }
         }
     }
 
