@@ -46,7 +46,6 @@
             android:textSize="16sp"
             android:textStyle="normal" />
 
-        Description
         <TextView
             android:id="@+id/newsDescription"
             android:layout_width="match_parent"
@@ -57,14 +56,12 @@
             android:textColor="@color/notification_description_color"
             android:textSize="14sp" />
 
-        Bottom Row: Time and Action
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            Time
             <TextView
                 android:id="@+id/publishedTime"
                 android:layout_width="0dp"
@@ -77,7 +74,6 @@
                 android:textColor="@color/notification_time_color"
                 android:textSize="12sp" />
 
-            Action Button
             <TextView
                 android:id="@+id/actionButton"
                 android:layout_width="wrap_content"
