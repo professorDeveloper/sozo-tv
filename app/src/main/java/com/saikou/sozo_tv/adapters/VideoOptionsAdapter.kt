@@ -1,4 +1,5 @@
 package com.saikou.sozo_tv.adapters
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,7 +19,13 @@ class VideoOptionsAdapter(
 
     private var selectedPosition = -1
 
-    inner class VideoOptionViewHolder(private val binding: ItemVideoQualityBinding) : RecyclerView.ViewHolder(binding.root) {
+    private lateinit var onItemClickk: (VideoOption, Int) -> Unit
+    fun setOnItemClickListener(listener: (VideoOption, Int) -> Unit) {
+        onItemClickk = listener
+    }
+
+    inner class VideoOptionViewHolder(private val binding: ItemVideoQualityBinding) :
+        RecyclerView.ViewHolder(binding.root) {
 
         fun bind(videoOption: VideoOption, position: Int) {
             binding.tvResolution.text = videoOption.resolution
@@ -36,9 +43,10 @@ class VideoOptionsAdapter(
             binding.tvQuality.text = videoOption.quality
 
 
-                    binding.ivQualityIcon.setImageResource(R.drawable.ic_video_settings)
+            binding.ivQualityIcon.setImageResource(R.drawable.ic_video_settings)
 
-            binding.ivSelected.visibility = if (position == selectedPosition) View.VISIBLE else View.GONE
+            binding.ivSelected.visibility =
+                if (position == selectedPosition) View.VISIBLE else View.GONE
 
             binding.root.isSelected = position == selectedPosition
 
@@ -52,6 +60,10 @@ class VideoOptionsAdapter(
                 notifyItemChanged(selectedPosition)
 
                 onItemClick(videoOption, position)
+            }
+
+            binding.root.setOnClickListener {
+                onItemClickk.invoke(videoOption, position)
             }
 
             binding.root.setOnFocusChangeListener { _, hasFocus ->
