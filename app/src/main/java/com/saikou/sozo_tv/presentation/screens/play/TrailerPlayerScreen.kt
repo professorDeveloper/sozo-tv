@@ -75,7 +75,7 @@ class TrailerPlayerScreen : Fragment() {
     @UnstableApi
     @OptIn(UnstableApi::class)
     private fun playVideo() {
-        val videoUrl = "https://na-01.javprovider.com/hls/I/imaizumin-chi-wa-douyara-gal-no-tamariba-ni-natteru-rashii/1/playlist.m3u8"
+        val videoUrl = args.trailerUrl
         val mediaItem = MediaItem.Builder().setUri(videoUrl).build()
         val mediaSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
         player.setMediaSource(mediaSource)
@@ -88,8 +88,6 @@ class TrailerPlayerScreen : Fragment() {
     @OptIn(UnstableApi::class)
     private fun initializeVideo() {
         val customHeaders = mapOf(
-            "Origin" to "https://hentaimama.io",
-            "Referer" to "https://hentaimama.io/new1.php?p=SS9pbWFpenVtaW4tY2hpLXdhLWRvdXlhcmEtZ2FsLW5vLXRhbWFyaWJhLW5pLW5hdHRlcnUtcmFzaGlpLzEvcGxheWxpc3QubTN1OD9JL0ltYWl6dW1pbi1jaGlfd2FfRG91eWFyYV9HYWxfbm9fVGFtYXJpYmFfbmlfTmF0dGVydV9SYXNoaWlfVm9sLl8xLm1wNA==",
             "User-Agent" to "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36",
             "Accept" to "*/*",
             "Accept-Language" to "en-US,en;q=0.9,uz-UZ;q=0.8,uz;q=0.7",
@@ -97,9 +95,7 @@ class TrailerPlayerScreen : Fragment() {
             "Sec-Fetch-Dest" to "empty",
             "Sec-Fetch-Mode" to "cors",
             "Sec-Fetch-Site" to "cross-site",
-            "sec-ch-ua" to "\"Chromium\";v=\"140\", \"Not=A?Brand\";v=\"24\", \"Google Chrome\";v=\"140\"",
             "sec-ch-ua-mobile" to "?1",
-            "sec-ch-ua-platform" to "\"Android\""
         )
 
         val client = OkHttpClient.Builder()
@@ -131,12 +127,11 @@ class TrailerPlayerScreen : Fragment() {
                     } catch (e: Exception) {
                         exception = e
                         if (attempt < 3) {
-                            Thread.sleep(1000L * attempt) // Exponential backoff
+                            Thread.sleep(1000L * attempt)
                         }
                     }
                 }
 
-                // If all retries failed, throw the last exception
                 throw exception ?: RuntimeException("All retry attempts failed")
             }
             .build()

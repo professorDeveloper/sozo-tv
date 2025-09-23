@@ -8,6 +8,8 @@ import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.local.entity.EpisodeInfoEntity
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.model.VodMovieResponse
+import com.saikou.sozo_tv.data.remote.DubsMp4Parser
+import com.saikou.sozo_tv.data.remote.LiveChartTrailer
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.MainModel
@@ -213,21 +215,21 @@ class PlayViewModel(
     }
 
     fun loadTrailer(name: String) {
-//        trailerJob?.cancel()
-//        trailerJob = viewModelScope.launch {
-//            val liveChartTrailer = LiveChartTrailer()
-//            val link = liveChartTrailer.searchAndGetTrailer(name)
-//            val ytList = liveChartTrailer.getTrailerByDetail(link.mediaLink)
-//            Log.d("GGG", "loadTrailer:${ytList} ")
-//            if (ytList.isEmpty()) {
-//                trailerData.postValue("")
-//            } else {
-//                val parser = DubsMp4Parser()
-//                parser.parseYt(ytList[0].mediaLink).let {
-//                    trailerData.postValue(it)
-//                }
-//            }
-//        }
+        trailerJob?.cancel()
+        trailerJob = viewModelScope.launch {
+            val liveChartTrailer = LiveChartTrailer()
+            val link = liveChartTrailer.searchAndGetTrailer(name)
+            val ytList = liveChartTrailer.getTrailerByDetail(link.mediaLink)
+            Log.d("GGG", "loadTrailer:${ytList} ")
+            if (ytList.isEmpty()) {
+                trailerData.postValue("")
+            } else {
+                val parser = DubsMp4Parser()
+                parser.parseYt(ytList[0].mediaLink).let {
+                    trailerData.postValue(it)
+                }
+            }
+        }
     }
 
     fun cancelTrailerLoading() {

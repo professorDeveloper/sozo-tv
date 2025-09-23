@@ -100,7 +100,6 @@ class DubsMp4Parser {
 
             Log.d("GGG", "Status [$attempt]: $statusBody")
 
-            // 🔥 Agar serverdan "Something went wrong" qaytsa — darhol to‘xtatamiz
             if (statusJson.has("message") && statusJson["message"].asString.contains("Something went wrong", true)) {
                 throw CancellationException("Status cancelled: ${statusJson["message"].asString}")
             }

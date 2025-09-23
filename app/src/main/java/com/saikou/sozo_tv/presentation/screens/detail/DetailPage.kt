@@ -96,7 +96,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         }
         playViewModel.detailData.observe(viewLifecycleOwner) { details ->
             playViewModel.checkBookmark(details.content.id)
-//            playViewModel.loadTrailer(details.content.title)
+            playViewModel.loadTrailer(details.content.title)
             binding.replaceImage.loadImage(details.content.bannerImage)
             val currentList = arrayListOf<DetailCategory>()
             val headerItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_HEADER)
