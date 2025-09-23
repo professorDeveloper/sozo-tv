@@ -1,10 +1,11 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="600dp"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:layout_margin="32dp"
+    android:layout_marginHorizontal="52dp"
+    android:layout_marginVertical="32dp"
     app:cardBackgroundColor="@color/netflix_dark_gray"
     app:cardCornerRadius="16dp"
     app:cardElevation="8dp">
@@ -12,97 +13,56 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:gravity="center_horizontal"
+        android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
             android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:layout_marginBottom="20dp">
+            android:orientation="vertical">
 
             <ImageView
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:layout_marginBottom="12dp"
                 android:src="@drawable/ic_video_settings"
-                app:tint="#60a5fa" />
+                app:tint="@color/red" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
+                android:gravity="center"
                 android:text="Video Quality Settings"
                 android:textColor="#ffffff"
-                android:textSize="22sp"
-                android:gravity="center" />
+                android:textSize="22sp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:maxWidth="520dp"
-                android:lineSpacingExtra="2dp"
                 android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:lineSpacingExtra="2dp"
+                android:maxWidth="520dp"
                 android:text="Choose your preferred video quality and audio type for the best viewing experience."
                 android:textColor="#9ca3af"
                 android:textSize="15sp" />
 
         </LinearLayout>
 
-        <!-- TV uchun VerticalGridView -->
         <androidx.leanback.widget.VerticalGridView
-            android:id="@+id/grid_video_options"
+            android:id="@+id/videOptionRv"
             android:layout_width="match_parent"
-            android:layout_height="300dp"
+            android:layout_height="200dp"
             android:clipToPadding="false"
             android:focusable="true"
             android:scrollbars="none"
-            android:paddingBottom="12dp"
             app:numberOfColumns="1"
             tools:listitem="@layout/item_video_quality" />
 
-        <!-- Buttons -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:gravity="end"
-            android:orientation="horizontal">
-
-            <!-- Cancel -->
-            <Button
-                android:id="@+id/btn_cancel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="20dp"
-                android:backgroundTint="@android:color/darker_gray"
-                android:text="Cancel"
-                android:textAllCaps="false"
-                android:textColor="@android:color/white"
-                android:paddingHorizontal="32dp"
-                android:paddingVertical="14dp"
-                android:textSize="16sp"
-                android:fontFamily="sans-serif-medium" />
-
-            <!-- Apply -->
-            <Button
-                android:id="@+id/btn_apply"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:backgroundTint="@color/colorAccent"
-                android:text="Apply Quality"
-                android:textAllCaps="false"
-                android:textColor="@android:color/white"
-                android:paddingHorizontal="36dp"
-                android:paddingVertical="14dp"
-                android:textSize="16sp"
-                android:fontFamily="sans-serif-medium" />
-
-        </LinearLayout>
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>
