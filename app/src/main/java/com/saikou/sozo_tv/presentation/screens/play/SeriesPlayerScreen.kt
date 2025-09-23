@@ -439,6 +439,7 @@ class SeriesPlayerScreen : Fragment() {
                     epIndex = model.currentEpIndex,
                     lastPosition = player.currentPosition,
                     videoUrl = model.seriesResponse!!.urlobj,
+                    currentQualityIndex = model.currentSelectedVideoOptionIndex
                 )
                 model.updateHistory(newEp)
                 model.getWatchedHistoryEntity = null
@@ -476,6 +477,7 @@ class SeriesPlayerScreen : Fragment() {
                     lastEpisodeWatchedIndex = args.seriesMainId,
                     epIndex = model.currentEpIndex,
                     isEpisode = true,
+                    currentQualityIndex = model.currentSelectedVideoOptionIndex
                 )
                 model.addHistory(historyBuild)
             }
@@ -572,29 +574,15 @@ class SeriesPlayerScreen : Fragment() {
             }
         }
 
-        // Quality selection
-        binding.pvPlayer.controller.binding.exoQuality.setOnClickListener {
-            val tracks: Tracks = player.currentTracks
-            if (!tracks.groups.any { it.type == C.TRACK_TYPE_VIDEO }) {
-                Toast.makeText(requireContext(), "No video tracks available", Toast.LENGTH_SHORT)
-                    .show()
-                return@setOnClickListener
+        model.videoOptionsData.observe(viewLifecycleOwner) { videoOptions ->
+            binding.pvPlayer.controller.binding.exoQuality.setOnClickListener {
+                val dialog = VideoQualityDialog(videoOptions, model.currentSelectedVideoOptionIndex)
+                dialog.setYesContinueListener {videoOption, i ->
+                    model.currentSelectedVideoOptionIndex = i
+//
+                }
             }
-            TrackSelectionDialogBuilder(
-                requireContext(),
-                "Choose Quality",
-                player,
-                C.TRACK_TYPE_VIDEO
-            )
-                .setTrackNameProvider { format ->
-                    val height = format.height.takeIf { it > 0 } ?: 0
-                    val bitrate = format.bitrate.takeIf { it > 0 }?.div(1000) ?: 0
-                    when {
-                        height > 0 && bitrate > 0 -> "${height}p • ${bitrate}kbps"
-                        height > 0 -> "${height}p"
-                        else -> "Auto"
-                    }
-                }.build().show()
+
         }
 
         binding.pvPlayer.controller

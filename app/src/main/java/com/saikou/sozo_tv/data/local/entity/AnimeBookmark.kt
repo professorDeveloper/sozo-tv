@@ -54,4 +54,5 @@ data class WatchHistoryEntity(
     val isEpisode: Boolean = true,
     val lastEpisodeWatchedIndex: String = "-1",
     var epIndex: Int = -1,
+    val currentQualityIndex: Int = -1,
 )

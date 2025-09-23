@@ -19,10 +19,6 @@ class VideoOptionsAdapter(
 
     private var selectedPosition = -1
 
-    private lateinit var onItemClickk: (VideoOption, Int) -> Unit
-    fun setOnItemClickListener(listener: (VideoOption, Int) -> Unit) {
-        onItemClickk = listener
-    }
 
     inner class VideoOptionViewHolder(private val binding: ItemVideoQualityBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -62,9 +58,7 @@ class VideoOptionsAdapter(
                 onItemClick(videoOption, position)
             }
 
-            binding.root.setOnClickListener {
-                onItemClickk.invoke(videoOption, position)
-            }
+
 
             binding.root.setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {

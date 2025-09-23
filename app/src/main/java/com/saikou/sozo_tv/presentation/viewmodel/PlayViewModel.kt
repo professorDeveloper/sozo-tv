@@ -105,6 +105,7 @@ class PlayViewModel(
             if (isWatched) {
                 getWatchedHistoryEntity = getWatchedEntity(episodeId.toString())
 //                epListFromLocal = getWatchedHistoryEntity!!.epList
+                currentSelectedVideoOptionIndex =getWatchedHistoryEntity?.currentQualityIndex ?: 0
 
             }
             animePahe.getEpisodeVideo(epId = episodeId, id = mediaId).let {

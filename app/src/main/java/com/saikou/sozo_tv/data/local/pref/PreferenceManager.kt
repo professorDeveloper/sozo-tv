@@ -14,6 +14,7 @@ class PreferenceManager {
         private const val KEY_NSFW_ENABLED = "nsfw_enabled"
     }
 
+
     fun setNsfwEnabled(enabled: Boolean) {
         sharedPreferences.edit()
             .putBoolean(KEY_NSFW_ENABLED, enabled)
