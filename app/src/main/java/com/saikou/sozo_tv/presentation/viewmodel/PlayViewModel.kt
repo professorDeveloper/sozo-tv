@@ -8,8 +8,6 @@ import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.local.entity.EpisodeInfoEntity
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.model.VodMovieResponse
-import com.saikou.sozo_tv.data.remote.DubsMp4Parser
-import com.saikou.sozo_tv.data.remote.LiveChartTrailer
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.MainModel
@@ -18,7 +16,6 @@ import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.AnimePahe
 import com.saikou.sozo_tv.parser.models.EpisodeData
-import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.utils.Resource
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +30,7 @@ class PlayViewModel(
     ) : ViewModel() {
     var doNotAsk: Boolean = false
     var lastPosition: Long = 0
+    var qualityProgress: Long = -1
 
     var currentEpIndex = -1
     val videoOptionsData = MutableLiveData<List<VideoOption>>()
@@ -50,6 +48,7 @@ class PlayViewModel(
 
     val animePahe = AnimePahe()
     val currentEpisodeData = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
+    val currentQualityEpisode = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     var seriesResponse: VodMovieResponse? = null
     val allEpisodeData = MutableLiveData<Resource<EpisodeData>>(Resource.Idle)
     fun getAllEpisodeByPage(page: Int, mediaId: String) {
@@ -84,19 +83,33 @@ class PlayViewModel(
     }
 
 
-    fun changeQualityByIndex(index: Int, epId: String, mediaId: String) {
+    fun updateQualityByIndex() {
         if (videoOptions.isNotEmpty()) {
-            currentSelectedVideoOptionIndex = index
             viewModelScope.launch(Dispatchers.IO) {
-                animePahe.getEpisodeVideo(epId, mediaId).let {
-                    animePahe.extractVideo(videoOptions[index].kwikUrl).let {
+                animePahe.extractVideo(videoOptions[currentSelectedVideoOptionIndex].kwikUrl).let {
+                    Log.d("GGG", "getCurrentEpisodeVod: ")
 
-                    }
+                    seriesResponse = VodMovieResponse(
+                        authInfo = "",
+                        subtitleList = "",
+                        urlobj = it
+
+                    )
+                    currentQualityEpisode.postValue(
+                        Resource.Success(
+                            VodMovieResponse(
+                                authInfo = "",
+                                subtitleList = "",
+                                urlobj = it
+
+                            )
+                        )
+                    )
+
                 }
             }
         }
     }
-
 
     fun getCurrentEpisodeVod(episodeId: String, mediaId: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -105,7 +118,7 @@ class PlayViewModel(
             if (isWatched) {
                 getWatchedHistoryEntity = getWatchedEntity(episodeId.toString())
 //                epListFromLocal = getWatchedHistoryEntity!!.epList
-                currentSelectedVideoOptionIndex =getWatchedHistoryEntity?.currentQualityIndex ?: 0
+                currentSelectedVideoOptionIndex = getWatchedHistoryEntity?.currentQualityIndex ?: 0
 
             }
             animePahe.getEpisodeVideo(epId = episodeId, id = mediaId).let {

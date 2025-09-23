@@ -60,21 +60,6 @@ class VideoOptionsAdapter(
 
 
 
-            binding.root.setOnFocusChangeListener { _, hasFocus ->
-                if (hasFocus) {
-                    binding.root.animate()
-                        .scaleX(1.05f)
-                        .scaleY(1.05f)
-                        .setDuration(150)
-                        .start()
-                } else {
-                    binding.root.animate()
-                        .scaleX(1.0f)
-                        .scaleY(1.0f)
-                        .setDuration(150)
-                        .start()
-                }
-            }
         }
     }
 

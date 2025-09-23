@@ -14,6 +14,7 @@ import com.saikou.sozo_tv.data.model.anilist.Title
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.data.remote.JikanApiService
 import com.saikou.sozo_tv.data.remote.safeApiCall
+import com.saikou.sozo_tv.data.remote.safeExecute
 import com.saikou.sozo_tv.domain.model.Category
 import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.GenreModel
@@ -38,24 +39,15 @@ class HomeRepositoryImpl(
     override suspend fun loadCategories(): Result<List<Category>> {
         return try {
             val categories = mutableListOf<Category>()
-            val recommendationApolloResponse =
-                apolloClient.query(
-                    GetRecommendationsQuery(
-                        page = Optional.present(
-                            Random.nextInt(
-                                1,
-                                4
-                            )
-                        )
-                    )
+
+            val recommendationData = apolloClient.safeExecute(
+                GetRecommendationsQuery(
+                    page = Optional.present(Random.nextInt(1, 4))
                 )
-                    .execute()
+            )
 
-
-            val recommendationMediaList =
-                recommendationApolloResponse.data!!.Page?.recommendations!!
-            recommendationMediaList.let {
-                val filteredList = it.filter {
+            recommendationData?.Page?.recommendations?.let { recommendationMediaList ->
+                val filteredList = recommendationMediaList.filter {
                     it?.media?.title?.english != null
                 }
 
@@ -78,20 +70,15 @@ class HomeRepositoryImpl(
                     })
                 )
             }
-            val trendApolloResponse = apolloClient.query(
-                GetTrendingQuery(
-                    page = Optional.present(
-                        Random.nextInt(
-                            1,
-                            4
-                        )
-                    )
-                )
-            ).execute()
-            val trendMediaList = trendApolloResponse.data!!.Page?.mediaTrends!!
 
-            trendMediaList.let {
-                val filteredList = it.filter {
+            val trendData = apolloClient.safeExecute(
+                GetTrendingQuery(
+                    page = Optional.present(Random.nextInt(1, 4))
+                )
+            )
+
+            trendData?.Page?.mediaTrends?.let { trendMediaList ->
+                val filteredList = trendMediaList.filter {
                     it?.media?.title?.english != null || it?.media?.title?.userPreferred != null && it.media.source != null
                 }
 
@@ -115,22 +102,14 @@ class HomeRepositoryImpl(
                 )
             }
 
-
-            val getPopularApolloResponse = apolloClient.query(
+            val popularData = apolloClient.safeExecute(
                 GetPopularQuery(
-                    page = Optional.present(
-                        Random.nextInt(
-                            1,
-                            8
-                        )
-                    )
+                    page = Optional.present(Random.nextInt(1, 8))
                 )
-            ).execute()
+            )
 
-            val popularMediaList = getPopularApolloResponse.data!!.Page?.media!!
-
-            popularMediaList.let {
-                val filteredList = it.filter {
+            popularData?.Page?.media?.let { popularMediaList ->
+                val filteredList = popularMediaList.filter {
                     it?.title?.english != null || it?.title?.userPreferred != null && it.source != null
                 }
                 categories.add(
@@ -158,24 +137,15 @@ class HomeRepositoryImpl(
             Log.d("GGGG", "loadCategories:${e} ")
             try {
                 val categories = mutableListOf<Category>()
-                val recommendationApolloResponse =
-                    apolloClient.query(
-                        GetRecommendationsQuery(
-                            page = Optional.present(
-                                Random.nextInt(
-                                    1,
-                                    4
-                                )
-                            )
-                        )
+
+                val recommendationData = apolloClient.safeExecute(
+                    GetRecommendationsQuery(
+                        page = Optional.present(Random.nextInt(1, 4))
                     )
-                        .execute()
+                )
 
-
-                val recommendationMediaList =
-                    recommendationApolloResponse.data!!.Page?.recommendations!!
-                recommendationMediaList.let {
-                    val filteredList = it.filter {
+                recommendationData?.Page?.recommendations?.let { recommendationMediaList ->
+                    val filteredList = recommendationMediaList.filter {
                         it?.media?.title?.english != null
                     }
 
@@ -198,20 +168,15 @@ class HomeRepositoryImpl(
                         })
                     )
                 }
-                val trendApolloResponse = apolloClient.query(
-                    GetTrendingQuery(
-                        page = Optional.present(
-                            Random.nextInt(
-                                1,
-                                4
-                            )
-                        )
-                    )
-                ).execute()
-                val trendMediaList = trendApolloResponse.data!!.Page?.mediaTrends!!
 
-                trendMediaList.let {
-                    val filteredList = it.filter {
+                val trendData = apolloClient.safeExecute(
+                    GetTrendingQuery(
+                        page = Optional.present(Random.nextInt(1, 4))
+                    )
+                )
+
+                trendData?.Page?.mediaTrends?.let { trendMediaList ->
+                    val filteredList = trendMediaList.filter {
                         it?.media?.title?.english != null || it?.media?.title?.userPreferred != null && it.media.source != null
                     }
 
@@ -227,8 +192,7 @@ class HomeRepositoryImpl(
                                     format = it.media.format!!,
                                     source = it.media.source!!,
                                     title = Title(
-                                        it.media.title?.english ?: it.media.title?.userPreferred
-                                        ?: ""
+                                        it.media.title?.english ?: it.media.title?.userPreferred ?: ""
                                     )
                                 )
                             )
@@ -236,22 +200,14 @@ class HomeRepositoryImpl(
                     )
                 }
 
-
-                val getPopularApolloResponse = apolloClient.query(
+                val popularData = apolloClient.safeExecute(
                     GetPopularQuery(
-                        page = Optional.present(
-                            Random.nextInt(
-                                1,
-                                8
-                            )
-                        )
+                        page = Optional.present(Random.nextInt(1, 8))
                     )
-                ).execute()
+                )
 
-                val popularMediaList = getPopularApolloResponse.data!!.Page?.media!!
-
-                popularMediaList.let {
-                    val filteredList = it.filter {
+                popularData?.Page?.media?.let { popularMediaList ->
+                    val filteredList = popularMediaList.filter {
                         it?.title?.english != null || it?.title?.userPreferred != null && it.source != null
                     }
                     categories.add(
@@ -283,12 +239,10 @@ class HomeRepositoryImpl(
 
     override suspend fun convertMalId(id: Int): Result<Int> {
         try {
-            val result = apolloClient.query(
-                ConvertMalToIdQuery(
-                    Optional.present(id)
-                )
-            ).execute()
-            val media = result.data!!.Media
+            val data = apolloClient.safeExecute(
+                ConvertMalToIdQuery(Optional.present(id))
+            )
+            val media = data?.Media
             return Result.success(media?.id ?: -1)
         } catch (e: Exception) {
             return Result.failure(e)
@@ -312,41 +266,31 @@ class HomeRepositoryImpl(
                 Log.d("GGG", "loadGenres:${localGenres.size} ")
                 return Result.success(localGenres)
             } else {
-                val recommendationApolloResponse =
-                    apolloClient.query(
-                        GetRecommendationsQuery(
-                            page = Optional.present(
-                                Random.nextInt(
-                                    1,
-                                    4
+                val recommendationData = apolloClient.safeExecute(
+                    GetRecommendationsQuery(
+                        page = Optional.present(Random.nextInt(1, 4))
+                    )
+                )
+
+                val genres = ArrayList<GenreModel>()
+                recommendationData?.Page?.recommendations?.let { recommendationMediaList ->
+                    LocalData.genres.forEachIndexed { index, s ->
+                        if (recommendationMediaList.size > index) {
+                            genres.add(
+                                GenreModel(
+                                    s,
+                                    recommendationMediaList[index]?.media?.coverImage?.large
+                                        ?: "https://via.placeholder.com/150",
                                 )
                             )
-                        )
-                    )
-                        .execute()
-
-
-                val recommendationMediaList =
-                    recommendationApolloResponse.data!!.Page?.recommendations!!
-                val genres = ArrayList<GenreModel>()
-                recommendationMediaList.let {
-                    LocalData.genres.forEachIndexed { index, s ->
-                       if (it.size > index) {
-                           genres.add(
-                               GenreModel(
-                                   s,
-                                   it[index]?.media?.coverImage?.large
-                                       ?: "https://via.placeholder.com/150",
-                               )
-                           )
-                       }else {
-                           genres.add(
-                               GenreModel(
-                                   s,
+                        } else {
+                            genres.add(
+                                GenreModel(
+                                    s,
                                     LocalData.anime404,
-                               )
-                           )
-                       }
+                                )
+                            )
+                        }
                     }
                 }
                 genres.forEachIndexed { index, genre ->

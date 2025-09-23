@@ -1,10 +1,12 @@
 package com.saikou.sozo_tv.presentation.screens.play
 
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
+import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.VideoOptionsAdapter
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.AlertPlayerDialogBinding
@@ -35,11 +37,14 @@ class VideoQualityDialog(private val list: List<VideoOption>, private var curren
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        dialog!!.window?.setBackgroundDrawable(ColorDrawable(0))
+        dialog!!.window?.setWindowAnimations(R.style.DialogAnimation)
         val adapter = VideoOptionsAdapter(list) { video, i ->
             yesContinueListener.invoke(video, i)
             dismiss()
         }
         binding.videOptionRv.adapter = adapter
+        binding.videOptionRv.scrollToPosition(currentIndex)
         adapter.setDefaultSelected(currentIndex)
     }
 }

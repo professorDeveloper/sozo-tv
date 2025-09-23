@@ -1,30 +1,19 @@
 package com.saikou.sozo_tv.presentation.screens.play
 
-import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
-import android.app.AlertDialog
-import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.AttributeSet
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.DecelerateInterpolator
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.OptIn
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -32,7 +21,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
@@ -41,15 +29,11 @@ import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.SeekParameters
-import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerControlView
-import androidx.media3.ui.TimeBar
-import androidx.media3.ui.TrackSelectionDialogBuilder
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.bugsnag.android.Bugsnag
@@ -57,13 +41,10 @@ import com.lagradost.nicehttp.ignoreAllSSLErrors
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.EpisodePlayerAdapter
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
-import com.saikou.sozo_tv.data.model.HlsVariant
 import com.saikou.sozo_tv.databinding.ContentControllerTvSeriesBinding
 import com.saikou.sozo_tv.databinding.SeriesPlayerScreenBinding
 import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
-import com.saikou.sozo_tv.parser.AnimePahe
 import com.saikou.sozo_tv.parser.models.Data
-import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
@@ -77,10 +58,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.net.URI
-import java.util.UUID
 
 
 class SeriesPlayerScreen : Fragment() {
@@ -104,8 +82,7 @@ class SeriesPlayerScreen : Fragment() {
         @OptIn(UnstableApi::class) get() = ContentControllerTvSeriesBinding.bind(this.findViewById(R.id.cl_exo_controller_tv))
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = SeriesPlayerScreenBinding.inflate(inflater, container, false)
         return binding.root
@@ -119,8 +96,7 @@ class SeriesPlayerScreen : Fragment() {
                     countdownShown = true
                     isCountdownActive = true
 
-                    countdownOverlay.startCountdown(
-                        seconds = 10,
+                    countdownOverlay.startCountdown(seconds = 10,
                         nextEpisode = nextEpisodeIndex + 1,
                         currentEpisode = model.currentEpIndex + 1,
                         title = args.name,
@@ -131,8 +107,7 @@ class SeriesPlayerScreen : Fragment() {
                         onCancelled = {
                             isCountdownActive = false
                             player.play()
-                        }
-                    )
+                        })
                 }
             }
         }
@@ -148,8 +123,7 @@ class SeriesPlayerScreen : Fragment() {
                     model.lastPosition = 0
 
                     model.getCurrentEpisodeVod(
-                        episodeList[model.currentEpIndex].session.toString(),
-                        args.seriesMainId
+                        episodeList[model.currentEpIndex].session.toString(), args.seriesMainId
                     )
 
                     model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
@@ -227,8 +201,7 @@ class SeriesPlayerScreen : Fragment() {
         }
 
 
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner,
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     navigateBack()
@@ -328,8 +301,7 @@ class SeriesPlayerScreen : Fragment() {
                                             episodeList[model.currentEpIndex].title
                                         model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
                                             if (resource is Resource.Success) {
-                                                val newUrl =
-                                                    resource.data.urlobj
+                                                val newUrl = resource.data.urlobj
                                                 playNewEpisode(newUrl, args.name)
                                                 binding.pvPlayer.controller.binding.filmTitle.text =
                                                     "${args.name} - Episode ${model.currentEpIndex + 1}"
@@ -363,8 +335,7 @@ class SeriesPlayerScreen : Fragment() {
                                                     viewLifecycleOwner
                                                 ) { resource ->
                                                     if (resource is Resource.Success) {
-                                                        val newUrl =
-                                                            resource.data.urlobj
+                                                        val newUrl = resource.data.urlobj
 
                                                         playNewEpisode(newUrl, args.name)
                                                         binding.pvPlayer.controller.binding.filmTitle.text =
@@ -498,26 +469,21 @@ class SeriesPlayerScreen : Fragment() {
         dataSourceFactory =
             DefaultDataSource.Factory(requireContext(), OkHttpDataSource.Factory(client))
 
-        val renderersFactory = DefaultRenderersFactory(requireContext())
-            .setEnableDecoderFallback(true)
-            .setMediaCodecSelector(MediaCodecSelector.DEFAULT)
-            .setEnableAudioFloatOutput(false)
+        val renderersFactory =
+            DefaultRenderersFactory(requireContext()).setEnableDecoderFallback(true)
+                .setMediaCodecSelector(MediaCodecSelector.DEFAULT).setEnableAudioFloatOutput(false)
 
         httpDataSource = DefaultHttpDataSource.Factory()
 
         player = ExoPlayer.Builder(requireContext(), renderersFactory)
             .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
-            .setRenderersFactory(renderersFactory)
-            .setVideoChangeFrameRateStrategy(
+            .setRenderersFactory(renderersFactory).setVideoChangeFrameRateStrategy(
                 C.VIDEO_CHANGE_FRAME_RATE_STRATEGY_ONLY_IF_SEAMLESS
             ).build()
 
         player.setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(C.USAGE_MEDIA)
-                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-                .build(),
-            true
+            AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(), true
         )
 
         if (!::mediaSession.isInitialized) {
@@ -565,28 +531,34 @@ class SeriesPlayerScreen : Fragment() {
         binding.pvPlayer.controller.binding.exoPlayPauseContainer.setOnClickListener {
             if (player.isPlaying) {
                 player.pause()
-                binding.pvPlayer.controller.binding.exoPlayPaused
-                    .setImageResource(R.drawable.anim_play_to_pause)
+                binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_play_to_pause)
             } else {
                 player.play()
-                binding.pvPlayer.controller.binding.exoPlayPaused
-                    .setImageResource(R.drawable.anim_pause_to_play)
+                binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_pause_to_play)
             }
         }
 
         model.videoOptionsData.observe(viewLifecycleOwner) { videoOptions ->
             binding.pvPlayer.controller.binding.exoQuality.setOnClickListener {
                 val dialog = VideoQualityDialog(videoOptions, model.currentSelectedVideoOptionIndex)
-                dialog.setYesContinueListener {videoOption, i ->
-                    model.currentSelectedVideoOptionIndex = i
-//
+                dialog.setYesContinueListener { videoOption, i ->
+                    if (i!=model.currentSelectedVideoOptionIndex){
+                        model.currentSelectedVideoOptionIndex = i
+                        model.updateQualityByIndex()
+                    }
                 }
+                dialog.show(parentFragmentManager, "VideoQualityDialog")
             }
+            model.currentQualityEpisode.observe(viewLifecycleOwner) { resource ->
+                if (resource is Resource.Success) {
+                    val newUrl = resource.data.urlobj
+                    playQualityVideo(newUrl, args.name)
+                }
 
+            }
         }
 
-        binding.pvPlayer.controller
-            .findViewById<TrailerPlayerScreen.ExtendedTimeBar>(R.id.exo_progress)
+        binding.pvPlayer.controller.findViewById<TrailerPlayerScreen.ExtendedTimeBar>(R.id.exo_progress)
             .setKeyTimeIncrement(10_000)
     }
 
@@ -600,18 +572,42 @@ class SeriesPlayerScreen : Fragment() {
         player.stop()
         player.clearMediaItems()
 
-        val mediaItem = MediaItem.Builder()
-            .setUri(videoUrl)
-            .setMimeType(MimeTypes.VIDEO_MP4)
-            .setTag(title)
-            .build()
+        val mediaItem =
+            MediaItem.Builder().setUri(videoUrl).setMimeType(MimeTypes.VIDEO_MP4).setTag(title)
+                .build()
 
-        val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(mediaItem)
+        val mediaSource =
+            ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
 
         player.setMediaSource(mediaSource)
         player.prepare()
         player.play()
+    }
+
+
+    @OptIn(UnstableApi::class)
+    private fun playQualityVideo(videoUrl: String, title: String) {
+        if (!::player.isInitialized) initializeVideo()
+
+        resetCountdownState()
+        model.qualityProgress = player.currentPosition
+        stopProgressTracking()
+
+        player.stop()
+        player.clearMediaItems()
+
+        val mediaItem =
+            MediaItem.Builder().setUri(videoUrl).setMimeType(MimeTypes.VIDEO_MP4).setTag(title)
+                .build()
+
+        val mediaSource =
+            ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+
+        player.setMediaSource(mediaSource)
+        player.prepare()
+        player.play()
+        player.seekTo(model.qualityProgress)
+        model.qualityProgress = 0
     }
 
 
@@ -631,11 +627,8 @@ class SeriesPlayerScreen : Fragment() {
                 binding.pvPlayer.controller.binding.epListContainer.visible()
             }
             val mediaItem =
-                MediaItem.Builder()
-                    .setUri(videoUrl)
-                    .setMimeType(MimeTypes.APPLICATION_MP4)
-                    .setTag(args.name)
-                    .build()
+                MediaItem.Builder().setUri(videoUrl).setMimeType(MimeTypes.APPLICATION_MP4)
+                    .setTag(args.name).build()
 
             player.setMediaItem(mediaItem)
 
@@ -654,11 +647,9 @@ class SeriesPlayerScreen : Fragment() {
             player.play()
 
             if (player.isPlaying) {
-                binding.pvPlayer.controller.binding.exoPlayPaused
-                    .setImageResource(R.drawable.anim_play_to_pause)
+                binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_play_to_pause)
             } else {
-                binding.pvPlayer.controller.binding.exoPlayPaused
-                    .setImageResource(R.drawable.anim_pause_to_play)
+                binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_pause_to_play)
             }
 
 
@@ -697,9 +688,7 @@ class SeriesPlayerScreen : Fragment() {
                 sidebar.apply {
                     isVisible = true
                     translationX = sidebarWidth
-                    animate()
-                        .translationX(0f)
-                        .setDuration(100) // 900ms -> 300ms tezroq
+                    animate().translationX(0f).setDuration(100) // 900ms -> 300ms tezroq
                         .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
                         .start()
                 }
@@ -716,14 +705,11 @@ class SeriesPlayerScreen : Fragment() {
                     gone()
                 }
             } else {
-                sidebar.animate()
-                    .translationX(sidebarWidth)
-                    .setDuration(100)
+                sidebar.animate().translationX(sidebarWidth).setDuration(100)
                     .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
                     .withEndAction {
                         sidebar.isVisible = false
-                    }
-                    .start()
+                    }.start()
 
                 epListContainer.apply {
                     isFocusable = true
