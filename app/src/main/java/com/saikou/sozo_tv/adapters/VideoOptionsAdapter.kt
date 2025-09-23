@@ -35,30 +35,17 @@ class VideoOptionsAdapter(
 
             binding.tvQuality.text = videoOption.quality
 
-            when {
-                videoOption.resolution.contains("1080", ignoreCase = true) -> {
-                    binding.ivQualityIcon.setImageResource(R.drawable.ic_hd_video)
-                }
-                videoOption.resolution.contains("720", ignoreCase = true) -> {
-                    binding.ivQualityIcon.setImageResource(R.drawable.ic_hd_video)
-                }
-                else -> {
-                    binding.ivQualityIcon.setImageResource(R.drawable.ic_video_settings)
-                }
-            }
 
-            // Show/hide selection indicator
+                    binding.ivQualityIcon.setImageResource(R.drawable.ic_video_settings)
+
             binding.ivSelected.visibility = if (position == selectedPosition) View.VISIBLE else View.GONE
 
-            // Set selection state for background
             binding.root.isSelected = position == selectedPosition
 
-            // Handle item click
             binding.root.setOnClickListener {
                 val previousPosition = selectedPosition
                 selectedPosition = position
 
-                // Notify changes for smooth animation
                 if (previousPosition != -1) {
                     notifyItemChanged(previousPosition)
                 }
@@ -67,7 +54,6 @@ class VideoOptionsAdapter(
                 onItemClick(videoOption, position)
             }
 
-            // TV focus handling
             binding.root.setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
                     binding.root.animate()
@@ -87,7 +73,7 @@ class VideoOptionsAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VideoOptionViewHolder {
-        val binding = ItemVideoOptionBinding.inflate(
+        val binding = ItemVideoQualityBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false
@@ -101,13 +87,11 @@ class VideoOptionsAdapter(
 
     override fun getItemCount(): Int = videoOptions.size
 
-    // Function to update the list
     fun updateVideoOptions(newVideoOptions: List<VideoOption>) {
         videoOptions = newVideoOptions
         notifyDataSetChanged()
     }
 
-    // Function to set default selected item
     fun setDefaultSelected(index: Int) {
         if (index in 0 until videoOptions.size) {
             val previousPosition = selectedPosition
@@ -120,17 +104,14 @@ class VideoOptionsAdapter(
         }
     }
 
-    // Function to get currently selected item
     fun getSelectedPosition(): Int = selectedPosition
 
-    // Function to get selected video option
     fun getSelectedVideoOption(): VideoOption? {
         return if (selectedPosition != -1 && selectedPosition < videoOptions.size) {
             videoOptions[selectedPosition]
         } else null
     }
 
-    // Function to find and select item by isActive property
     fun setSelectedByActiveState() {
         val activeIndex = videoOptions.indexOfFirst { it.isActive }
         if (activeIndex != -1) {
@@ -139,7 +120,6 @@ class VideoOptionsAdapter(
     }
 }
 
-// Data classes (if not already defined)
 data class VideoOption(
     val kwikUrl: String,
     val fansub: String,

@@ -16,7 +16,7 @@
         android:layout_width="28dp"
         android:layout_height="28dp"
         android:layout_marginEnd="16dp"
-        android:src="@drawable/ic_hd"
+        android:src="@drawable/ic_video_settings"
         app:tint="@color/red" />
 
     <LinearLayout
