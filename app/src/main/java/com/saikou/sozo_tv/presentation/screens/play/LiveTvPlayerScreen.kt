@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.play
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -54,6 +55,7 @@ class LiveTvPlayerScreen : Fragment() {
         setupPlayerControls()
     }
 
+    @SuppressLint("UnsafeOptInUsageError")
     private fun initializeDataSourceFactory() {
         dataSourceFactory = DefaultHttpDataSource.Factory()
             .setUserAgent(Util.getUserAgent(requireContext(), "SozoTV"))
@@ -62,6 +64,7 @@ class LiveTvPlayerScreen : Fragment() {
             .setAllowCrossProtocolRedirects(true)
     }
 
+    @SuppressLint("UnsafeOptInUsageError")
     private fun initializePlayer() {
         player = ExoPlayer.Builder(requireContext())
             .build()
@@ -125,6 +128,7 @@ class LiveTvPlayerScreen : Fragment() {
         }
     }
 
+    @SuppressLint("UnsafeOptInUsageError")
     private fun setupPlayerControls() {
         val exoProgress:TrailerPlayerScreen.ExtendedTimeBar = binding.pvPlayer.findViewById(R.id.exo_progress)
         exoProgress.setForceDisabled(true)
@@ -132,7 +136,6 @@ class LiveTvPlayerScreen : Fragment() {
         binding.pvPlayer.controllerAutoShow = true
         binding.pvPlayer.controllerHideOnTouch = true
 
-        // Setup retry button
         binding.retryButton.setOnClickListener {
             retryConnection()
         }
@@ -160,11 +163,12 @@ class LiveTvPlayerScreen : Fragment() {
         Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show()
     }
 
+    @SuppressLint("UnsafeOptInUsageError")
     private fun retryConnection() {
         binding.errorLayout.visibility = View.GONE
         binding.progressBar.visibility = View.VISIBLE
 
-        player?.let { player ->
+        player.let { player ->
             val hlsMediaSource = HlsMediaSource.Factory(dataSourceFactory)
                 .createMediaSource(MediaItem.fromUri(liveStreamUrl))
 
