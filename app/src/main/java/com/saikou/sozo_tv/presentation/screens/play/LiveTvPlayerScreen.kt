@@ -102,10 +102,7 @@ class LiveTvPlayerScreen : Fragment() {
                                 binding.errorLayout.visibility = View.GONE
                             }
 
-                            Player.STATE_ENDED -> {
-                                // For live streams, this shouldn't happen often
-                                restartStream()
-                            }
+                            Player.STATE_ENDED -> restartStream()
                         }
                     }
                 })
