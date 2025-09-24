@@ -4,52 +4,69 @@ import android.content.Context
 import android.content.SharedPreferences
 
 class SearchHistoryManager(context: Context) {
-    
-    private val sharedPreferences: SharedPreferences = 
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    
+    private val sharedPreferences: SharedPreferences =
+        context.getSharedPreferences("search_history", Context.MODE_PRIVATE)
+
     companion object {
-        private const val PREFS_NAME = "search_history"
-        private const val KEY_SEARCH_HISTORY = "recent_searches"
+        private const val SEARCH_HISTORY_KEY = "search_history"
         private const val MAX_HISTORY_SIZE = 10
-        private const val DELIMITER = "|||"
+
+        private val DEFAULT_SEARCHES = listOf(
+            "Naruto",
+            "One Piece",
+            "Attack on Titan",
+            "Demon Slayer",
+            "My Hero Academia"
+        )
     }
-    
-    fun addSearchQuery(query: String) {
-        val currentHistory = getSearchHistory().toMutableList()
-        
-        currentHistory.remove(query)
-        
-        currentHistory.add(0, query)
-        
-        if (currentHistory.size > MAX_HISTORY_SIZE) {
-            currentHistory.removeAt(currentHistory.size - 1)
-        }
-        
-        saveSearchHistory(currentHistory)
-    }
-    
+
     fun getSearchHistory(): List<String> {
-        val historyString = sharedPreferences.getString(KEY_SEARCH_HISTORY, "") ?: ""
-        return if (historyString.isEmpty()) {
-            emptyList()
+        val historySet = sharedPreferences.getStringSet(SEARCH_HISTORY_KEY, emptySet()) ?: emptySet()
+        val userHistory = historySet.toList()
+
+        return if (userHistory.isEmpty()) {
+            DEFAULT_SEARCHES
         } else {
-            historyString.split(DELIMITER).filter { it.isNotEmpty() }
+            userHistory
         }
     }
-    
-    fun removeSearchQuery(query: String) {
-        val currentHistory = getSearchHistory().toMutableList()
+
+    fun addSearchQuery(query: String) {
+        val currentHistory = sharedPreferences.getStringSet(SEARCH_HISTORY_KEY, emptySet())?.toMutableSet() ?: mutableSetOf()
+
+        // Remove if already exists to avoid duplicates
         currentHistory.remove(query)
-        saveSearchHistory(currentHistory)
+
+        // Add to the beginning
+        val newHistory = mutableSetOf<String>()
+        newHistory.add(query)
+        newHistory.addAll(currentHistory)
+
+        // Keep only the most recent searches
+        val limitedHistory = newHistory.take(MAX_HISTORY_SIZE).toSet()
+
+        sharedPreferences.edit()
+            .putStringSet(SEARCH_HISTORY_KEY, limitedHistory)
+            .apply()
     }
-    
+
+    fun removeSearchQuery(query: String) {
+        val currentHistory = sharedPreferences.getStringSet(SEARCH_HISTORY_KEY, emptySet())?.toMutableSet() ?: mutableSetOf()
+        currentHistory.remove(query)
+
+        sharedPreferences.edit()
+            .putStringSet(SEARCH_HISTORY_KEY, currentHistory)
+            .apply()
+    }
+
     fun clearAllHistory() {
-        sharedPreferences.edit().remove(KEY_SEARCH_HISTORY).apply()
+        sharedPreferences.edit()
+            .remove(SEARCH_HISTORY_KEY)
+            .apply()
     }
-    
-    private fun saveSearchHistory(history: List<String>) {
-        val historyString = history.joinToString(DELIMITER)
-        sharedPreferences.edit().putString(KEY_SEARCH_HISTORY, historyString).apply()
+
+    fun isUsingDefaultSearches(): Boolean {
+        val historySet = sharedPreferences.getStringSet(SEARCH_HISTORY_KEY, emptySet()) ?: emptySet()
+        return historySet.isEmpty()
     }
 }

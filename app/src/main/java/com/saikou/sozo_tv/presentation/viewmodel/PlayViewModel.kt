@@ -224,10 +224,11 @@ class PlayViewModel(
             if (ytList.isEmpty()) {
                 trailerData.postValue("")
             } else {
-                val parser = DubsMp4Parser()
-                parser.parseYt(ytList[0].mediaLink).let {
-                    trailerData.postValue(it)
-                }
+                trailerData.postValue("")
+                //                val parser = DubsMp4Parser()
+//                parser.parseYt(ytList[0].mediaLink).let {
+//                    trailerData.postValue(it)
+//                }
             }
         }
     }

@@ -48,16 +48,18 @@ class CustomTVKeyboard @JvmOverloads constructor(
             }
         }
 
+        // Setup spacebar
+        findViewById<TextView>(R.id.key_space)?.setOnClickListener {
+            onKeyClickListener?.invoke(" ")
+            updateKeyFocus(it)
+        }
+
         // Setup control keys
         findViewById<TextView>(R.id.key_backspace)?.setOnClickListener {
             onBackspaceClickListener?.invoke()
             updateKeyFocus(it)
         }
 
-        findViewById<TextView>(R.id.key_clear)?.setOnClickListener {
-            onClearClickListener?.invoke()
-            updateKeyFocus(it)
-        }
     }
 
     private fun updateKeyFocus(clickedView: View) {

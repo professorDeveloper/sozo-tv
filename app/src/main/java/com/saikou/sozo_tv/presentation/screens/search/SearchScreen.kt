@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.presentation.screens.search
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -11,8 +10,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.content.Context
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.internal.ViewUtils.hideKeyboard
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.RecentSearchAdapter
 import com.saikou.sozo_tv.adapters.SearchAdapter
@@ -25,6 +25,8 @@ import com.saikou.sozo_tv.utils.applyFocusedStyle
 import com.saikou.sozo_tv.utils.hideKeyboard
 import com.saikou.sozo_tv.utils.resetStyle
 import com.saikou.sozo_tv.utils.showKeyboard
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -36,6 +38,8 @@ class SearchScreen : Fragment() {
     private lateinit var searchHistoryManager: SearchHistoryManager
     private val model: SearchViewModel by viewModel()
     private var isInitialLoad = true
+    private var searchJob: Job? = null
+    private var lastSearchQuery = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,8 +59,29 @@ class SearchScreen : Fragment() {
         observeViewModel()
         setupTVFocusHandling()
         showInitialRecentSearches()
+        preventSystemKeyboard()
         if (searchHistoryManager.getSearchHistory().isEmpty()) {
             binding.searchEdt.requestFocus()
+        }
+    }
+
+    private fun preventSystemKeyboard() {
+        binding.searchEdt.apply {
+            showSoftInputOnFocus = false
+            setOnFocusChangeListener { view, hasFocus ->
+                if (hasFocus) {
+                    val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.hideSoftInputFromWindow(view.windowToken, 0)
+                    view.applyFocusedStyle()
+                } else {
+                    view.resetStyle()
+                }
+            }
+            setOnClickListener {
+                val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(it.windowToken, 0)
+                it.requestFocus()
+            }
         }
     }
 
@@ -67,6 +92,9 @@ class SearchScreen : Fragment() {
             val newText = StringBuilder(currentText).insert(cursorPosition, key).toString()
             binding.searchEdt.setText(newText)
             binding.searchEdt.setSelection(cursorPosition + 1)
+            if (newText.trim().isNotEmpty()) {
+                scheduleSearch(newText.trim())
+            }
         }
 
         binding.customKeyboard.setOnBackspaceClickListener {
@@ -76,27 +104,26 @@ class SearchScreen : Fragment() {
                 val newText = StringBuilder(currentText).deleteCharAt(cursorPosition - 1).toString()
                 binding.searchEdt.setText(newText)
                 binding.searchEdt.setSelection(cursorPosition - 1)
+                if (newText.trim().isEmpty()) {
+                    cancelPendingSearch()
+                    showInitialRecentSearches()
+                    binding.searchEdt.requestFocus()
+                } else {
+                    scheduleSearch(newText.trim())
+                }
             }
         }
 
         binding.customKeyboard.setOnClearClickListener {
             binding.searchEdt.setText("")
             binding.searchEdt.setSelection(0)
+            cancelPendingSearch()
             showInitialRecentSearches()
+            binding.searchEdt.requestFocus()
         }
     }
 
-    @SuppressLint("RestrictedApi")
     private fun setupTVFocusHandling() {
-        binding.searchEdt.setOnFocusChangeListener { edit, hasFocus ->
-            if (hasFocus) {
-                hideKeyboard(edit)
-                edit.applyFocusedStyle()
-            } else {
-                edit.resetStyle()
-            }
-        }
-
         binding.vgvRecentSearches.isFocusable = true
         binding.vgvRecentSearches.isFocusableInTouchMode = false
         binding.clearAllHistory.isFocusable = true
@@ -112,7 +139,7 @@ class SearchScreen : Fragment() {
         recentSearchAdapter.setOnItemClickListener { query ->
             binding.searchEdt.setText(query)
             binding.searchEdt.setSelection(query.length)
-            performSearch(query.trim())
+            performSearchImmediate(query.trim())
         }
 
         recentSearchAdapter.setOnRemoveClickListener { query, position ->
@@ -137,7 +164,6 @@ class SearchScreen : Fragment() {
 
         binding.vgvRecentSearches.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus && recentSearchAdapter.itemCount > 0) {
-                // Ensure first item gets focus when container is focused
                 binding.vgvRecentSearches.post {
                     binding.vgvRecentSearches.getChildAt(0)?.requestFocus()
                 }
@@ -159,6 +185,7 @@ class SearchScreen : Fragment() {
             updateRecentSearchesVisibility()
             binding.recommendationsTitle.text = "Your Search Recommendations"
             binding.recommendationsTitle.visibility = View.VISIBLE
+            binding.recentSearchesContainer.visibility = View.VISIBLE
             isInitialLoad = false
         }
     }
@@ -175,7 +202,8 @@ class SearchScreen : Fragment() {
 
     private fun updateRecentSearchesVisibility() {
         val hasRecentSearches = searchHistoryManager.getSearchHistory().isNotEmpty()
-        binding.recentSearchesContainer.visibility = if (hasRecentSearches) View.VISIBLE else View.GONE
+        val searchIsEmpty = binding.searchEdt.text.toString().trim().isEmpty()
+        binding.recentSearchesContainer.visibility = if (hasRecentSearches && searchIsEmpty) View.VISIBLE else View.GONE
     }
 
     private fun observeViewModel() {
@@ -187,14 +215,15 @@ class SearchScreen : Fragment() {
                 binding.vgvSearch.visibility = View.VISIBLE
                 searchAdapter.updateData(movies)
                 binding.placeHolder.root.visibility = View.GONE
-                binding.vgvSearch.post {
-                    binding.vgvSearch.requestFocus()
-                }
+                binding.recommendationsTitle.visibility = View.VISIBLE
+                binding.recommendationsTitle.text = "Search Results for \"${binding.searchEdt.text.toString().trim()}\""
+                binding.searchEdt.requestFocus()
             } else {
                 binding.vgvSearch.visibility = View.GONE
                 binding.placeHolder.root.visibility = View.VISIBLE
                 binding.placeHolder.placeholderTxt.text = "No results found"
                 binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_place_holder_search)
+                binding.searchEdt.requestFocus()
             }
         }
 
@@ -205,6 +234,7 @@ class SearchScreen : Fragment() {
                 binding.placeHolder.root.visibility = View.VISIBLE
                 binding.placeHolder.placeholderTxt.text = errorMessage
                 binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
+                binding.searchEdt.requestFocus()
             }
         }
     }
@@ -221,7 +251,7 @@ class SearchScreen : Fragment() {
         binding.vgvSearch.adapter = searchAdapter
     }
 
-    private fun performSearch(query: String) {
+    private fun performSearchImmediate(query: String) {
         if (query.isNotEmpty()) {
             model.searchAnime(query.trim())
             searchAdapter.setQueryText(query.trim())
@@ -232,6 +262,30 @@ class SearchScreen : Fragment() {
         }
     }
 
+    private fun performSearch(query: String) {
+        if (query.trim().length >= 2) {
+            scheduleSearch(query.trim())
+        }
+    }
+
+    private fun scheduleSearch(query: String) {
+        searchJob?.cancel()
+
+        if (query != lastSearchQuery && query.length >= 2) {
+            searchJob = lifecycleScope.launch {
+                delay(800)
+                performSearchImmediate(query)
+                lastSearchQuery = query
+            }
+        }
+    }
+
+    private fun cancelPendingSearch() {
+        searchJob?.cancel()
+        searchJob = null
+        lastSearchQuery = ""
+    }
+
     private fun initializeSearch() {
         binding.searchEdt.apply {
             addTextChangedListener(object : TextWatcher {
@@ -240,6 +294,7 @@ class SearchScreen : Fragment() {
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                     val query = s.toString().trim()
                     if (query.isEmpty()) {
+                        cancelPendingSearch()
                         showInitialRecentSearches()
                     }
                 }
@@ -257,7 +312,7 @@ class SearchScreen : Fragment() {
                     )
                 ) {
                     val query = text.toString()
-                    performSearch(query)
+                    performSearchImmediate(query)
                     true
                 } else {
                     false
@@ -268,6 +323,7 @@ class SearchScreen : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        cancelPendingSearch()
         _binding = null
     }
 }

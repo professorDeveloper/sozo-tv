@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.data.remote
 
 import android.util.Log
+import com.bugsnag.android.Bugsnag
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.lagradost.nicehttp.Requests
@@ -83,7 +84,7 @@ class DubsMp4Parser {
                 }
 
                 if (!initJson.has("success") || !initJson["success"].asBoolean) {
-                    throw Exception("Download init failed: $initBody")
+                    Bugsnag.notify(Exception("Download failed: $initBody"))
                 }
 
                 progressId = initJson["progressId"].asString

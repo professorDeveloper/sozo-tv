@@ -12,8 +12,8 @@
         android:id="@+id/search_edt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="32dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="20dp"
         android:background="@drawable/netflix_search_background_focused"
         android:drawableStart="@drawable/ic_search"
         android:drawablePadding="12dp"
@@ -25,23 +25,27 @@
         android:inputType="text"
         android:maxLines="1"
         android:paddingHorizontal="16dp"
-        android:paddingVertical="12dp"
+        android:paddingVertical="10dp"
         android:textColor="@color/netflix_white"
         android:textColorHint="@color/netflix_gray"
-        android:textSize="18sp" />
+        android:textSize="16sp"
+        android:cursorVisible="true"
+        android:textCursorDrawable="@null" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="horizontal"
-        android:layout_marginTop="24dp"
-        android:paddingHorizontal="32dp">
+        android:layout_marginTop="16dp"
+        android:paddingHorizontal="24dp">
 
+        Reduced keyboard section weight and added max width
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="0.8"
+            android:maxWidth="400dp"
             android:orientation="vertical">
 
             <com.saikou.sozo_tv.utils.CustomTVKeyboard
@@ -54,7 +58,7 @@
                 android:id="@+id/recentSearchesContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="12dp"
                 android:orientation="vertical"
                 android:visibility="visible">
 
@@ -62,7 +66,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="12dp">
+                    android:layout_marginBottom="8dp">
 
                     <TextView
                         android:layout_width="0dp"
@@ -70,25 +74,27 @@
                         android:layout_weight="1"
                         android:text="Recent Searches"
                         style="@style/NetflixTitle"
-                        android:textSize="18sp" />
+                        android:textSize="16sp" />
 
                     <TextView
                         android:id="@+id/clearAllHistory"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="?android:attr/selectableItemBackground"
-                        android:padding="8dp"
+                        android:padding="6dp"
                         android:text="Clear All"
                         style="@style/NetflixSubtitle"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
                         android:focusable="true" />
 
                 </LinearLayout>
 
+                Reduced max height for recent searches
                 <androidx.leanback.widget.VerticalGridView
                     android:id="@+id/vgvRecentSearches"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxHeight="150dp"
                     android:clipChildren="false"
                     android:clipToPadding="false"
                     app:focusOutEnd="true"
@@ -100,12 +106,13 @@
 
         </LinearLayout>
 
+        Increased results section weight and reduced margin
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="2"
+            android:layout_weight="2.2"
             android:orientation="vertical"
-            android:layout_marginStart="32dp">
+            android:layout_marginStart="24dp">
 
             <TextView
                 android:id="@+id/recommendationsTitle"
@@ -113,7 +120,8 @@
                 android:layout_height="wrap_content"
                 android:text="Your Search Recommendations"
                 style="@style/NetflixTitle"
-                android:layout_marginBottom="16dp" />
+                android:textSize="18sp"
+                android:layout_marginBottom="12dp" />
 
             <androidx.leanback.widget.VerticalGridView
                 android:id="@+id/vgvSearch"
@@ -122,10 +130,12 @@
                 android:layout_weight="1"
                 android:clipChildren="false"
                 android:clipToPadding="false"
+                android:paddingTop="4dp"
+                android:paddingBottom="8dp"
                 app:focusOutEnd="true"
                 app:focusOutFront="true"
-                app:numberOfColumns="4"
-                tools:itemCount="8" />
+                app:numberOfColumns="5"
+                tools:itemCount="10" />
 
             <include
                 android:id="@+id/placeHolder"

@@ -61,21 +61,7 @@ class SearchAdapter :
                 )
                 .into(binding.moviePoster)
 
-            binding.root.setOnFocusChangeListener { view, hasFocus ->
-                if (hasFocus) {
-                    view.animate()
-                        .scaleX(1.1f)
-                        .scaleY(1.1f)
-                        .setDuration(200)
-                        .start()
-                } else {
-                    view.animate()
-                        .scaleX(1.0f)
-                        .scaleY(1.0f)
-                        .setDuration(200)
-                        .start()
-                }
-            }
+
 
             binding.imdbRating.text = "★ ${movie.averageScore ?: "N/A"}"
             binding.movieDetails.text = buildString {
