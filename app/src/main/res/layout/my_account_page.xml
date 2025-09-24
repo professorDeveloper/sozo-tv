@@ -329,7 +329,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif"
-                            android:text="@string/enable_or_disable_adult_content_visibility"
+                            android:text="@string/enable_or_disable_channel_content_visibility"
                             android:textColor="@color/netflix_gray"
                             android:textSize="13sp" />
 
