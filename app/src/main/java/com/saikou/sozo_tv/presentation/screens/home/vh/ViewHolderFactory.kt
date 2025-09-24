@@ -17,7 +17,6 @@ import com.saikou.sozo_tv.databinding.ItemPlayDetailsSectionBinding
 import com.saikou.sozo_tv.databinding.ItemPlayRecommendedBinding
 import com.saikou.sozo_tv.presentation.screens.detail.CastDetailAdapter
 import com.saikou.sozo_tv.presentation.screens.detail.MovieDetailsAdapter
-import com.saikou.sozo_tv.presentation.screens.detail.MovieDetailsAdapter.Companion.DETAILS_ITEM_THIRD
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 
 object ViewHolderFactory {

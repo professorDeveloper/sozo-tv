@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/black">
+    android:background="@android:color/black"
+    android:orientation="vertical">
 
     <com.saikou.sozo_tv.components.PlayerTvView
         android:id="@+id/pv_player"
@@ -81,7 +82,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="#FF0000"
-            android:text="Retry"
+            android:text="@string/retry"
             android:textColor="@android:color/white" />
 
     </LinearLayout>

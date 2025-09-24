@@ -36,7 +36,7 @@ import com.saikou.sozo_tv.utils.loadImage
 class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf()) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    private var bannerPosition = false
+//    private var bannerPosition = false
 
     interface HomeData {
         val viewType: Int
@@ -45,7 +45,6 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
 
     companion object {
         const val VIEW_BANNER = 0
-        const val VIEW_CATEGORY_TV = 1
         const val VIEW_CATEGORY_FILMS = 2
         const val VIEW_BANNER_ITEM = 3
         const val VIEW_CATEGORY_FILMS_ITEM = 4

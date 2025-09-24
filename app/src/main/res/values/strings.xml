@@ -107,5 +107,8 @@
     <string name="search_history">Recent Searches</string>
     <string name="clear_all">Clear All</string>
     <string name="channel_list">Home Page Channels</string>
+    <string name="live_tv">LIVE TV</string>
+    <string name="retry">Retry</string>
+    <string name="guest">Guest</string>
 
 </resources>

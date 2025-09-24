@@ -62,7 +62,7 @@
         android:fontFamily="@font/days"
         android:paddingHorizontal="8dp"
         android:paddingVertical="4dp"
-        android:text="LIVE TV"
+        android:text="@string/live_tv"
         android:textColor="#FF0000"
         android:textSize="12sp"
         android:textStyle="bold"

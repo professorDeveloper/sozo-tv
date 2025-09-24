@@ -93,7 +93,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="2dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Guest"
+                        android:text="@string/guest"
                         android:textColor="@color/netflix_white"
                         android:textSize="20sp"
                         android:textStyle="normal" />
@@ -110,7 +110,6 @@
 
             </LinearLayout>
 
-            <!-- Status and Messages -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
