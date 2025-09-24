@@ -38,24 +38,24 @@ class MyAccountPage : Fragment() {
         }
 
     }
-
-    private fun showNsfwWarningDialog() {
-        val dialog = NsfwAlertDialog()
-        dialog.setYesContinueListener {
-            updateChannelStatus(true)
-            saveChannelPreference(true)
-            dialog.dismiss()
-        }
-        dialog.setOnBackPressedListener {
-            binding.nsfwSwitch.isChecked = false
-            updateChannelStatus(false)
-            saveChannelPreference(false)
-            dialog.dismiss()
-        }
-
-
-        dialog.show(parentFragmentManager, "NsfwWarningDialog")
-    }
+//
+//    private fun showNsfwWarningDialog() {
+//        val dialog = NsfwAlertDialog()
+//        dialog.setYesContinueListener {
+//            updateChannelStatus(true)
+//            saveChannelPreference(true)
+//            dialog.dismiss()
+//        }
+//        dialog.setOnBackPressedListener {
+//            binding.nsfwSwitch.isChecked = false
+//            updateChannelStatus(false)
+//            saveChannelPreference(false)
+//            dialog.dismiss()
+//        }
+//
+//
+//        dialog.show(parentFragmentManager, "NsfwWarningDialog")
+//    }
 
     private fun saveChannelPreference(isEnabled: Boolean) {
         preferenceManager.setNsfwEnabled(isEnabled)
