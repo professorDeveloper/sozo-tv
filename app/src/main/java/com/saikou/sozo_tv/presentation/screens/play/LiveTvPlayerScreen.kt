@@ -22,9 +22,7 @@ import androidx.media3.ui.PlayerControlView
 import androidx.navigation.fragment.findNavController
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.LiveTvPlayerScreenBinding
-import com.saikou.sozo_tv.components.PlayerTvView
 import com.saikou.sozo_tv.databinding.ControllerLiveTvBinding
-import java.util.UUID
 
 class LiveTvPlayerScreen : Fragment() {
     private var _binding: LiveTvPlayerScreenBinding? = null

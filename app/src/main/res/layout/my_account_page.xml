@@ -267,7 +267,8 @@
                     android:layout_marginTop="8dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingStart="4dp">
+                    android:paddingStart="4dp"
+                    tools:ignore="RtlSymmetry">
 
                     <View
                         android:id="@+id/nsfw_status_dot"

@@ -26,7 +26,8 @@
             android:background="#1a1a1a"
             android:foreground="@drawable/fg_imageview_item_movie"
             android:scaleType="centerCrop"
-            android:src="@drawable/joker" />
+            android:src="@drawable/joker"
+            tools:ignore="ContentDescription" />
 
         <LinearLayout
             android:layout_width="match_parent"
