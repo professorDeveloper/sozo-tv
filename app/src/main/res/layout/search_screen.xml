@@ -40,7 +40,6 @@
         android:layout_marginTop="16dp"
         android:paddingHorizontal="24dp">
 
-        Reduced keyboard section weight and added max width
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -89,7 +88,6 @@
 
                 </LinearLayout>
 
-                Reduced max height for recent searches
                 <androidx.leanback.widget.VerticalGridView
                     android:id="@+id/vgvRecentSearches"
                     android:layout_width="match_parent"
@@ -106,7 +104,6 @@
 
         </LinearLayout>
 
-        Increased results section weight and reduced margin
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
