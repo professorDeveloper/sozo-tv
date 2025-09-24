@@ -317,8 +317,9 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             binding.channelName.text = item.content.title
             binding.channelGroup.text = item.content.country
             binding.root.setOnClickListener {
+                LocalData.channnelItemClickListener.invoke(item.content)
             }
-            binding.root.                setOnFocusChangeListener { view, hasFocus ->
+            binding.root.setOnFocusChangeListener { view, hasFocus ->
                 val animation = when {
                     hasFocus -> AnimationUtils.loadAnimation(
                         binding.root.context,

@@ -12,6 +12,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.kongzue.dialogx.dialogs.WaitDialog
 import com.saikou.sozo_tv.R
@@ -66,6 +67,14 @@ class HomeScreen : Fragment() {
                 LocalData.setonClickedlistenerItemBanner {
                     WaitDialog.show(requireActivity(), "Loading...")
                     homeViewModel.getMalId(it.contentItem.mal_id)
+                }
+                LocalData.setChannelItemClickListener {
+                    findNavController().navigate(
+                        HomeScreenDirections.actionHomeToLiveTvPlayerScreen(
+                            it.title,
+                            it.playLink
+                        )
+                    )
                 }
                 homeViewModel.aniId.observe(viewLifecycleOwner) {
                     when (it) {

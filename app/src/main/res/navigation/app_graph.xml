@@ -8,10 +8,11 @@
     <fragment
         android:id="@+id/home"
         android:name="com.saikou.sozo_tv.presentation.screens.home.HomeScreen"
-        android:label="HomeScreen" >
+        android:label="HomeScreen">
+        <action android:id="@+id/action_home_to_detailPage" />
         <action
-            android:id="@+id/action_home_to_detailPage"
-            />
+            android:id="@+id/action_home_to_liveTvPlayerScreen"
+            app:destination="@id/liveTvPlayerScreen" />
     </fragment>
     <fragment
         android:id="@+id/contact"
@@ -26,11 +27,20 @@
         android:id="@+id/categories"
         android:name="com.saikou.sozo_tv.presentation.screens.category.CategoriesScreen"
         android:label="categories_screen"
-        tools:layout="@layout/categories_screen" >
-        <action
-            android:id="@+id/action_categories_to_detailPage"
-             />
+        tools:layout="@layout/categories_screen">
+        <action android:id="@+id/action_categories_to_detailPage" />
 
+    </fragment>
+    <fragment
+        android:id="@+id/liveTvPlayerScreen"
+        android:name="com.saikou.sozo_tv.presentation.screens.play.LiveTvPlayerScreen"
+        android:label="LiveTvPlayerScreen">
+        <argument
+            android:name="title"
+            app:argType="string" />
+        <argument
+            android:name="url"
+            app:argType="string" />
     </fragment>
 
 </navigation>

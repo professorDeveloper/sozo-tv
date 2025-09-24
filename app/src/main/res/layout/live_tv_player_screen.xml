@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <com.saikou.sozo_tv.components.PlayerTvView
+        android:id="@+id/pv_player"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginVertical="16dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:nextFocusLeft="@id/topContainer"
+        android:visibility="visible"
+        app:controller_layout_id="@layout/controller_live_tv"
+        app:resize_mode="fit"
+        app:show_buffering="when_playing"
+        app:show_next_button="false"
+        app:show_previous_button="false"
+        app:show_subtitle_button="true"
+        app:show_timeout="2000"
+        app:use_controller="true"
+        tools:visibility="visible" />
+
+    <LinearLayout
+        android:id="@+id/progressBar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:background="@color/black"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/loadingText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/days"
+            android:padding="8dp"
+            android:text="Channel is loading..."
+            android:textAlignment="center"
+
+            android:textColor="@color/lb_tv_white" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="4dp"
+            app:indicatorColor="@color/white40"
+            app:trackColor="@color/red" />
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/errorLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/errorText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:gravity="center"
+            android:text="Connection Error"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/retryButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#FF0000"
+            android:text="Retry"
+            android:textColor="@android:color/white" />
+
+    </LinearLayout>
+
+</LinearLayout>

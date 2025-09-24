@@ -28,17 +28,13 @@ class MyAccountPage : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         preferenceManager = com.saikou.sozo_tv.data.local.pref.PreferenceManager()
-        loadNsfwPreference()
-        binding.nsfwToggleContainer.setOnClickListener {
-            binding.nsfwSwitch.toggle()
+        loadChannelPreference()
+        binding.channelToggleContainer.setOnClickListener {
+            binding.channelSwitch.toggle()
         }
-        binding.nsfwSwitch.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked && !preferenceManager.isNsfwEnabled()) {
-                showNsfwWarningDialog()
-            } else {
-                updateNsfwStatus(isChecked)
-                saveNsfwPreference(isChecked)
-            }
+        binding.channelSwitch.setOnCheckedChangeListener { _, isChecked ->
+            updateChannelStatus(isChecked)
+            saveChannelPreference(isChecked)
         }
 
     }
@@ -46,14 +42,14 @@ class MyAccountPage : Fragment() {
     private fun showNsfwWarningDialog() {
         val dialog = NsfwAlertDialog()
         dialog.setYesContinueListener {
-            updateNsfwStatus(true)
-            saveNsfwPreference(true)
+            updateChannelStatus(true)
+            saveChannelPreference(true)
             dialog.dismiss()
         }
         dialog.setOnBackPressedListener {
             binding.nsfwSwitch.isChecked = false
-            updateNsfwStatus(false)
-            saveNsfwPreference(false)
+            updateChannelStatus(false)
+            saveChannelPreference(false)
             dialog.dismiss()
         }
 
@@ -61,38 +57,38 @@ class MyAccountPage : Fragment() {
         dialog.show(parentFragmentManager, "NsfwWarningDialog")
     }
 
-    private fun saveNsfwPreference(isEnabled: Boolean) {
+    private fun saveChannelPreference(isEnabled: Boolean) {
         preferenceManager.setNsfwEnabled(isEnabled)
     }
 
-    private fun loadNsfwPreference() {
+    private fun loadChannelPreference() {
         val isEnabled = preferenceManager.isNsfwEnabled()
-        binding.nsfwSwitch.isChecked = isEnabled
-        updateNsfwStatus(isEnabled)
+        binding.channelSwitch.isChecked = isEnabled
+        updateChannelStatus(isEnabled)
     }
 
     @SuppressLint("SetTextI18n")
-    private fun updateNsfwStatus(isEnabled: Boolean) {
+    private fun updateChannelStatus(isEnabled: Boolean) {
         binding.apply {
             if (isEnabled) {
-                nsfwStatusDot.background = ContextCompat.getDrawable(
+                channelStatusDot.background = ContextCompat.getDrawable(
                     requireContext(),
                     R.drawable.netflix_status_dot_enabled
                 )
-                nsfwStatusText.text = "Enabled"
-                nsfwStatusText.setTextColor(
+                channelStatusText.text = "Enabled"
+                channelStatusText.setTextColor(
                     ContextCompat.getColor(
                         requireContext(),
                         R.color.netflix_green
                     )
                 )
             } else {
-                nsfwStatusDot.background = ContextCompat.getDrawable(
+                channelStatusDot.background = ContextCompat.getDrawable(
                     requireContext(),
                     R.drawable.netflix_status_dot_disabled
                 )
-                nsfwStatusText.text = "Disabled"
-                nsfwStatusText.setTextColor(
+                channelStatusText.text = "Disabled"
+                channelStatusText.setTextColor(
                     ContextCompat.getColor(
                         requireContext(),
                         R.color.netflix_gray

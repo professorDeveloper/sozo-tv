@@ -12,6 +12,7 @@ class PreferenceManager {
     companion object {
         private const val PREF_NAME = "app_preferences"
         private const val KEY_NSFW_ENABLED = "nsfw_enabled"
+        private const val KEY_CHANNEL_ENABLED = "nsfw_enabled"
     }
 
 
@@ -23,6 +24,17 @@ class PreferenceManager {
 
     fun isNsfwEnabled(): Boolean {
         return sharedPreferences.getBoolean(KEY_NSFW_ENABLED, false)
+    }
+
+
+    fun setChannelEnabled(enabled: Boolean) {
+        sharedPreferences.edit()
+            .putBoolean(KEY_CHANNEL_ENABLED, enabled)
+            .apply()
+    }
+
+    fun isChannelEnabled(): Boolean {
+        return sharedPreferences.getBoolean(KEY_CHANNEL_ENABLED, false)
     }
 
 }

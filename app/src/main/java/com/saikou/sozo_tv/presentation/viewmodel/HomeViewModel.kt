@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Category
 import com.saikou.sozo_tv.domain.model.CategoryGenre
@@ -53,10 +54,13 @@ class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
             }
 
             bannerState is UiState.Success && categoryState is UiState.Success && genresState is UiState.Success -> {
+                val preferenceManager = PreferenceManager()
                 val homeDataList = mutableListOf<HomeAdapter.HomeData>()
                 homeDataList.add(bannerState.data)
                 homeDataList.add(genresState.data)
-                homeDataList.add(LocalData.channels)
+                if (preferenceManager.isChannelEnabled()) {
+                    homeDataList.add(LocalData.channels)
+                }
                 homeDataList.addAll(categoryState.data)
                 UiState.Success(homeDataList)
             }

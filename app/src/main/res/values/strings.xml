@@ -99,11 +99,13 @@
     <string name="about_character">About Character</string>
     <string name="find_correct_anime_title">Wrong Title?</string>
     <string name="enable_or_disable_adult_content_visibility">Enable or disable adult content visibility</string>
+    <string name="enable_or_disable_channel_content_visibility">Enable or disable channel content visibility</string>
     <string name="adult_content_nsfw">Adult Content (NSFW)</string>
     <string name="content_settings">CONTENT SETTINGS</string>
     <string name="_0_unread">0 unread</string>
     <string name="g">G</string>
     <string name="search_history">Recent Searches</string>
     <string name="clear_all">Clear All</string>
+    <string name="channel_list">Home Page Channels</string>
 
 </resources>
