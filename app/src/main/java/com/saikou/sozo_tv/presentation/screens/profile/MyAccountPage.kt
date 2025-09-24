@@ -58,11 +58,11 @@ class MyAccountPage : Fragment() {
 //    }
 
     private fun saveChannelPreference(isEnabled: Boolean) {
-        preferenceManager.setNsfwEnabled(isEnabled)
+        preferenceManager.setChannelEnabled(isEnabled)
     }
 
     private fun loadChannelPreference() {
-        val isEnabled = preferenceManager.isNsfwEnabled()
+        val isEnabled = preferenceManager.isChannelEnabled()
         binding.channelSwitch.isChecked = isEnabled
         updateChannelStatus(isEnabled)
     }
