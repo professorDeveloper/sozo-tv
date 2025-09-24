@@ -17,11 +17,15 @@ import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.databinding.BannerItemBinding
 import com.saikou.sozo_tv.databinding.ContentBannerBinding
 import com.saikou.sozo_tv.databinding.ItemCategoryBinding
+import com.saikou.sozo_tv.databinding.ItemChannelCategoryBinding
 import com.saikou.sozo_tv.databinding.ItemGenreBinding
+import com.saikou.sozo_tv.databinding.ItemMiddleChannelBinding
 import com.saikou.sozo_tv.databinding.ItemMovieBinding
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Category
+import com.saikou.sozo_tv.domain.model.CategoryChannel
+import com.saikou.sozo_tv.domain.model.CategoryChannelItem
 import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.CategoryGenre
 import com.saikou.sozo_tv.domain.model.CategoryGenreItem
@@ -47,7 +51,8 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
         const val VIEW_CATEGORY_FILMS_ITEM = 4
         const val VIEW_GENRE = 5
         const val VIEW_GENRE_ITEM = 6
-
+        const val VIEW_CHANNEL = 7
+        const val VIEW_CHANNEL_ITEM = 8
 
     }
 
@@ -93,6 +98,18 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
 
             is GenreItemViewHolder -> {
                 if (item is CategoryGenreItem) {
+                    holder.bind(item)
+                }
+            }
+
+            is ChannelViewHolder -> {
+                if (item is CategoryChannel) {
+                    holder.bind(item)
+                }
+            }
+
+            is ChannelItemViewHolder -> {
+                if (item is CategoryChannelItem) {
                     holder.bind(item)
                 }
             }
@@ -270,6 +287,52 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 binding.root.setOnClickListener {
                     LocalData.sFocusedGenreClickListener.invoke(item.content.title)
                 }
+            }
+
+        }
+    }
+
+
+    class ChannelViewHolder(private val binding: ItemChannelCategoryBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: CategoryChannel) {
+            binding.tvCategoryTitle.text = item.name
+            binding.hgvCategory.apply {
+                setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+
+                adapter = HomeAdapter().apply {
+                    submitList(item.list)
+                }
+
+                setItemSpacing(10)
+            }
+        }
+    }
+
+
+    class ChannelItemViewHolder(private val binding: ItemMiddleChannelBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: CategoryChannelItem) {
+            Glide.with(binding.root.context).load(item.content.image).into(binding.channelLogo)
+            binding.channelName.text = item.content.title
+            binding.channelGroup.text = item.content.country
+            binding.root.setOnClickListener {
+            }
+            binding.root.                setOnFocusChangeListener { view, hasFocus ->
+                val animation = when {
+                    hasFocus -> AnimationUtils.loadAnimation(
+                        binding.root.context,
+                        R.anim.zoom_in
+                    )
+
+                    else -> AnimationUtils.loadAnimation(
+                        binding.root.context,
+                        R.anim.zoom_out
+                    )
+                }
+                binding.root.startAnimation(animation)
+                animation.fillAfter = true
+
             }
 
         }

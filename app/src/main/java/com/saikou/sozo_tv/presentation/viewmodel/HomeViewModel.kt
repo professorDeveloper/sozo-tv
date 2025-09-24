@@ -9,6 +9,7 @@ import com.saikou.sozo_tv.domain.model.Category
 import com.saikou.sozo_tv.domain.model.CategoryGenre
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.UiState
 import com.saikou.sozo_tv.utils.toDomain
@@ -55,6 +56,7 @@ class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
                 val homeDataList = mutableListOf<HomeAdapter.HomeData>()
                 homeDataList.add(bannerState.data)
                 homeDataList.add(genresState.data)
+                homeDataList.add(LocalData.channels)
                 homeDataList.addAll(categoryState.data)
                 UiState.Success(homeDataList)
             }

@@ -8,7 +8,9 @@ import com.saikou.sozo_tv.databinding.ContentBannerBinding
 import com.saikou.sozo_tv.databinding.ItemCastRecommendedBinding
 import com.saikou.sozo_tv.databinding.ItemCategoryBinding
 import com.saikou.sozo_tv.databinding.ItemCategoryDetailsHeaderBinding
+import com.saikou.sozo_tv.databinding.ItemChannelCategoryBinding
 import com.saikou.sozo_tv.databinding.ItemGenreBinding
+import com.saikou.sozo_tv.databinding.ItemMiddleChannelBinding
 import com.saikou.sozo_tv.databinding.ItemMovieBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsHeaderBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsSectionBinding
@@ -92,6 +94,14 @@ object ViewHolderFactory {
                         inflater, parent, false
                     )
                 )
+            }
+            HomeAdapter.VIEW_CHANNEL -> {
+                val binding = ItemChannelCategoryBinding.inflate(inflater, parent, false)
+                HomeAdapter.ChannelViewHolder(binding)
+            }
+            HomeAdapter.VIEW_CHANNEL_ITEM -> {
+                val binding = ItemMiddleChannelBinding.inflate(inflater, parent, false)
+                HomeAdapter.ChannelItemViewHolder(binding)
             }
 
 

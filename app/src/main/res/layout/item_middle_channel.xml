@@ -2,110 +2,81 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="8dp"
-    android:layout_marginVertical="3dp"
-    android:paddingVertical="6dp"
+    android:background="@drawable/item_movie_history_bg"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:background="@drawable/item_middle_channel_bg">
+    android:padding="4dp"
+    tools:layout_gravity="center">
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
-        android:layout_width="55dp"
-        android:layout_height="55dp"
-        android:layout_marginHorizontal="4dp"
+        android:layout_width="0dp"
+        android:layout_height="120dp"
         app:cardCornerRadius="8dp"
-        app:cardElevation="0dp"
-        app:layout_constraintDimensionRatio="2.3:1.6"
+        app:layout_constraintDimensionRatio="16:9"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:id="@+id/item_img"
+            android:id="@+id/channel_logo"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="#1a1a1a"
+            android:foreground="@drawable/fg_imageview_item_movie"
             android:scaleType="centerCrop"
             android:src="@drawable/joker" />
-    </androidx.cardview.widget.CardView>
-
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_marginStart="8dp"
-        android:gravity="center"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="@+id/cardView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/cardView"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:id="@+id/channelName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:layout_marginStart="4dp"
-            android:fontFamily="@font/days"
-            android:text="Zo’r TV"
-            android:textColor="@color/lb_tv_white"
-            android:textSize="17sp" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:fontFamily="@font/rubik_regular"
-            android:orientation="horizontal"
-            android:visibility="gone"
-            android:padding="2dp"
-            app:layout_constraintEnd_toEndOf="@+id/topContainer"
-            app:layout_constraintStart_toStartOf="@+id/topContainer"
-            app:layout_constraintTop_toBottomOf="@+id/topContainer">
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.5"
-                android:duplicateParentState="true"
-
-                app:cardCornerRadius="45dp"
-                app:cardElevation="0dp">
-
-                <TextView
-                    android:id="@+id/audioList"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginHorizontal="6dp"
-                    android:layout_marginVertical="3dp"
-
-                    android:fontFamily="@font/rubik_regular"
-                    android:textSize="11sp"
-                    tools:text="Animation" />
-            </androidx.cardview.widget.CardView>
+            android:layout_gravity="bottom"
+            android:background="@drawable/gradient_overlay"
+            android:orientation="vertical"
+            android:padding="8dp">
 
             <TextView
-                android:id="@+id/categoryProperty"
+                android:id="@+id/channel_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginHorizontal="8dp"
-                android:layout_weight="1"
-                android:ellipsize="marquee"
-                android:fontFamily="@font/days"
-                android:lines="1"
-                android:marqueeRepeatLimit="marquee_forever"
+                android:ellipsize="end"
+                android:fontFamily="@font/rubik_regular"
                 android:maxLines="1"
-                android:textColor="#ffffff"
-                android:textSize="11sp"
-                tools:text="Various" />
-
+                android:textColor="#CCFFFFFF"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                tools:ignore="SmallSp"
+                tools:text="News • Live TV" />
 
         </LinearLayout>
 
-    </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
+    <TextView
+        android:id="@+id/channel_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:fontFamily="@font/rubik_regular"
+        android:maxLines="2"
+        android:textColor="#ffffff"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="@+id/cardView"
+        app:layout_constraintStart_toStartOf="@+id/cardView"
+        app:layout_constraintTop_toBottomOf="@+id/cardView"
+        tools:text="BBC News HD" />
+
+    <View
+        android:id="@+id/live_indicator"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/live_indicator"
+        app:layout_constraintEnd_toEndOf="@+id/cardView"
+        app:layout_constraintTop_toTopOf="@+id/cardView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
