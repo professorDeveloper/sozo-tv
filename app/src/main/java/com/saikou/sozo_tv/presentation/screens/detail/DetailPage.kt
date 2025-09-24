@@ -209,7 +209,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         isFree: Boolean
     ) {
         val isAdult = item.content.isAdult
-        val canWatchAdult = PreferenceManager().isNsfwEnabled()
+        val canWatchAdult = PreferenceManager().isChannelEnabled()
         if (isAdult && !canWatchAdult) {
             val dialog = NfcDisabledDialog()
             dialog.setYesContinueListener {
