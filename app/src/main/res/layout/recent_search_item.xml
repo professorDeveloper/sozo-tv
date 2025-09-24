@@ -1,34 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/search_item_bg"
-    android:focusable="true"
-    android:focusableInTouchMode="true"
     android:orientation="horizontal"
-    android:padding="12dp">
-
-    <ImageView
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_gravity="center_vertical"
-        android:layout_marginEnd="12dp"
-        android:src="@drawable/ic_time_history"
-        app:tint="@color/white40" />
+    android:background="@drawable/netflix_item_background"
+    android:padding="12dp"
+    android:layout_marginBottom="4dp"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
 
     <TextView
-        android:id="@+id/recentSearchText"
+        android:id="@+id/searchQueryText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
         android:layout_weight="1"
-        android:ellipsize="end"
-        android:fontFamily="@font/rubik_regular"
-        android:maxLines="1"
         android:text="One Piece"
-        android:textColor="@color/lb_tv_white"
+        style="@style/NetflixItemTitle"
         android:textSize="14sp" />
 
+    <ImageView
+        android:id="@+id/removeSearchButton"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_close"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:padding="4dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
 
 </LinearLayout>

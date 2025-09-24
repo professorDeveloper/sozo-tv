@@ -7,76 +7,73 @@ import com.saikou.sozo_tv.databinding.RecentSearchItemBinding
 
 class RecentSearchAdapter : RecyclerView.Adapter<RecentSearchAdapter.RecentSearchViewHolder>() {
 
-    private var recentSearches = ArrayList<String>()
-
-    private lateinit var onItemClickListener: (query: String) -> Unit
-    private lateinit var onRemoveClickListener: (query: String, position: Int) -> Unit
-
-    fun setOnItemClickListener(listener: (query: String) -> Unit) {
-        onItemClickListener = listener
-    }
-
-    fun setOnRemoveClickListener(listener: (query: String, position: Int) -> Unit) {
-        onRemoveClickListener = listener
-    }
+    private var searchHistory = mutableListOf<String>()
+    private var onItemClickListener: ((String) -> Unit)? = null
+    private var onRemoveClickListener: ((String, Int) -> Unit)? = null
 
     inner class RecentSearchViewHolder(private val binding: RecentSearchItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(query: String, position: Int) {
-            binding.recentSearchText.text = query
-
-            binding.root.isFocusable = true
-            binding.root.isFocusableInTouchMode = false
-            binding.root.isClickable = true
+            binding.searchQueryText.text = query
 
             binding.root.setOnClickListener {
-                if (::onItemClickListener.isInitialized) {
-                    onItemClickListener.invoke(query)
-                }
+                onItemClickListener?.invoke(query)
             }
 
-            binding.root.setOnKeyListener { _, keyCode, event ->
-                if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_CENTER ||
-                    keyCode == android.view.KeyEvent.KEYCODE_ENTER) {
-                    if (event.action == android.view.KeyEvent.ACTION_DOWN) {
-                        if (::onItemClickListener.isInitialized) {
-                            onItemClickListener.invoke(query)
-                        }
-                        return@setOnKeyListener true
-                    }
+            binding.removeSearchButton.setOnClickListener {
+                onRemoveClickListener?.invoke(query, position)
+            }
+
+            // Netflix-style focus handling
+            binding.root.setOnFocusChangeListener { view, hasFocus ->
+                if (hasFocus) {
+                    view.animate()
+                        .scaleX(1.05f)
+                        .scaleY(1.05f)
+                        .setDuration(150)
+                        .start()
+                } else {
+                    view.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(150)
+                        .start()
                 }
-                false
             }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecentSearchViewHolder {
-        val binding = RecentSearchItemBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
+        val binding = RecentSearchItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return RecentSearchViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: RecentSearchViewHolder, position: Int) {
-        holder.bind(recentSearches[position], position)
+        holder.bind(searchHistory[position], position)
     }
 
-    override fun getItemCount(): Int = recentSearches.size
+    override fun getItemCount(): Int = searchHistory.size
 
-    fun updateData(newSearches: List<String>) {
-        recentSearches.clear()
-        recentSearches.addAll(newSearches)
+    fun updateData(newSearchHistory: List<String>) {
+        searchHistory.clear()
+        searchHistory.addAll(newSearchHistory)
         notifyDataSetChanged()
     }
 
     fun removeItem(position: Int) {
-        if (position in 0 until recentSearches.size) {
-            recentSearches.removeAt(position)
+        if (position in 0 until searchHistory.size) {
+            searchHistory.removeAt(position)
             notifyItemRemoved(position)
-            notifyItemRangeChanged(position, recentSearches.size)
+            notifyItemRangeChanged(position, searchHistory.size)
         }
+    }
+
+    fun setOnItemClickListener(listener: (String) -> Unit) {
+        onItemClickListener = listener
+    }
+
+    fun setOnRemoveClickListener(listener: (String, Int) -> Unit) {
+        onRemoveClickListener = listener
     }
 }

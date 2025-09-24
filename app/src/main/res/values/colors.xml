@@ -8,6 +8,8 @@
     <color name="netflix_white">#FFFFFF</color>
     <color name="netflix_red">#E50914</color>
     <color name="netflix_divider">#404040</color>
+    <color name="netflix_background_primary">#141414</color>
+    <color name="netflix_background_secondary">#2F2F2F</color>
 
     <color name="selected_bg">#0F141C</color>
     <color name="nav_item_text_selected">#FFFFFFFF</color>

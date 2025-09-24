@@ -9,6 +9,9 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
+import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.SearchItemBinding
 import com.saikou.sozo_tv.domain.model.SearchModel
 
@@ -26,32 +29,69 @@ class SearchAdapter :
         RecyclerView.ViewHolder(binding.root) {
         @SuppressLint("SetTextI18n", "NewApi")
         fun bind(movie: SearchModel) {
-
-            val mainText = movie.title?.lowercase()
-            val spannableString = SpannableString(mainText)
-            val start = mainText?.indexOf(query)
-
-            if (start != -1) {
-                val end = start!!.plus(query.length)
-                spannableString.setSpan(
-                    ForegroundColorSpan(Color.WHITE),
-                    start,
-                    end,
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
             binding.root.setOnClickListener {
                 itemClickeddListener.invoke(movie)
             }
-            binding.subscribeButton.text = if (movie.studios?.isNotEmpty() == true) movie.studios?.first()?:"" else "Comp"
+
+            val mainText = movie.title ?: "Unknown Title"
+            val spannableString = SpannableString(mainText)
+
+            if (query.isNotEmpty()) {
+                val start = mainText.lowercase().indexOf(query.lowercase())
+                if (start != -1) {
+                    val end = start + query.length
+                    spannableString.setSpan(
+                        ForegroundColorSpan(Color.WHITE),
+                        start,
+                        end,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
+            }
 
             binding.movieTitle.text = spannableString
-            binding.movieDetails.text =
-                "${
-                    if (movie.genres?.isNotEmpty() == true) movie.genres?.first()?:"" else "Action"
-                } · " + (if (movie.studios?.isNotEmpty()==true) movie.studios?.first()?:"" else "None") + " · " + if (movie.genres?.isNotEmpty() == true) movie.genres?.last()?:"" else "Fantasy"
-            binding.imdbRating.text = "AVG: ${movie.averageScore?:1}"
-            Glide.with(binding.root.context).load(movie.image).into(binding.moviePoster)
+
+            val imageUrl = movie.image ?: ""
+            Glide.with(binding.root.context)
+                .load(imageUrl)
+                .apply(
+                    RequestOptions()
+                        .transform(RoundedCorners(16))
+                        .centerCrop()
+                )
+                .into(binding.moviePoster)
+
+            binding.root.setOnFocusChangeListener { view, hasFocus ->
+                if (hasFocus) {
+                    view.animate()
+                        .scaleX(1.1f)
+                        .scaleY(1.1f)
+                        .setDuration(200)
+                        .start()
+                } else {
+                    view.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(200)
+                        .start()
+                }
+            }
+
+            binding.imdbRating.text = "★ ${movie.averageScore ?: "N/A"}"
+            binding.movieDetails.text = buildString {
+                if (!movie.genres.isNullOrEmpty()) {
+                    append(movie.genres.first())
+                }
+                if (!movie.studios.isNullOrEmpty()) {
+                    if (isNotEmpty()) append(" • ")
+                    append(movie.studios.first())
+                }
+            }
+            binding.subscribeButton.text = if (!movie.studios.isNullOrEmpty()) {
+                movie.studios.first()
+            } else {
+                "Premium"
+            }
         }
     }
 
@@ -64,7 +104,7 @@ class SearchAdapter :
         holder.bind(movieList[position])
     }
 
-    override fun getItemCount(): Int = if (movieList.size > 5) 5 else movieList.size
+    override fun getItemCount(): Int = movieList.size
 
     fun updateData(newMovies: List<SearchModel>) {
         movieList.clear()
@@ -74,6 +114,7 @@ class SearchAdapter :
 
     fun setQueryText(query: String) {
         this.query = query
+        notifyDataSetChanged() // Refresh to update highlighting
     }
 
     fun refreshItems() {

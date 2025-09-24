@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.search
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -11,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.internal.ViewUtils.hideKeyboard
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.RecentSearchAdapter
 import com.saikou.sozo_tv.adapters.SearchAdapter
@@ -18,6 +20,7 @@ import com.saikou.sozo_tv.databinding.SearchScreenBinding
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
 import com.saikou.sozo_tv.utils.SearchHistoryManager
+import com.saikou.sozo_tv.utils.CustomTVKeyboard
 import com.saikou.sozo_tv.utils.applyFocusedStyle
 import com.saikou.sozo_tv.utils.hideKeyboard
 import com.saikou.sozo_tv.utils.resetStyle
@@ -47,6 +50,7 @@ class SearchScreen : Fragment() {
         searchHistoryManager = SearchHistoryManager(requireContext())
         setupRecyclerView()
         setupRecentSearches()
+        setupCustomKeyboard()
         initializeSearch()
         observeViewModel()
         setupTVFocusHandling()
@@ -56,10 +60,37 @@ class SearchScreen : Fragment() {
         }
     }
 
+    private fun setupCustomKeyboard() {
+        binding.customKeyboard.setOnKeyClickListener { key ->
+            val currentText = binding.searchEdt.text.toString()
+            val cursorPosition = binding.searchEdt.selectionStart
+            val newText = StringBuilder(currentText).insert(cursorPosition, key).toString()
+            binding.searchEdt.setText(newText)
+            binding.searchEdt.setSelection(cursorPosition + 1)
+        }
+
+        binding.customKeyboard.setOnBackspaceClickListener {
+            val currentText = binding.searchEdt.text.toString()
+            val cursorPosition = binding.searchEdt.selectionStart
+            if (cursorPosition > 0) {
+                val newText = StringBuilder(currentText).deleteCharAt(cursorPosition - 1).toString()
+                binding.searchEdt.setText(newText)
+                binding.searchEdt.setSelection(cursorPosition - 1)
+            }
+        }
+
+        binding.customKeyboard.setOnClearClickListener {
+            binding.searchEdt.setText("")
+            binding.searchEdt.setSelection(0)
+            showInitialRecentSearches()
+        }
+    }
+
+    @SuppressLint("RestrictedApi")
     private fun setupTVFocusHandling() {
         binding.searchEdt.setOnFocusChangeListener { edit, hasFocus ->
             if (hasFocus) {
-                edit.showKeyboard()
+                hideKeyboard(edit)
                 edit.applyFocusedStyle()
             } else {
                 edit.resetStyle()
@@ -70,6 +101,9 @@ class SearchScreen : Fragment() {
         binding.vgvRecentSearches.isFocusableInTouchMode = false
         binding.clearAllHistory.isFocusable = true
         binding.clearAllHistory.isFocusableInTouchMode = false
+
+        binding.vgvSearch.isFocusable = true
+        binding.vgvSearch.isFocusableInTouchMode = false
     }
 
     private fun setupRecentSearches() {
@@ -78,11 +112,7 @@ class SearchScreen : Fragment() {
         recentSearchAdapter.setOnItemClickListener { query ->
             binding.searchEdt.setText(query)
             binding.searchEdt.setSelection(query.length)
-            model.searchAnime(query.trim())
-            searchHistoryManager.addSearchQuery(query.trim())
-            hideRecentSearches()
-            binding.searchEdt.hideKeyboard()
-            binding.searchEdt.requestFocus()
+            performSearch(query.trim())
         }
 
         recentSearchAdapter.setOnRemoveClickListener { query, position ->
@@ -123,10 +153,12 @@ class SearchScreen : Fragment() {
     }
 
     private fun showInitialRecentSearches() {
-        if (isInitialLoad && binding.searchEdt.text.toString().trim().isEmpty()) {
+        if (binding.searchEdt.text.toString().trim().isEmpty()) {
             clearSearchResults()
             loadRecentSearches()
             updateRecentSearchesVisibility()
+            binding.recommendationsTitle.text = "Your Search Recommendations"
+            binding.recommendationsTitle.visibility = View.VISIBLE
             isInitialLoad = false
         }
     }
@@ -148,27 +180,30 @@ class SearchScreen : Fragment() {
 
     private fun observeViewModel() {
         model.searchResults.observe(viewLifecycleOwner) { movies ->
-            Log.d("GGG", "observeViewModel:${movies.size} ")
+            Log.d("SearchScreen", "Search results: ${movies.size}")
             hideRecentSearches()
 
             if (movies.isNotEmpty()) {
-                Log.d("GGG", "observeViewModel:${movies} ")
                 binding.vgvSearch.visibility = View.VISIBLE
                 searchAdapter.updateData(movies)
-                updateRecyclerViewHeight(movies.size)
                 binding.placeHolder.root.visibility = View.GONE
+                binding.vgvSearch.post {
+                    binding.vgvSearch.requestFocus()
+                }
             } else {
                 binding.vgvSearch.visibility = View.GONE
                 binding.placeHolder.root.visibility = View.VISIBLE
-                binding.placeHolder.placeholderTxt.text = "Result not found"
+                binding.placeHolder.placeholderTxt.text = "No results found"
                 binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_place_holder_search)
             }
         }
+
         lifecycleScope.launch {
-            model.errorData.observe(viewLifecycleOwner) {
+            model.errorData.observe(viewLifecycleOwner) { errorMessage ->
                 hideRecentSearches()
+                binding.vgvSearch.visibility = View.GONE
                 binding.placeHolder.root.visibility = View.VISIBLE
-                binding.placeHolder.placeholderTxt.text = it
+                binding.placeHolder.placeholderTxt.text = errorMessage
                 binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
             }
         }
@@ -176,29 +211,24 @@ class SearchScreen : Fragment() {
 
     private fun setupRecyclerView() {
         searchAdapter = SearchAdapter()
-        searchAdapter.setOnItemClickListener {
-            Log.d("GGG", "setupRecyclerView:${it} ")
+        searchAdapter.setOnItemClickListener { searchModel ->
+            Log.d("SearchScreen", "Item clicked: ${searchModel.title}")
             val intent = Intent(requireActivity(), PlayerActivity::class.java)
-            intent.putExtra("model", it.id)
+            intent.putExtra("model", searchModel.id)
             requireActivity().startActivity(intent)
         }
 
         binding.vgvSearch.adapter = searchAdapter
     }
 
-    private fun updateRecyclerViewHeight(itemCount: Int) {
-        val itemHeight = resources.getDimensionPixelSize(R.dimen.item_height)
-        val itemMargin = resources.getDimensionPixelSize(R.dimen.item_margin)
-        val maxHeight = resources.getDimensionPixelSize(R.dimen.rv_max_height)
-
-        val newHeight = if (itemCount > 0) {
-            (itemHeight + itemMargin) * itemCount
-        } else {
-            0
-        }
-
-        binding.vgvSearch.layoutParams = binding.vgvSearch.layoutParams.apply {
-            height = newHeight.coerceAtMost(maxHeight)
+    private fun performSearch(query: String) {
+        if (query.isNotEmpty()) {
+            model.searchAnime(query.trim())
+            searchAdapter.setQueryText(query.trim())
+            searchHistoryManager.addSearchQuery(query.trim())
+            hideRecentSearches()
+            binding.recommendationsTitle.visibility = View.VISIBLE
+            binding.recommendationsTitle.text = "Search Results for \"$query\""
         }
     }
 
@@ -209,9 +239,8 @@ class SearchScreen : Fragment() {
 
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                     val query = s.toString().trim()
-                    if (query.isNotEmpty()) {
-                        hideRecentSearches()
-                        clearSearchResults()
+                    if (query.isEmpty()) {
+                        showInitialRecentSearches()
                     }
                 }
 
@@ -228,17 +257,17 @@ class SearchScreen : Fragment() {
                     )
                 ) {
                     val query = text.toString()
-                    if (query.isNotEmpty()) {
-                        model.searchAnime(query.trim())
-                        searchHistoryManager.addSearchQuery(query.trim())
-                        hideKeyboard()
-                        hideRecentSearches()
-                    }
+                    performSearch(query)
                     true
                 } else {
                     false
                 }
             }
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

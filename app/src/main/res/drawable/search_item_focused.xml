@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/netflix_dark_gray" />
+            <corners android:radius="12dp" />
+            <stroke
+                android:width="3dp"
+                android:color="@color/netflix_white" />
+        </shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/netflix_gray" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/netflix_background_secondary" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+</selector>

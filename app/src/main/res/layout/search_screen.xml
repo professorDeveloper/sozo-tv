@@ -5,106 +5,138 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/netflix_black"
     tools:context=".presentation.screens.search.SearchScreen">
 
     <androidx.leanback.widget.SearchEditText
         android:id="@+id/search_edt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="10dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/background_search_edittext"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/netflix_search_background_focused"
         android:drawableStart="@drawable/ic_search"
-        android:drawablePadding="6dp"
+        android:drawablePadding="12dp"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:gravity="center_vertical"
-        android:hint="@string/film_serial_multfilm"
+        android:hint="Search Anime..."
         android:imeOptions="actionSearch"
         android:inputType="text"
         android:maxLines="1"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="8dp"
-        android:scaleX="1.0"
-        android:scaleY="1.0"
-        android:textColor="@color/white40"
-        android:textColorHint="@color/white40"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp"
+        android:textColor="@color/netflix_white"
+        android:textColorHint="@color/netflix_gray"
+        android:textSize="18sp" />
 
     <LinearLayout
-        android:id="@+id/recentSearchesContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:background="@drawable/rv_background"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:visibility="gone">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:layout_marginTop="24dp"
+        android:paddingHorizontal="32dp">
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingBottom="8dp">
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:fontFamily="@font/days"
-                android:text="@string/search_history"
-                android:textColor="@color/lb_tv_white"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/clearAllHistory"
+            <com.saikou.sozo_tv.utils.CustomTVKeyboard
+                android:id="@+id/customKeyboard"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
-                android:fontFamily="@font/days"
-                android:padding="4dp"
-                android:text="@string/clear_all"
-                android:textColor="@color/white40"
-                android:textSize="14sp" />
+                android:layout_gravity="start" />
+
+            <LinearLayout
+                android:id="@+id/recentSearchesContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Recent Searches"
+                        style="@style/NetflixTitle"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/clearAllHistory"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:padding="8dp"
+                        android:text="Clear All"
+                        style="@style/NetflixSubtitle"
+                        android:textSize="14sp"
+                        android:focusable="true" />
+
+                </LinearLayout>
+
+                <androidx.leanback.widget.VerticalGridView
+                    android:id="@+id/vgvRecentSearches"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    app:focusOutEnd="true"
+                    app:focusOutFront="true"
+                    app:numberOfColumns="1"
+                    tools:itemCount="3" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-        <androidx.leanback.widget.VerticalGridView
-            android:id="@+id/vgvRecentSearches"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            app:focusOutEnd="true"
-            app:focusOutFront="true"
-            app:numberOfColumns="1"
-            tools:itemCount="3"
-            tools:listitem="@layout/recent_search_item" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:orientation="vertical"
+            android:layout_marginStart="32dp">
+
+            <TextView
+                android:id="@+id/recommendationsTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your Search Recommendations"
+                style="@style/NetflixTitle"
+                android:layout_marginBottom="16dp" />
+
+            <androidx.leanback.widget.VerticalGridView
+                android:id="@+id/vgvSearch"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                app:focusOutEnd="true"
+                app:focusOutFront="true"
+                app:numberOfColumns="4"
+                tools:itemCount="8" />
+
+            <include
+                android:id="@+id/placeHolder"
+                layout="@layout/bookmark_place_holder"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:visibility="gone" />
+
+        </LinearLayout>
 
     </LinearLayout>
-
-    <androidx.leanback.widget.VerticalGridView
-        android:id="@+id/vgvSearch"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:layout_marginTop="4dp"
-        android:background="@drawable/rv_background"
-        android:clipChildren="false"
-        android:clipToPadding="false"
-        android:padding="16dp"
-        app:focusOutEnd="true"
-        app:focusOutFront="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/search_edt"
-        app:numberOfColumns="1"
-        tools:itemCount="2"
-        tools:listitem="@layout/search_item" />
-
-    <include
-        android:id="@+id/placeHolder"
-        layout="@layout/bookmark_place_holder" />
 
 </LinearLayout>
