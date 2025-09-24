@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.service
 
-import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
 import android.webkit.CookieManager
@@ -10,7 +9,6 @@ import com.saikou.sozo_tv.app.MyApp
 import kotlinx.coroutines.delay
 
 class DDoSGuardSolver {
-    @SuppressLint("SetJavaScriptEnabled")
     fun solveChallenge(url: String, callback: (String) -> Unit) {
         val webView = WebView(MyApp.context)
         webView.settings.javaScriptEnabled = true
@@ -29,6 +27,7 @@ class DDoSGuardSolver {
 }
 
 
+// Extension function to add retry capability to any request
 suspend fun <T> retryRequest(
     maxRetries: Int = 3,
     baseDelay: Long = 1000L,
