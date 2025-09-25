@@ -4,7 +4,7 @@
     <item android:state_focused="false">
         <shape android:shape="rectangle">
             <corners android:radius="8dp" />
-            <solid android:color="#E625272B" />
+            <solid android:color="@color/netflix_background_secondary" />
         </shape>
     </item>
 

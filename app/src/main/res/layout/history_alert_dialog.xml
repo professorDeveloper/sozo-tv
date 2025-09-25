@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:orientation="vertical"
-    app:cardBackgroundColor="@color/main_background"
+    app:cardBackgroundColor="@color/netflix_background_primary"
     app:cardCornerRadius="12dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout

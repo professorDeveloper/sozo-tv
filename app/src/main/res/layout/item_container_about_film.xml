@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginBottom="10dp"
-    android:background="@color/main_background">
+    android:background="@color/netflix_background_primary">
 
 
     <androidx.cardview.widget.CardView

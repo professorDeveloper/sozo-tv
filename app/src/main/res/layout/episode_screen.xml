@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:paddingTop="8dp"
-    tools:background="@color/main_background">
+    android:background="@color/netflix_background_primary"
+    tools:background="@color/netflix_background_primary">
 
     <LinearLayout
         android:layout_width="match_parent"

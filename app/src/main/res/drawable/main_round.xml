@@ -2,5 +2,5 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
  <corners android:radius="14dp"
      />
-    <solid android:color="@color/main_background"/>
+    <solid android:color="@color/netflix_dark_gray"/>
 </shape>

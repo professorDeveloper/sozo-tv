@@ -301,7 +301,7 @@ class CastDetailAdapter(
                                 palette?.getLightVibrantColor(Color.WHITE) ?: Color.WHITE
 
                             val mainBg = ContextCompat.getColor(
-                                binding.root.context, R.color.main_background
+                                binding.root.context, R.color.netflix_background_primary
                             )
 
                             val gradient = GradientDrawable(
