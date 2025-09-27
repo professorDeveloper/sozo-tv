@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.OptIn
@@ -196,6 +197,7 @@ class SeriesPlayerScreen : Fragment() {
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         binding.pvPlayer.controller.binding.frameBackButton.setOnClickListener {
             navigateBack()
         }
@@ -481,6 +483,9 @@ class SeriesPlayerScreen : Fragment() {
                 C.VIDEO_CHANGE_FRAME_RATE_STRATEGY_ONLY_IF_SEAMLESS
             ).build()
 
+        player.setPlayWhenReady(true)
+        player.setWakeMode(C.WAKE_MODE_LOCAL)
+
         player.setAudioAttributes(
             AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
                 .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(), true
@@ -747,6 +752,7 @@ class SeriesPlayerScreen : Fragment() {
         }
         _binding = null
         super.onDestroyView()
+        requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     override fun onPause() {

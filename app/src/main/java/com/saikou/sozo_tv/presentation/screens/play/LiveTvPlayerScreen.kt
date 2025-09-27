@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.fragment.app.Fragment
@@ -49,6 +50,7 @@ class LiveTvPlayerScreen : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         binding.pvPlayer.controller.binding.filmTitle.text = args.title
         initializeDataSourceFactory()
         initializePlayer()
@@ -84,6 +86,7 @@ class LiveTvPlayerScreen : Fragment() {
                 player.setMediaSource(hlsMediaSource)
                 player.playWhenReady = true
                 player.prepare()
+                player.setWakeMode(C.WAKE_MODE_LOCAL)
 
                 player.addListener(object : Player.Listener {
                     override fun onPlayerError(error: PlaybackException) {
@@ -209,6 +212,7 @@ class LiveTvPlayerScreen : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         player.release()
     }
 

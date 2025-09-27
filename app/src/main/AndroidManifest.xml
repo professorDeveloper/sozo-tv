@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <uses-feature
         android:name="android.hardware.touchscreen"
@@ -49,6 +50,7 @@
             android:name=".presentation.activities.UpdateActivity"
             android:exported="false" />
         <activity
+            android:keepScreenOn="true"
             android:name=".presentation.activities.PlayerActivity"
             android:exported="false" />
         <activity
