@@ -25,4 +25,5 @@ class TvGarden {
         val dataManager = GardenDataManager.loadChannelsForCategory(category.key)
         return ArrayList(dataManager)
     }
+
 }
