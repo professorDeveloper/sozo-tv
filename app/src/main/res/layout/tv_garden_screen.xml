@@ -22,12 +22,14 @@
     <androidx.leanback.widget.HorizontalGridView
         android:id="@+id/tabRv"
         android:layout_width="match_parent"
+        android:visibility="gone"
         android:layout_height="44dp"
         android:layout_marginTop="8dp"
         android:nextFocusDown="@id/bookmarkRv"
         android:orientation="horizontal"
         android:paddingVertical="4dp"
         app:focusOutEnd="true"
+
         app:focusOutFront="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -40,6 +42,7 @@
         android:layout_width="match_parent"
         android:nextFocusUp="@id/tabRv"
         android:layout_height="0dp"
+        android:visibility="gone"
         android:layout_weight="1"
         android:clipChildren="false"
         android:clipToPadding="false"
@@ -47,5 +50,9 @@
         android:paddingBottom="16dp"
         app:focusOutFront="true"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager" />
+
+    <include
+        android:id="@+id/progressBar"
+        layout="@layout/layout_is_loading"/>
 
 </LinearLayout>

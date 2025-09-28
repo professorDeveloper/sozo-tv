@@ -19,6 +19,8 @@ import com.saikou.sozo_tv.data.model.Country
 import com.saikou.sozo_tv.manager.GardenDataManager
 import com.saikou.sozo_tv.presentation.screens.category.CategoryTabAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.TvGardenViewModel
+import com.saikou.sozo_tv.utils.gone
+import com.saikou.sozo_tv.utils.visible
 import com.skydoves.powerspinner.PowerSpinnerView
 import com.skydoves.powerspinner.OnSpinnerItemSelectedListener
 import kotlinx.coroutines.launch
@@ -35,6 +37,7 @@ class TvGardenScreen : Fragment() {
     private val model: TvGardenViewModel by viewModel()
     private var isCountrySelected = true
     private var currentSort: String? = null
+    private var isOpened = false
     private val countryList = ArrayList<Country>()
     private var selectedPosCat = 1
     private var selectedPosCount = 1
@@ -48,20 +51,32 @@ class TvGardenScreen : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.progressBar.pbIsLoading.visible()
+        binding.progressBar.root.visible()
+        binding.bookmarkRv.requestFocus()
         categoriesAdapter = CategoryTabAdapter(isFiltered = true)
         channelsAdapter = ChannelsAdapter() {
-            if (it.iptvUrls.isNotEmpty())  {
+            if (it.iptvUrls.isNotEmpty()) {
+                isOpened = true
                 findNavController().navigate(
-                    TvGardenScreenDirections.actionTvgardenToLiveTvPlayerScreen(it.name, it.iptvUrls[0])
+                    TvGardenScreenDirections.actionTvgardenToLiveTvPlayerScreen(
+                        it.name,
+                        it.iptvUrls[0]
+                    )
                 )
-            }else {
+            } else {
                 Toast.makeText(requireContext(), "No stream available", Toast.LENGTH_SHORT).show()
             }
         }
         binding.tabRv.adapter = categoriesAdapter
         binding.bookmarkRv.adapter = channelsAdapter
-        model.loadChannelCountries()
+        if (!isOpened) {
+            if (isCountrySelected) model.loadChannelCountries() else model.loadChannelCategories()
+        }
         model.countries.observe(viewLifecycleOwner) { countries ->
+            binding.progressBar.pbIsLoading.gone()
+            binding.progressBar.root.gone()
+            binding.tabRv.visible()
             categoriesAdapter.submitList(countries.map { it.name } as ArrayList<String>)
             countryList.clear()
             countryList.addAll(countries)
@@ -72,6 +87,9 @@ class TvGardenScreen : Fragment() {
             }
         }
         model.categories.observe(viewLifecycleOwner) { categories ->
+            binding.tabRv.visible()
+            binding.progressBar.pbIsLoading.gone()
+            binding.progressBar.root.gone()
             categoriesAdapter.submitList(categories.map { it.name } as ArrayList<String>)
             categoryList.clear()
             categoryList.addAll(categories)
@@ -107,10 +125,17 @@ class TvGardenScreen : Fragment() {
             }
         }
         model.channels.observe(viewLifecycleOwner) {
+            binding.bookmarkRv.visible()
             channelsAdapter.updateChannels(it)
             binding.bookmarkRv.setNumColumns(4)
             binding.bookmarkRv.visibility = if (it.isEmpty()) View.GONE else View.VISIBLE
         }
     }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
 
 }
