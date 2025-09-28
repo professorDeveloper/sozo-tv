@@ -44,7 +44,7 @@ class FilterDialog : DialogFragment() {
         if (selectedSort != null) binding.sortFilter.hint =
             "Selected Sort: $selectedSort"
         binding.sortFilter.apply {
-            setSpinnerAdapter(CustomSpinnerAdapter(this).apply {
+            setSpinnerAdapter(CustomSpinnerAdapter(-1, this).apply {
                 this.setOnSpinnerItemSelectedListen {
                     binding.sortFilter.hint = "Selected Sort: ${it.title}"
                     selectedSort = it.title.toString()
@@ -69,7 +69,7 @@ class FilterDialog : DialogFragment() {
             preferenceName = "sort"
         }
         binding.yearFilter.apply {
-            setSpinnerAdapter(CustomSpinnerAdapter(this).apply {
+            setSpinnerAdapter(CustomSpinnerAdapter(-1,this).apply {
                 this.setOnSpinnerItemSelectedListen {
                     selectedYear = it.title
                     binding.yearFilter.hint = "Selected Year: ${it.title}"

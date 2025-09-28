@@ -14,6 +14,7 @@ import com.skydoves.powerspinner.PowerSpinnerInterface
 import com.skydoves.powerspinner.PowerSpinnerView
 
 class CustomSpinnerAdapter(
+    val selectedindex: Int,
     override val spinnerView: PowerSpinnerView
 ) : RecyclerView.Adapter<CustomSpinnerAdapter.CustomSpinnerViewHolder>(),
     PowerSpinnerInterface<MySpinnerItem> {
@@ -50,11 +51,13 @@ class CustomSpinnerAdapter(
         val view =
             LayoutInflater.from(parent.context).inflate(R.layout.spinner_custom_item, parent, false)
         return CustomSpinnerViewHolder(view).apply {
+
             itemView.setOnClickListener {
                 val pos = bindingAdapterPosition.takeIf { it != RecyclerView.NO_POSITION }
                     ?: return@setOnClickListener
                 val oldIndex = index
                 index = pos
+
                 notifyItemChanged(oldIndex)
                 notifyItemChanged(pos)
                 onSpinnerItemSelected.invoke(

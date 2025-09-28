@@ -33,6 +33,9 @@ class TvGardenScreen : Fragment() {
     private lateinit var categoriesAdapter: CategoryTabAdapter
     private val model: TvGardenViewModel by viewModel()
     private var isCountrySelected = true
+    private var currentSort: String? = null
+    private val countryList = ArrayList<Country>()
+    private val categoryList = ArrayList<Category>()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -45,33 +48,50 @@ class TvGardenScreen : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         categoriesAdapter = CategoryTabAdapter(isFiltered = true)
+        channelsAdapter = ChannelsAdapter() {
+
+        }
         binding.tabRv.adapter = categoriesAdapter
+        binding.bookmarkRv.adapter = channelsAdapter
         model.loadChannelCountries()
         model.countries.observe(viewLifecycleOwner) { countries ->
             categoriesAdapter.submitList(countries.map { it.name } as ArrayList<String>)
+            countryList.clear()
+            countryList.addAll(countries)
         }
         model.categories.observe(viewLifecycleOwner) { categories ->
             categoriesAdapter.submitList(categories.map { it.name } as ArrayList<String>)
+            categoryList.clear()
+            categoryList.addAll(categories)
         }
-
         categoriesAdapter.setLastItemClickListener {
-            val dialogGarden =
-                FilterDialogGarden.newInstance(if (isCountrySelected) "By Country" else "By Category")
-            dialogGarden.show(parentFragmentManager, "FilterDialog")
+            val dialogGarden = FilterDialogGarden.newInstance(currentSort)
+            dialogGarden.show(parentFragmentManager, "FilterDialogGarden")
             dialogGarden.onFiltersApplied = { sort ->
                 isCountrySelected = sort == "By Country"
                 if (isCountrySelected) {
+                    currentSort = sort
                     model.loadChannelCountries()
                 } else {
+                    currentSort = sort
                     model.loadChannelCategories()
                 }
             }
         }
         categoriesAdapter.setFocusedItemListener { s, i ->
-
+            if (isCountrySelected) {
+                val findCategory = countryList.find { it.name == s }
+                model.loadChannelsByCountry(findCategory!!)
+            } else {
+                val findCategory = categoryList.find { it.name == s }
+                model.loadChannelsByCategory(findCategory!!)
+            }
         }
-
-
+        model.channels.observe(viewLifecycleOwner) {
+            channelsAdapter.updateChannels(it)
+            binding.bookmarkRv.setNumColumns(4)
+            binding.bookmarkRv.visibility = if (it.isEmpty()) View.GONE else View.VISIBLE
+        }
     }
 
 }

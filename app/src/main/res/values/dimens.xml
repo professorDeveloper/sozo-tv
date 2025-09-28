@@ -14,8 +14,8 @@
         <dimen name="item_height">110dp</dimen> <!-- Itemning taxminiy balandligi -->
         <dimen name="item_margin">8dp</dimen> <!-- Har bir item orasidagi masofa -->
     <dimen name="rv_max_height">460dp</dimen>
-    <dimen name="tv_card_width">280dp</dimen>
-    <dimen name="tv_card_height">160dp</dimen>
+    <dimen name="tv_card_width">220dp</dimen>
+    <dimen name="tv_card_height">120dp</dimen>
     <dimen name="tv_card_margin">4dp</dimen>
     <dimen name="tv_text_size_large">24sp</dimen>
     <dimen name="tv_text_size_medium">18sp</dimen>

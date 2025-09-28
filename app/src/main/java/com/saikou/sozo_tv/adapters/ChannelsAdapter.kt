@@ -9,9 +9,9 @@ import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.databinding.ItemChannelBinding
 
 class ChannelsAdapter(
-    private val channels: List<Channel>,
     private val onChannelClick: (Channel) -> Unit
 ) : RecyclerView.Adapter<ChannelsAdapter.ChannelViewHolder>() {
+    private val channels =ArrayList<Channel>()
 
     class ChannelViewHolder(private val binding: ItemChannelBinding) : RecyclerView.ViewHolder(binding.root) {
 
@@ -25,9 +25,6 @@ class ChannelsAdapter(
 
             binding.root.setOnClickListener { onChannelClick(channel) }
 
-            binding.root.setOnFocusChangeListener { _, hasFocus ->
-                binding.root.isSelected = hasFocus
-            }
         }
     }
 
@@ -38,6 +35,12 @@ class ChannelsAdapter(
             false
         )
         return ChannelViewHolder(binding)
+    }
+
+    fun updateChannels(newChannels: List<Channel>) {
+        channels.clear()
+        channels.addAll(newChannels)
+        notifyDataSetChanged()
     }
 
     override fun onBindViewHolder(holder: ChannelViewHolder, position: Int) {

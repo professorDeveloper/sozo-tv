@@ -191,7 +191,7 @@ object GardenDataManager {
 
     suspend fun loadCategoriesFromApi(): List<Category> = withContext(Dispatchers.IO) {
         val apiUrl =
-            "https://api.github.com/repos/TVGarden/tv-garden-channel-list/contents/channels/raw/categories"
+            "https://api.github.com/repos/professorDeveloper/tv-garden-channel-list/contents/channels/raw/categories"
         val request = Request.Builder().url(apiUrl).build()
 
         return@withContext try {
@@ -221,7 +221,7 @@ object GardenDataManager {
 
     suspend fun loadCountriesFromApi(): List<Country> = withContext(Dispatchers.IO) {
         val apiUrl =
-            "https://api.github.com/repos/TVGarden/tv-garden-channel-list/contents/channels/raw/countries"
+            "https://api.github.com/repos/professorDeveloper/tv-garden-channel-list/contents/channels/raw/countries"
         val request = Request.Builder().url(apiUrl).build()
 
         return@withContext try {
@@ -252,7 +252,7 @@ object GardenDataManager {
     suspend fun loadChannelsForCountry(countryCode: String): List<Channel> =
         withContext(Dispatchers.IO) {
             val url =
-                "https://raw.githubusercontent.com/TVGarden/tv-garden-channel-list/main/channels/raw/countries/${countryCode.lowercase()}.json"
+                "https://raw.githubusercontent.com/professorDeveloper/tv-garden-channel-list/main/channels/raw/countries/${countryCode.lowercase()}.json"
             val request = Request.Builder().url(url).build()
 
             return@withContext try {
@@ -279,7 +279,7 @@ object GardenDataManager {
     suspend fun loadChannelsForCategory(categoryKey: String): List<Channel> =
         withContext(Dispatchers.IO) {
             val url =
-                "https://raw.githubusercontent.com/TVGarden/tv-garden-channel-list/main/channels/raw/categories/${categoryKey.lowercase()}.json"
+                "https://raw.githubusercontent.com/professorDeveloper/tv-garden-channel-list/main/channels/raw/categories/${categoryKey.lowercase()}.json"
             val request = Request.Builder().url(url).build()
 
             return@withContext try {
