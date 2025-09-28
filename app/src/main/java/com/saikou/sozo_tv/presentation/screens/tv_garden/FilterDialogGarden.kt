@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.FilterDialogGardenBinding
@@ -28,16 +29,18 @@ class FilterDialogGarden : DialogFragment() {
         return binding.root
     }
 
-    private val filterList = arrayListOf(
-        MySpinnerItem("By Country"),
-        MySpinnerItem("By Category"),
-    )
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         setupDialogWindow()
+        binding.categoryContainer.title.text = "By Category"
+        binding.countryContainer.title.text = "By Country"
 
+
+        val selectedColor =
+            ContextCompat.getColor(requireContext(), R.color.selected_category_color)
+        val defaultTextColor =
+            ContextCompat.getColor(requireContext(), R.color.color_item_tv_category_tv)
 
         binding.close.setOnClickListener {
             dismiss()
@@ -45,34 +48,40 @@ class FilterDialogGarden : DialogFragment() {
 
         selectedSort = arguments?.getString("selectedSort")
         if (selectedSort != null) {
-            binding.sortFilter.hint = "Selected Sort: $selectedSort"
+            binding.sliderHint.hint = "Selected Sort: $selectedSort"
         }
 
-        binding.sortFilter.apply {
-            val selectedItem = filterList.find { it.title == selectedSort }
-            val selectedIndex = filterList.indexOf(selectedItem)
+        if (
+            selectedSort == "By Category"
+        ) {
+            binding.categoryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
+            binding.countryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv)
+            binding.countryContainer.title.setTextColor(defaultTextColor)
+            binding.categoryContainer.title.setTextColor(selectedColor)
+        } else {
 
-            setSpinnerAdapter(CustomSpinnerAdapter(selectedIndex, this).apply {
-                this.setOnSpinnerItemSelectedListen {
-                    binding.sortFilter.hint = "Selected Sort: ${it.title}"
-                    selectedSort = it.title.toString()
-                }
-                var ggIndex = -1
-                filterList.onEachIndexed { index, mySpinnerItem ->
-                    if (selectedSort.toString() == mySpinnerItem.title) {
-                        ggIndex = index
-                    }
-                }
-                if (ggIndex != -1) {
-                    this.notifyItemSelected(ggIndex)
-                }
-            })
-
-            setItems(filterList)
-            preferenceName = "sort"
-
+            binding.countryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
+            binding.categoryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv)
+            binding.categoryContainer.title.setTextColor(defaultTextColor)
+            binding.countryContainer.title.setTextColor(selectedColor)
+        }
+        binding.countryContainer.root.setOnClickListener {
+            selectedSort = "By Country"
+            binding.sliderHint.hint = "Selected Sort: $selectedSort"
+            binding.countryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
+            binding.categoryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv)
+            binding.categoryContainer.title.setTextColor(defaultTextColor)
+            binding.countryContainer.title.setTextColor(selectedColor)
         }
 
+        binding.categoryContainer.root.setOnClickListener {
+            selectedSort = "By Category"
+            binding.sliderHint.hint = "Selected Sort: $selectedSort"
+            binding.countryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv)
+            binding.categoryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
+            binding.categoryContainer.title.setTextColor(selectedColor)
+            binding.countryContainer.title.setTextColor(defaultTextColor)
+        }
         binding.applyFilter.setOnClickListener {
             onFiltersApplied?.invoke(selectedSort)
             dismiss()
@@ -91,20 +100,6 @@ class FilterDialogGarden : DialogFragment() {
         }
     }
 
-    private fun setupFocusManagement() {
-        binding.root.post {
-            binding.sortFilter.requestFocus()
-        }
-
-        binding.root.setOnKeyListener { _, keyCode, event ->
-            if (keyCode == android.view.KeyEvent.KEYCODE_BACK && event.action == android.view.KeyEvent.ACTION_UP) {
-                dismiss()
-                true
-            } else {
-                false
-            }
-        }
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()

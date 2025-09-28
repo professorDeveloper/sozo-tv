@@ -22,6 +22,7 @@ class FilterDialog : DialogFragment() {
     private var selectedRating: String? = null
 
 
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
