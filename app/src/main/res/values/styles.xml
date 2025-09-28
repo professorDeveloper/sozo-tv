@@ -44,6 +44,49 @@
         <item name="cornerSize">20dp</item>
     </style>
 
+
+    <!-- Adding custom view styles -->
+    <style name="NetflixFilterButton" parent="Widget.AppCompat.Button">
+        <item name="android:textColor">@color/netflix_gray</item>
+        <item name="android:textSize">@dimen/text_size_medium</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/filter_button_selector</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:fontFamily">@font/days</item>
+        <item name="android:minHeight">@dimen/filter_button_height</item>
+        <item name="android:paddingStart">@dimen/spacing_medium</item>
+        <item name="android:paddingEnd">@dimen/spacing_medium</item>
+    </style>
+
+    <style name="NetflixChannelCard">
+        <item name="android:background">@drawable/channel_card_selector</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:layout_margin">@dimen/card_margin</item>
+        <item name="android:padding">@dimen/card_padding</item>
+    </style>
+
+    <style name="NetflixText">
+        <item name="android:fontFamily">@font/days</item>
+        <item name="android:textColor">@color/netflix_white</item>
+    </style>
+
+    <style name="NetflixText.Title" parent="NetflixText">
+        <item name="android:fontFamily">@font/days</item>
+        <item name="android:textSize">@dimen/text_size_large</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="NetflixText.Body" parent="NetflixText">
+        <item name="android:textSize">@dimen/text_size_medium</item>
+    </style>
+
+    <style name="NetflixText.Caption" parent="NetflixText">
+        <item name="android:textSize">@dimen/text_size_small</item>
+        <item name="android:textColor">@color/netflix_gray</item>
+    </style>
+
     <style name="DialogTheme" parent="Theme.Material3.Dark">
         <item name="android:layout_height">wrap_content</item>
         <item name="windowActionBar">false</item>

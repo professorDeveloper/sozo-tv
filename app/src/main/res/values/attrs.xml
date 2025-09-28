@@ -9,7 +9,33 @@
     </declare-styleable>
 
 
+    <declare-styleable name="TvFocusable">
+        <attr name="tvFocusable" format="boolean" />
+        <attr name="tvFocusScale" format="float" />
+        <attr name="tvFocusBorderWidth" format="dimension" />
+        <attr name="tvFocusBorderColor" format="color" />
+    </declare-styleable>
 
+    <!-- Adding custom attributes for NetflixChannelCard -->
+    <declare-styleable name="NetflixChannelCard">
+        <attr name="channelName" format="string" />
+        <attr name="channelCountry" format="string" />
+        <attr name="channelLanguage" format="string" />
+        <attr name="isGeoBlocked" format="boolean" />
+        <attr name="isLive" format="boolean" />
+        <attr name="urlCount" format="integer" />
+    </declare-styleable>
+
+    <!-- Adding custom attributes for NetflixFilterSelector -->
+    <declare-styleable name="NetflixFilterSelector">
+        <attr name="defaultFilterType" format="enum">
+            <enum name="country" value="0" />
+            <enum name="category" value="1" />
+        </attr>
+        <attr name="buttonTextSize" format="dimension" />
+        <attr name="buttonTextColor" format="color" />
+        <attr name="selectedButtonColor" format="color" />
+    </declare-styleable>
         <declare-styleable name="PinViewTheme">
             <attr name="pinViewStyle" format="reference" />
         </declare-styleable>

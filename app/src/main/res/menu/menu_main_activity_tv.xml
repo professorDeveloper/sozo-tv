@@ -22,6 +22,11 @@
         android:icon="@drawable/ic_menu_shorts"
         android:title="@string/main_menu_filter" />
     <item
+        android:id="@+id/tvgarden"
+        android:icon="@drawable/ic_clapper_open"
+        android:title="@string/main_menu_tvgarden" />
+
+    <item
         android:id="@+id/search"
         android:icon="@drawable/ic_menu_search"
         android:title="@string/main_menu_search" />

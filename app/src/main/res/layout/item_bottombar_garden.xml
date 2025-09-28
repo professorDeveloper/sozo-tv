@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="4dp"
+    android:layout_marginHorizontal="12dp"
+    android:background="@drawable/item_round_bg"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <LinearLayout
+        android:id="@+id/nav_anime"
+        android:layout_width="0dp"
+        android:layout_marginEnd="4dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        app:focusOutEnd="true"
+        app:focusOutFront="true"
+        android:focusableInTouchMode="true"
+        android:padding="8dp"
+        android:background="@drawable/tab_background_unselected"
+        android:focusable="true"
+        android:gravity="center"
+        android:nextFocusRight="@id/nav_characters">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="Anime"
+            android:src="@drawable/ic_clapper_open" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+
+            android:fontFamily="@font/inter_bold"
+            android:paddingTop="4dp"
+            android:text="by Country"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/nav_characters"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        app:focusOutEnd="true"
+        app:focusOutFront="true"
+        android:background="@drawable/tab_background_unselected"
+        android:layout_marginStart="4dp"
+        android:focusableInTouchMode="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:nextFocusLeft="@id/nav_anime">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="Characters"
+            android:src="@drawable/tv_retro"
+            app:tint="@color/white" />
+
+        <TextView
+            android:id="@+id/characterTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:layout_marginStart="4dp"
+            android:text="by Category"
+            android:fontFamily="@font/inter_bold"
+            android:textSize="12sp" />
+    </LinearLayout>
+</LinearLayout>

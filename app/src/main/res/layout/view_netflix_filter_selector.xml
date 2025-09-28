@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center"
+    android:padding="@dimen/spacing_medium">
+
+    <!-- Country Filter Button -->
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/btn_filter_country"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/filter_button_height"
+        android:layout_weight="1"
+        android:layout_marginEnd="@dimen/spacing_small"
+        android:text="By Country"
+        android:textColor="@color/netflix_gray"
+        android:textSize="@dimen/text_size_medium"
+        android:textStyle="bold"
+        android:background="@drawable/filter_button_selector"
+        android:focusable="true"
+        android:clickable="true"
+        android:fontFamily="@font/days"
+        style="@style/NetflixFilterButton" />
+
+    <!-- Category Filter Button -->
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/btn_filter_category"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/filter_button_height"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/spacing_small"
+        android:text="By Category"
+        android:textColor="@color/netflix_gray"
+        android:textSize="@dimen/text_size_medium"
+        android:textStyle="bold"
+        android:background="@drawable/filter_button_selector"
+        android:focusable="true"
+        android:clickable="true"
+        android:fontFamily="@font/days"
+        style="@style/NetflixFilterButton" />
+
+</LinearLayout>

@@ -13,5 +13,44 @@
     <dimen name="normal_margin_bottom">3dp</dimen>
         <dimen name="item_height">110dp</dimen> <!-- Itemning taxminiy balandligi -->
         <dimen name="item_margin">8dp</dimen> <!-- Har bir item orasidagi masofa -->
-    <dimen name="rv_max_height">460dp</dimen> <!-- RecyclerView ning maksimal balandligi -->
+    <dimen name="rv_max_height">460dp</dimen>
+    <dimen name="tv_card_width">280dp</dimen>
+    <dimen name="tv_card_height">160dp</dimen>
+    <dimen name="tv_card_margin">4dp</dimen>
+    <dimen name="tv_text_size_large">24sp</dimen>
+    <dimen name="tv_text_size_medium">18sp</dimen>
+    <dimen name="tv_text_size_small">14sp</dimen>
+    <dimen name="tv_padding_large">24dp</dimen>
+    <dimen name="tv_padding_medium">16dp</dimen>
+    <dimen name="tv_padding_small">8dp</dimen>
+    <dimen name="tv_corner_radius">8dp</dimen>
+    <dimen name="tv_focus_border_width">4dp</dimen>
+    <!-- Text Sizes -->
+    <dimen name="text_size_large">20sp</dimen>
+    <dimen name="text_size_medium">16sp</dimen>
+    <dimen name="text_size_small">14sp</dimen>
+    <dimen name="text_size_xs">12sp</dimen>
+    <!-- Adding custom view dimensions -->
+    <!-- Channel Card Dimensions -->
+    <dimen name="channel_card_height">180dp</dimen>
+    <dimen name="card_margin">12dp</dimen>
+    <dimen name="card_padding">16dp</dimen>
+    <dimen name="card_corner_radius">8dp</dimen>
+    <dimen name="card_stroke_width">2dp</dimen>
+
+    <!-- Icon Dimensions -->
+    <dimen name="channel_icon_size">32dp</dimen>
+    <dimen name="geo_blocked_icon_size">24dp</dimen>
+    <dimen name="live_indicator_size">8dp</dimen>
+
+    <!-- Spacing -->
+    <dimen name="spacing_large">24dp</dimen>
+    <dimen name="spacing_medium">16dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_xs">4dp</dimen>
+
+    <!-- Filter Button Dimensions -->
+    <dimen name="filter_button_height">48dp</dimen>
+    <dimen name="url_count_corner_radius">4dp</dimen>
+
 </resources>

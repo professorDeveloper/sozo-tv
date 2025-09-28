@@ -11,7 +11,11 @@
     <color name="netflix_section">#292828</color>
     <color name="netflix_background_primary">#141414</color>
     <color name="netflix_background_secondary">#2F2F2F</color>
-
+    <color name="netflix_focus_highlight">#E50914</color>
+    <color name="netflix_text_primary">#FFFFFF</color>
+    <color name="netflix_text_secondary">#B3B3B3</color>
+    <color name="netflix_card_background">#292828</color>
+    <color name="netflix_button_background">#404040</color>
     <color name="selected_bg">#0F141C</color>
     <color name="nav_item_text_selected">#FFFFFFFF</color>
     <color name="nav_item_text_unselected">#99FFFFFF</color>

@@ -30,6 +30,7 @@ import com.saikou.sozo_tv.presentation.viewmodel.NewsViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SplashViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.TvGardenViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.WrongTitleViewModel
 import com.saikou.sozo_tv.services.FirebaseService
 import org.koin.android.ext.koin.androidApplication
@@ -83,6 +84,7 @@ val koinModule = module {
 //
 //
     viewModel { HomeViewModel(repo = get()) }
+    viewModel { TvGardenViewModel() }
     viewModel { EpisodeViewModel(watchHistoryRepository = get()) }
     viewModel { WrongTitleViewModel() }
     viewModel { UpdateViewModel() }

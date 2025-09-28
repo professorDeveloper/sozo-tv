@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="@dimen/tv_card_width"
+    android:layout_height="@dimen/tv_card_height"
+    android:layout_margin="@dimen/tv_card_margin"
+    android:focusable="true"
+    android:clickable="true"
+    android:background="@drawable/channel_card_selector"
+    app:cardBackgroundColor="@color/netflix_card_background"
+    app:cardCornerRadius="@dimen/tv_corner_radius"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="@dimen/tv_padding_medium"
+        android:gravity="center">
+
+        <ImageView
+            android:id="@+id/iv_channel_icon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="@dimen/tv_padding_small"
+            android:src="@drawable/ic_tv_channel"
+            android:contentDescription="Channel icon"
+            app:tint="@color/netflix_red" />
+
+        <TextView
+            android:id="@+id/tv_channel_name"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:text="Channel Name"
+            android:textColor="@color/netflix_text_primary"
+            android:textSize="@dimen/tv_text_size_medium"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="@dimen/tv_padding_small">
+
+            <View
+                android:id="@+id/live_indicator"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:background="@drawable/live_indicator"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LIVE"
+                android:textColor="@color/netflix_red"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/iv_geo_blocked"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginStart="8dp"
+                android:src="@drawable/ic_geo_blocked"
+                android:visibility="gone"
+                android:contentDescription="Geo-blocked"
+                app:tint="@color/netflix_gray" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_channel_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Country • Language"
+            android:textColor="@color/netflix_text_secondary"
+            android:textSize="@dimen/tv_text_size_small"
+            android:gravity="center"
+            android:layout_marginTop="4dp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
