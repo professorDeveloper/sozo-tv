@@ -8,17 +8,21 @@ import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.data.model.Country
 import com.saikou.sozo_tv.parser.TvGarden
 import com.saikou.sozo_tv.presentation.screens.tv_garden.TvGardenScreen
+import com.saikou.sozo_tv.utils.Resource
 import kotlinx.coroutines.launch
 
 class TvGardenViewModel:ViewModel() {
     private val tvGarden = TvGarden()
-     val categories:MutableLiveData<List<Category>> = MutableLiveData()
-     val countries:MutableLiveData<List<Country>> = MutableLiveData()
+     val categories:MutableLiveData<Resource<List<Category>>> = MutableLiveData()
+     val countries:MutableLiveData<Resource<List<Country>>> = MutableLiveData()
      val channels:MutableLiveData<List<Channel>> = MutableLiveData()
+    var isCountrySelected = false
+    var isOpened = false
     fun loadChannelCategories() {
+        categories.postValue(Resource.Loading)
         viewModelScope.launch {
             tvGarden.getCategories().let {
-                categories.postValue(it)
+                categories.postValue(Resource.Success(it))
             }
         }
     }
@@ -39,9 +43,10 @@ class TvGardenViewModel:ViewModel() {
         }
     }
     fun loadChannelCountries(){
+        countries.postValue(Resource.Loading)
         viewModelScope.launch {
             tvGarden.loadChannelCountries().let {
-                countries.postValue(it)
+                countries.postValue(Resource.Success(it))
             }
         }
     }

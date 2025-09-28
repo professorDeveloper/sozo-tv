@@ -20,6 +20,7 @@ import com.saikou.sozo_tv.manager.GardenDataManager
 import com.saikou.sozo_tv.presentation.activities.MainActivity
 import com.saikou.sozo_tv.presentation.screens.category.CategoryTabAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.TvGardenViewModel
+import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.visible
 import com.skydoves.powerspinner.PowerSpinnerView
@@ -36,9 +37,7 @@ class TvGardenScreen : Fragment() {
     private lateinit var channelsAdapter: ChannelsAdapter
     private lateinit var categoriesAdapter: CategoryTabAdapter
     private val model: TvGardenViewModel by viewModel()
-    private var isCountrySelected = true
     private var currentSort: String? = null
-    private var isOpened = false
     private val countryList = ArrayList<Country>()
     private var selectedPosCat = 1
     private var selectedPosCount = 1
@@ -52,60 +51,91 @@ class TvGardenScreen : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.progressBar.pbIsLoading.visible()
-        binding.progressBar.root.visible()
-        binding.bookmarkRv.requestFocus()
-        categoriesAdapter = CategoryTabAdapter(isFiltered = true)
-        channelsAdapter = ChannelsAdapter() {
-            if (it.iptvUrls.isNotEmpty()) {
-                isOpened = true
-                findNavController().navigate(
-                    TvGardenScreenDirections.actionTvgardenToLiveTvPlayerScreen(
-                        it.name,
-                        it.iptvUrls[0]
+        if (!model.isOpened) {
+            categoriesAdapter = CategoryTabAdapter(isFiltered = true)
+            channelsAdapter = ChannelsAdapter() {
+                if (it.iptvUrls.isNotEmpty()) {
+                    model.isOpened = true
+                    findNavController().navigate(
+                        TvGardenScreenDirections.actionTvgardenToLiveTvPlayerScreen(
+                            it.name,
+                            it.iptvUrls[0]
+                        )
                     )
-                )
-            } else {
-                Toast.makeText(requireContext(), "No stream available", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(requireContext(), "No stream available", Toast.LENGTH_SHORT).show()
+                }
+            }
+            binding.tabRv.adapter = categoriesAdapter
+            binding.bookmarkRv.adapter = channelsAdapter
+            if (model.isCountrySelected) model.loadChannelCountries() else model.loadChannelCategories()
+        }
+        model.countries.observe(viewLifecycleOwner) { it ->
+            when (it) {
+                Resource.Loading -> {
+                    binding.progressBar.pbIsLoading.visible()
+                    binding.progressBar.root.visible()
+                    binding.bookmarkRv.gone()
+                    binding.tabRv.gone()
+
+                }
+
+                is Resource.Success -> {
+                    val countries = it.data
+                    binding.progressBar.pbIsLoading.gone()
+                    binding.progressBar.root.gone()
+                    binding.tabRv.visible()
+                    categoriesAdapter.submitList(countries.map { it.name } as ArrayList<String>)
+                    countryList.clear()
+                    countryList.addAll(countries)
+                    if (selectedPosCount != -1) {
+                        binding.tabRv.scrollToPosition(selectedPosCount)
+                        categoriesAdapter.setSelectedPosition(selectedPosCount)
+                        model.loadChannelsByCountry(countryList[selectedPosCount - 1])
+                    }
+                }
+
+                else -> {
+
+                }
             }
         }
-        binding.tabRv.adapter = categoriesAdapter
-        binding.bookmarkRv.adapter = channelsAdapter
-        if (!isOpened) {
-            if (isCountrySelected) model.loadChannelCountries() else model.loadChannelCategories()
-        }
-        model.countries.observe(viewLifecycleOwner) { countries ->
-            binding.progressBar.pbIsLoading.gone()
-            binding.progressBar.root.gone()
-            binding.tabRv.visible()
-            categoriesAdapter.submitList(countries.map { it.name } as ArrayList<String>)
-            countryList.clear()
-            countryList.addAll(countries)
-            if (selectedPosCount != -1) {
-                binding.tabRv.scrollToPosition(selectedPosCount)
-                categoriesAdapter.setSelectedPosition(selectedPosCount)
-                model.loadChannelsByCountry(countryList[selectedPosCount - 1])
+        model.categories.observe(viewLifecycleOwner) { it ->
+            when (it) {
+                Resource.Loading -> {
+                    binding.progressBar.pbIsLoading.visible()
+                    binding.progressBar.root.visible()
+                    binding.bookmarkRv.gone()
+                    binding.tabRv.gone()
+                }
+
+                is Resource.Success -> {
+                    val categories = it.data
+                    binding.tabRv.visible()
+                    binding.progressBar.pbIsLoading.gone()
+                    binding.progressBar.root.gone()
+                    categoriesAdapter.submitList(categories.map { it.name } as ArrayList<String>)
+                    categoryList.clear()
+                    categoryList.addAll(categories)
+                    if (selectedPosCat != -1) {
+                        binding.tabRv.scrollToPosition(selectedPosCat)
+                        categoriesAdapter.setSelectedPosition(selectedPosCat)
+                        model.loadChannelsByCategory(categoryList[selectedPosCat - 1])
+                    }
+                }
+
+                else -> {
+
+                }
             }
-        }
-        model.categories.observe(viewLifecycleOwner) { categories ->
-            binding.tabRv.visible()
-            binding.progressBar.pbIsLoading.gone()
-            binding.progressBar.root.gone()
-            categoriesAdapter.submitList(categories.map { it.name } as ArrayList<String>)
-            categoryList.clear()
-            categoryList.addAll(categories)
-            if (selectedPosCat != -1) {
-                binding.tabRv.scrollToPosition(selectedPosCat)
-                categoriesAdapter.setSelectedPosition(selectedPosCat)
-                model.loadChannelsByCategory(categoryList[selectedPosCat - 1])
-            }
+
         }
         categoriesAdapter.setLastItemClickListener {
             val dialogGarden = FilterDialogGarden.newInstance(currentSort)
             dialogGarden.show(parentFragmentManager, "FilterDialogGarden")
             dialogGarden.onFiltersApplied = { sort ->
-                isCountrySelected = sort == "By Country"
-                if (isCountrySelected) {
+                model.isCountrySelected = sort == "By Country"
+                if (model.isCountrySelected) {
                     currentSort = sort
                     model.loadChannelCountries()
                 } else {
@@ -115,7 +145,7 @@ class TvGardenScreen : Fragment() {
             }
         }
         categoriesAdapter.setFocusedItemListener { s, i ->
-            if (isCountrySelected) {
+            if (model.isCountrySelected) {
                 val findCategory = countryList.find { it.name == s }
                 selectedPosCount = i
                 model.loadChannelsByCountry(findCategory!!)
@@ -133,9 +163,12 @@ class TvGardenScreen : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null
     }
 
 

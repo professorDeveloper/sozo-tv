@@ -47,12 +47,15 @@
         android:theme="@style/Theme.Tv"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".presentation.activities.LiveTvActivity"
+            android:exported="false" />
+        <activity
             android:name=".presentation.activities.UpdateActivity"
             android:exported="false" />
         <activity
-            android:keepScreenOn="true"
             android:name=".presentation.activities.PlayerActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:keepScreenOn="true" />
         <activity
             android:name=".presentation.activities.ProfileActivity"
             android:exported="false" />
@@ -86,11 +89,10 @@
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
+
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
-            android:value="4b29bbcd3db7f7125f312efde4e3dd2a" />
-
-        <!-- Added FileProvider for APK installation -->
+            android:value="4b29bbcd3db7f7125f312efde4e3dd2a" /> <!-- Added FileProvider for APK installation -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.cache.provider"
@@ -100,7 +102,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/cache_file_paths" />
         </provider>
-
     </application>
 
 </manifest>

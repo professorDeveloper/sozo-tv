@@ -46,7 +46,7 @@ class FilterDialogGarden : DialogFragment() {
             dismiss()
         }
 
-        selectedSort = arguments?.getString("selectedSort")
+        selectedSort = arguments?.getString("selectedSort")?:"By Country"
         if (selectedSort != null) {
             binding.sliderHint.hint = "Selected Sort: $selectedSort"
         }
