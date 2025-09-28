@@ -32,6 +32,7 @@ class TvGardenScreen : Fragment() {
     private lateinit var channelsAdapter: ChannelsAdapter
     private lateinit var categoriesAdapter: CategoryTabAdapter
     private val model: TvGardenViewModel by viewModel()
+    private var isCountrySelected = true
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -52,8 +53,19 @@ class TvGardenScreen : Fragment() {
         model.categories.observe(viewLifecycleOwner) { categories ->
             categoriesAdapter.submitList(categories.map { it.name } as ArrayList<String>)
         }
-        categoriesAdapter.setLastItemClickListener {
 
+        categoriesAdapter.setLastItemClickListener {
+            val dialogGarden =
+                FilterDialogGarden.newInstance(if (isCountrySelected) "By Country" else "By Category")
+            dialogGarden.show(parentFragmentManager, "FilterDialog")
+            dialogGarden.onFiltersApplied = { sort ->
+                isCountrySelected = sort == "By Country"
+                if (isCountrySelected) {
+                    model.loadChannelCountries()
+                } else {
+                    model.loadChannelCategories()
+                }
+            }
         }
         categoriesAdapter.setFocusedItemListener { s, i ->
 

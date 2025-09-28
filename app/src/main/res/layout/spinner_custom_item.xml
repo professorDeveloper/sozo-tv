@@ -4,10 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:focusable="true"
+    android:focusedByDefault="true"
     android:focusableInTouchMode="true"
     android:orientation="vertical"
     android:padding="16dp"
-
     app:cardBackgroundColor="@color/spinner_color">
 
     <TextView

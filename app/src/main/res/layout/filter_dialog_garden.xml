@@ -57,6 +57,7 @@
         android:textSize="14.5sp"
         app:spinner_arrow_gravity="end"
         app:spinner_arrow_padding="8dp"
+
         app:spinner_arrow_show="true"
         app:spinner_divider_color="@color/color_item_tv_section_profile"
         app:spinner_divider_show="true"
