@@ -17,6 +17,7 @@ import com.saikou.sozo_tv.data.model.Category
 import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.data.model.Country
 import com.saikou.sozo_tv.manager.GardenDataManager
+import com.saikou.sozo_tv.presentation.activities.MainActivity
 import com.saikou.sozo_tv.presentation.screens.category.CategoryTabAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.TvGardenViewModel
 import com.saikou.sozo_tv.utils.gone
