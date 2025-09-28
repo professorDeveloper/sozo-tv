@@ -46,6 +46,10 @@
         android:id="@+id/tvgarden"
         android:name="com.saikou.sozo_tv.presentation.screens.tv_garden.TvGardenScreen"
         android:label="tv_garden_screen"
-        tools:layout="@layout/tv_garden_screen" />
+        tools:layout="@layout/tv_garden_screen" >
+        <action
+            android:id="@+id/action_tvgarden_to_liveTvPlayerScreen"
+            app:destination="@id/liveTvPlayerScreen" />
+    </fragment>
 
 </navigation>
