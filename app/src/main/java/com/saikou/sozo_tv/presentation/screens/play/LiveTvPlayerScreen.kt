@@ -36,6 +36,7 @@ class LiveTvPlayerScreen : Fragment() {
     private val args by navArgs<LiveTvPlayerScreenArgs>()
 
     private val liveStreamUrl by lazy { args.url }
+
     private val PlayerControlView.binding
         @OptIn(UnstableApi::class) get() = ControllerLiveTvBinding.bind(this.findViewById(R.id.cl_exo_controller))
 

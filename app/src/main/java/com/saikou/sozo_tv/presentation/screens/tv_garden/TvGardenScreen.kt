@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.tv_garden
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -17,6 +18,7 @@ import com.saikou.sozo_tv.data.model.Category
 import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.data.model.Country
 import com.saikou.sozo_tv.manager.GardenDataManager
+import com.saikou.sozo_tv.presentation.activities.LiveTvActivity
 import com.saikou.sozo_tv.presentation.activities.MainActivity
 import com.saikou.sozo_tv.presentation.screens.category.CategoryTabAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.TvGardenViewModel
@@ -56,14 +58,13 @@ class TvGardenScreen : Fragment() {
             channelsAdapter = ChannelsAdapter() {
                 if (it.iptvUrls.isNotEmpty()) {
                     model.isOpened = true
-                    findNavController().navigate(
-                        TvGardenScreenDirections.actionTvgardenToLiveTvPlayerScreen(
-                            it.name,
-                            it.iptvUrls[0]
-                        )
-                    )
+                    val intent = Intent(requireContext(), LiveTvActivity::class.java)
+                    intent.putExtra("url", it.iptvUrls[0])
+                    intent.putExtra("title", it.name)
+                    requireActivity().startActivity(intent)
                 } else {
-                    Toast.makeText(requireContext(), "No stream available", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "No stream available", Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
             binding.tabRv.adapter = categoriesAdapter
