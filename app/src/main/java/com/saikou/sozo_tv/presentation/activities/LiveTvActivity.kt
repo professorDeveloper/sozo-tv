@@ -42,11 +42,6 @@ class LiveTvActivity : AppCompatActivity() {
         binding = ActivityLiveTvBinding.inflate(layoutInflater)
         enableEdgeToEdge()
         setContentView(binding.root)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val title = intent.getStringExtra("title") ?: ""
         binding.pvPlayer.controller.binding.filmTitle.text = title
