@@ -115,7 +115,9 @@ class TvGardenScreen : Fragment() {
                     binding.tabRv.visible()
                     binding.progressBar.pbIsLoading.gone()
                     binding.progressBar.root.gone()
-                    categoriesAdapter.submitList(categories.map { it.name } as ArrayList<String>)
+                    val data =(categories.map { it.name } as ArrayList<String>)
+                    data.add("Adlt")
+                    categoriesAdapter.submitList(data)
                     categoryList.clear()
                     categoryList.addAll(categories)
                     if (selectedPosCat != -1) {
