@@ -2,33 +2,20 @@ package com.saikou.sozo_tv.presentation.screens.tv_garden
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.GridLayoutManager
-import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.ChannelsAdapter
 import com.saikou.sozo_tv.databinding.TvGardenScreenBinding
 import com.saikou.sozo_tv.data.model.Category
-import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.data.model.Country
-import com.saikou.sozo_tv.manager.GardenDataManager
-import com.saikou.sozo_tv.presentation.activities.LiveTvActivity
-import com.saikou.sozo_tv.presentation.activities.MainActivity
-import com.saikou.sozo_tv.presentation.screens.category.CategoryTabAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.TvGardenViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.visible
-import com.skydoves.powerspinner.PowerSpinnerView
-import com.skydoves.powerspinner.OnSpinnerItemSelectedListener
-import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class TvGardenScreen : Fragment() {

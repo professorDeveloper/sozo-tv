@@ -7,7 +7,6 @@ import com.saikou.sozo_tv.data.model.Category
 import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.data.model.Country
 import com.saikou.sozo_tv.parser.TvGarden
-import com.saikou.sozo_tv.presentation.screens.tv_garden.TvGardenScreen
 import com.saikou.sozo_tv.utils.Resource
 import kotlinx.coroutines.launch
 
