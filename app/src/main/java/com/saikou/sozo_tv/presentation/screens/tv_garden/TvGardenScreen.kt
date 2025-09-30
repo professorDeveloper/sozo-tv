@@ -22,6 +22,7 @@ import com.saikou.sozo_tv.presentation.activities.LiveTvActivity
 import com.saikou.sozo_tv.presentation.activities.MainActivity
 import com.saikou.sozo_tv.presentation.screens.category.CategoryTabAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.TvGardenViewModel
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.visible
@@ -44,6 +45,8 @@ class TvGardenScreen : Fragment() {
     private var selectedPosCat = 1
     private var selectedPosCount = 1
     private val categoryList = ArrayList<Category>()
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -115,7 +118,7 @@ class TvGardenScreen : Fragment() {
                     binding.tabRv.visible()
                     binding.progressBar.pbIsLoading.gone()
                     binding.progressBar.root.gone()
-                    val data =(categories.map { it.name } as ArrayList<String>)
+                    val data = (categories.map { it.name } as ArrayList<String>)
                     data.add("Adlt")
                     categoriesAdapter.submitList(data)
                     categoryList.clear()
@@ -137,25 +140,38 @@ class TvGardenScreen : Fragment() {
             val dialogGarden = FilterDialogGarden.newInstance(currentSort)
             dialogGarden.show(parentFragmentManager, "FilterDialogGarden")
             dialogGarden.onFiltersApplied = { sort ->
+                model.currentSort = sort ?: ""
                 model.isCountrySelected = sort == "By Country"
                 if (model.isCountrySelected) {
                     currentSort = sort
                     model.loadChannelCountries()
-                } else {
+                } else if (sort == "By Category") {
                     currentSort = sort
                     model.loadChannelCategories()
+                } else {
+                    currentSort = sort
+                    categoriesAdapter.submitList(LocalData.customTv)
                 }
             }
         }
         categoriesAdapter.setFocusedItemListener { s, i ->
-            if (model.isCountrySelected) {
-                val findCategory = countryList.find { it.name == s }
-                selectedPosCount = i
-                model.loadChannelsByCountry(findCategory!!)
+            if (model.currentSort != "Custom") {
+                if (s != "Adlt") {
+                    if (model.isCountrySelected) {
+                        val findCategory = countryList.find { it.name == s }
+                        selectedPosCount = i
+                        model.loadChannelsByCountry(findCategory!!)
+                    } else {
+                        selectedPosCat = i
+                        val findCategory = categoryList.find { it.name == s }
+                        model.loadChannelsByCategory(findCategory!!)
+                    }
+                } else {
+                    channelsAdapter.updateChannels(LocalData.channelsd)
+
+                }
             } else {
-                selectedPosCat = i
-                val findCategory = categoryList.find { it.name == s }
-                model.loadChannelsByCategory(findCategory!!)
+                channelsAdapter.updateChannels(LocalData.channelsByCategory.get(s) ?: arrayListOf())
             }
         }
         model.channels.observe(viewLifecycleOwner) {

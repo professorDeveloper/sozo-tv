@@ -35,56 +35,73 @@ class FilterDialogGarden : DialogFragment() {
         setupDialogWindow()
         binding.categoryContainer.title.text = "By Category"
         binding.countryContainer.title.text = "By Country"
-
+        binding.customContainer.title.text = "Custom List"
 
         val selectedColor =
             ContextCompat.getColor(requireContext(), R.color.selected_category_color)
         val defaultTextColor =
             ContextCompat.getColor(requireContext(), R.color.color_item_tv_category_tv)
 
-        binding.close.setOnClickListener {
-            dismiss()
-        }
+        binding.close.setOnClickListener { dismiss() }
 
-        selectedSort = arguments?.getString("selectedSort")?:"By Country"
+        selectedSort = arguments?.getString("selectedSort") ?: "By Country"
         if (selectedSort != null) {
             binding.sliderHint.hint = "Selected Sort: $selectedSort"
         }
 
-        if (
-            selectedSort == "By Category"
-        ) {
-            binding.categoryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
-            binding.countryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv)
-            binding.countryContainer.title.setTextColor(defaultTextColor)
-            binding.categoryContainer.title.setTextColor(selectedColor)
-        } else {
+        // 🔹 Avvalgi tanlovni rang bilan ajratib ko‘rsatamiz
+        updateSelectionUI(selectedSort, selectedColor, defaultTextColor)
 
-            binding.countryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
-            binding.categoryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv)
-            binding.categoryContainer.title.setTextColor(defaultTextColor)
-            binding.countryContainer.title.setTextColor(selectedColor)
-        }
+        // 🔹 Eventlar
         binding.countryContainer.root.setOnClickListener {
             selectedSort = "By Country"
             binding.sliderHint.hint = "Selected Sort: $selectedSort"
-            binding.countryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
-            binding.categoryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv)
-            binding.categoryContainer.title.setTextColor(defaultTextColor)
-            binding.countryContainer.title.setTextColor(selectedColor)
+            updateSelectionUI(selectedSort, selectedColor, defaultTextColor)
         }
 
         binding.categoryContainer.root.setOnClickListener {
             selectedSort = "By Category"
             binding.sliderHint.hint = "Selected Sort: $selectedSort"
-            binding.countryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv)
-            binding.categoryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
-            binding.categoryContainer.title.setTextColor(selectedColor)
-            binding.countryContainer.title.setTextColor(defaultTextColor)
+            updateSelectionUI(selectedSort, selectedColor, defaultTextColor)
         }
+
+        binding.customContainer.root.setOnClickListener {
+            selectedSort = "Custom List"
+            binding.sliderHint.hint = "Selected Sort: $selectedSort"
+            updateSelectionUI(selectedSort, selectedColor, defaultTextColor)
+        }
+
         binding.applyFilter.setOnClickListener {
             onFiltersApplied?.invoke(selectedSort)
             dismiss()
+        }
+    }
+
+    private fun updateSelectionUI(selected: String?, selectedColor: Int, defaultColor: Int) {
+        // Default background
+        binding.countryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv)
+        binding.categoryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv)
+        binding.customContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv)
+
+        // Default colors
+        binding.countryContainer.title.setTextColor(defaultColor)
+        binding.categoryContainer.title.setTextColor(defaultColor)
+        binding.customContainer.title.setTextColor(defaultColor)
+
+        // Selected holatni bo‘yash
+        when (selected) {
+            "By Country" -> {
+                binding.countryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
+                binding.countryContainer.title.setTextColor(selectedColor)
+            }
+            "By Category" -> {
+                binding.categoryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
+                binding.categoryContainer.title.setTextColor(selectedColor)
+            }
+            "Custom List" -> {
+                binding.customContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
+                binding.customContainer.title.setTextColor(selectedColor)
+            }
         }
     }
 
@@ -99,7 +116,6 @@ class FilterDialogGarden : DialogFragment() {
             clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
         }
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()

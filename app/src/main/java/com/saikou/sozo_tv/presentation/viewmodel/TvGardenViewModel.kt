@@ -17,6 +17,7 @@ class TvGardenViewModel:ViewModel() {
      val countries:MutableLiveData<Resource<List<Country>>> = MutableLiveData()
      val channels:MutableLiveData<List<Channel>> = MutableLiveData()
     var isCountrySelected = false
+    var currentSort = ""
     var isOpened = false
     fun loadChannelCategories() {
         categories.postValue(Resource.Loading)

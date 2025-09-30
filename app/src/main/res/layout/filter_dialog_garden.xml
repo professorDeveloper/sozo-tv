@@ -66,6 +66,10 @@
             android:layout_marginVertical="8dp"
             android:gravity="center"
             android:orientation="horizontal">
+            <include
+                android:id="@+id/customContainer"
+
+                layout="@layout/item_tv_category" />
 
             <include
                 android:id="@+id/categoryContainer"
