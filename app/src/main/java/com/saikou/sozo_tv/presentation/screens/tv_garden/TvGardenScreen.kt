@@ -140,11 +140,14 @@ class TvGardenScreen : Fragment() {
                 } else {
                     currentSort = sort
                     categoriesAdapter.submitList(LocalData.customTv)
+                    channelsAdapter.updateChannels(
+                        LocalData.channelsByCategory.get("Telemundo") ?: arrayListOf()
+                    )
                 }
             }
         }
         categoriesAdapter.setFocusedItemListener { s, i ->
-            if (model.currentSort != "Custom") {
+            if (model.currentSort != "Custom List") {
                 if (s != "Adlt") {
                     if (model.isCountrySelected) {
                         val findCategory = countryList.find { it.name == s }
