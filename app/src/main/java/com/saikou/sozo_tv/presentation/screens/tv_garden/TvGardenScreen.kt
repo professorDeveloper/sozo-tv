@@ -11,6 +11,8 @@ import com.saikou.sozo_tv.adapters.ChannelsAdapter
 import com.saikou.sozo_tv.databinding.TvGardenScreenBinding
 import com.saikou.sozo_tv.data.model.Category
 import com.saikou.sozo_tv.data.model.Country
+import com.saikou.sozo_tv.presentation.activities.LiveTvActivity
+import com.saikou.sozo_tv.presentation.screens.category.CategoryTabAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.TvGardenViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
