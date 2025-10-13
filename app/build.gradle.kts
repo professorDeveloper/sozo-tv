@@ -182,7 +182,8 @@ dependencies {
     val apolloVersion = "3.7.0"
     implementation("com.apollographql.apollo3:apollo-runtime:$apolloVersion")
 
-    //Ffmpeg
+    //Json
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
 
 

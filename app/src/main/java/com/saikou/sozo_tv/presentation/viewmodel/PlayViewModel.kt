@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.saikou.sozo_tv.aniskip.AniSkip
 import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.local.entity.EpisodeInfoEntity
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
@@ -30,7 +31,9 @@ class PlayViewModel(
     private val watchHistoryRepository: WatchHistoryRepository,
 
     ) : ViewModel() {
-    var doNotAsk: Boolean = false
+    val timeStamps = MutableLiveData<List<AniSkip.Stamp>?>()
+    private val timeStampsMap: MutableMap<Int, List<AniSkip.Stamp>?> = mutableMapOf()
+      var doNotAsk: Boolean = false
     var lastPosition: Long = 0
     var qualityProgress: Long = -1
 
@@ -61,6 +64,15 @@ class PlayViewModel(
                 allEpisodeData.postValue(Resource.Success(it))
             }
         }
+    }
+    suspend fun loadTimeStamps(malId: Int?, episodeNum: Int?, duration: Long, useProxyForTimeStamps: Boolean) {
+        malId ?: return
+        episodeNum ?: return
+        if (timeStampsMap.containsKey(episodeNum))
+            return timeStamps.postValue(timeStampsMap[episodeNum])
+        val result = AniSkip.getResult(malId, episodeNum, duration, useProxyForTimeStamps)
+        timeStampsMap[episodeNum] = result
+        timeStamps.postValue(result)
     }
 
     suspend fun isWatched(session: String): Boolean {

@@ -40,6 +40,7 @@ import androidx.navigation.fragment.navArgs
 import com.bugsnag.android.Bugsnag
 import com.lagradost.nicehttp.ignoreAllSSLErrors
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.components.SkipIntroView
 import com.saikou.sozo_tv.adapters.EpisodePlayerAdapter
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.databinding.ContentControllerTvSeriesBinding
@@ -114,6 +115,9 @@ class SeriesPlayerScreen : Fragment() {
         }
     }
 
+    private val handler = Handler()
+    private lateinit var skipIntroView: SkipIntroView
+
     private fun playNextEpisodeAutomatically() {
         if (model.currentEpIndex < episodeList.size - 1) {
             lifecycleScope.launch {
@@ -131,6 +135,7 @@ class SeriesPlayerScreen : Fragment() {
                         if (resource is Resource.Success) {
                             val newUrl = resource.data.urlobj
                             playNewEpisode(newUrl, args.name)
+
                             binding.pvPlayer.controller.binding.filmTitle.text =
                                 "${args.name} - Episode ${model.currentEpIndex + 1}"
 
@@ -194,6 +199,7 @@ class SeriesPlayerScreen : Fragment() {
         progressRunnable = null
     }
 
+
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -228,6 +234,7 @@ class SeriesPlayerScreen : Fragment() {
                     episodeList.addAll(it.data.data ?: listOf())
 
                     model.getCurrentEpisodeVod(args.id, args.seriesMainId)
+
                     model.currentEpisodeData.observe(viewLifecycleOwner) {
                         when (it) {
                             Resource.Loading -> {
@@ -244,6 +251,7 @@ class SeriesPlayerScreen : Fragment() {
                                     "Part ${args.currentPage} • Episode ${episodeList.size}"
                                 initializeVideo()
                                 displayVideo()
+
                                 binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
                                 binding.pvPlayer.controller.binding.epListContainer.setOnClickListener {
                                     binding.episodeRv.scrollToPosition(model.currentEpIndex)
@@ -547,7 +555,7 @@ class SeriesPlayerScreen : Fragment() {
             binding.pvPlayer.controller.binding.exoQuality.setOnClickListener {
                 val dialog = VideoQualityDialog(videoOptions, model.currentSelectedVideoOptionIndex)
                 dialog.setYesContinueListener { videoOption, i ->
-                    if (i!=model.currentSelectedVideoOptionIndex){
+                    if (i != model.currentSelectedVideoOptionIndex) {
                         model.currentSelectedVideoOptionIndex = i
                         model.updateQualityByIndex()
                     }
@@ -650,13 +658,22 @@ class SeriesPlayerScreen : Fragment() {
 
             player.prepare()
             player.play()
-
+            val dur = player.duration
+            skipIntroView = SkipIntroView(
+                binding.pvPlayer.controller.binding.root,
+                player,
+                model,
+                handler,
+                episodeList[model.currentEpIndex].anime_id ?: 0,
+                episodeList[model.currentEpIndex].episode2 ?: 0,
+                dur / 1000
+            )
+            skipIntroView.initialize()
             if (player.isPlaying) {
                 binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_play_to_pause)
             } else {
                 binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_pause_to_play)
             }
-
 
             if (model.isWatched && model.getWatchedHistoryEntity != null && model.getWatchedHistoryEntity!!.lastPosition > 0 && !model.doNotAsk) {
                 player.pause()
@@ -737,7 +754,7 @@ class SeriesPlayerScreen : Fragment() {
 
     override fun onDestroyView() {
         stopProgressTracking()
-        if (::player.isInitialized){
+        if (::player.isInitialized) {
 
             if (player.currentPosition > 10 && ::player.isInitialized) {
                 runBlocking {
