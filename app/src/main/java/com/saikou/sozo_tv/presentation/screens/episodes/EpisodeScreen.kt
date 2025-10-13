@@ -149,6 +149,7 @@ class EpisodeScreen : Fragment() {
                                                     findNavController().navigate(
                                                         EpisodeScreenDirections.actionEpisodeScreenToSeriesPlayerScreen(
                                                             id = it.session ?: "",
+                                                            idMal = args.mediaId,
                                                             name = dataFound.data.name,
                                                             currentEpisode = (it.episode
                                                                 ?: 0).toString(),
@@ -174,7 +175,8 @@ class EpisodeScreen : Fragment() {
                                                                 ?: LocalData.anime404,
                                                             seriesMainId = currentMediaId ?: "",
                                                             currentPage = selectedPosition + 1,
-                                                            currentIndex = index
+                                                            currentIndex = index,
+                                                            idMal = args.malId
                                                         )
                                                     )
                                                 }

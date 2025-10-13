@@ -170,14 +170,14 @@ class SeriesPlayerScreen : Fragment() {
                     }
                 }
 
-                progressHandler?.postDelayed(this, 1000) // Check every second
+                progressHandler?.postDelayed(this, 1000)
             }
         }
         progressHandler?.post(progressRunnable!!)
     }
 
     private fun navigateBack() {
-        if (!isAdded) return // Skip if Fragment isn't attached
+        if (!isAdded) return
 
         if (LocalData.isHistoryItemClicked) {
             val intent = Intent(context, ProfileActivity::class.java)
@@ -187,7 +187,6 @@ class SeriesPlayerScreen : Fragment() {
             runCatching {
                 findNavController().navigateUp()
             }.onFailure { e ->
-                // Log or handle navigation failure
                 e.printStackTrace()
             }
         }
@@ -470,7 +469,7 @@ class SeriesPlayerScreen : Fragment() {
     @SuppressLint("WrongConstant")
     @OptIn(UnstableApi::class)
     private fun initializeVideo() {
-        if (::player.isInitialized) return // Player allaqachon yaratilgan bo'lsa, qayt
+        if (::player.isInitialized) return
 
         val client = OkHttpClient.Builder()
             .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.CLEARTEXT))
@@ -514,7 +513,27 @@ class SeriesPlayerScreen : Fragment() {
                         if (!LocalData.isHistoryItemClicked) {
                             resetCountdownState()
                             startProgressTracking()
+
                         }
+                        val dur = player.duration
+                        if (::skipIntroView.isInitialized) {
+                            skipIntroView.cleanup()
+                        }
+                        skipIntroView = SkipIntroView(
+                            binding.pvPlayer.controller.binding.root,
+                            player,
+                            model,
+                            handler,
+                            args.idMal ?: 0,
+                            episodeList[model.currentEpIndex].episode ?: 0,
+                            dur / 1000
+                        )
+                        Log.d("GGG", "onPlaybackStateChanged:${args.id} ")
+                        Log.d(
+                            "GGG",
+                            "onPlaybackStateChanged: ${episodeList[model.currentEpIndex].episode} || ${dur / 1000} ||| ${model.currentEpIndex} || ${episodeList[model.currentEpIndex].anime_id}  "
+                        )
+                        skipIntroView.initialize()
                     }
 
                     Player.STATE_ENDED -> {
@@ -532,7 +551,6 @@ class SeriesPlayerScreen : Fragment() {
 
         binding.pvPlayer.player = player
 
-        // Seek buttons
         binding.pvPlayer.controller.binding.exoNextTenContainer.setOnClickListener {
             player.seekTo(player.currentPosition + 10_000)
         }
@@ -540,7 +558,6 @@ class SeriesPlayerScreen : Fragment() {
             player.seekTo(player.currentPosition - 10_000)
         }
 
-        // Play/pause
         binding.pvPlayer.controller.binding.exoPlayPauseContainer.setOnClickListener {
             if (player.isPlaying) {
                 player.pause()
@@ -629,7 +646,6 @@ class SeriesPlayerScreen : Fragment() {
         lifecycleScope.launch {
             val videoUrl = model.seriesResponse!!.urlobj
             val lastPosition = model.getWatchedHistoryEntity?.lastPosition ?: 0L
-//            Log.d("GGG", "displayVideo:${lastPosition} ")
             if (LocalData.isHistoryItemClicked) {
                 binding.pvPlayer.controller.binding.exoNextContainer.gone()
                 binding.pvPlayer.controller.binding.exoPrevContainer.gone()
@@ -658,17 +674,7 @@ class SeriesPlayerScreen : Fragment() {
 
             player.prepare()
             player.play()
-            val dur = player.duration
-            skipIntroView = SkipIntroView(
-                binding.pvPlayer.controller.binding.root,
-                player,
-                model,
-                handler,
-                episodeList[model.currentEpIndex].anime_id ?: 0,
-                episodeList[model.currentEpIndex].episode2 ?: 0,
-                dur / 1000
-            )
-            skipIntroView.initialize()
+
             if (player.isPlaying) {
                 binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_play_to_pause)
             } else {
@@ -703,14 +709,14 @@ class SeriesPlayerScreen : Fragment() {
         val sidebar = binding.sidebarRight
         val epListContainer = binding.pvPlayer.controller.binding.epListContainer
 
-        sidebar.post { // width tayyor bo‘lganda bajariladi
+        sidebar.post {
             val sidebarWidth = sidebar.width.toFloat()
 
             if (show) {
                 sidebar.apply {
                     isVisible = true
                     translationX = sidebarWidth
-                    animate().translationX(0f).setDuration(100) // 900ms -> 300ms tezroq
+                    animate().translationX(0f).setDuration(100)
                         .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
                         .start()
                 }
@@ -754,6 +760,10 @@ class SeriesPlayerScreen : Fragment() {
 
     override fun onDestroyView() {
         stopProgressTracking()
+        if (::skipIntroView.isInitialized) {
+            skipIntroView.cleanup()
+        }
+
         if (::player.isInitialized) {
 
             if (player.currentPosition > 10 && ::player.isInitialized) {

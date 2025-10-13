@@ -48,6 +48,7 @@ class PlayerActivity : AppCompatActivity() {
             navController.setGraph(
                 graph,
                 startDestinationArgs = SeriesPlayerScreenArgs(
+                    idMal = -1,
                     id = session ?: "",
                     currentPage = page,
                     currentIndex = epIndex,

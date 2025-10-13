@@ -65,6 +65,10 @@ class PlayViewModel(
             }
         }
     }
+
+    fun getMalId() {
+
+    }
     suspend fun loadTimeStamps(malId: Int?, episodeNum: Int?, duration: Long, useProxyForTimeStamps: Boolean) {
         malId ?: return
         episodeNum ?: return

@@ -227,8 +227,9 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
                 DetailPageDirections.actionDetailPage2ToEpisodeScreen(
                     isAdult = isAdult,
                     id,
+                    malId = item.content.malId,
                     title,
-                    isFree
+                    isFree,
                 )
             )
         }

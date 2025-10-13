@@ -53,6 +53,10 @@
             android:name="mediaId"
             app:argType="integer" />
         <argument
+            android:name="malId"
+            app:argType="integer" />
+
+        <argument
             android:name="episodeTitle"
             app:argType="string" />
         <argument
@@ -70,6 +74,10 @@
         android:id="@+id/seriesPlayerScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.play.SeriesPlayerScreen"
         android:label="SeriesPlayerScreen" >
+        <argument
+            android:name="idMal"
+            app:argType="integer" />
+
         <argument
             android:name="id"
             app:argType="string" />
