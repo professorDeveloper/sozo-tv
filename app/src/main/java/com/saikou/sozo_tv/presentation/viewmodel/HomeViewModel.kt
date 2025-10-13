@@ -9,6 +9,7 @@ import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Category
 import com.saikou.sozo_tv.domain.model.CategoryGenre
 import com.saikou.sozo_tv.domain.repository.HomeRepository
+import com.saikou.sozo_tv.manager.FirebaseChannelsManager
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
@@ -59,7 +60,11 @@ class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
                 homeDataList.add(bannerState.data)
                 homeDataList.add(genresState.data)
                 if (preferenceManager.isChannelEnabled()) {
-                    homeDataList.add(LocalData.channels)
+                    FirebaseChannelsManager.getChannelsFromRealtimeDatabase {
+                        it?.let {
+                            homeDataList.add(it)
+                        }
+                    }
                 }
                 homeDataList.addAll(categoryState.data)
                 UiState.Success(homeDataList)

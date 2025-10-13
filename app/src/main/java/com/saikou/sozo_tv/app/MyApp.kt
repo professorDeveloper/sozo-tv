@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Context
 import com.bugsnag.android.Bugsnag
 import com.bugsnag.android.performance.BugsnagPerformance
+import com.google.firebase.FirebaseApp
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -28,6 +29,7 @@ class MyApp : Application() {
         context = this@MyApp
         Bugsnag.start(this)
         AndroidThreeTen.init(this)
+        FirebaseApp.initializeApp(this)
         BugsnagPerformance.start(this)
         startKoin {
             androidContext(this@MyApp)

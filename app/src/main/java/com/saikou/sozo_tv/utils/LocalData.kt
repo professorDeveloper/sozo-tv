@@ -12,27 +12,13 @@ import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.ChannelResponseItem
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.MySpinnerItem
+import com.saikou.sozo_tv.manager.FirebaseChannelsManager
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 
 
 object LocalData {
     var trailer: String = ""
     var isHistoryItemClicked = false
-    val channels = CategoryChannel(
-        "Live Channels",
-        arrayListOf(
-
-            CategoryChannelItem(
-                viewType = HomeAdapter.VIEW_CHANNEL_ITEM,
-                content = ChannelResponseItem(
-                    "AZ(Anime) TV",
-                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFrVHz2E1vfLyFJBToLKASI2geqwZkLWeRMw&s",
-                    "https://stmv1.srvif.com/loadingtv/loadingtv/playlist.m3u8",
-                    "SPAIN"
-                )
-            ),
-        )
-    )
 
     val customTv = arrayListOf(
         "Telemundo",
