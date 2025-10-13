@@ -13,6 +13,17 @@ class PreferenceManager {
         private const val PREF_NAME = "app_preferences"
         private const val KEY_NSFW_ENABLED = "nsfw_enabled"
         private const val KEY_CHANNEL_ENABLED = "nsfw_enabled"
+        private const val KEY_SKIP_INTRO_ENABLED = "skip_intro_enabled"
+    }
+
+    fun setSkipIntroEnabled(enabled: Boolean) {
+        sharedPreferences.edit()
+            .putBoolean(KEY_SKIP_INTRO_ENABLED, enabled)
+            .apply()
+    }
+
+    fun isSkipIntroEnabled(): Boolean {
+        return sharedPreferences.getBoolean(KEY_SKIP_INTRO_ENABLED, false)
     }
 
 

@@ -596,6 +596,11 @@ class SeriesPlayerScreen : Fragment() {
     private fun playNewEpisode(videoUrl: String, title: String) {
         if (!::player.isInitialized) initializeVideo()
 
+        if (::skipIntroView.isInitialized) {
+            Log.d("SeriesPlayerScreen", "[v0] Resetting skip intro view for new episode")
+            skipIntroView.resetSkippedTimestamps()
+        }
+
         resetCountdownState()
         stopProgressTracking()
 
