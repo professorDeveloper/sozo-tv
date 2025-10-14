@@ -39,7 +39,7 @@ class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
         if (preferenceManager.isChannelEnabled()) {
             FirebaseChannelsManager.getChannelsFlow()
         } else {
-            flowOf(null) // 🔹 Channel o‘chirilgan bo‘lsa, bo‘sh qiymat yuboramiz
+            flowOf(null)
         }
 
     val homeDataState: StateFlow<UiState<List<HomeAdapter.HomeData>>> = combine(
