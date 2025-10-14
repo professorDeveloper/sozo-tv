@@ -8,6 +8,9 @@ import com.saikou.sozo_tv.domain.model.CategoryChannel
 import com.saikou.sozo_tv.domain.model.CategoryChannelItem
 import com.saikou.sozo_tv.domain.model.ChannelResponseItem
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 object FirebaseChannelsManager {
     private const val CHANNELS_REF = "liveChannels"
@@ -32,25 +35,62 @@ object FirebaseChannelsManager {
         liveChannelsRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
-                    val channels = snapshot.getValue(CategoryChannel::class.java)
-                    onDataReceived(channels)
+                    try {
+                        // 🔹 1) Har bir fieldni qo‘lda parse qilamiz — to‘liq xavfsiz usul
+                        val name = snapshot.child("name").getValue(String::class.java) ?: ""
+                        val viewType = snapshot.child("viewType").getValue(Int::class.java) ?: 0
+
+                        val list = arrayListOf<CategoryChannelItem>()
+                        val listSnapshot = snapshot.child("list")
+
+                        for (child in listSnapshot.children) {
+                            val contentSnapshot = child.child("content")
+
+                            val title = contentSnapshot.child("title").getValue(String::class.java) ?: ""
+                            val image = contentSnapshot.child("image").getValue(String::class.java) ?: ""
+                            val playLink = contentSnapshot.child("playLink").getValue(String::class.java) ?: ""
+                            val country = contentSnapshot.child("country").getValue(String::class.java) ?: ""
+                            val viewTypeItem = child.child("viewType").getValue(Int::class.java) ?: 0
+
+                            val item = CategoryChannelItem(
+                                viewType = viewTypeItem,
+                                content = ChannelResponseItem(title, image, playLink, country)
+                            )
+                            list.add(item)
+                        }
+
+                        val channel = CategoryChannel(
+                            name = name,
+                            list = list,
+                            viewType = viewType
+                        )
+
+                        println("✅ Channels fetched successfully: ${channel.name} (${channel.list.size} items)")
+                        onDataReceived(channel)
+
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        println("❌ Error parsing snapshot: ${e.message}")
+                        onDataReceived(null)
+                    }
+
                 } else {
-                    // Firebase is empty, use default channels
+                    // 🔹 Agar mavjud bo‘lmasa — default yaratamiz
                     val defaultChannels = initializeDefaultChannels()
                     saveChannelsToRealtimeDatabase(defaultChannels) { success, error ->
                         if (success) {
                             onDataReceived(defaultChannels)
                         } else {
+                            println("❌ Error saving default channels: $error")
                             onDataReceived(null)
-                            println("Error saving default channels: $error")
                         }
                     }
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
+                println("❌ Firebase read cancelled: ${error.message}")
                 onDataReceived(null)
-                println("Error fetching channels: ${error.message}")
             }
         })
     }
@@ -81,4 +121,60 @@ object FirebaseChannelsManager {
             )
         )
     }
+
+    fun getChannelsFlow(): Flow<CategoryChannel?> = callbackFlow {
+        val database = FirebaseDatabase.getInstance()
+        val liveChannelsRef = database.getReference(CHANNELS_REF)
+
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                try {
+                    if (snapshot.exists()) {
+                        val name = snapshot.child("name").getValue(String::class.java) ?: ""
+                        val viewType = snapshot.child("viewType").getValue(Int::class.java) ?: 0
+
+                        val list = arrayListOf<CategoryChannelItem>()
+                        val listSnapshot = snapshot.child("list")
+
+                        for (child in listSnapshot.children) {
+                            val contentSnapshot = child.child("content")
+
+                            val title = contentSnapshot.child("title").getValue(String::class.java) ?: ""
+                            val image = contentSnapshot.child("image").getValue(String::class.java) ?: ""
+                            val playLink = contentSnapshot.child("playLink").getValue(String::class.java) ?: ""
+                            val country = contentSnapshot.child("country").getValue(String::class.java) ?: ""
+                            val viewTypeItem = child.child("viewType").getValue(Int::class.java) ?: 0
+
+                            val item = CategoryChannelItem(
+                                viewType = viewTypeItem,
+                                content = ChannelResponseItem(title, image, playLink, country)
+                            )
+                            list.add(item)
+                        }
+
+                        val channel = CategoryChannel(name, list, viewType)
+                        trySend(channel)
+                    } else {
+                        val defaultChannels = initializeDefaultChannels()
+                        saveChannelsToRealtimeDatabase(defaultChannels) { success, error ->
+                            if (success) trySend(defaultChannels)
+                            else trySend(null)
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    trySend(null)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                trySend(null)
+            }
+        }
+
+        liveChannelsRef.addListenerForSingleValueEvent(listener)
+
+        awaitClose { liveChannelsRef.removeEventListener(listener) }
+    }
+
 }

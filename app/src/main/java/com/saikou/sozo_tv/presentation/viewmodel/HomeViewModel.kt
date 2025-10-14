@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Category
+import com.saikou.sozo_tv.domain.model.CategoryChannel
 import com.saikou.sozo_tv.domain.model.CategoryGenre
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.manager.FirebaseChannelsManager
@@ -15,25 +16,36 @@ import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.UiState
 import com.saikou.sozo_tv.utils.toDomain
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 
 class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
+    val preferenceManager = PreferenceManager()
+
     private val _bannersState = MutableStateFlow<UiState<BannerModel>>(UiState.Idle)
     val bannersState: StateFlow<UiState<BannerModel>> get() = _bannersState
     private val _categoriesState = MutableStateFlow<UiState<List<Category>>>(UiState.Idle)
     val categoriesState: StateFlow<UiState<List<Category>>> get() = _categoriesState
 
     val genresState = MutableStateFlow<UiState<CategoryGenre>>(UiState.Idle)
+    private val channelsFlow: Flow<CategoryChannel?> =
+        if (preferenceManager.isChannelEnabled()) {
+            FirebaseChannelsManager.getChannelsFlow()
+        } else {
+            flowOf(null) // 🔹 Channel o‘chirilgan bo‘lsa, bo‘sh qiymat yuboramiz
+        }
 
     val homeDataState: StateFlow<UiState<List<HomeAdapter.HomeData>>> = combine(
-        bannersState, categoriesState, genresState
-    ) { bannerState, categoryState, genresState ->
+        bannersState, categoriesState, genresState, channelsFlow
+
+    ) { bannerState, categoryState, genresState, channelsData ->
         when {
             bannerState is UiState.Loading || categoryState is UiState.Loading || genresState is UiState.Loading -> {
                 UiState.Loading
@@ -59,12 +71,8 @@ class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
                 val homeDataList = mutableListOf<HomeAdapter.HomeData>()
                 homeDataList.add(bannerState.data)
                 homeDataList.add(genresState.data)
-                if (preferenceManager.isChannelEnabled()) {
-                    FirebaseChannelsManager.getChannelsFromRealtimeDatabase {
-                        it?.let {
-                            homeDataList.add(it)
-                        }
-                    }
+                if (preferenceManager.isChannelEnabled() && channelsData != null) {
+                    homeDataList.add(channelsData)
                 }
                 homeDataList.addAll(categoryState.data)
                 UiState.Success(homeDataList)
