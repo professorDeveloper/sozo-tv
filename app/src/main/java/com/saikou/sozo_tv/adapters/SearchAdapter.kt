@@ -100,10 +100,8 @@ class SearchAdapter :
 
     fun setQueryText(query: String) {
         this.query = query
-        notifyDataSetChanged() // Refresh to update highlighting
-    }
-
-    fun refreshItems() {
         notifyDataSetChanged()
     }
+
+
 }

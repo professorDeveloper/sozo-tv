@@ -16,7 +16,7 @@ import java.util.Date
 import java.util.Locale
 
 class NewsAdapter(
-    private val context: Context, // Added context for NewsPreferences
+    private val context: Context,
     private var items: List<NewsItem> = emptyList(),
     private val onItemClick: (NewsItem, Int) -> Unit = { _, _ -> }
 ) : RecyclerView.Adapter<NewsAdapter.NewsViewHolder>() {

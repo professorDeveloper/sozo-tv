@@ -29,7 +29,6 @@ class CastAdapter : RecyclerView.Adapter<CastAdapter.CastVh>() {
                 itemClickkedListener.invoke(cast)
             }
             binding.root.setOnFocusChangeListener { _, hasFocus ->
-
                 val animation = when {
                     hasFocus -> AnimationUtils.loadAnimation(
                         binding.root.context,
