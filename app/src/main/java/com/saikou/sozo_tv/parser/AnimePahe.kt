@@ -96,8 +96,7 @@ class AnimePahe : BaseParser() {
         val requests = Requests(httpClient, responseParser = parser, defaultHeaders = headers)
         return try {
             requests.get(
-                "${hostUrl}api?m=release&id=$id&sort=episode_asc&page=$curPage",
-                headers = headers
+                "${hostUrl}api?m=release&id=$id&sort=episode_asc&page=$curPage", headers = headers
             ).parsed()
         } catch (e: Exception) {
             Bugsnag.notify(e)
@@ -108,16 +107,10 @@ class AnimePahe : BaseParser() {
 
     private fun m3u8ToMp4(m3u8Url: String, fileName: String): String {
         val uri = java.net.URI(m3u8Url)
-        val cleanPath = uri.path
-            .replaceFirst("/stream", "/mp4")
-            .substringBeforeLast("/")
+        val cleanPath = uri.path.replaceFirst("/stream", "/mp4").substringBeforeLast("/")
 
         return java.net.URI(
-            uri.scheme,
-            uri.authority,
-            cleanPath,
-            "file=$fileName.mp4",
-            null
+            uri.scheme, uri.authority, cleanPath, "file=$fileName.mp4", null
         ).toString()
     }
 
@@ -159,25 +152,8 @@ class AnimePahe : BaseParser() {
 
     suspend fun getEpisodeVideo(epId: String, id: String): List<VideoOption> {
         val headers = getDefaultHeaders()
-        val doc =
-            getJsoup("https://animepahe.si/play/${id}/${epId}", headers)
+        val doc = getJsoup("https://animepahe.si/play/${id}/${epId}", headers)
         val videoOptions = getVideoOptions(doc)
-//        val scriptContent = doc.select("script")
-//            .map { it.html() }
-//            .firstOrNull { it.contains("session") && it.contains("provider") && it.contains("url") }
-//            ?: ""
-//
-//        val sessionRegex = Pattern.compile("""let\s+session\s*=\s*"([^"]+)"""")
-//        val providerRegex = Pattern.compile("""let\s+provider\s*=\s*"([^"]+)"""")
-//        val urlRegex = Pattern.compile("""let\s+url\s*=\s*"([^"]+)"""")
-//
-//        val session =
-//            sessionRegex.matcher(scriptContent).let { if (it.find()) it.group(1) else null }
-//        val provider =
-//            providerRegex.matcher(scriptContent).let { if (it.find()) it.group(1) else null }
-//        val url = urlRegex.matcher(scriptContent).let { if (it.find()) it.group(1) else null }
-
-//        println("Session: $session | Provider: $provider | URL: $url")
 
         return videoOptions
     }

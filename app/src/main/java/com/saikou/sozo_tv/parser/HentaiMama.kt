@@ -20,7 +20,6 @@ data class ResponseElement(
     val file: String
 )
 
-// Additional data classes you'll need:
 data class VideoContainer(
     val videos: List<Video>
 )
@@ -48,21 +47,12 @@ class HentaiMama : BaseParser() {
     override val hostUrl = "https://hentaimama.io"
     override val isNSFW: Boolean = true
     override val language: String = "jp"
-//
-//    var httpClient = OkHttpClient.Builder()
-//        .connectTimeout(30, TimeUnit.SECONDS)
-//        .readTimeout(30, TimeUnit.SECONDS)
-//
-//        .callTimeout(2, TimeUnit.MINUTES)
-//        .build()
-//    val client = Requests(httpClient, responseParser = parser)
 
     suspend fun search(query: String): List<ShowResponse> = withContext(Dispatchers.IO) {
         val updatedQuery = if (query.length > 7) query.substring(0, 7) else query
         val url = "$hostUrl/?s=${updatedQuery.replace(" ", "+")}"
         val document = Utils.getJsoup(url)
 
-//        Log.d("GGG", "search:$document ")
 
         return@withContext document.select("div.result-item article").map {
             val link = it.select("div.details div.title a").attr("href")
@@ -83,13 +73,10 @@ class HentaiMama : BaseParser() {
             pageBody.select("div#episodes.sbox.fixidtab div.module.series div.content.series div.items article")
                 .reversed()
                 .map { article ->
-                    // Extract episode number from the h3 text
                     val epNum = article.select("div.data h3").text().replace("Episode", "").trim()
 
-                    // Extract episode URL from the season_m div (remove .animation-3 class)
                     val url = article.select("div.poster div.season_m a").attr("href")
 
-                    // Extract thumbnail from img data-src attribute
                     val thumb = article.select("div.poster img").attr("data-src")
                     Data(episode = epNum.toInt(), session = url ?: "", snapshot = thumb ?: "")
                 }
@@ -118,7 +105,6 @@ class HentaiMama : BaseParser() {
         val listType = object : TypeToken<List<String>>() {}.type
         val videoUrls: List<String> = gson.fromJson(response, listType)
 
-        // Convert to VideoServer objects
         val videoServers = videoUrls.mapIndexed { index, url ->
             println(url.extractIframeSrc())
             Kiwi(url.extractIframeSrc() ?: "", "Mirror $index", "")
@@ -141,7 +127,6 @@ class HentaiMama : BaseParser() {
             return Video(null, VideoType.CONTAINER, directSrc, getSize(directSrc))
         }
 
-        // Extract sources from JavaScript
         val unSanitized =
             doc.text.findBetween("sources: [", "],") ?: return Video(
                 null,
@@ -150,14 +135,12 @@ class HentaiMama : BaseParser() {
                 null
             )
 
-        // Sanitize the JSON string
         val sanitizedJson = "[${
             unSanitized
                 .replace("type:", "\"type\":")
                 .replace("file:", "\"file\":")
         }]"
 
-        // Parse JSON using Gson
         val gson = Gson()
         val listType = object : TypeToken<List<ResponseElement>>() {}.type
         val json: List<ResponseElement> = gson.fromJson(sanitizedJson, listType)
