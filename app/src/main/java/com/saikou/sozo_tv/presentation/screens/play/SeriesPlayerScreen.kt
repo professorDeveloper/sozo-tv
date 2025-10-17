@@ -89,6 +89,10 @@ class SeriesPlayerScreen : Fragment() {
         _binding = SeriesPlayerScreenBinding.inflate(inflater, container, false)
         return binding.root
     }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        initializeVideo()
+    }
 
     private fun showNextEpisodeCountdown() {
         binding.apply {
@@ -248,7 +252,6 @@ class SeriesPlayerScreen : Fragment() {
                                 binding.pvPlayer.visible()
                                 binding.textView9.text =
                                     "Part ${args.currentPage} • Episode ${episodeList.size}"
-                                initializeVideo()
                                 displayVideo()
 
                                 binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
