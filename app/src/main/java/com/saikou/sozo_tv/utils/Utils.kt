@@ -19,8 +19,8 @@ object Utils {
         params: Map<String, String>? = null,
     ): String {
         val urlBuilder = HttpUrl.Builder()
-            .scheme("http") // Replace with your scheme (http or https)
-            .host(host!!) // Replace with your actual host
+            .scheme("http")
+            .host(host!!)
         pathSegment?.forEach {
             urlBuilder.addPathSegment(it)
         }
@@ -85,7 +85,7 @@ object Utils {
         }
 
         val response = httpClient.newCall(requestBuilder.build()).execute()
-        return response.body?.string() ?: ""
+        return response.body?.string().toString()
     }
 
     fun getJsoup(
@@ -99,35 +99,4 @@ object Utils {
         }
     }
 
-    fun getJsoupAsilMedia(
-        host: String,
-        pathSegment: ArrayList<String>? /* = java.util.ArrayList<kotlin.String>? */ = null,
-        params: Map<String, String>? = null,
-        mapOfHeaders: Map<String, String>? = null
-    ): Document {
-        return Jsoup.parse(
-            getAsilMedia(
-                host = host,
-                pathSegment = pathSegment,
-                params = params,
-                mapOfHeaders = mapOfHeaders
-            )
-        )
-    }
-
-    fun getJson(
-        url: String,
-        mapOfHeaders: Map<String, String>? = null
-    ): JsonElement? {
-        return JsonParser.parseString(get(url, mapOfHeaders))
-    }
-
-    fun postJson(
-        url: String,
-        mapOfHeaders: Map<String, String>? = null,
-        payload: Map<String, String>? = null
-    ): JsonElement? {
-        val res = post(url, mapOfHeaders, payload)
-        return JsonParser.parseString(res)
-    }
 }

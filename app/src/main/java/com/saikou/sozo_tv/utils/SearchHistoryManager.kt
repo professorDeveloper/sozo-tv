@@ -34,15 +34,12 @@ class SearchHistoryManager(context: Context) {
     fun addSearchQuery(query: String) {
         val currentHistory = sharedPreferences.getStringSet(SEARCH_HISTORY_KEY, emptySet())?.toMutableSet() ?: mutableSetOf()
 
-        // Remove if already exists to avoid duplicates
         currentHistory.remove(query)
 
-        // Add to the beginning
         val newHistory = mutableSetOf<String>()
         newHistory.add(query)
         newHistory.addAll(currentHistory)
 
-        // Keep only the most recent searches
         val limitedHistory = newHistory.take(MAX_HISTORY_SIZE).toSet()
 
         sharedPreferences.edit()
