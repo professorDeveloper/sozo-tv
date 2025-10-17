@@ -3,6 +3,7 @@ package com.saikou.sozo_tv
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
@@ -26,7 +27,7 @@ class SkipIntroOverlayView @JvmOverloads constructor(
     private val netflixLightGray = Color.parseColor("#B3B3B3")
 
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#CC000000") // Semi-transparent black overlay
+        color = Color.parseColor("#CC000000")
         style = Paint.Style.FILL
     }
 
@@ -43,14 +44,14 @@ class SkipIntroOverlayView @JvmOverloads constructor(
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = netflixWhite
-        textSize = 48f // Reduced from 64f
+        textSize = 48f
         textAlign = Paint.Align.CENTER
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
     }
 
     private val descriptionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = netflixLightGray
-        textSize = 28f // Reduced from 36f
+        textSize = 28f
         textAlign = Paint.Align.CENTER
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
     }
@@ -58,7 +59,7 @@ class SkipIntroOverlayView @JvmOverloads constructor(
     private val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = netflixWhite
         style = Paint.Style.STROKE
-        strokeWidth = 6f // Slightly thinner for elegance
+        strokeWidth = 6f
         strokeCap = Paint.Cap.ROUND
         strokeJoin = Paint.Join.ROUND
     }
@@ -67,7 +68,7 @@ class SkipIntroOverlayView @JvmOverloads constructor(
     private var onSkipClicked: (() -> Unit)? = null
 
     private val cardRect = RectF()
-    private val cornerRadius = 16f // Reduced corner radius for sharper look
+    private val cornerRadius = 16f
     private var centerX = 0f
     private var centerY = 0f
 
@@ -76,8 +77,8 @@ class SkipIntroOverlayView @JvmOverloads constructor(
         centerX = w / 2f
         centerY = h / 2f
 
-        val cardWidth = min(w * 0.5f, 480f) // Reduced from 0.75f and 700f
-        val cardHeight = 200f // Reduced from 320f
+        val cardWidth = min(w * 0.5f, 480f)
+        val cardHeight = 200f
         cardRect.set(
             centerX - cardWidth / 2f,
             centerY - cardHeight / 2f,
@@ -86,22 +87,21 @@ class SkipIntroOverlayView @JvmOverloads constructor(
         )
     }
 
+    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
         if (!isAnimating || currentAlpha <= 0f) return
 
-        backgroundPaint.alpha = (currentAlpha * 204).toInt() // 80% opacity
+        backgroundPaint.alpha = (currentAlpha * 204).toInt()
         cardPaint.alpha = (currentAlpha * 255).toInt()
         accentPaint.alpha = (currentAlpha * 255).toInt()
         textPaint.alpha = (currentAlpha * 255).toInt()
         descriptionPaint.alpha = (currentAlpha * 255).toInt()
         iconPaint.alpha = (currentAlpha * 255).toInt()
 
-        // Draw semi-transparent background
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), backgroundPaint)
 
-        // Draw main card
         canvas.drawRoundRect(cardRect, cornerRadius, cornerRadius, cardPaint)
 
         val accentRect = RectF(
@@ -113,10 +113,9 @@ class SkipIntroOverlayView @JvmOverloads constructor(
         canvas.drawRoundRect(accentRect, cornerRadius, cornerRadius, accentPaint)
 
         val iconCenterX = centerX
-        val iconCenterY = centerY - 30f // Moved up slightly
-        val iconSize = 50f // Reduced from 70f
+        val iconCenterY = centerY - 30f
+        val iconSize = 50f
 
-        // Draw forward icon (double chevron)
         val path = Path().apply {
             moveTo(iconCenterX - iconSize / 3f, iconCenterY - iconSize / 2f)
             lineTo(iconCenterX + iconSize / 2f, iconCenterY)
