@@ -8,6 +8,7 @@ import com.saikou.sozo_tv.data.repository.CategoriesRepositoryImpl
 import com.saikou.sozo_tv.data.repository.CharacterBookmarkRepositoryImpl
 import com.saikou.sozo_tv.data.repository.DetailRepositoryImpl
 import com.saikou.sozo_tv.data.repository.HomeRepositoryImpl
+import com.saikou.sozo_tv.data.repository.ImdbHomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.MovieBookmarkRepositoryImpl
 import com.saikou.sozo_tv.data.repository.SearchRepositoryImpl
 import com.saikou.sozo_tv.data.repository.WatchHistoryRepositoryImpl
@@ -16,6 +17,7 @@ import com.saikou.sozo_tv.domain.repository.CategoriesRepository
 import com.saikou.sozo_tv.domain.repository.CharacterBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.DetailRepository
 import com.saikou.sozo_tv.domain.repository.HomeRepository
+import com.saikou.sozo_tv.domain.repository.TMDBHomeRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.SearchRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
@@ -51,6 +53,9 @@ val koinModule = module {
     single<HomeRepository> {
         HomeRepositoryImpl(jikanApiService = get(), apolloClient = get())
     }
+    single<TMDBHomeRepository> {
+        ImdbHomeRepositoryImpl(api = get())
+    }
     single<MovieBookmarkRepository> {
         MovieBookmarkRepositoryImpl(dao = get())
     }
@@ -83,7 +88,7 @@ val koinModule = module {
 //    }
 //
 //
-    viewModel { HomeViewModel(repo = get()) }
+    viewModel { HomeViewModel(repo = get(), imdbRepo = get()) }
     viewModel { TvGardenViewModel() }
     viewModel { EpisodeViewModel(watchHistoryRepository = get()) }
     viewModel { WrongTitleViewModel() }

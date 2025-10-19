@@ -6,20 +6,16 @@ import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.data.model.SectionItem
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.Cast
-import com.saikou.sozo_tv.domain.model.CategoryChannel
-import com.saikou.sozo_tv.domain.model.CategoryChannelItem
 import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.ChannelResponseItem
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.MySpinnerItem
-import com.saikou.sozo_tv.manager.FirebaseChannelsManager
-import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 
 
 object LocalData {
     var trailer: String = ""
     var isHistoryItemClicked = false
-
+    const val IMDB_IMAGE_PATH ="https://image.tmdb.org/t/p/w500/"
     val customTv = arrayListOf(
         "Telemundo",
         "NASA",

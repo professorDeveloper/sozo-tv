@@ -9,7 +9,10 @@ import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Category
 import com.saikou.sozo_tv.domain.model.CategoryChannel
 import com.saikou.sozo_tv.domain.model.CategoryGenre
+import com.saikou.sozo_tv.domain.model.CategoryGenreItem
+import com.saikou.sozo_tv.domain.model.GenreModel
 import com.saikou.sozo_tv.domain.repository.HomeRepository
+import com.saikou.sozo_tv.domain.repository.TMDBHomeRepository
 import com.saikou.sozo_tv.manager.FirebaseChannelsManager
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 import com.saikou.sozo_tv.utils.LocalData
@@ -26,7 +29,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 
-class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
+class HomeViewModel(private val repo: HomeRepository, private val imdbRepo: TMDBHomeRepository) :
+    ViewModel() {
     val preferenceManager = PreferenceManager()
 
     private val _bannersState = MutableStateFlow<UiState<BannerModel>>(UiState.Idle)
@@ -44,7 +48,6 @@ class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
 
     val homeDataState: StateFlow<UiState<List<HomeAdapter.HomeData>>> = combine(
         bannersState, categoriesState, genresState, channelsFlow
-
     ) { bannerState, categoryState, genresState, channelsData ->
         when {
             bannerState is UiState.Loading || categoryState is UiState.Loading || genresState is UiState.Loading -> {
@@ -117,7 +120,7 @@ class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
     fun loadCategories() {
         viewModelScope.launch {
             _categoriesState.value = UiState.Loading
-            val result = repo.loadCategories()
+            val result = imdbRepo.loadCategories()
             _categoriesState.value = when {
                 result.isSuccess -> UiState.Success(result.getOrNull()!!)
                 result.isFailure -> UiState.Error(
@@ -132,9 +135,21 @@ class HomeViewModel(private val repo: HomeRepository) : ViewModel() {
     fun loadGenres() {
         viewModelScope.launch {
             genresState.value = UiState.Loading
-            val result = repo.loadGenres()
+            val result = imdbRepo.loadGenres()
             genresState.value = when {
-                result.isSuccess -> UiState.Success(result.getOrNull()!!.toDomain())
+                result.isSuccess -> UiState.Success(
+                    CategoryGenre(
+                        "Genres",
+                        result.getOrNull()!!.map {
+                            CategoryGenreItem(
+                                content = GenreModel(
+                                    it.title,
+                                    it.image
+                                )
+                            )
+                        })
+                )
+
                 result.isFailure -> {
                     Log.d("GGG", "loadGenres:${result.exceptionOrNull()?.message} ")
                     UiState.Error(

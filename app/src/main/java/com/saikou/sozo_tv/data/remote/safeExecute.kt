@@ -26,3 +26,10 @@ suspend fun <D : Query.Data> ApolloClient.safeExecute(
     }
     return null
 }
+suspend fun <T> safeExecute(block: suspend () -> T): Result<T> {
+    return try {
+        Result.success(block())
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+}

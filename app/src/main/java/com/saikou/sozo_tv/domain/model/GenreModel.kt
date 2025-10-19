@@ -5,4 +5,10 @@ import java.io.Serializable
 data class GenreModel(
     val title: String,
     val image: String,
-):Serializable
+) : Serializable
+
+data class GenreTmdbModel(
+    val title: String,
+    val image: String,
+    val id: Int,
+)
