@@ -12,6 +12,7 @@ import com.saikou.sozo_tv.data.local.entity.CharacterEntity
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.jikan.BannerHomeData
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
+import com.saikou.sozo_tv.data.model.tmdb.TmdbListItem
 import com.saikou.sozo_tv.domain.model.AiringSchedule
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
@@ -25,6 +26,18 @@ import com.saikou.sozo_tv.domain.model.GenreModel
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.SearchModel
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
+
+fun TmdbListItem.toDomain(): MainModel {
+    return MainModel(
+        this.id ?: 0,
+        this.title ?: "",
+        -1,
+        this.imageUrl ?: "",
+        null,
+        null,
+        -1, -1
+    )
+}
 
 fun GetRelationsByIdQuery.Media.toDomain(): MainModel {
     return MainModel(

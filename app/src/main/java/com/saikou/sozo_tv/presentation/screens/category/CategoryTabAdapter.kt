@@ -8,6 +8,8 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ItemTvCategoryBinding
+import com.saikou.sozo_tv.utils.gone
+import com.saikou.sozo_tv.utils.visible
 
 class CategoryTabAdapter(private var isFiltered: Boolean = true) :
     RecyclerView.Adapter<CategoryTabAdapter.SeriesTabVh>() {
@@ -28,7 +30,6 @@ class CategoryTabAdapter(private var isFiltered: Boolean = true) :
         RecyclerView.ViewHolder(binding.root) {
         fun onBind(data: String, position: Int) {
             binding.title.text = data
-
             val context = binding.root.context
             val selectedColor = ContextCompat.getColor(context, R.color.selected_category_color)
             val defaultTextColor =
@@ -39,6 +40,7 @@ class CategoryTabAdapter(private var isFiltered: Boolean = true) :
                 if (position != 0) {
                     binding.root.setBackgroundResource(if (isSelected) R.drawable.background_item_tv_category_tv_selected else R.drawable.background_item_tv_category_tv)
                 } else {
+                    binding.filterIcon.visible()
                     binding.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_default)
                 }
             } else {
@@ -57,7 +59,6 @@ class CategoryTabAdapter(private var isFiltered: Boolean = true) :
                 binding.root.startAnimation(animation)
                 animation.fillAfter = true
             }
-            binding.filterIcon.isVisible = position == 0
             binding.root.setOnClickListener {
                 if (isFiltered) {
                     if (position == 0) {

@@ -32,6 +32,7 @@ interface ImdbService {
         @Query("language") language: String = "en-US",
         @Query("page") page: Int = 1
     ): Response<TmdbListResponse>
+
     @GET("trending/movie/day")
     suspend fun getTrendingMovies(
         @Query("language") language: String = "en-US"
@@ -41,10 +42,9 @@ interface ImdbService {
     suspend fun getMoviesByGenre(
         @Query("language") language: String = "en-US",
         @Query("with_genres") genreId: Int,
-        @Query("page") page: Int = 1
+        @Query("page") page: Int = 1,
+        @Query("include_adult") isAdult: Boolean = false
     ): Response<TmdbListResponse>
-
-
 
 
 }

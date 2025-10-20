@@ -5,9 +5,11 @@ import com.animestudios.animeapp.GetAnimeByOnlGenreQuery
 import com.animestudios.animeapp.type.MediaSort
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.remote.ImdbService
 import com.saikou.sozo_tv.domain.model.SearchResults
 import com.saikou.sozo_tv.domain.repository.CategoriesRepository
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.toDomain
 
 class CategoriesRepositoryImpl(
@@ -71,10 +73,34 @@ class CategoriesRepositoryImpl(
     }
 
     override suspend fun loadMovieByGenre(searchResults: SearchResults): Result<SearchResults> {
-        val response = api.getMoviesByGenre(
-            genreId = searchResults.genre?.toInt() ?: 28,
-            page = searchResults.currentPage
-        )
-        return Result.failure(Exception("fck )"))
+        return try {
+            val genre = LocalData.genreTmdb.find { it.title == searchResults.genre }
+            val preference = PreferenceManager()
+            if (genre!!.title != "Adult") {
+                val response = api.getMoviesByGenre(
+                    genreId = genre.id,
+                    page = searchResults.currentPage,
+                    isAdult = preference.isNsfwEnabled()
+                ).body()!!
+                val mediaList = response.results
+                searchResults.hasNextPage = (response.page ?: 0) != (response.total_pages ?: 0)
+                searchResults.results = mediaList.map { it.toDomain() }
+                Result.success(searchResults)
+            } else {
+                val response = api.getMoviesByGenre(
+                    genreId = 10749,
+                    page = searchResults.currentPage,
+                    isAdult = preference.isNsfwEnabled()
+                ).body()!!
+
+                val mediaList = response.results
+                searchResults.hasNextPage = (response.page ?: 0) != (response.total_pages ?: 0)
+                searchResults.results = mediaList.map { it.toDomain() }
+                Result.success(searchResults)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+
     }
 }

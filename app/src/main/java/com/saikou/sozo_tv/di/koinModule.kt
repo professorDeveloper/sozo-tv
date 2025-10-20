@@ -71,14 +71,14 @@ val koinModule = module {
         SearchRepositoryImpl(apolloClient = get())
     }
     single<CategoriesRepository> {
-        CategoriesRepositoryImpl(apolloClient = get())
+        CategoriesRepositoryImpl(apolloClient = get(), api = get())
     }
     single<DetailRepository> {
         DetailRepositoryImpl(client = get())
     }
 //    single<ProfileRepository> {
 //        ProfileRepositoryImpl(service = get(), pref = get())
-//    }
+//    }klklkkkkjkjgjbhg  bgbnhjbgjbjhnhubetew
 //
 //    single<LiveTvRepository> {
 //        LiveTvRepositoryImpl(api = get(), pref = get())

@@ -193,7 +193,8 @@ class HomeRepositoryImpl(
                                     format = it.media.format!!,
                                     source = it.media.source!!,
                                     title = Title(
-                                        it.media.title?.english ?: it.media.title?.userPreferred ?: ""
+                                        it.media.title?.english ?: it.media.title?.userPreferred
+                                        ?: ""
                                     )
                                 )
                             )

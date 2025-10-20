@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.category
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -10,6 +11,7 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.CategoriesScreenBinding
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.SearchResults
@@ -24,6 +26,7 @@ import com.saikou.sozo_tv.utils.visible
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 class CategoriesScreen : Fragment() {
     private var _binding: CategoriesScreenBinding? = null
@@ -44,24 +47,50 @@ class CategoriesScreen : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val preference = PreferenceManager()
+        if (preference.isModeAnimeEnabled()) {
+            binding.textView6.text = "Filter Anime"
+        } else {
+            binding.textView6.text = "Filter Movie"
+        }
         binding.topContainer.adapter = pageAdapter
         binding.topContainer.setupGridLayoutForCategories(pageAdapter)
-
-        if (notSet) {
-            notSet = false
-            model.searchResults = SearchResults(
-                true,
-                1,
-                if (LocalData.currentCategory != "") LocalData.currentCategory else "Action",
-                results = null
-            )
-            binding.isLoadingContainer.gIsLoadingRetry.isGone = true
-            binding.isLoadingContainer.root.isVisible = true
-            model.loadCategories(model.searchResults)
+        if (preference.isModeAnimeEnabled()) {
+            if (notSet) {
+                notSet = false
+                model.searchResults = SearchResults(
+                    true,
+                    1,
+                    if (LocalData.currentCategory != "") LocalData.currentCategory else "Action",
+                    results = null
+                )
+                binding.isLoadingContainer.gIsLoadingRetry.isGone = true
+                binding.isLoadingContainer.root.isVisible = true
+                model.loadCategories(model.searchResults)
+            }
+        } else {
+            if (notSet) {
+                notSet = false
+                model.searchResults = SearchResults(
+                    true,
+                    1,
+                    if (LocalData.currentCategory != "") LocalData.currentCategory else "Action",
+                    results = null
+                )
+                binding.isLoadingContainer.gIsLoadingRetry.isGone = true
+                binding.isLoadingContainer.root.isVisible = true
+                model.loadCategoriesMovie(model.searchResults)
+            }
         }
-        pageAdapter.updateTabs(LocalData.genres)
+
+        if (preference.isModeAnimeEnabled()) {
+            pageAdapter.updateTabs(LocalData.genres)
+        } else {
+            pageAdapter.updateTabs(LocalData.genreTmdb.map { it.title.toString() } as ArrayList<String>)
+        }
         pageAdapter.setClickDetail {
             val intent =
                 Intent(binding.root.context, PlayerActivity::class.java)
@@ -89,27 +118,47 @@ class CategoriesScreen : Fragment() {
             pageAdapter.updateCategories((it?.results ?: arrayListOf()) as ArrayList<MainModel>)
         }
 
-        binding.tabRv.adapter = CategoryTabAdapter().apply {
-            submitList(LocalData.genres)
-            setFocusedItemListener { categoryTabItem, _ ->
-                model.searchResults.currentPage = 1
-                model.searchResults.genre = categoryTabItem
-                binding.isLoadingContainer.gIsLoadingRetry.isGone = true
-                binding.isLoadingContainer.root.isVisible = true
-                pageAdapter.updateCategoriesAll(arrayListOf())
-                model.loadCategories(model.searchResults)
+        binding.tabRv.adapter =
+            CategoryTabAdapter(isFiltered = preference.isModeAnimeEnabled()).apply {
+                if (preference.isModeAnimeEnabled()) {
+                    submitList(LocalData.genres)
+                } else {
+                    submitList(LocalData.genreTmdb.map { it.title.toString() } as ArrayList<String>)
+                }
+                setFocusedItemListener { categoryTabItem, _ ->
+                    model.searchResults.currentPage = 1
+                    model.searchResults.genre = categoryTabItem
+                    binding.isLoadingContainer.gIsLoadingRetry.isGone = true
+                    binding.isLoadingContainer.root.isVisible = true
+                    pageAdapter.updateCategoriesAll(arrayListOf())
+                    if (preference.isModeAnimeEnabled()) {
+                        model.loadCategories(model.searchResults)
+                    } else {
+                        model.loadCategoriesMovie(model.searchResults)
+                    }
+                }
+                if (preference.isModeAnimeEnabled()) {
+                    val pos = if (LocalData.currentCategory != "") LocalData.genres.indexOf(
+                        LocalData.currentCategory
+                    ) + 1 else 1
+                    binding.tabRv.scrollToPosition(
+                        pos
+                    )
+                    setSelectedPosition(
+                        pos
+                    )
+                    setLastItemClickListener { showFilterDialog() }
+                } else {
+                    val pos =
+                        if (LocalData.currentCategory != "") LocalData.genreTmdb.indexOf(LocalData.genreTmdb.find { it.title == LocalData.currentCategory }!!) else 0
+                    binding.tabRv.scrollToPosition(
+                        pos
+                    )
+                    setSelectedPosition(
+                        pos
+                    )
+                }
             }
-            val pos = if (LocalData.currentCategory != "") LocalData.genres.indexOf(
-                LocalData.currentCategory
-            ) + 1 else 1
-            binding.tabRv.scrollToPosition(
-                pos
-            )
-            setSelectedPosition(
-                pos
-            )
-            setLastItemClickListener { showFilterDialog() }
-        }
 
 
         model.updateFilter.observe(viewLifecycleOwner) { state ->
@@ -157,8 +206,11 @@ class CategoriesScreen : Fragment() {
                 if (model.searchResults.hasNextPage && model.searchResults.results?.isNotEmpty() == true) {
 
                     lifecycleScope.launch(Dispatchers.IO) {
-                        model.loadNextPage(model.searchResults)
-
+                        if (preference.isModeAnimeEnabled()) {
+                            model.loadNextPage(model.searchResults)
+                        } else {
+                            model.loadNextPageMovie(model.searchResults)
+                        }
                     }
                 }
             }
