@@ -49,7 +49,7 @@ class ImdbHomeRepositoryImpl(
     override suspend fun loadCategories(): Result<ArrayList<Category>> = safeExecute {
         val categories = arrayListOf<Category>()
 
-        val trendingResponse = api.getTrendingAll()
+        val trendingResponse = api.getPopularMovies()
         val trendingList = trendingResponse.body()?.results ?: emptyList()
 
         val trendingCategory = Category(name = "Trending Movies", list = trendingList.map {

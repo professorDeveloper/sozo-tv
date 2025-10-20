@@ -15,7 +15,8 @@ import com.saikou.sozo_tv.domain.model.MySpinnerItem
 object LocalData {
     var trailer: String = ""
     var isHistoryItemClicked = false
-    const val IMDB_IMAGE_PATH ="https://image.tmdb.org/t/p/w500/"
+    const val IMDB_IMAGE_PATH = "https://image.tmdb.org/t/p/w500/"
+    const val IMDB_BACKDROP_PATH = "https://image.tmdb.org/t/p/w1280/"
     val customTv = arrayListOf(
         "Telemundo",
         "NASA",

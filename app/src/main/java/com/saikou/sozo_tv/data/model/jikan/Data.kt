@@ -1,5 +1,7 @@
 package com.saikou.sozo_tv.data.model.jikan
 
+import com.saikou.sozo_tv.utils.LocalData
+
 data class Data(
     val aired: com.saikou.sozo_tv.data.model.jikan.Aired,
     val airing: Boolean,
@@ -38,3 +40,13 @@ data class Data(
     val url: String,
     val year: Int
 )
+
+data class BannerHomeData(
+    val image: String,
+    val title: String,
+    val description: String,
+    val mal_id: Int = -1,
+    val imdb_id: Int = -1,
+    val isMovie:Boolean = false
+) {
+}

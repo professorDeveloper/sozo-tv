@@ -10,6 +10,7 @@ import com.animestudios.animeapp.SearchAnimeQuery
 import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.local.entity.CharacterEntity
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
+import com.saikou.sozo_tv.data.model.jikan.BannerHomeData
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.domain.model.AiringSchedule
 import com.saikou.sozo_tv.domain.model.BannerItem
@@ -116,7 +117,12 @@ fun JikanBannerResponse.toDomain(): BannerModel {
         if (index != 0) {
             list.add(
                 BannerItem(
-                    contentItem = data,
+                    contentItem = BannerHomeData(
+                        data.images.jpg.large_image_url ?: "",
+                        data.title,
+                        data.synopsis,
+                        mal_id = data.mal_id
+                    ),
                 )
             )
         }

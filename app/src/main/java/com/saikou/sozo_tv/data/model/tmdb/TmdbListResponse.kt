@@ -2,11 +2,11 @@ package com.saikou.sozo_tv.data.model.tmdb
 
 import com.saikou.sozo_tv.utils.LocalData
 
-data class TmdbTrendingResponse(
-    val results: List<TmdbTrendingItem>
+data class TmdbListResponse(
+    val results: List<TmdbListItem>
 )
 
-data class TmdbTrendingItem(
+data class TmdbListItem(
     val id: Int?,
     val title: String?,
     val name: String?,
@@ -15,5 +15,6 @@ data class TmdbTrendingItem(
     val media_type: String?
 ) {
     val imageUrl: String?
-        get() = poster_path?.let { LocalData.IMDB_IMAGE_PATH+ it }
+        get() = poster_path?.let { LocalData.IMDB_IMAGE_PATH + it }
+
 }

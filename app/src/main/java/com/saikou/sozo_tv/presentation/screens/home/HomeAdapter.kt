@@ -206,15 +206,24 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             if (activity == null || activity.isDestroyed || activity.isFinishing) {
                 return
             }
-            Glide.with(MyApp.context)
-                .load(GlideUrl(item.contentItem.images.jpg.large_image_url))
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .override(400)
-                .into(binding.bannerImg)
 
-            binding.title.text = item.contentItem.title_english
+            if (item.contentItem.isMovie) {
+                Glide.with(MyApp.context)
+                    .load(GlideUrl("${LocalData.IMDB_BACKDROP_PATH}${item.contentItem.image}"))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .override(400)
+                    .into(binding.bannerImg)
+            } else {
+                Glide.with(MyApp.context)
+                    .load(GlideUrl(item.contentItem.image))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .override(400)
+                    .into(binding.bannerImg)
+            }
+
+            binding.title.text = item.contentItem.title
             binding.description.text =
-                item.contentItem.synopsis
+                item.contentItem.description
             binding.root.setOnKeyListener { v, keyCode, event ->
                 if (event.action == KeyEvent.ACTION_DOWN) {
                     when (keyCode) {

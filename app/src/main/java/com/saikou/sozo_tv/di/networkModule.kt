@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.di
 
 import android.annotation.SuppressLint
+import android.util.Log
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.network.okHttpClient
 import com.google.gson.Gson
@@ -89,6 +90,7 @@ fun createTmdbClient(): Retrofit {
 
     val tmdbInterceptor = Interceptor { chain ->
         val token = Security.getToken()
+//        Log.d("GGG", "createTmdbClient:$token ")
         val newRequest = chain.request().newBuilder()
             .addHeader("Authorization", "Bearer $token")
             .addHeader("accept", "application/json")
