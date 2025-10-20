@@ -108,9 +108,9 @@ class HomeViewModel(private val repo: HomeRepository, private val imdbRepo: TMDB
     fun loadBanners() {
         viewModelScope.launch {
             _bannersState.value = UiState.Loading
-            val result = repo.getTopBannerAnime()
+            val result = imdbRepo.loadBanner()
             _bannersState.value = if (result.isSuccess) {
-                UiState.Success(result.getOrNull()!!.toDomain())
+                UiState.Success(result.getOrNull()!!)
             } else {
                 UiState.Error(result.exceptionOrNull()?.message ?: "Unknown error")
             }
