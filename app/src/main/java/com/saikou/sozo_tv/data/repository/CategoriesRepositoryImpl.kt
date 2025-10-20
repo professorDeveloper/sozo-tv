@@ -75,6 +75,6 @@ class CategoriesRepositoryImpl(
             genreId = searchResults.genre?.toInt() ?: 28,
             page = searchResults.currentPage
         )
-
+        return Result.failure(Exception("fck )"))
     }
 }
