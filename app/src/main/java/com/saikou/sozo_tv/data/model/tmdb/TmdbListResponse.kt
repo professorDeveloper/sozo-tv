@@ -12,7 +12,8 @@ data class TmdbListItem(
     val name: String?,
     val backdrop_path: String?,
     val poster_path: String?,
-    val media_type: String?
+    val media_type: String?,
+    var overview: String?,
 ) {
     val imageUrl: String?
         get() = poster_path?.let { LocalData.IMDB_IMAGE_PATH + it }

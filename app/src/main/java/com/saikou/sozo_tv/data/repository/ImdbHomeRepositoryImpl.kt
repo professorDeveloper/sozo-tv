@@ -5,9 +5,12 @@ import com.animestudios.animeapp.type.MediaSource
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.anilist.HomeModel
 import com.saikou.sozo_tv.data.model.anilist.Title
+import com.saikou.sozo_tv.data.model.jikan.BannerHomeData
 import com.saikou.sozo_tv.data.remote.ImdbService
 import com.saikou.sozo_tv.data.remote.safeApiCall
 import com.saikou.sozo_tv.data.remote.safeExecute
+import com.saikou.sozo_tv.domain.model.BannerItem
+import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Category
 import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.GenreTmdbModel
@@ -70,6 +73,24 @@ class ImdbHomeRepositoryImpl(
         categories.add(trendingCategory)
 
         categories
+    }
+
+    override suspend fun loadBanner(): Result<BannerModel> = safeExecute {
+        val data = api.getTrendingAll()
+        if (!data.isSuccessful) {
+            throw Exception("Banner API failed: ${data.code()}")
+        }
+        val bannerList = data.body()?.results ?: emptyList()
+        val bannerModels = BannerModel(data = bannerList.map {
+            BannerItem(
+                contentItem = BannerHomeData(
+                    it.imageUrl ?: "",
+                    it.title ?: "",
+                    it.overview ?: ""
+                )
+            )
+        })
+        bannerModels
     }
 
 
