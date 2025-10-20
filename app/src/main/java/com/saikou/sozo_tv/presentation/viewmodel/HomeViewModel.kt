@@ -108,11 +108,20 @@ class HomeViewModel(private val repo: HomeRepository, private val imdbRepo: TMDB
     fun loadBanners() {
         viewModelScope.launch {
             _bannersState.value = UiState.Loading
-            val result = imdbRepo.loadBanner()
-            _bannersState.value = if (result.isSuccess) {
-                UiState.Success(result.getOrNull()!!)
+            if (preferenceManager.isModeAnimeEnabled()) {
+                val result = repo.getTopBannerAnime()
+                _bannersState.value = if (result.isSuccess) {
+                    UiState.Success(result.getOrNull()!!.toDomain())
+                } else {
+                    UiState.Error(result.exceptionOrNull()?.message ?: "Unknown error")
+                }
             } else {
-                UiState.Error(result.exceptionOrNull()?.message ?: "Unknown error")
+                val result = imdbRepo.loadBanner()
+                _bannersState.value = if (result.isSuccess) {
+                    UiState.Success(result.getOrNull()!!)
+                } else {
+                    UiState.Error(result.exceptionOrNull()?.message ?: "Unknown error")
+                }
             }
         }
     }
@@ -120,7 +129,8 @@ class HomeViewModel(private val repo: HomeRepository, private val imdbRepo: TMDB
     fun loadCategories() {
         viewModelScope.launch {
             _categoriesState.value = UiState.Loading
-            val result = imdbRepo.loadCategories()
+            val result =
+                if (preferenceManager.isModeAnimeEnabled()) repo.loadCategories() else imdbRepo.loadCategories()
             _categoriesState.value = when {
                 result.isSuccess -> UiState.Success(result.getOrNull()!!)
                 result.isFailure -> UiState.Error(
@@ -132,33 +142,62 @@ class HomeViewModel(private val repo: HomeRepository, private val imdbRepo: TMDB
         }
     }
 
-    fun loadGenres() {
+    private fun loadGenres() {
         viewModelScope.launch {
             genresState.value = UiState.Loading
-            val result = imdbRepo.loadGenres()
-            genresState.value = when {
-                result.isSuccess -> UiState.Success(
-                    CategoryGenre(
-                        "Genres",
-                        result.getOrNull()!!.map {
-                            CategoryGenreItem(
-                                content = GenreModel(
-                                    it.title,
-                                    it.image
+            if (preferenceManager.isModeAnimeEnabled()) {
+                val result = repo.loadGenres()
+                genresState.value = when {
+                    result.isSuccess -> UiState.Success(
+                        CategoryGenre(
+                            "Genres",
+                            result.getOrNull()!!.map {
+                                CategoryGenreItem(
+                                    content = GenreModel(
+                                        it.title,
+                                        it.image
+                                    )
                                 )
-                            )
-                        })
-                )
-
-                result.isFailure -> {
-                    Log.d("GGG", "loadGenres:${result.exceptionOrNull()?.message} ")
-                    UiState.Error(
-                        result.exceptionOrNull()?.message ?: "Unknown error"
+                            })
                     )
-                }
 
-                else -> {
-                    UiState.Idle
+                    result.isFailure -> {
+                        Log.d("GGG", "loadGenres:${result.exceptionOrNull()?.message} ")
+                        UiState.Error(
+                            result.exceptionOrNull()?.message ?: "Unknown error"
+                        )
+                    }
+
+                    else -> {
+                        UiState.Idle
+                    }
+                }
+            } else {
+                val result = imdbRepo.loadGenres()
+                genresState.value = when {
+                    result.isSuccess -> UiState.Success(
+                        CategoryGenre(
+                            "Genres",
+                            result.getOrNull()!!.map {
+                                CategoryGenreItem(
+                                    content = GenreModel(
+                                        it.title,
+                                        it.image
+                                    )
+                                )
+                            })
+                    )
+
+                    result.isFailure -> {
+                        Log.d("GGG", "loadGenres:${result.exceptionOrNull()?.message} ")
+                        UiState.Error(
+                            result.exceptionOrNull()?.message ?: "Unknown error"
+                        )
+                    }
+
+                    else -> {
+                        UiState.Idle
+                    }
                 }
             }
         }

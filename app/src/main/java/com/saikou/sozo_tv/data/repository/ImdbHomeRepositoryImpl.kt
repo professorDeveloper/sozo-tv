@@ -6,8 +6,8 @@ import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.anilist.HomeModel
 import com.saikou.sozo_tv.data.model.anilist.Title
 import com.saikou.sozo_tv.data.model.jikan.BannerHomeData
+import com.saikou.sozo_tv.data.model.tmdb.TmdbListItem
 import com.saikou.sozo_tv.data.remote.ImdbService
-import com.saikou.sozo_tv.data.remote.safeApiCall
 import com.saikou.sozo_tv.data.remote.safeExecute
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
@@ -16,6 +16,8 @@ import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.GenreTmdbModel
 import com.saikou.sozo_tv.domain.repository.TMDBHomeRepository
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.LocalData.genreTmdb
+import kotlin.random.Random
 
 class ImdbHomeRepositoryImpl(
     private val api: ImdbService
@@ -36,6 +38,13 @@ class ImdbHomeRepositoryImpl(
             val randomImages = trendingItems.mapNotNull { it.imageUrl }.shuffled()
 
             val genreModels = genres.mapIndexed { index, genre ->
+                genreTmdb.add(
+                    GenreTmdbModel(
+                        id = genre.id,
+                        title = genre.name,
+                        image = randomImages.getOrNull(index % randomImages.size) ?: ""
+                    )
+                )
                 GenreTmdbModel(
                     id = genre.id,
                     title = genre.name,
@@ -55,7 +64,7 @@ class ImdbHomeRepositoryImpl(
         val trendingResponse = api.getPopularMovies()
         val trendingList = trendingResponse.body()?.results ?: emptyList()
 
-        val trendingCategory = Category(name = "Trending Movies", list = trendingList.map {
+        val trendingCategory = Category(name = "Trending All", list = trendingList.map {
             CategoryDetails(
                 content = HomeModel(
                     id = it.id ?: 0,
@@ -72,6 +81,65 @@ class ImdbHomeRepositoryImpl(
 
         categories.add(trendingCategory)
 
+        val topRatedResponse = api.getTopRatedMovies()
+        val topRatedList = topRatedResponse.body()?.results ?: emptyList()
+        val topRatedCategory = Category(name = "Top Rated Movies", list = topRatedList.map {
+            CategoryDetails(
+                content = HomeModel(
+                    id = it.id ?: 0,
+                    idMal = 0,
+                    coverImage = CoverImage(
+                        "${LocalData.IMDB_IMAGE_PATH}${it.poster_path ?: it.backdrop_path}"
+                    ),
+                    format = MediaFormat.MOVIE,
+                    source = MediaSource.NOVEL,
+                    title = Title(it.title ?: it.name ?: "")
+                )
+            )
+        })
+        categories.add(topRatedCategory)
+        val trendingMovieResponse = api.getTrendingMovies()
+        val trendingMovieList = trendingMovieResponse.body()?.results ?: emptyList()
+        val trendingMovieCategory =
+            Category(name = "Trending Movies", list = trendingMovieList.map {
+                CategoryDetails(
+                    content = HomeModel(
+                        id = it.id ?: 0,
+                        idMal = 0,
+                        coverImage = CoverImage(
+                            "${LocalData.IMDB_IMAGE_PATH}${it.poster_path ?: it.backdrop_path}"
+                        ),
+                        format = MediaFormat.MOVIE,
+                        source = MediaSource.NOVEL,
+                        title = Title(it.title ?: it.name ?: "")
+                    )
+                )
+            })
+        categories.add(trendingMovieCategory)
+        val randomPage = Random.nextInt(10, 20)
+        val randomRecommendResponse = api.getPopularMovies(page = randomPage)
+
+        val allMovies = randomRecommendResponse.body()?.results ?: emptyList()
+        val randomRecommendCategory = Category(
+            name = "Recommend Movies",
+            list = allMovies.map {
+                CategoryDetails(
+                    content = HomeModel(
+                        id = it.id ?: 0,
+                        idMal = 0,
+                        coverImage = CoverImage(
+                            "${LocalData.IMDB_IMAGE_PATH}${it.poster_path ?: it.backdrop_path}"
+                        ),
+                        format = MediaFormat.MOVIE,
+                        source = MediaSource.NOVEL,
+                        title = Title(it.title ?: it.name ?: "")
+                    )
+                )
+            }
+        )
+
+        categories.add(randomRecommendCategory)
+
         categories
     }
 
@@ -86,7 +154,9 @@ class ImdbHomeRepositoryImpl(
                 contentItem = BannerHomeData(
                     it.imageUrl ?: "",
                     it.title ?: "",
-                    it.overview ?: ""
+                    it.overview ?: "",
+                    genre_ids = it.genre_ids,
+                    isMovie = true
                 )
             )
         })

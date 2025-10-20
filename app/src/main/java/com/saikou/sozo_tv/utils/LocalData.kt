@@ -8,6 +8,7 @@ import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.ChannelResponseItem
+import com.saikou.sozo_tv.domain.model.GenreTmdbModel
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.MySpinnerItem
 
@@ -17,6 +18,7 @@ object LocalData {
     var isHistoryItemClicked = false
     const val IMDB_IMAGE_PATH = "https://image.tmdb.org/t/p/w500/"
     const val IMDB_BACKDROP_PATH = "https://image.tmdb.org/t/p/w1280/"
+    val genreTmdb = ArrayList<GenreTmdbModel>()
     val customTv = arrayListOf(
         "Telemundo",
         "NASA",

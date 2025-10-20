@@ -71,6 +71,9 @@
     <color name="sponsored_background_color">#FFC107</color>
     <color name="sponsored_text_color">#212121</color>
 
+     <!--Netflix Gray dark -->
+    <color name="netflix_gray_dark">#404040</color>
+
     <!-- Close Button -->
     <color name="close_button_background">#80000000</color>
     <!-- Notification Style Colors -->

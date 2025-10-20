@@ -28,6 +28,8 @@ class MyAccountPage : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         preferenceManager = com.saikou.sozo_tv.data.local.pref.PreferenceManager()
         loadChannelPreference()
+        loadModePreference()
+        setupModeButtons()
         binding.channelToggleContainer.setOnClickListener {
             binding.channelSwitch.toggle()
         }
@@ -37,6 +39,58 @@ class MyAccountPage : Fragment() {
         }
 
     }
+    private fun setupModeButtons() {
+        binding.apply {
+            animeModeButton.setOnClickListener {
+                setModeAnime(true)
+                updateModeUI(true)
+            }
+
+            movieModeButton.setOnClickListener {
+                setModeAnime(false)
+                updateModeUI(false)
+            }
+
+
+        }
+    }
+
+    private fun loadModePreference() {
+        val isAnimeMode = isModeAnimeEnabled()
+        updateModeUI(isAnimeMode)
+    }
+
+    private fun updateModeUI(isAnimeMode: Boolean) {
+        binding.apply {
+            updateButtonBackground(animeModeButton, isAnimeMode)
+            updateButtonBackground(movieModeButton, !isAnimeMode)
+
+        }
+    }
+
+    private fun isModeAnimeEnabled(): Boolean {
+        return preferenceManager.isModeAnimeEnabled()
+    }
+
+    private fun setModeAnime(enabled: Boolean) {
+        preferenceManager.setModeAnime(enabled)
+    }
+    @SuppressLint("SetTextI18n")
+    private fun updateButtonBackground(button: android.widget.TextView, isActive: Boolean) {
+        if (isActive) {
+            button.setBackgroundResource(
+                R.drawable.switch_selected_background
+            )
+
+        } else {
+            button.setBackgroundResource(
+                R.drawable.switch_background
+            )
+
+        }
+    }
+
+
 //
 //    private fun showNsfwWarningDialog() {
 //        val dialog = NsfwAlertDialog()

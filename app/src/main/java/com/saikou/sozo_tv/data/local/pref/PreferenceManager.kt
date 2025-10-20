@@ -14,6 +14,18 @@ class PreferenceManager {
         private const val KEY_NSFW_ENABLED = "nsfw_enabled"
         private const val KEY_CHANNEL_ENABLED = "nsfw_enabled"
         private const val KEY_SKIP_INTRO_ENABLED = "skip_intro_enabled"
+        private const val KEY_MODE_ANIME_ENABLED = "mode_anime_enabled"
+
+    }
+
+    fun isModeAnimeEnabled(): Boolean {
+        return sharedPreferences.getBoolean(KEY_MODE_ANIME_ENABLED, true)
+    }
+
+    fun setModeAnime(enabled: Boolean) {
+        sharedPreferences.edit()
+            .putBoolean(KEY_MODE_ANIME_ENABLED, enabled)
+            .apply()
     }
 
     fun setSkipIntroEnabled(enabled: Boolean) {

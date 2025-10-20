@@ -2,11 +2,17 @@ package com.saikou.sozo_tv.presentation.screens.home
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
+import android.text.TextUtils
 import android.view.KeyEvent
+import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -154,19 +160,18 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             val handler = Handler(Looper.getMainLooper())
             val runnable = object : Runnable {
                 override fun run() {
-                    if (binding.viewPager.hasFocus() || (binding.viewPager.getChildAt(0) as? RecyclerView)
-                            ?.findViewHolderForAdapterPosition(binding.viewPager.currentItem)
-                            ?.itemView?.hasFocus() == true
+                    if (binding.viewPager.hasFocus() || (binding.viewPager.getChildAt(0) as? RecyclerView)?.findViewHolderForAdapterPosition(
+                            binding.viewPager.currentItem
+                        )?.itemView?.hasFocus() == true
                     ) {
                         val currentItem = binding.viewPager.currentItem
                         val nextItem =
                             if (currentItem == adapter.itemCount - 1) 0 else currentItem + 1
                         binding.viewPager.setCurrentItem(nextItem, true)
                         binding.viewPager.post {
-                            (binding.viewPager.getChildAt(0) as? RecyclerView)
-                                ?.findViewHolderForAdapterPosition(nextItem)
-                                ?.itemView
-                                ?.requestFocus()
+                            (binding.viewPager.getChildAt(0) as? RecyclerView)?.findViewHolderForAdapterPosition(
+                                nextItem
+                            )?.itemView?.requestFocus()
                         }
                     }
                     handler.postDelayed(this, 8000)
@@ -177,10 +182,9 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             binding.viewPager.setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
                     val currentItem = binding.viewPager.currentItem
-                    (binding.viewPager.getChildAt(0) as? RecyclerView)
-                        ?.findViewHolderForAdapterPosition(currentItem)
-                        ?.itemView
-                        ?.requestFocus()
+                    (binding.viewPager.getChildAt(0) as? RecyclerView)?.findViewHolderForAdapterPosition(
+                        currentItem
+                    )?.itemView?.requestFocus()
                 }
             }
         }
@@ -206,24 +210,43 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             if (activity == null || activity.isDestroyed || activity.isFinishing) {
                 return
             }
+            if (item.contentItem.isMovie) {
+                val genreContainer = binding.genreButtons
+                genreContainer.removeAllViews()
+                item.contentItem.genre_ids.forEach { imdbId ->
+                    val genre = LocalData.genreTmdb.find { imdbId == it.id }
+                    if (genre != null) {
+                        val genreView = TextView(binding.root.context).apply {
+                            text = genre.title
+                            textSize = 13f
+                            setTextColor(Color.WHITE)
+                            setPadding(16, 8, 16, 8)
+                            background = ContextCompat.getDrawable(context, R.drawable.background_button)
+                            ellipsize = TextUtils.TruncateAt.END
+                            maxLines = 1
+                            layoutParams = LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.WRAP_CONTENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                            ).apply {
+                                setMargins(0, 0, 8, 0)
+                            }
+                        }
+                        genreContainer.addView(genreView)
+                    }
+                }
 
+            }
             if (item.contentItem.isMovie) {
                 Glide.with(MyApp.context)
                     .load(GlideUrl("${LocalData.IMDB_BACKDROP_PATH}${item.contentItem.image}"))
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .override(400)
-                    .into(binding.bannerImg)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL).override(400).into(binding.bannerImg)
             } else {
-                Glide.with(MyApp.context)
-                    .load(GlideUrl(item.contentItem.image))
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .override(400)
-                    .into(binding.bannerImg)
+                Glide.with(MyApp.context).load(GlideUrl(item.contentItem.image))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL).override(400).into(binding.bannerImg)
             }
 
             binding.title.text = item.contentItem.title
-            binding.description.text =
-                item.contentItem.description
+            binding.description.text = item.contentItem.description
             binding.root.setOnKeyListener { v, keyCode, event ->
                 if (event.action == KeyEvent.ACTION_DOWN) {
                     when (keyCode) {
@@ -280,13 +303,11 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 if (bindingAdapterPosition != 0) {
                     val animation = when {
                         hasFocus -> AnimationUtils.loadAnimation(
-                            binding.root.context,
-                            R.anim.zoom_in
+                            binding.root.context, R.anim.zoom_in
                         )
 
                         else -> AnimationUtils.loadAnimation(
-                            binding.root.context,
-                            R.anim.zoom_out
+                            binding.root.context, R.anim.zoom_out
                         )
                     }
                     binding.root.startAnimation(animation)
@@ -330,13 +351,11 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             binding.root.setOnFocusChangeListener { view, hasFocus ->
                 val animation = when {
                     hasFocus -> AnimationUtils.loadAnimation(
-                        binding.root.context,
-                        R.anim.zoom_in
+                        binding.root.context, R.anim.zoom_in
                     )
 
                     else -> AnimationUtils.loadAnimation(
-                        binding.root.context,
-                        R.anim.zoom_out
+                        binding.root.context, R.anim.zoom_out
                     )
                 }
                 binding.root.startAnimation(animation)
@@ -363,13 +382,11 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 setOnFocusChangeListener { view, hasFocus ->
                     val animation = when {
                         hasFocus -> AnimationUtils.loadAnimation(
-                            binding.root.context,
-                            R.anim.zoom_in
+                            binding.root.context, R.anim.zoom_in
                         )
 
                         else -> AnimationUtils.loadAnimation(
-                            binding.root.context,
-                            R.anim.zoom_out
+                            binding.root.context, R.anim.zoom_out
                         )
                     }
                     binding.root.startAnimation(animation)

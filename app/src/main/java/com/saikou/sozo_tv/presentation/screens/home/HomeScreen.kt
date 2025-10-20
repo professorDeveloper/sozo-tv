@@ -33,9 +33,7 @@ class HomeScreen : Fragment() {
     private val homeAdapter = HomeAdapter()
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = HomeScreenBinding.inflate(inflater, container, false)
         return binding.root
@@ -65,14 +63,15 @@ class HomeScreen : Fragment() {
                     (requireActivity() as MainActivity).navigateToCategory(it)
                 }
                 LocalData.setonClickedlistenerItemBanner {
-                    WaitDialog.show(requireActivity(), "Loading...")
-                    homeViewModel.getMalId(it.contentItem.mal_id)
+                    if (homeViewModel.preferenceManager.isModeAnimeEnabled()) {
+                        WaitDialog.show(requireActivity(), "Loading...")
+                        homeViewModel.getMalId(it.contentItem.mal_id)
+                    }
                 }
                 LocalData.setChannelItemClickListener {
                     findNavController().navigate(
                         HomeScreenDirections.actionHomeToLiveTvPlayerScreen(
-                            it.title,
-                            it.playLink
+                            it.title, it.playLink
                         )
                     )
                 }
@@ -81,8 +80,7 @@ class HomeScreen : Fragment() {
                         is Resource.Success -> {
                             WaitDialog.dismiss(requireActivity())
                             homeViewModel.aniId.postValue(Resource.Idle)
-                            val intent =
-                                Intent(binding.root.context, PlayerActivity::class.java)
+                            val intent = Intent(binding.root.context, PlayerActivity::class.java)
                             intent.putExtra("model", it.data)
                             binding.root.context.startActivity(intent)
                         }
@@ -91,8 +89,7 @@ class HomeScreen : Fragment() {
                     }
                 }
                 LocalData.setonClickedListenerItemCategory {
-                    val intent =
-                        Intent(binding.root.context, PlayerActivity::class.java)
+                    val intent = Intent(binding.root.context, PlayerActivity::class.java)
                     intent.putExtra("model", it.content.id)
                     binding.root.context.startActivity(intent)
                 }

@@ -16,7 +16,8 @@ interface ImdbService {
 
     @GET("trending/all/day")
     suspend fun getTrendingAll(
-        @Query("language") language: String = "en-US"
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1
     ): Response<TmdbListResponse>
 
 
@@ -26,6 +27,15 @@ interface ImdbService {
         @Query("page") page: Int = 1
     ): Response<TmdbListResponse>
 
+    @GET("movie/top_rated")
+    suspend fun getTopRatedMovies(
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1
+    ): Response<TmdbListResponse>
+    @GET("trending/movie/day")
+    suspend fun getTrendingMovies(
+        @Query("language") language: String = "en-US"
+    ): Response<TmdbListResponse>
 
 
 
