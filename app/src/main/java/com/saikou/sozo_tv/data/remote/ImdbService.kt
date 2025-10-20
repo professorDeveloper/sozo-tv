@@ -37,6 +37,13 @@ interface ImdbService {
         @Query("language") language: String = "en-US"
     ): Response<TmdbListResponse>
 
+    @GET("discover/movie")
+    suspend fun getMoviesByGenre(
+        @Query("language") language: String = "en-US",
+        @Query("with_genres") genreId: Int,
+        @Query("page") page: Int = 1
+    ): Response<TmdbListResponse>
+
 
 
 

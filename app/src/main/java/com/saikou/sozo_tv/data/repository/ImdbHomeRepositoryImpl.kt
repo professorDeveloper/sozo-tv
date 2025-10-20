@@ -52,6 +52,7 @@ class ImdbHomeRepositoryImpl(
                 )
             }
 
+            genreTmdb.add(GenreTmdbModel("Adult", LocalData.anime404, -1))
             Result.success(genreModels)
         } catch (e: Exception) {
             Result.failure(e)

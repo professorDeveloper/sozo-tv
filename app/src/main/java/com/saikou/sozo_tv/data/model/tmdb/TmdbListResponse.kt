@@ -3,6 +3,9 @@ package com.saikou.sozo_tv.data.model.tmdb
 import com.saikou.sozo_tv.utils.LocalData
 
 data class TmdbListResponse(
+    val page: Int?,
+    val total_pages: Int?,
+    val total_results: Int?,
     val results: List<TmdbListItem>
 )
 

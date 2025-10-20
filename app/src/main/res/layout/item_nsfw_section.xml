@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="12dp">
+
+    <LinearLayout
+        android:id="@+id/nsfw_toggle_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/netflix_focusable_background"
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:paddingVertical="12dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
+
+            <TextView
+                android:id="@+id/nsfw_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/adult_content_nsfw"
+                android:textColor="@color/netflix_white"
+                android:textSize="16sp"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="sans-serif-medium"/>
+
+            <TextView
+                android:id="@+id/nsfw_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/enable_or_disable_adult_content_visibility"
+                android:textColor="@color/netflix_gray"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif"/>
+        </LinearLayout>
+
+        <Switch
+            android:id="@+id/nsfw_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:theme="@style/NetflixSwitchTheme"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="4dp"
+        android:layout_marginTop="8dp">
+
+        <View
+            android:id="@+id/nsfw_status_dot"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:background="@drawable/netflix_status_dot_disabled"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:id="@+id/nsfw_status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Disabled"
+            android:textColor="@color/netflix_gray"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif"/>
+    </LinearLayout>
+</LinearLayout>

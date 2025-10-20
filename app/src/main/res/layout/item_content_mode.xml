@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="16dp">
+
+    <TextView
+        android:id="@+id/contentModeTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Content Mode"
+        android:textSize="18sp"
+        android:textColor="@color/netflix_white"
+        android:fontFamily="sans-serif-medium"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/contentModeSubtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Choose your preferred content type"
+        android:textSize="13sp"
+        android:textColor="@color/netflix_gray"
+        android:layout_marginBottom="16dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:spacing="12dp">
+
+        <TextView
+            android:id="@+id/animeModeButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Anime Mode"
+            android:textColor="@color/netflix_text_primary"
+            android:gravity="center"
+            android:background="@drawable/switch_background" />
+
+        <TextView
+            android:id="@+id/movieModeButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Movie Mode"
+            android:textColor="@color/netflix_text_primary"
+            android:gravity="center"
+            android:background="@drawable/switch_selected_background" />
+
+    </LinearLayout>
+
+</LinearLayout>

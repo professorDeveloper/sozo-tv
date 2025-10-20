@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Content Mode"
+        android:textColor="@color/netflix_white"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="6dp"
+        android:fontFamily="sans-serif-medium"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Choose your preferred content type"
+        android:textColor="@color/netflix_gray"
+        android:textSize="13sp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="sans-serif"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:spacing="12dp">
+
+        <TextView
+            android:id="@+id/anime_mode_button"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:gravity="center"
+            android:text="Anime Mode"
+            android:textColor="@color/netflix_text_primary"
+            android:textSize="14sp"
+            android:background="@drawable/switch_background"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:stateListAnimator="@null"
+            android:fontFamily="@font/days"/>
+
+        <TextView
+            android:id="@+id/movie_mode_button"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:gravity="center"
+            android:text="Movie Mode"
+            android:textColor="@color/netflix_text_primary"
+            android:textSize="14sp"
+            android:background="@drawable/switch_selected_background"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:fontFamily="@font/poppins"/>
+    </LinearLayout>
+</LinearLayout>

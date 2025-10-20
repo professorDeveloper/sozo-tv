@@ -28,6 +28,7 @@ class MyAccountPage : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         preferenceManager = com.saikou.sozo_tv.data.local.pref.PreferenceManager()
         loadChannelPreference()
+        loadNsfwPreference()
         loadModePreference()
         setupModeButtons()
         binding.channelToggleContainer.setOnClickListener {
@@ -38,7 +39,21 @@ class MyAccountPage : Fragment() {
             saveChannelPreference(isChecked)
         }
 
+        binding.nsfwToggleContainer.setOnClickListener {
+            binding.nsfwSwitch.toggle()
+        }
+        binding.nsfwSwitch.setOnCheckedChangeListener { _, isChecked ->
+            if (preferenceManager.isNsfwEnabled()) {
+                updateNsfStatus(isChecked)
+                saveNsfPreference(isChecked)
+            } else {
+                showNsfwWarningDialog()
+
+            }
+        }
+
     }
+
     private fun setupModeButtons() {
         binding.apply {
             animeModeButton.setOnClickListener {
@@ -75,6 +90,7 @@ class MyAccountPage : Fragment() {
     private fun setModeAnime(enabled: Boolean) {
         preferenceManager.setModeAnime(enabled)
     }
+
     @SuppressLint("SetTextI18n")
     private fun updateButtonBackground(button: android.widget.TextView, isActive: Boolean) {
         if (isActive) {
@@ -91,33 +107,42 @@ class MyAccountPage : Fragment() {
     }
 
 
-//
-//    private fun showNsfwWarningDialog() {
-//        val dialog = NsfwAlertDialog()
-//        dialog.setYesContinueListener {
-//            updateChannelStatus(true)
-//            saveChannelPreference(true)
-//            dialog.dismiss()
-//        }
-//        dialog.setOnBackPressedListener {
-//            binding.nsfwSwitch.isChecked = false
-//            updateChannelStatus(false)
-//            saveChannelPreference(false)
-//            dialog.dismiss()
-//        }
-//
-//
-//        dialog.show(parentFragmentManager, "NsfwWarningDialog")
-//    }
+    private fun showNsfwWarningDialog() {
+        val dialog = NsfwAlertDialog()
+        dialog.setYesContinueListener {
+            updateChannelStatus(true)
+            saveChannelPreference(true)
+            dialog.dismiss()
+        }
+        dialog.setOnBackPressedListener {
+            binding.nsfwSwitch.isChecked = false
+            updateChannelStatus(false)
+            saveChannelPreference(false)
+            dialog.dismiss()
+        }
+
+
+        dialog.show(parentFragmentManager, "NsfwWarningDialog")
+    }
 
     private fun saveChannelPreference(isEnabled: Boolean) {
         preferenceManager.setChannelEnabled(isEnabled)
+    }
+
+    private fun saveNsfPreference(isEnabled: Boolean) {
+        preferenceManager.setNsfwEnabled(isEnabled)
     }
 
     private fun loadChannelPreference() {
         val isEnabled = preferenceManager.isChannelEnabled()
         binding.channelSwitch.isChecked = isEnabled
         updateChannelStatus(isEnabled)
+    }
+
+    private fun loadNsfwPreference() {
+        val isEnabled = preferenceManager.isNsfwEnabled()
+        binding.nsfwSwitch.isChecked = isEnabled
+        updateNsfStatus(isEnabled)
     }
 
     @SuppressLint("SetTextI18n")
@@ -142,6 +167,36 @@ class MyAccountPage : Fragment() {
                 )
                 channelStatusText.text = "Disabled"
                 channelStatusText.setTextColor(
+                    ContextCompat.getColor(
+                        requireContext(),
+                        R.color.netflix_gray
+                    )
+                )
+            }
+        }
+    }
+
+    private fun updateNsfStatus(isEnabled: Boolean) {
+        binding.apply {
+            if (isEnabled) {
+                nsfwStatusDot.background = ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.netflix_status_dot_enabled
+                )
+                nsfwStatusText.text = "Enabled"
+                nsfwStatusText.setTextColor(
+                    ContextCompat.getColor(
+                        requireContext(),
+                        R.color.netflix_green
+                    )
+                )
+            } else {
+                nsfwStatusDot.background = ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.netflix_status_dot_disabled
+                )
+                nsfwStatusText.text = "Disabled"
+                nsfwStatusText.setTextColor(
                     ContextCompat.getColor(
                         requireContext(),
                         R.color.netflix_gray
