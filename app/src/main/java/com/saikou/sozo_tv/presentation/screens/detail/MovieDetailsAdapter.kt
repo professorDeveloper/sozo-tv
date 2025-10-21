@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.CastAdapter
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.ItemPlayCastBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsHeaderBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsSectionBinding
@@ -244,8 +245,15 @@ class MovieDetailsAdapter(
                 val descriptionTextView =
                     binding.frame.findViewById<TextView>(R.id.film_description_tv)
                 descriptionTextView?.movementMethod = LinkMovementMethod.getInstance()
-                descriptionTextView?.text =
-                    Html.fromHtml(item.content.description, Html.FROM_HTML_MODE_COMPACT)
+                if (LocalData.isAnimeEnabled) {
+                    descriptionTextView?.text =
+                        Html.fromHtml(item.content.description, Html.FROM_HTML_MODE_COMPACT)
+                } else {
+                    descriptionTextView.text = Html.fromHtml(
+                        item.content.description + item.content.description+item.content.description+item.content.description,
+                        Html.FROM_HTML_MODE_COMPACT
+                    )
+                }
                 descriptionTextView?.isFocusable = false
                 languageContainer?.removeAllViews()
                 countryContainer?.removeAllViews()
@@ -347,12 +355,12 @@ class MovieDetailsAdapter(
                 item.content.id.let {
                     interfaceListener.run {
                         onWatchButtonClicked(
-                                        item,
-                                        id = item.content.id,
-                                        url = item.content.bannerImage,
-                                        title = item.content.title,
-                                        isFree =true
-                                    )
+                            item,
+                            id = item.content.id,
+                            url = item.content.bannerImage,
+                            title = item.content.title,
+                            isFree = true
+                        )
                     }
                 }
             }
@@ -414,8 +422,8 @@ class MovieDetailsAdapter(
                 }
                 container.addView(textViewd)
             }
-            val textViewEp= TextView(binding.root.context).apply {
-                text = "Episodes:"+item.content.episodes.toString()
+            val textViewEp = TextView(binding.root.context).apply {
+                text = "Episodes:" + item.content.episodes.toString()
                 textSize = 12f
                 setTextColor(Color.WHITE)
                 layoutParams = LinearLayout.LayoutParams(
@@ -516,8 +524,8 @@ class MovieDetailsAdapter(
         notifyItemChanged(0)
     }
 
-    fun updateBookmark(it: Boolean?){
-        bookmark = it?: false
+    fun updateBookmark(it: Boolean?) {
+        bookmark = it ?: false
         notifyItemChanged(0)
     }
 //

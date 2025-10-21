@@ -5,7 +5,9 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
+import androidx.preference.Preference
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.ActivityPlayerBinding
 import com.saikou.sozo_tv.presentation.screens.detail.CastDetailScreenArgs
 import com.saikou.sozo_tv.presentation.screens.episodes.EpisodeScreenArgs
@@ -70,10 +72,23 @@ class PlayerActivity : AppCompatActivity() {
                     startDestinationArgs = CastDetailScreenArgs(character).toBundle()
                 )
             } else {
-                playerViewModel.loadAnimeById(id = categoryDetails)
-                playerViewModel.loadCast(id = categoryDetails)
-                playerViewModel.loadRelations(id = categoryDetails)
-                playerViewModel.checkBookmark(id = categoryDetails)
+                val preference = PreferenceManager()
+                if (preference.isModeAnimeEnabled()) {
+                    playerViewModel.loadAnimeById(id = categoryDetails)
+                    playerViewModel.loadCast(id = categoryDetails)
+                    playerViewModel.loadRelations(id = categoryDetails)
+                    playerViewModel.checkBookmark(id = categoryDetails)
+                } else {
+                    val id = categoryDetails
+                    val isMovie = intent.getBooleanExtra("isMovie", false)
+                    if (isMovie) {
+                        playerViewModel.loadMovieById(id = id)
+
+                    } else {
+                        playerViewModel.loadSeriesById(id = id)
+
+                    }
+                }
             }
         }
 

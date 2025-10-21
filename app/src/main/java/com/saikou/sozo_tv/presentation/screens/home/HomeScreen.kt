@@ -53,69 +53,75 @@ class HomeScreen : Fragment() {
         }
     }
 
-    private fun handleHomeDataState(state: UiState<List<HomeAdapter.HomeData>>) {
-        when (state) {
-            is UiState.Success -> {
-                binding.isLoading.gIsLoadingRetry.isGone = true
-                binding.isLoading.root.isGone = true
-                homeAdapter.submitList(state.data)
-                LocalData.setFocusedGenreClickListener {
-                    (requireActivity() as MainActivity).navigateToCategory(it)
-                }
-                LocalData.setonClickedlistenerItemBanner {
-                    if (homeViewModel.preferenceManager.isModeAnimeEnabled()) {
-                        WaitDialog.show(requireActivity(), "Loading...")
-                        homeViewModel.getMalId(it.contentItem.mal_id)
-                    }
-                }
-                LocalData.setChannelItemClickListener {
-                    findNavController().navigate(
-                        HomeScreenDirections.actionHomeToLiveTvPlayerScreen(
-                            it.title, it.playLink
-                        )
-                    )
-                }
-                homeViewModel.aniId.observe(viewLifecycleOwner) {
-                    when (it) {
-                        is Resource.Success -> {
-                            WaitDialog.dismiss(requireActivity())
-                            homeViewModel.aniId.postValue(Resource.Idle)
-                            val intent = Intent(binding.root.context, PlayerActivity::class.java)
-                            intent.putExtra("model", it.data)
-                            binding.root.context.startActivity(intent)
-                        }
-
-                        else -> {}
-                    }
-                }
-                LocalData.setonClickedListenerItemCategory {
+    private fun handleHomeDataState(state: UiState<List<HomeAdapter.HomeData>>) = when (state) {
+        is UiState.Success -> {
+            binding.isLoading.gIsLoadingRetry.isGone = true
+            binding.isLoading.root.isGone = true
+            homeAdapter.submitList(state.data)
+            LocalData.setFocusedGenreClickListener {
+                (requireActivity() as MainActivity).navigateToCategory(it)
+            }
+            LocalData.setonClickedlistenerItemBanner {
+                if (homeViewModel.preferenceManager.isModeAnimeEnabled()) {
+                    WaitDialog.show(requireActivity(), "Loading...")
+                    homeViewModel.getMalId(it.contentItem.mal_id)
+                } else {
+                    Log.d("GGG", "handleHomeDataState:${it.contentItem.isSeries} ")
                     val intent = Intent(binding.root.context, PlayerActivity::class.java)
-                    intent.putExtra("model", it.content.id)
+                    intent.putExtra("model", it.contentItem.imdb_id)
+                    intent.putExtra("isMovie", !it.contentItem.isSeries)
                     binding.root.context.startActivity(intent)
                 }
             }
-
-            is UiState.Loading -> {
-                binding.isLoading.gIsLoadingRetry.isGone = true
-                binding.isLoading.root.isVisible = true
+            LocalData.setChannelItemClickListener {
+                findNavController().navigate(
+                    HomeScreenDirections.actionHomeToLiveTvPlayerScreen(
+                        it.title, it.playLink
+                    )
+                )
             }
+            homeViewModel.aniId.observe(viewLifecycleOwner) {
+                when (it) {
+                    is Resource.Success -> {
+                        WaitDialog.dismiss(requireActivity())
+                        homeViewModel.aniId.postValue(Resource.Idle)
+                        val intent = Intent(binding.root.context, PlayerActivity::class.java)
+                        intent.putExtra("model", it.data)
+                        binding.root.context.startActivity(intent)
+                    }
 
-            is UiState.Error -> {
-                Log.d("GGG", "handleHomeDataState:${state.message} ")
-                binding.isLoading.gIsLoadingRetry.isVisible = true
-                binding.isLoading.root.isVisible = true
-                binding.isLoading.tvIsLoadingError.text = state.message
-                binding.isLoading.pbIsLoading.isVisible = false
-                binding.isLoading.btnIsLoadingRetry.requestFocus()
-                binding.isLoading.btnIsLoadingRetry.setOnClickListener {
-                    homeViewModel.loadBanners()
-                    homeViewModel.loadCategories()
+                    else -> {}
                 }
             }
+            LocalData.setonClickedListenerItemCategory {
 
-
-            else -> {}
+                    val intent = Intent(binding.root.context, PlayerActivity::class.java)
+                    intent.putExtra("model", it.content.id)
+                    intent.putExtra("isMovie", !it.content.isSeries)
+                    binding.root.context.startActivity(intent)
+            }
         }
+
+        is UiState.Loading -> {
+            binding.isLoading.gIsLoadingRetry.isGone = true
+            binding.isLoading.root.isVisible = true
+        }
+
+        is UiState.Error -> {
+            Log.d("GGG", "handleHomeDataState:${state.message} ")
+            binding.isLoading.gIsLoadingRetry.isVisible = true
+            binding.isLoading.root.isVisible = true
+            binding.isLoading.tvIsLoadingError.text = state.message
+            binding.isLoading.pbIsLoading.isVisible = false
+            binding.isLoading.btnIsLoadingRetry.requestFocus()
+            binding.isLoading.btnIsLoadingRetry.setOnClickListener {
+                homeViewModel.loadBanners()
+                homeViewModel.loadCategories()
+            }
+        }
+
+
+        else -> {}
     }
 
     private fun initializeHome() {

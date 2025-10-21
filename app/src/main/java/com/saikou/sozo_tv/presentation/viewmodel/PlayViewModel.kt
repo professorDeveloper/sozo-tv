@@ -33,7 +33,7 @@ class PlayViewModel(
     ) : ViewModel() {
     val timeStamps = MutableLiveData<List<AniSkip.Stamp>?>()
     private val timeStampsMap: MutableMap<Int, List<AniSkip.Stamp>?> = mutableMapOf()
-      var doNotAsk: Boolean = false
+    var doNotAsk: Boolean = false
     var lastPosition: Long = 0
     var qualityProgress: Long = -1
 
@@ -69,7 +69,13 @@ class PlayViewModel(
     fun getMalId() {
 
     }
-    suspend fun loadTimeStamps(malId: Int?, episodeNum: Int?, duration: Long, useProxyForTimeStamps: Boolean) {
+
+    suspend fun loadTimeStamps(
+        malId: Int?,
+        episodeNum: Int?,
+        duration: Long,
+        useProxyForTimeStamps: Boolean
+    ) {
         malId ?: return
         episodeNum ?: return
         if (timeStampsMap.containsKey(episodeNum))
@@ -243,6 +249,36 @@ class PlayViewModel(
     fun loadAnimeById(id: Int) {
         viewModelScope.launch {
             val result = repo.loadAnimeDetail(id)
+            if (result.isSuccess) {
+                detailData.postValue(
+                    DetailCategory(
+                        content = result.getOrNull()!!
+                    )
+                )
+            } else {
+                errorData.postValue(result.exceptionOrNull()?.message)
+            }
+        }
+    }
+
+    fun loadMovieById(id: Int) {
+        viewModelScope.launch {
+            val result = repo.loadMovieDetail(id)
+            if (result.isSuccess) {
+                detailData.postValue(
+                    DetailCategory(
+                        content = result.getOrNull()!!.copy(episodes = 1)
+                    )
+                )
+            } else {
+                errorData.postValue(result.exceptionOrNull()?.message)
+            }
+        }
+    }
+
+    fun loadSeriesById(id: Int) {
+        viewModelScope.launch {
+            val result = repo.loadSeriesDetail(id)
             if (result.isSuccess) {
                 detailData.postValue(
                     DetailCategory(

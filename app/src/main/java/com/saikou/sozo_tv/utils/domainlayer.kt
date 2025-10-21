@@ -7,11 +7,13 @@ import com.animestudios.animeapp.GetCharacterDetailQuery
 import com.animestudios.animeapp.GetCharactersAnimeByIdQuery
 import com.animestudios.animeapp.GetRelationsByIdQuery
 import com.animestudios.animeapp.SearchAnimeQuery
+import com.animestudios.animeapp.type.MediaSource
 import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.local.entity.CharacterEntity
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.jikan.BannerHomeData
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
+import com.saikou.sozo_tv.data.model.tmdb.MediaDetails
 import com.saikou.sozo_tv.data.model.tmdb.TmdbListItem
 import com.saikou.sozo_tv.domain.model.AiringSchedule
 import com.saikou.sozo_tv.domain.model.BannerItem
@@ -35,7 +37,8 @@ fun TmdbListItem.toDomain(): MainModel {
         this.imageUrl ?: "",
         null,
         null,
-        -1, -1
+        -1, -1,
+        isSeries = this.media_type == "tv"
     )
 }
 
@@ -83,6 +86,29 @@ fun AnimeBookmark.toDomain(): MainModel {
         null,
         null,
         -1,
+    )
+}
+
+fun MediaDetails.toDomain(): DetailModel {
+    val genres = ArrayList<String>()
+    if (this.genres?.isNotEmpty() == true) {
+        this.genres.forEach {
+            genres.add(it.name)
+        }
+    }
+    return DetailModel(
+        this.id,
+        -1,
+        coverImage = CoverImage(large = this.imageUrl ?: ""),
+        "${LocalData.IMDB_BACKDROP_PATH}${this.backdrop_path}",
+        this.overview ?: "",
+        this.titleFormat ?: "",
+        this.number_of_episodes,
+        genres,
+        null,
+        this.production_companies?.map { it.name ?: "" } ?: arrayListOf(),
+        0,
+        MediaSource.ORIGINAL,
     )
 }
 
@@ -202,7 +228,7 @@ fun TmdbListItem.toSearchDomain(): SearchModel {
         this.imageUrl,
         null,
         null,
-        -1
+        if (this.media_type == "movie") 1 else 0
     )
 }
 

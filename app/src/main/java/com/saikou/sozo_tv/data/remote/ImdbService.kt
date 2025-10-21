@@ -1,9 +1,11 @@
 package com.saikou.sozo_tv.data.remote
 
+import com.saikou.sozo_tv.data.model.tmdb.MediaDetails
 import com.saikou.sozo_tv.data.model.tmdb.TmdbGenreResponse
 import com.saikou.sozo_tv.data.model.tmdb.TmdbListResponse
 import retrofit2.Response
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ImdbService {
@@ -53,4 +55,16 @@ interface ImdbService {
         @Query("page") page: Int = 1,
         @Query("include_adult") isAdult: Boolean = false
     ): Response<TmdbListResponse>
+
+    @GET("movie/{id}")
+    suspend fun getMovieDetails(
+        @Path("id") id: Int,
+        @Query("language") lang: String = "en-US"
+    ): Response<MediaDetails>
+
+    @GET("tv/{id}")
+    suspend fun getTvDetails(
+        @Path("id") id: Int,
+        @Query("language") lang: String = "en-US"
+    ): Response<MediaDetails>
 }

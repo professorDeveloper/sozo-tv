@@ -75,7 +75,9 @@ class ImdbHomeRepositoryImpl(
                     ),
                     format = MediaFormat.MOVIE,
                     source = MediaSource.NOVEL,
-                    title = Title(it.titleFormat ?: it.name ?: "")
+                    title = Title(it.titleFormat ?: it.name ?: ""),
+                    isSeries =it.media_type=="tv"
+
                 )
             )
         })
@@ -94,7 +96,9 @@ class ImdbHomeRepositoryImpl(
                     ),
                     format = MediaFormat.MOVIE,
                     source = MediaSource.NOVEL,
-                    title = Title(it.titleFormat ?: it.name ?: "")
+                    title = Title(it.titleFormat ?: it.name ?: ""),
+                    isSeries =it.media_type=="tv"
+
                 )
             )
         })
@@ -112,7 +116,9 @@ class ImdbHomeRepositoryImpl(
                         ),
                         format = MediaFormat.MOVIE,
                         source = MediaSource.NOVEL,
-                        title = Title(it.titleFormat ?: it.name ?: "")
+                        title = Title(it.titleFormat ?: it.name ?: ""),
+                        isSeries =it.media_type=="tv"
+
                     )
                 )
             })
@@ -133,7 +139,8 @@ class ImdbHomeRepositoryImpl(
                         ),
                         format = MediaFormat.MOVIE,
                         source = MediaSource.NOVEL,
-                        title = Title(it.titleFormat ?: it.name ?: "")
+                        title = Title(it.titleFormat ?: it.name ?: ""),
+                        isSeries =it.media_type=="tv"
                     )
                 )
             }
@@ -157,7 +164,9 @@ class ImdbHomeRepositoryImpl(
                     it.titleFormat ?: "",
                     it.overview ?: "",
                     genre_ids = it.genre_ids,
-                    isMovie = true
+                    isMovie = true,
+                    isSeries = it.media_type == "tv",
+                    imdb_id = it.id ?: 0,
                 )
             )
         })

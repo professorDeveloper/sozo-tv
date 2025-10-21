@@ -48,6 +48,7 @@ data class BannerHomeData(
     val mal_id: Int = -1,
     val imdb_id: Int = -1,
     val genre_ids: List<Int> = emptyList(),
-    val isMovie:Boolean = false
+    val isMovie: Boolean = false,
+    val isSeries: Boolean = false
 ) {
 }

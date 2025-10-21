@@ -9,7 +9,8 @@ data class HomeModel(
     val coverImage: CoverImage,
     val format: MediaFormat,
     val source: MediaSource,
-    val title: Title
+    val title: Title,
+    val isSeries: Boolean = true,
 )
 
 data class Title(

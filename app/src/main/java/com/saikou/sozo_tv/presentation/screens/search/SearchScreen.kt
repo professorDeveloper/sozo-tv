@@ -66,7 +66,8 @@ class SearchScreen : Fragment() {
             showSoftInputOnFocus = false
             setOnFocusChangeListener { view, hasFocus ->
                 if (hasFocus) {
-                    val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    val imm =
+                        requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                     imm.hideSoftInputFromWindow(view.windowToken, 0)
                     view.applyFocusedStyle()
                 } else {
@@ -74,7 +75,8 @@ class SearchScreen : Fragment() {
                 }
             }
             setOnClickListener {
-                val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                val imm =
+                    requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(it.windowToken, 0)
                 it.requestFocus()
             }
@@ -145,7 +147,8 @@ class SearchScreen : Fragment() {
                 searchAdapter.updateData(movies)
                 binding.placeHolder.root.visibility = View.GONE
                 binding.recommendationsTitle.visibility = View.VISIBLE
-                binding.recommendationsTitle.text = "Search Results for \"${binding.searchEdt.text.toString().trim()}\""
+                binding.recommendationsTitle.text =
+                    "Search Results for \"${binding.searchEdt.text.toString().trim()}\""
             } else {
                 binding.vgvSearch.visibility = View.GONE
                 binding.placeHolder.root.visibility = View.VISIBLE
@@ -170,6 +173,7 @@ class SearchScreen : Fragment() {
             Log.d("SearchScreen", "Item clicked: ${searchModel.title}")
             val intent = Intent(requireActivity(), PlayerActivity::class.java)
             intent.putExtra("model", searchModel.id)
+            intent.putExtra("isMovie", searchModel.averageScore == 1)
             requireActivity().startActivity(intent)
         }
 
@@ -178,9 +182,9 @@ class SearchScreen : Fragment() {
 
     private fun performSearchImmediate(query: String) {
         if (query.isNotEmpty()) {
-            if (preference.isModeAnimeEnabled()){
+            if (preference.isModeAnimeEnabled()) {
                 model.searchAnime(query.trim())
-            }else {
+            } else {
                 model.searchMovie(query.trim())
             }
             searchAdapter.setQueryText(query.trim())
@@ -217,7 +221,13 @@ class SearchScreen : Fragment() {
     private fun initializeSearch() {
         binding.searchEdt.apply {
             addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
+                }
 
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                     val query = s.toString().trim()

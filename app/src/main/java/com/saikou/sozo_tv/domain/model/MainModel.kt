@@ -10,7 +10,8 @@ data class MainModel(
     val genres: List<String?>?,
     val studios: List<String?>?,
     val averageScore: Int,
-    val meanScore: Int = -1
+    val meanScore: Int = -1,
+    val isSeries : Boolean = false
 ) : Serializable
 
 

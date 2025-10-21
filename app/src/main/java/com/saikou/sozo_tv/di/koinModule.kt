@@ -74,7 +74,7 @@ val koinModule = module {
         CategoriesRepositoryImpl(apolloClient = get(), api = get())
     }
     single<DetailRepository> {
-        DetailRepositoryImpl(client = get())
+        DetailRepositoryImpl(client = get(), api = get())
     }
 //    single<ProfileRepository> {
 //        ProfileRepositoryImpl(service = get(), pref = get())
@@ -120,8 +120,7 @@ val koinModule = module {
 }
 
 val firebaseModule = module {
-    single<FirebaseDatabase> {
-        FirebaseDatabase.getInstance("https://sozo-app-a36e6-default-rtdb.asia-southeast1.firebasedatabase.app/")
+    single<FirebaseDatabase> {;        FirebaseDatabase.getInstance("https://sozo-app-a36e6-default-rtdb.asia-southeast1.firebasedatabase.app/")
     }
     single { FirebaseService(get()) }
 }

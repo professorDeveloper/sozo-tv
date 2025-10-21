@@ -6,6 +6,7 @@ import com.animestudios.animeapp.GetCharactersAnimeByIdQuery
 import com.animestudios.animeapp.GetRelationsByIdQuery
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
+import com.saikou.sozo_tv.data.remote.ImdbService
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.CastDetailModel
 import com.saikou.sozo_tv.domain.model.DetailModel
@@ -14,7 +15,8 @@ import com.saikou.sozo_tv.domain.repository.DetailRepository
 import com.saikou.sozo_tv.utils.toDomain
 import kotlin.random.Random
 
-class DetailRepositoryImpl(private val client: ApolloClient) : DetailRepository {
+class DetailRepositoryImpl(private val client: ApolloClient, private val api: ImdbService) :
+    DetailRepository {
     override suspend fun loadAnimeDetail(id: Int): Result<DetailModel> {
         try {
             val result = client.query(
@@ -29,6 +31,33 @@ class DetailRepositoryImpl(private val client: ApolloClient) : DetailRepository 
             return Result.failure(e)
         }
     }
+
+    override suspend fun loadMovieDetail(id: Int): Result<DetailModel> {
+        try {
+            val movieDetailRequest = api.getMovieDetails(id)
+            if (movieDetailRequest.isSuccessful) {
+                val response = movieDetailRequest.body()!!
+                return Result.success(response.toDomain())
+            } else {
+                return Result.failure(Exception(movieDetailRequest.errorBody()?.string()))
+            }
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
+    }
+
+    override suspend fun loadSeriesDetail(id: Int): Result<DetailModel> {
+        try {
+            val movieDetailRequest = api.getTvDetails(id)
+            if (movieDetailRequest.isSuccessful) {
+                val response = movieDetailRequest.body()!!
+                return Result.success(response.toDomain())
+            } else {
+                return Result.failure(Exception(movieDetailRequest.errorBody()?.string()))
+            }
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }    }
 
     override suspend fun loadRandomAnime(): Result<List<MainModel>> {
         try {
@@ -92,7 +121,7 @@ class DetailRepositoryImpl(private val client: ApolloClient) : DetailRepository 
                 GetCharacterDetailQuery(Optional.present(id))
             ).execute()
 
-            val data =result.data?.Character?.toDomain()
+            val data = result.data?.Character?.toDomain()
             return Result.success(data!!)
 
         } catch (e: Exception) {

@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.utils
 
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.app.MyApp
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.data.model.SectionItem
 import com.saikou.sozo_tv.domain.model.BannerItem
@@ -24,6 +25,8 @@ object LocalData {
         "NASA",
         "English News",
     )
+    val preferenceManager = PreferenceManager()
+    val isAnimeEnabled = preferenceManager.isModeAnimeEnabled()
     val channelsd = arrayListOf(
         Channel(
             "0",

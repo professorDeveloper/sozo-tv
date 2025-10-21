@@ -20,6 +20,7 @@ data class TmdbListItem(
     var overview: String?,
     val genre_ids: List<Int>,
     val release_date: String,
+
 ) {
     val titleFormat: String?
         get() = name ?: original_name ?: title

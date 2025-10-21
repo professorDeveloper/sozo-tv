@@ -92,10 +92,11 @@ class CategoriesScreen : Fragment() {
             pageAdapter.updateTabs(LocalData.genreTmdb.map { it.title.toString() } as ArrayList<String>)
         }
         pageAdapter.setClickDetail {
-            val intent =
-                Intent(binding.root.context, PlayerActivity::class.java)
+            val intent = Intent(binding.root.context, PlayerActivity::class.java)
             intent.putExtra("model", it.id)
+            intent.putExtra("isMovie", !it.isSeries)
             binding.root.context.startActivity(intent)
+
         }
 
         model.result.observe(viewLifecycleOwner) {
