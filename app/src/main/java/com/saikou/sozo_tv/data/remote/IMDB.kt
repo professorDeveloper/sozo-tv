@@ -22,9 +22,8 @@ fun String.extractViId(): String? {
 
 class IMDBScraping {
     fun getTrailerLink(trailerUrl: String): String {
-        Log.d("GGG", "getTrailerLink: Traikler urk :$trailerUrl ")
+        Log.d("GGG", "getTrailerLink: Trailer url :$trailerUrl ")
         val document = Utils.getJsoup(
-
             BASE_URL + "video/embed/$trailerUrl",
             mapOf(
                 "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
@@ -33,18 +32,19 @@ class IMDBScraping {
         )
 
         val scriptData = document.select("script#__NEXT_DATA__").first()?.html()
-            ?: return "master.m3u8 URL notfound"
+            ?: return "MP4 URL not found"
 
-        val regex = Regex(""""url"\s*:\s*"([^"]*hls-[^"]*?-master\.m3u8[^"]*)"""")
-        val matchResult = regex.find(scriptData)
+        val regex = Regex(""""url"\s*:\s*"([^"]*\.mp4\?[^"]*)"""")
+        val matches = regex.findAll(scriptData)
 
-        return if (matchResult != null) {
-            val masterUrl = matchResult.groupValues[1]
-            println("Found master.m3u8 URL: $masterUrl")
-            masterUrl
+        val mp4Urls = matches.map { it.groupValues[1] }.toList()
+
+        return if (mp4Urls.isNotEmpty()) {
+            println("Found MP4 URLs:")
+            return mp4Urls[0].toString()
         } else {
-            println("master.m3u8 URL notfound")
-            "master.m3u8 URL notfound"
+            println("MP4 URL not found")
+            return "data"
         }
     }
 

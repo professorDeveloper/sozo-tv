@@ -7,6 +7,7 @@
         <domain includeSubdomains="true">api.jikan.moe</domain>
         <domain includeSubdomains="true">www.imdb.com</domain>
         <domain includeSubdomains="true">hentaimama.io</domain>
+        <domain includeSubdomains="true">imdb-video.media-imdb.com</domain>
         <domain includeSubdomains="true">s4.anilist.co</domain>
         <domain includeSubdomains="true">www.livechart.me</domain>
         <domain includeSubdomains="true">animepahe.ru</domain>

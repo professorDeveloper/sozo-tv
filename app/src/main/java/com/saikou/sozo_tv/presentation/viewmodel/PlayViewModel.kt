@@ -23,6 +23,7 @@ import com.saikou.sozo_tv.parser.AnimePahe
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.utils.Resource
+import com.saikou.sozo_tv.utils.cleanImdbUrl
 import com.saikou.sozo_tv.utils.extractImdbVideoId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -247,7 +248,8 @@ class PlayViewModel(
                 val trailerUrll = trailer.getTrailer(list)
                 val trailerMasterUrl =
                     trailer.getTrailerLink(trailerUrll.first.extractImdbVideoId().toString())
-                trailerData.postValue(trailerUrll.first)
+                Log.d("GGG", "loadTrailer:original Link: ${trailerMasterUrl.cleanImdbUrl()} ")
+                trailerData.postValue(trailerMasterUrl.cleanImdbUrl())
             }
         }
     }

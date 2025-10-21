@@ -10,16 +10,25 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.OptIn
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.session.MediaSession
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.exoplayer2.upstream.DefaultDataSource
+import com.bugsnag.android.Bugsnag
+import com.lagradost.nicehttp.ignoreAllSSLErrors
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.DetailPageBinding
 import com.saikou.sozo_tv.domain.model.Cast
@@ -30,9 +39,14 @@ import com.saikou.sozo_tv.presentation.screens.profile.NfcDisabledDialog
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
+import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.loadImage
 import com.saikou.sozo_tv.utils.toDomain
+import com.saikou.sozo_tv.utils.visible
+import okhttp3.ConnectionSpec
+import okhttp3.OkHttpClient
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import java.util.concurrent.TimeUnit
 
 
 class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
@@ -128,39 +142,57 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
 
     @UnstableApi
     private fun initializePlayer() {
-        val context = requireContext()
-        val httpDataSourceFactory = androidx.media3.datasource.DefaultHttpDataSource.Factory()
-            .setAllowCrossProtocolRedirects(true)
-        val dataSourceFactory =
-            androidx.media3.datasource.DefaultDataSource.Factory(context, httpDataSourceFactory)
+        val okHttpClient = OkHttpClient.Builder()
+            .ignoreAllSSLErrors() // ⚠️ Sertifikat tekshiruvini bekor qiladi
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
+            .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.CLEARTEXT))
+            .build()
+
+        // OkHttp asosida DataSource yaratamiz
+        val okHttpDataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
+            .setDefaultRequestProperties(mapOf("User-Agent" to "ExoPlayer"))
+
+        val dataSourceFactory: DataSource.Factory =
+            DefaultDataSource.Factory(requireContext(), okHttpDataSourceFactory)
 
         val mediaSourceFactory =
             androidx.media3.exoplayer.source.DefaultMediaSourceFactory(dataSourceFactory)
 
         player =
-            ExoPlayer.Builder(context).setMediaSourceFactory(mediaSourceFactory).build().apply {
-                setAudioAttributes(
-                    androidx.media3.common.AudioAttributes.Builder()
-                        .setUsage(androidx.media3.common.C.USAGE_MEDIA)
-                        .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MOVIE)
-                        .build(), true
-                )
-                addListener(playerListener)
-                volume = 0f
-                playWhenReady = true
-            }
+            ExoPlayer.Builder(requireContext()).setMediaSourceFactory(mediaSourceFactory).build()
+                .apply {
+                    setAudioAttributes(
+                        androidx.media3.common.AudioAttributes.Builder()
+                            .setUsage(androidx.media3.common.C.USAGE_MEDIA)
+                            .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MOVIE)
+                            .build(), true
+                    )
+                    addListener(playerListener)
+                    volume = 0f
+                    playWhenReady = true
+                }
 
         binding.trailerView.player = player
     }
 
     @OptIn(UnstableApi::class)
     private fun prepareMedia(hlsUrl: String) {
-        val mediaItem =
-            MediaItem.Builder().setUri(hlsUrl).setMimeType(MimeTypes.APPLICATION_M3U8) // HLS format
-                .build()
-        player?.setMediaItem(mediaItem)
-        player?.prepare()
-        player?.playWhenReady = true
+        if (hlsUrl!="data") {
+            binding.replaceImage.gone()
+        }else {
+            binding.replaceImage.   visible()
+        }
+        val mediaItem = MediaItem.Builder()
+            .setUri(hlsUrl)
+            .build()
+
+        player?.apply {
+            setMediaItem(mediaItem)
+            prepare()
+            playWhenReady = true
+        }
     }
 
     private fun initializeAdapter() {
