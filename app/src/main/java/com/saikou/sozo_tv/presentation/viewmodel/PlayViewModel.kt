@@ -10,7 +10,9 @@ import com.saikou.sozo_tv.data.local.entity.EpisodeInfoEntity
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.model.VodMovieResponse
 import com.saikou.sozo_tv.data.remote.DubsMp4Parser
+import com.saikou.sozo_tv.data.remote.IMDBScraping
 import com.saikou.sozo_tv.data.remote.LiveChartTrailer
+import com.saikou.sozo_tv.data.remote.extractViId
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.MainModel
@@ -21,6 +23,7 @@ import com.saikou.sozo_tv.parser.AnimePahe
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.utils.Resource
+import com.saikou.sozo_tv.utils.extractImdbVideoId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -236,9 +239,16 @@ class PlayViewModel(
         }
     }
 
-    fun loadTrailer(name: String) {
-        trailerJob = viewModelScope.launch {
-//            trailer is flc
+    fun loadTrailer(name: String, isAnime: Boolean = true) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (!isAnime) {
+                val trailer = IMDBScraping()
+                val list = trailer.searchMovie(name)
+                val trailerUrll = trailer.getTrailer(list)
+                val trailerMasterUrl =
+                    trailer.getTrailerLink(trailerUrll.first.extractImdbVideoId().toString())
+                trailerData.postValue(trailerUrll.first)
+            }
         }
     }
 
@@ -265,6 +275,7 @@ class PlayViewModel(
         viewModelScope.launch {
             val result = repo.loadMovieDetail(id)
             if (result.isSuccess) {
+
                 detailData.postValue(
                     DetailCategory(
                         content = result.getOrNull()!!.copy(episodes = 1)

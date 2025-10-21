@@ -51,6 +51,13 @@ import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
+fun String.cleanImdbUrl(): String {
+    return this.replace("\\u0026", "&")
+}
+fun String.extractImdbVideoId(): String? {
+    val regex = Regex("/(vi\\d+)/")
+    return regex.find(this)?.groupValues?.get(1)
+}
 
 fun String.toDateFromIso8601(): Date? {
     val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())

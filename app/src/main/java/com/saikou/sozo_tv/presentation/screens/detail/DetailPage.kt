@@ -16,8 +16,10 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.DetailPageBinding
 import com.saikou.sozo_tv.domain.model.Cast
@@ -38,6 +40,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     private val binding get() = _binding!!
     private val playViewModel: PlayViewModel by activityViewModel()
     private var player: ExoPlayer? = null
+    private val preference by lazy { PreferenceManager() }
     private var trailerUrlPlayer: String? = null
     private val detailsAdapter = MovieDetailsAdapter(detailsButtonListener = this)
     private val playerListener = object : Player.Listener {
@@ -62,8 +65,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         LocalData.trailer = ""
         LocalData.bookmark = false
@@ -87,7 +89,6 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
                 trailerUrlPlayer = it
                 prepareMedia(it)
                 detailsAdapter.updateTrailer(it)
-
             }
         }
         playViewModel.isBookmark.observe(viewLifecycleOwner) {
@@ -95,7 +96,11 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         }
         playViewModel.detailData.observe(viewLifecycleOwner) { details ->
             playViewModel.checkBookmark(details.content.id)
-            playViewModel.loadTrailer(details.content.title)
+            if (preference.isModeAnimeEnabled()) {
+                playViewModel.loadTrailer(details.content.title)
+            } else {
+                playViewModel.loadTrailer(details.content.title, false)
+            }
             binding.replaceImage.loadImage(details.content.bannerImage)
             val currentList = arrayListOf<DetailCategory>()
             val headerItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_HEADER)
@@ -105,8 +110,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
             currentList.addAll(listOf(headerItem, sectionItem, thirdItem, fourItem))
             detailsAdapter.submitList(currentList)
             LocalData.setFocusChangedListenerPlayer {
-                val intent =
-                    Intent(binding.root.context, PlayerActivity::class.java)
+                val intent = Intent(binding.root.context, PlayerActivity::class.java)
                 intent.putExtra("model", it.id)
                 requireActivity().startActivity(intent)
                 requireActivity().finish()
@@ -133,13 +137,13 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         val mediaSourceFactory =
             androidx.media3.exoplayer.source.DefaultMediaSourceFactory(dataSourceFactory)
 
-        player = ExoPlayer.Builder(context)
-            .setMediaSourceFactory(mediaSourceFactory).build().apply {
+        player =
+            ExoPlayer.Builder(context).setMediaSourceFactory(mediaSourceFactory).build().apply {
                 setAudioAttributes(
                     androidx.media3.common.AudioAttributes.Builder()
                         .setUsage(androidx.media3.common.C.USAGE_MEDIA)
-                        .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MOVIE).build(),
-                    true
+                        .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MOVIE)
+                        .build(), true
                 )
                 addListener(playerListener)
                 volume = 0f
@@ -152,9 +156,8 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     @OptIn(UnstableApi::class)
     private fun prepareMedia(hlsUrl: String) {
         val mediaItem =
-            MediaItem.Builder().setUri(hlsUrl).setMimeType(MimeTypes.APPLICATION_MP4) // HLS format
+            MediaItem.Builder().setUri(hlsUrl).setMimeType(MimeTypes.APPLICATION_M3U8) // HLS format
                 .build()
-
         player?.setMediaItem(mediaItem)
         player?.prepare()
         player?.playWhenReady = true
@@ -201,11 +204,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     }
 
     override fun onWatchButtonClicked(
-        item: DetailCategory,
-        id: Int,
-        url: String,
-        title: String,
-        isFree: Boolean
+        item: DetailCategory, id: Int, url: String, title: String, isFree: Boolean
     ) {
         val isAdult = item.content.isAdult
         val canWatchAdult = PreferenceManager().isNsfwEnabled()
@@ -238,8 +237,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     override fun onTrailerButtonClicked(item: DetailCategory) {
         findNavController().navigate(
             DetailPageDirections.actionDetailPage2ToTrailerPlayerScreen(
-                LocalData.trailer,
-                item.content.title
+                LocalData.trailer, item.content.title
             )
         )
     }
