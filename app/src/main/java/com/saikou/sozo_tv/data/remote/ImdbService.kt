@@ -46,5 +46,11 @@ interface ImdbService {
         @Query("include_adult") isAdult: Boolean = false
     ): Response<TmdbListResponse>
 
-
+    @GET("search/multi")
+    suspend fun searchMoviesByKeyword(
+        @Query("query") keyword: String,
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1,
+        @Query("include_adult") isAdult: Boolean = false
+    ): Response<TmdbListResponse>
 }

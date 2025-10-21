@@ -30,7 +30,7 @@ import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 fun TmdbListItem.toDomain(): MainModel {
     return MainModel(
         this.id ?: 0,
-        this.title ?: "",
+        this.titleFormat ?: "",
         -1,
         this.imageUrl ?: "",
         null,
@@ -193,6 +193,17 @@ fun List<GenreModel>.toDomain(): CategoryGenre {
             content = it
         )
     })
+}
+
+fun TmdbListItem.toSearchDomain(): SearchModel {
+    return SearchModel(
+        this.id,
+        this.titleFormat,
+        this.imageUrl,
+        null,
+        null,
+        -1
+    )
 }
 
 fun SearchAnimeQuery.Medium.toDomain(): SearchModel {

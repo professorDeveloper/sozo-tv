@@ -15,6 +15,7 @@ import android.content.Context
 import androidx.lifecycle.lifecycleScope
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.SearchAdapter
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.SearchScreenBinding
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
@@ -37,6 +38,7 @@ class SearchScreen : Fragment() {
     private val model: SearchViewModel by viewModel()
     private var searchJob: Job? = null
     private var lastSearchQuery = ""
+    val preference = PreferenceManager()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -176,7 +178,11 @@ class SearchScreen : Fragment() {
 
     private fun performSearchImmediate(query: String) {
         if (query.isNotEmpty()) {
-            model.searchAnime(query.trim())
+            if (preference.isModeAnimeEnabled()){
+                model.searchAnime(query.trim())
+            }else {
+                model.searchMovie(query.trim())
+            }
             searchAdapter.setQueryText(query.trim())
             searchHistoryManager.addSearchQuery(query.trim())
             binding.recommendationsTitle.visibility = View.VISIBLE

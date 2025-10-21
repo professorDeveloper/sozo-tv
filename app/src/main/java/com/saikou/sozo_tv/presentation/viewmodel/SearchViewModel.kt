@@ -42,4 +42,29 @@ class SearchViewModel(private val repo: SearchRepository) : ViewModel() {
         }
     }
 
+    fun searchMovie(query: String) {
+        if (lastQuery != query) {
+            viewModelScope.launch {
+                _loading.value = true
+                val result = repo.searchMovie(query)
+                result.onSuccess {
+                    if (it.isNotEmpty()) {
+                        _loading.value = false
+                        _searchResults.value = it
+                        lastQuery = query
+                    } else {
+                        _loading.value = false
+                        _searchResults.value = arrayListOf()
+                        lastQuery = query
+                    }
+                }.onFailure {
+                    errorData.value = it.message
+                    Log.d("GG", "search:${it.message} ")
+                    _searchResults.value = emptyList()
+                }
+            }
+        }
+    }
+
+
 }

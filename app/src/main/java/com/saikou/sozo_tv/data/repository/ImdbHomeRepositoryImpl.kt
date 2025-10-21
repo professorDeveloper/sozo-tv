@@ -75,7 +75,7 @@ class ImdbHomeRepositoryImpl(
                     ),
                     format = MediaFormat.MOVIE,
                     source = MediaSource.NOVEL,
-                    title = Title(it.title ?: it.name ?: "")
+                    title = Title(it.titleFormat ?: it.name ?: "")
                 )
             )
         })
@@ -94,7 +94,7 @@ class ImdbHomeRepositoryImpl(
                     ),
                     format = MediaFormat.MOVIE,
                     source = MediaSource.NOVEL,
-                    title = Title(it.title ?: it.name ?: "")
+                    title = Title(it.titleFormat ?: it.name ?: "")
                 )
             )
         })
@@ -112,7 +112,7 @@ class ImdbHomeRepositoryImpl(
                         ),
                         format = MediaFormat.MOVIE,
                         source = MediaSource.NOVEL,
-                        title = Title(it.title ?: it.name ?: "")
+                        title = Title(it.titleFormat ?: it.name ?: "")
                     )
                 )
             })
@@ -133,7 +133,7 @@ class ImdbHomeRepositoryImpl(
                         ),
                         format = MediaFormat.MOVIE,
                         source = MediaSource.NOVEL,
-                        title = Title(it.title ?: it.name ?: "")
+                        title = Title(it.titleFormat ?: it.name ?: "")
                     )
                 )
             }
@@ -154,7 +154,7 @@ class ImdbHomeRepositoryImpl(
             BannerItem(
                 contentItem = BannerHomeData(
                     it.imageUrl ?: "",
-                    it.title ?: "",
+                    it.titleFormat ?: "",
                     it.overview ?: "",
                     genre_ids = it.genre_ids,
                     isMovie = true

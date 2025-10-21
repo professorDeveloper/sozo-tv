@@ -11,8 +11,9 @@ data class TmdbListResponse(
 
 data class TmdbListItem(
     val id: Int?,
-    val title: String?,
     val name: String?,
+    val title: String?,
+    val original_name: String?,
     val backdrop_path: String?,
     val poster_path: String?,
     val media_type: String?,
@@ -20,6 +21,8 @@ data class TmdbListItem(
     val genre_ids: List<Int>,
     val release_date: String,
 ) {
+    val titleFormat: String?
+        get() = name ?: original_name ?: title
     val imageUrl: String?
         get() = poster_path?.let { LocalData.IMDB_IMAGE_PATH + it }
 

@@ -68,7 +68,7 @@ val koinModule = module {
         CharacterBookmarkRepositoryImpl(dao = get())
     }
     single<SearchRepository> {
-        SearchRepositoryImpl(apolloClient = get())
+        SearchRepositoryImpl(apolloClient = get(), api = get())
     }
     single<CategoriesRepository> {
         CategoriesRepositoryImpl(apolloClient = get(), api = get())
