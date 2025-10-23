@@ -25,6 +25,7 @@
     public *;
 }
 
+#-keep  com.saikou.sozo_tv
 # Barcha native methodlarni saqlaymiz
 -keepclasseswithmembernames class * {
     native <methods>;

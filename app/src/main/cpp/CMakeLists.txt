@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 3.4.1)
 
-# Agar API_KEY build vaqtida kiritilmagan bo'lsa bo'sh string qilamiz
-if(NOT DEFINED API_KEY)
-    set(API_KEY "")
-endif()
-
-# API_KEY ni define qilib qo'yamiz (C kompilator uchun -DAPI_KEY="value")
-add_definitions(-DAPI_KEY="${API_KEY}")
+add_definitions(-DAPI_KEY="eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIzZjVlYWQ5OTIzNmRhNGU1YzUyNjA1NTJjYzI5NTQzYyIsIm5iZiI6MTY0OTcwMTIwMy44ODk5OTk5LCJzdWIiOiI2MjU0NzE1MzY3ZTBmNzM5YzFhMjIyMzQiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.s6vYAqE1eUVxpVRVRoG6BGwiq8BuI9mf0tBHCiCDl7s") # API key shu yerda beriladi
 
 add_library(native-lib SHARED native-lib.cpp)
 
