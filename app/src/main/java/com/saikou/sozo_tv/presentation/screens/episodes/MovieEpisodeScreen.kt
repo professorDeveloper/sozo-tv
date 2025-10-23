@@ -116,9 +116,9 @@ class MovieEpisodeScreen : Fragment() {
                             showWrongTitleDialog(dataFound.data.name)
                         }
                         binding.topContainer.adapter = adapter
-                        viewModel.loadMovieSeriesEpisodesBySeason(currentMediaId, 1)
+                        viewModel.loadMovieSeriesEpisodes(currentMediaId)
                         binding.placeHolder.root.gone()
-                        binding.loadingLayout.gone()
+                        binding.loadingLayout.visible()
                         viewModel.episodeData.observe(viewLifecycleOwner) { result ->
                             when (result) {
                                 is Resource.Error -> {
