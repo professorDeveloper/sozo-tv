@@ -19,9 +19,6 @@ val localPropsFile = project.rootProject.file("local.properties")
 if (localPropsFile.exists()) {
     localProps.load(FileInputStream(localPropsFile))
 }
-val apiKey = localProps.getProperty("API_KEY", "")
-
-val apiKeyEscapedForCmake = apiKey.replace("\\", "\\\\").replace("\"", "\\\"")
 android {
     namespace = "com.saikou.sozo_tv"
     compileSdk = 35
@@ -45,8 +42,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                // Pass API_KEY as CMake argument (will become -DAPI_KEY="value")
-                arguments += listOf("-DAPI_KEY=\"${apiKeyEscapedForCmake}\"")
             }
         }
     }

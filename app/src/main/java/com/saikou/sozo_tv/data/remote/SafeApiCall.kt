@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.data.remote
 
+import com.bugsnag.android.Bugsnag
 import com.saikou.sozo_tv.domain.exceptions.NetworkException
 import com.saikou.sozo_tv.domain.exceptions.UnknownException
 import com.saikou.sozo_tv.utils.toResult
@@ -32,6 +33,7 @@ suspend fun <T> safeApiCall(
             }
         }
 
+        Bugsnag.notify(lastException?:Exception("nothing"))
         Result.failure(NetworkException("Network error: ${lastException?.message}"))
     }
 }

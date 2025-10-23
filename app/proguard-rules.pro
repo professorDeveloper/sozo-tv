@@ -19,3 +19,13 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# JNI orqali chaqiriladigan klassni himoya qilamiz
+-keep class com.saikou.sozo_tv.utils.Security {
+    public *;
+}
+
+# Barcha native methodlarni saqlaymiz
+-keepclasseswithmembernames class * {
+    native <methods>;
+}

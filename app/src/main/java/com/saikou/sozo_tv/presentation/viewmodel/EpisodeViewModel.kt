@@ -50,6 +50,7 @@ class EpisodeViewModel(
 
     fun loadMovieSeriesEpisodes(imdbId: String) {
         viewModelScope.launch {
+            episodeData.value = Resource.Loading
             val listData = ArrayList<Data>()
             movieSource.getEpisodes(imdbId).let { pairData ->
                 val episodes = pairData.first
@@ -59,25 +60,26 @@ class EpisodeViewModel(
                 val firstHalf = backdrops.take(halfIndex)
                 val secondHalf = backdrops.drop(halfIndex).shuffled()
 
-                // Full backdrop listini hosil qilamiz
                 val fullBackdropList = firstHalf + secondHalf
 
                 episodes.forEachIndexed { index, episode ->
                     val snapshotUrl = if (index < fullBackdropList.size) {
                         fullBackdropList[index].originalUrl
                     } else {
-                        fullBackdropList.last().originalUrl
+                        fullBackdropList.shuffled().last().originalUrl
                     }
 
                     listData.add(
                         episode.toDomain().copy(
-                            episode = index + 1, // 1 dan tartib
+                            episode2 = episode.episode,
+                            episode = index + 1,
+                            title = episode.title,// 1 dan tartib
                             snapshot = snapshotUrl
                         )
                     )
                 }
                 episodeData.value =
-                    Resource.Success(EpisodeData(1, listData, 1, 1, "", -1, null, -1, -1))
+                    Resource.Success(EpisodeData(1, listData, 1, 1, "", -1, null, -1, 1))
             }
         }
     }
@@ -113,7 +115,7 @@ class EpisodeViewModel(
                     )
                 }
                 episodeData.value =
-                    Resource.Success(EpisodeData(1, listData, 1, 1, "", -1, null, -1,  totalSeasons))
+                    Resource.Success(EpisodeData(1, listData, 1, 1, "", -1, null, -1, totalSeasons))
             }
         }
     }
