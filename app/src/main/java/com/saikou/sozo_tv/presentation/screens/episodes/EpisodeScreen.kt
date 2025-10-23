@@ -20,7 +20,7 @@ import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.EpisodeTabAdapter
 import com.saikou.sozo_tv.adapters.SeriesPageAdapter
 import com.saikou.sozo_tv.databinding.EpisodeScreenBinding
-import com.saikou.sozo_tv.parser.HentaiMama
+import com.saikou.sozo_tv.parser.anime.HentaiMama
 import com.saikou.sozo_tv.parser.models.Part
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.screens.wrong_title.WrongTitleDialog

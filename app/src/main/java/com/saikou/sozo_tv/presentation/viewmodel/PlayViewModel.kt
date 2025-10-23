@@ -9,17 +9,14 @@ import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.local.entity.EpisodeInfoEntity
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.model.VodMovieResponse
-import com.saikou.sozo_tv.data.remote.DubsMp4Parser
 import com.saikou.sozo_tv.data.remote.IMDBScraping
-import com.saikou.sozo_tv.data.remote.LiveChartTrailer
-import com.saikou.sozo_tv.data.remote.extractViId
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.DetailRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
-import com.saikou.sozo_tv.parser.AnimePahe
+import com.saikou.sozo_tv.parser.anime.AnimePahe
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.utils.Resource
@@ -207,6 +204,19 @@ class PlayViewModel(
         return watchHistoryRepository.getAllHistory()
     }
 
+    fun loadRelationsMovieOrSeries(id: Int, isMovie: Boolean) {
+        viewModelScope.launch {
+            val result = repo.loadMovieOrSeriesRelations(id, isMovie)
+            if (result.isSuccess) {
+                if (result.getOrNull()!!.isNotEmpty() && result.getOrNull()!!.size > 5) {
+                    relationsData.postValue(result.getOrNull()!!)
+                }
+            } else {
+                errorData.postValue(result.exceptionOrNull()?.message)
+            }
+        }
+    }
+
     fun loadRelations(id: Int) {
         viewModelScope.launch {
             val result = repo.loadAnimeRelations(id)
@@ -307,6 +317,17 @@ class PlayViewModel(
     fun clearAllHistory() {
         viewModelScope.launch {
             watchHistoryRepository.clearAllHistory()
+        }
+    }
+
+    fun loadCastSeriesOrMovie(id: Int, movie: Boolean) {
+        viewModelScope.launch {
+            val result = repo.loadCastMovieSeries(id, isMovie = movie)
+            if (result.isSuccess) {
+                castResponseData.postValue(result.getOrNull()!!)
+            } else {
+                errorData.postValue(result.exceptionOrNull()?.message)
+            }
         }
     }
 }

@@ -3,8 +3,8 @@ package com.saikou.sozo_tv.presentation.viewmodel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.saikou.sozo_tv.parser.AnimePahe
-import com.saikou.sozo_tv.parser.HentaiMama
+import com.saikou.sozo_tv.parser.anime.AnimePahe
+import com.saikou.sozo_tv.parser.anime.HentaiMama
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.utils.Resource
 import kotlinx.coroutines.launch

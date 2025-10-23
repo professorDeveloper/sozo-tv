@@ -11,6 +11,8 @@ interface DetailRepository {
     suspend fun loadSeriesDetail(id: Int): Result<DetailModel>
     suspend fun loadRandomAnime(): Result<List<MainModel>>
     suspend fun loadCast(id: Int): Result<List<Cast>>
+    suspend fun loadCastMovieSeries(id: Int, isMovie: Boolean): Result<List<Cast>>
     suspend fun loadAnimeRelations(id: Int): Result<List<MainModel>>
+    suspend fun loadMovieOrSeriesRelations(id: Int,isMovie: Boolean): Result<List<MainModel>>
     suspend fun characterDetail(id: Int): Result<CastDetailModel>
 }

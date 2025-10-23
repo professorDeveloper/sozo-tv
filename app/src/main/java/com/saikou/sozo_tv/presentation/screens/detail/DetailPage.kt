@@ -126,6 +126,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
             LocalData.setFocusChangedListenerPlayer {
                 val intent = Intent(binding.root.context, PlayerActivity::class.java)
                 intent.putExtra("model", it.id)
+                intent.putExtra("isMovie", !it.isSeries)
                 requireActivity().startActivity(intent)
                 requireActivity().finish()
             }
@@ -150,7 +151,6 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
             .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.CLEARTEXT))
             .build()
 
-        // OkHttp asosida DataSource yaratamiz
         val okHttpDataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
             .setDefaultRequestProperties(mapOf("User-Agent" to "ExoPlayer"))
 
@@ -179,10 +179,10 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
 
     @OptIn(UnstableApi::class)
     private fun prepareMedia(hlsUrl: String) {
-        if (hlsUrl!="data") {
+        if (hlsUrl != "data") {
             binding.replaceImage.gone()
-        }else {
-            binding.replaceImage.   visible()
+        } else {
+            binding.replaceImage.visible()
         }
         val mediaItem = MediaItem.Builder()
             .setUri(hlsUrl)
@@ -238,29 +238,39 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     override fun onWatchButtonClicked(
         item: DetailCategory, id: Int, url: String, title: String, isFree: Boolean
     ) {
-        val isAdult = item.content.isAdult
-        val canWatchAdult = PreferenceManager().isNsfwEnabled()
-        if (isAdult && !canWatchAdult) {
-            val dialog = NfcDisabledDialog()
-            dialog.setYesContinueListener {
-                dialog.dismiss()
-                val intent = Intent(binding.root.context, ProfileActivity::class.java)
-                requireActivity().startActivity(intent)
-                requireActivity().finish()
-            }
-            dialog.setOnBackPressedListener {
-                dialog.dismiss()
-            }
+        if (preference.isModeAnimeEnabled()) {
+            val isAdult = item.content.isAdult
+            val canWatchAdult = PreferenceManager().isNsfwEnabled()
+            if (isAdult && !canWatchAdult) {
+                val dialog = NfcDisabledDialog()
+                dialog.setYesContinueListener {
+                    dialog.dismiss()
+                    val intent = Intent(binding.root.context, ProfileActivity::class.java)
+                    requireActivity().startActivity(intent)
+                    requireActivity().finish()
+                }
+                dialog.setOnBackPressedListener {
+                    dialog.dismiss()
+                }
 
-            dialog.show(childFragmentManager, "dialog")
+                dialog.show(childFragmentManager, "dialog")
+            } else {
+                findNavController().navigate(
+                    DetailPageDirections.actionDetailPage2ToEpisodeScreen(
+                        isAdult = isAdult,
+                        id,
+                        malId = item.content.malId,
+                        title,
+                        isFree,
+                    )
+                )
+            }
         } else {
             findNavController().navigate(
-                DetailPageDirections.actionDetailPage2ToEpisodeScreen(
-                    isAdult = isAdult,
-                    id,
-                    malId = item.content.malId,
-                    title,
-                    isFree,
+                DetailPageDirections.actionDetailPage2ToMovieEpisodeScreen(
+                    title = item.content.title,
+                    image = item.content.coverImage.large,
+                    tmdbId = item.content.id
                 )
             )
         }

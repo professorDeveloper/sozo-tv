@@ -5,23 +5,31 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
+import com.saikou.sozo_tv.data.model.tmdb.MediaDetails
+import com.saikou.sozo_tv.domain.repository.EpisodeRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
-import com.saikou.sozo_tv.parser.AnimePahe
-import com.saikou.sozo_tv.parser.HentaiMama
+import com.saikou.sozo_tv.parser.anime.AnimePahe
+import com.saikou.sozo_tv.parser.anime.HentaiMama
+import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
+import com.saikou.sozo_tv.parser.movie.PlayImdb
 import com.saikou.sozo_tv.utils.Resource
+import com.saikou.sozo_tv.utils.toDomain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class EpisodeViewModel(private val watchHistoryRepository: WatchHistoryRepository) : ViewModel() {
+class EpisodeViewModel(
+    private val watchHistoryRepository: WatchHistoryRepository,
+    private val repo: EpisodeRepository
+) : ViewModel() {
     val episodeData: MutableLiveData<Resource<EpisodeData>> =
         MutableLiveData<Resource<EpisodeData>>(Resource.Idle)
     val dataFound: MutableLiveData<Resource<ShowResponse>> = MutableLiveData()
     private val animePahe = AnimePahe()
     private val adultSource = HentaiMama()
-
+    private val movieSource = PlayImdb()
     var epListFromLocal = ArrayList<WatchHistoryEntity>()
 
 
@@ -29,11 +37,47 @@ class EpisodeViewModel(private val watchHistoryRepository: WatchHistoryRepositor
         episodeData.value = Resource.Loading
         viewModelScope.launch {
             adultSource.loadEpisodes(link, null).let {
-                if (it.isEmpty()){
+                if (it.isEmpty()) {
                     episodeData.value = Resource.Error(Exception("Episode not found"))
-                }else {
-                    episodeData.value = Resource.Success(EpisodeData(1, it, 1, 1, "", -1, null, -1, -1))
+                } else {
+                    episodeData.value =
+                        Resource.Success(EpisodeData(1, it, 1, 1, "", -1, null, -1, -1))
                 }
+            }
+        }
+    }
+
+    fun loadMovieSeriesEpisodes(imdbId: String) {
+        viewModelScope.launch {
+            var backdropFixCount = 0
+            val listData = ArrayList<Data>()
+            movieSource.getEpisodes(imdbId).let { pairData ->
+                pairData.first.forEach {
+                    if (backdropFixCount < pairData.second.size) {
+                        listData.add(
+                            it.toDomain()
+                                .copy(
+                                    episode2 = backdropFixCount + 1,
+                                    snapshot = pairData.second[backdropFixCount].originalUrl
+                                )
+                        )
+                        backdropFixCount++
+                    }
+                }
+                episodeData.value =
+                    Resource.Success(
+                        EpisodeData(
+                            1,
+                            listData,
+                            1,
+                            1,
+                            "",
+                            listData.size,
+                            null,
+                            -1,
+                            listData.size
+                        )
+                    )
             }
         }
     }
@@ -54,6 +98,26 @@ class EpisodeViewModel(private val watchHistoryRepository: WatchHistoryRepositor
         viewModelScope.launch {
             epListFromLocal.clear()
             epListFromLocal.addAll(watchHistoryRepository.getAllHistory() ?: arrayListOf())
+        }
+    }
+
+    fun findImdbIdSeries(tmdbId: String, title: String, image: String) {
+        viewModelScope.launch {
+            dataFound.value = Resource.Loading
+            val result = repo.extractImdbForSeries(tmdbId)
+            if (result.isSuccess) {
+                val imdbId = result.getOrNull()!!.imdb_id
+                if (imdbId != null) {
+                    dataFound.value = Resource.Success(
+                        ShowResponse(
+                            title ?: "",
+                            imdbId, image ?: ""
+                        )
+                    )
+                }
+            } else {
+                dataFound.value = Resource.Error(result.exceptionOrNull()!!)
+            }
         }
     }
 
@@ -86,7 +150,8 @@ class EpisodeViewModel(private val watchHistoryRepository: WatchHistoryRepositor
                 } else {
                     Log.d("GGG", "findEpisodes 666 } ")
                     withContext(Dispatchers.Main) {
-                        dataFound.value = Resource.Error(Exception("Media not found wrong title or romanji"))
+                        dataFound.value =
+                            Resource.Error(Exception("Media not found wrong title or romanji"))
                     }
                 }
             }

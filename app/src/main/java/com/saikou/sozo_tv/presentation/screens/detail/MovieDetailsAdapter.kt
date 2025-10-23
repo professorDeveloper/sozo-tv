@@ -59,7 +59,8 @@ class MovieDetailsAdapter(
             id: Int,
             url: String,
             title: String,
-            isFree: Boolean
+            isFree: Boolean,
+
         )
 
         fun onTrailerButtonClicked(item: DetailCategory)

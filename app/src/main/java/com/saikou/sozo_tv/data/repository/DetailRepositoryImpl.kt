@@ -6,6 +6,8 @@ import com.animestudios.animeapp.GetCharactersAnimeByIdQuery
 import com.animestudios.animeapp.GetRelationsByIdQuery
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.data.model.tmdb.TmdbListResponse
 import com.saikou.sozo_tv.data.remote.ImdbService
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.CastDetailModel
@@ -57,7 +59,8 @@ class DetailRepositoryImpl(private val client: ApolloClient, private val api: Im
             }
         } catch (e: Exception) {
             return Result.failure(e)
-        }    }
+        }
+    }
 
     override suspend fun loadRandomAnime(): Result<List<MainModel>> {
         try {
@@ -96,6 +99,27 @@ class DetailRepositoryImpl(private val client: ApolloClient, private val api: Im
         }
     }
 
+    override suspend fun loadCastMovieSeries(id: Int, isMovie: Boolean): Result<List<Cast>> {
+        return runCatching {
+            val response = if (isMovie) {
+                api.getCreditsForMovie(id = id)
+            } else {
+                api.getCreditsForSeries(series_id = id)
+            }
+
+            if (!response.isSuccessful || response.body() == null) {
+                throw Exception("Failed to load cast: ${response.message()}")
+            }
+
+            response.body()!!.cast.map {
+                Cast(
+                    id = it.cast_id, it.profileImg, it.original_name, it.character, "0"
+                )
+            }
+        }
+    }
+
+
     override suspend fun loadAnimeRelations(id: Int): Result<List<MainModel>> {
         try {
             val result = client.query(
@@ -114,6 +138,24 @@ class DetailRepositoryImpl(private val client: ApolloClient, private val api: Im
             return Result.failure(e)
         }
     }
+
+    override suspend fun loadMovieOrSeriesRelations(
+        id: Int,
+        isMovie: Boolean
+    ): Result<List<MainModel>> = runCatching {
+        val response = if (isMovie) {
+            api.getRecommendationsForMovie(id)
+        } else {
+            api.getRecommendationsForSeries(id)
+        }
+
+        check(response.isSuccessful && response.body() != null) {
+            "Failed to load relations: ${response.message()}"
+        }
+
+        response.body()!!.results.map { it.toDomain() }
+    }
+
 
     override suspend fun characterDetail(id: Int): Result<CastDetailModel> {
         try {

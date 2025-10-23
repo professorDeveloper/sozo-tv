@@ -7,6 +7,7 @@ import com.saikou.sozo_tv.data.local.database.AppDatabase
 import com.saikou.sozo_tv.data.repository.CategoriesRepositoryImpl
 import com.saikou.sozo_tv.data.repository.CharacterBookmarkRepositoryImpl
 import com.saikou.sozo_tv.data.repository.DetailRepositoryImpl
+import com.saikou.sozo_tv.data.repository.EpisodeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.HomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.ImdbHomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.MovieBookmarkRepositoryImpl
@@ -16,6 +17,7 @@ import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import com.saikou.sozo_tv.domain.repository.CategoriesRepository
 import com.saikou.sozo_tv.domain.repository.CharacterBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.DetailRepository
+import com.saikou.sozo_tv.domain.repository.EpisodeRepository
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.domain.repository.TMDBHomeRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
@@ -52,6 +54,9 @@ val koinModule = module {
     factory { UserPreferenceManager(androidContext()) }
     single<HomeRepository> {
         HomeRepositoryImpl(jikanApiService = get(), apolloClient = get())
+    }
+    single<EpisodeRepository> {
+        EpisodeRepositoryImpl(api = get())
     }
     single<TMDBHomeRepository> {
         ImdbHomeRepositoryImpl(api = get())
@@ -90,7 +95,7 @@ val koinModule = module {
 //
     viewModel { HomeViewModel(repo = get(), imdbRepo = get()) }
     viewModel { TvGardenViewModel() }
-    viewModel { EpisodeViewModel(watchHistoryRepository = get()) }
+    viewModel { EpisodeViewModel(watchHistoryRepository = get(),repo=get()) }
     viewModel { WrongTitleViewModel() }
     viewModel { UpdateViewModel() }
     viewModel { AdultPlayerViewModel() }
@@ -120,7 +125,8 @@ val koinModule = module {
 }
 
 val firebaseModule = module {
-    single<FirebaseDatabase> {;        FirebaseDatabase.getInstance("https://sozo-app-a36e6-default-rtdb.asia-southeast1.firebasedatabase.app/")
+    single<FirebaseDatabase> {
+        ; FirebaseDatabase.getInstance("https://sozo-app-a36e6-default-rtdb.asia-southeast1.firebasedatabase.app/")
     }
     single { FirebaseService(get()) }
 }

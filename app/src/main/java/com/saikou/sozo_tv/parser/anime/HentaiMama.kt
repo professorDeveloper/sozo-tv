@@ -1,19 +1,16 @@
-package com.saikou.sozo_tv.parser
+package com.saikou.sozo_tv.parser.anime
 
-import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lagradost.nicehttp.Requests
+import com.saikou.sozo_tv.parser.BaseParser
 import com.saikou.sozo_tv.parser.models.Data
-import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.Kiwi
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.utils.Utils
 import com.saikou.sozo_tv.utils.parser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import java.util.concurrent.TimeUnit
 
 data class ResponseElement(
     val type: String,

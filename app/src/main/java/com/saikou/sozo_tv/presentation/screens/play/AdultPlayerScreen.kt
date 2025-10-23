@@ -1,12 +1,7 @@
 package com.saikou.sozo_tv.presentation.screens.play
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
 import android.os.Bundle
-import android.util.AttributeSet
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -34,7 +29,7 @@ import com.lagradost.nicehttp.ignoreAllSSLErrors
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ContentControllerTvBinding
 import com.saikou.sozo_tv.databinding.TrailerPlayerScreenBinding
-import com.saikou.sozo_tv.parser.VideoType
+import com.saikou.sozo_tv.parser.anime.VideoType
 import com.saikou.sozo_tv.presentation.viewmodel.AdultPlayerViewModel
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone

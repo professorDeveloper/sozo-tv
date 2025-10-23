@@ -19,6 +19,9 @@
         <action
             android:id="@+id/action_detailPage2_to_episodeScreen"
             app:destination="@id/episodeScreen" />
+        <action
+            android:id="@+id/action_detailPage2_to_movieEpisodeScreen"
+            app:destination="@id/movieEpisodeScreen" />
     </fragment>
     <fragment
         android:id="@+id/castDetailScreen"
@@ -73,7 +76,7 @@
     <fragment
         android:id="@+id/seriesPlayerScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.play.SeriesPlayerScreen"
-        android:label="SeriesPlayerScreen" >
+        android:label="SeriesPlayerScreen">
         <argument
             android:name="idMal"
             app:argType="integer" />
@@ -105,7 +108,7 @@
     <fragment
         android:id="@+id/adultPlayerScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.play.AdultPlayerScreen"
-        android:label="AdultPlayerScreen" >
+        android:label="AdultPlayerScreen">
         <argument
             android:name="link"
             app:argType="string" />
@@ -115,5 +118,20 @@
         <argument
             android:name="episodeNum"
             app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/movieEpisodeScreen"
+        android:name="com.saikou.sozo_tv.presentation.screens.episodes.MovieEpisodeScreen"
+        android:label="MovieEpisodeScreen"
+        tools:layout="@layout/episode_screen" >
+        <argument
+            android:name="title"
+            app:argType="string" />
+        <argument
+            android:name="image"
+            app:argType="string" />
+        <argument
+            android:name="tmdbId"
+            app:argType="integer" />
     </fragment>
 </navigation>

@@ -81,6 +81,8 @@ class PlayerActivity : AppCompatActivity() {
                 } else {
                     val id = categoryDetails
                     val isMovie = intent.getBooleanExtra("isMovie", false)
+                    playerViewModel.loadCastSeriesOrMovie(id,isMovie)
+                    playerViewModel.loadRelationsMovieOrSeries(id,isMovie)
                     if (isMovie) {
                         playerViewModel.loadMovieById(id = id)
 

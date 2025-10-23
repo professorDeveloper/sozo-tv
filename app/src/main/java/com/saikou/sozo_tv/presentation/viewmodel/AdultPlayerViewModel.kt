@@ -3,9 +3,8 @@ package com.saikou.sozo_tv.presentation.viewmodel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.saikou.sozo_tv.parser.HentaiMama
-import com.saikou.sozo_tv.parser.Video
-import com.saikou.sozo_tv.parser.VideoServer
+import com.saikou.sozo_tv.parser.anime.HentaiMama
+import com.saikou.sozo_tv.parser.anime.Video
 import com.saikou.sozo_tv.parser.models.Kiwi
 import com.saikou.sozo_tv.utils.Resource
 import kotlinx.coroutines.launch

@@ -27,6 +27,8 @@ import com.saikou.sozo_tv.domain.model.DetailModel
 import com.saikou.sozo_tv.domain.model.GenreModel
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.SearchModel
+import com.saikou.sozo_tv.parser.models.Data
+import com.saikou.sozo_tv.parser.models.Episode
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 
 fun TmdbListItem.toDomain(): MainModel {
@@ -37,9 +39,17 @@ fun TmdbListItem.toDomain(): MainModel {
         this.imageUrl ?: "",
         null,
         null,
-        -1, -1,
+        -1,
+        -1,
         isSeries = this.media_type == "tv"
     )
+}
+
+fun Episode.toDomain(): Data {
+    return Data(
+        episode = this.episode, session = this.iframeUrl,
+    )
+
 }
 
 fun GetRelationsByIdQuery.Media.toDomain(): MainModel {
@@ -69,11 +79,7 @@ fun DetailModel.toDomain(): AnimeBookmark {
 
 fun CastAdapterModel.toDomain(id: Int): CharacterEntity {
     return CharacterEntity(
-        id = id,
-        name = this.name,
-        image = this.image,
-        role = this.role,
-        age = this.age
+        id = id, name = this.name, image = this.image, role = this.role, age = this.age
     )
 }
 
