@@ -58,13 +58,18 @@ class SeriesPageAdapter(
                     progressBar.visible()
                     progressBar.max = getLocalEp.totalDuration.toInt()
                     progressBar.progress = getLocalEp.lastPosition.toInt()
-                }else {
+                } else {
 //                    timeStr.gone()
                     progressBar.gone()
                 }
                 binding.country.text = data.episode.toString()
                 root.setOnClickListener { onItemClicked.invoke(data, absoluteAdapterPosition) }
-                topContainer.text = "Episode ${data.episode ?: 0}"
+                if (LocalData.isAnimeEnabled) {
+                    topContainer.text = "Episode ${data.episode ?: 0}"
+
+                } else {
+                    topContainer.text = data.title
+                }
                 binding.root.setOnFocusChangeListener { _, hasFocus ->
                     val animation = when {
                         hasFocus -> AnimationUtils.loadAnimation(

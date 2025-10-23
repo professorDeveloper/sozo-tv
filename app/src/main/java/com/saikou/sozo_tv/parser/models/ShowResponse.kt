@@ -9,6 +9,7 @@ data class ShowResponse(
     val otherNames: List<String> = listOf(),
     val total: Int? = null,
     val extra : Map<String,String>?=null,
+    val seasons: List<Int> = listOf(),
 ) : Serializable {
 
 }

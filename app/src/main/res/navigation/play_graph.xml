@@ -130,6 +130,7 @@
         <argument
             android:name="image"
             app:argType="string" />
+
         <argument
             android:name="tmdbId"
             app:argType="integer" />

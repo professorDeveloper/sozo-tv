@@ -16,7 +16,7 @@ import org.jsoup.nodes.Document
 class PlayImdb : BaseParser() {
     override val name: String = "StreamIMDB"
     override val saveName: String = "streamimdb"
-    override val hostUrl: String = "https://streamimdb.m/"
+    override val hostUrl: String = "https://streamimdb.me/"
     override val language: String = "en"
     override val isNSFW: Boolean = false
 

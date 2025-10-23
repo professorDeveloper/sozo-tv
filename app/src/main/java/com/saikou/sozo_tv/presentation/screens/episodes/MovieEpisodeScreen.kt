@@ -115,9 +115,8 @@ class MovieEpisodeScreen : Fragment() {
                         binding.wrongTitleContainer.setOnClickListener { gg ->
                             showWrongTitleDialog(dataFound.data.name)
                         }
-
                         binding.topContainer.adapter = adapter
-                        viewModel.loadMovieSeriesEpisodes(currentMediaId)
+                        viewModel.loadMovieSeriesEpisodesBySeason(currentMediaId, 1)
                         binding.placeHolder.root.gone()
                         binding.loadingLayout.gone()
                         viewModel.episodeData.observe(viewLifecycleOwner) { result ->
@@ -141,6 +140,7 @@ class MovieEpisodeScreen : Fragment() {
                                     binding.placeHolder.root.gone()
                                     binding.topContainer.visible()
                                     binding.loadingLayout.gone()
+                                    binding.tabRv.gone()
                                     adapter.updateEpisodeItems(
                                         result.data.data ?: arrayListOf()
                                     )
@@ -153,6 +153,25 @@ class MovieEpisodeScreen : Fragment() {
 //                                            )
 //                                        )
                                     }
+//                                    val partList = ArrayList<Part>()
+//                                    categoriesAdapter = EpisodeTabAdapter()
+//                                    binding.tabRv.visible()
+//                                    binding.tabRv.adapter = categoriesAdapter
+//                                    for (i in 1..result.data.total) {
+//                                        partList.add(Part("Season $i", i))
+//                                    }
+//                                    categoriesAdapter.submitList(partList)
+//                                    categoriesAdapter.setSelectedPosition(
+//                                        selectedPosition
+//                                    )
+//                                    binding.tabRv.scrollToPosition(selectedPosition)
+//                                    categoriesAdapter.setFocusedItemListener { _, i ->
+//                                        viewModel.loadMovieSeriesEpisodesBySeason(
+//                                            currentMediaId,
+//                                            i+1
+//                                        )
+//                                        selectedPosition = i
+//                                    }
                                 }
 
                                 else -> {}

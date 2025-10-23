@@ -11,6 +11,7 @@ import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.anime.AnimePahe
 import com.saikou.sozo_tv.parser.anime.HentaiMama
 import com.saikou.sozo_tv.parser.models.Data
+import com.saikou.sozo_tv.parser.models.Episode
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.movie.PlayImdb
@@ -49,38 +50,74 @@ class EpisodeViewModel(
 
     fun loadMovieSeriesEpisodes(imdbId: String) {
         viewModelScope.launch {
-            var backdropFixCount = 0
             val listData = ArrayList<Data>()
             movieSource.getEpisodes(imdbId).let { pairData ->
-                pairData.first.forEach {
-                    if (backdropFixCount < pairData.second.size) {
-                        listData.add(
-                            it.toDomain()
-                                .copy(
-                                    episode2 = backdropFixCount + 1,
-                                    snapshot = pairData.second[backdropFixCount].originalUrl
-                                )
-                        )
-                        backdropFixCount++
+                val episodes = pairData.first
+                val backdrops = pairData.second
+                val halfIndex = backdrops.size / 2
+
+                val firstHalf = backdrops.take(halfIndex)
+                val secondHalf = backdrops.drop(halfIndex).shuffled()
+
+                // Full backdrop listini hosil qilamiz
+                val fullBackdropList = firstHalf + secondHalf
+
+                episodes.forEachIndexed { index, episode ->
+                    val snapshotUrl = if (index < fullBackdropList.size) {
+                        fullBackdropList[index].originalUrl
+                    } else {
+                        fullBackdropList.last().originalUrl
                     }
-                }
-                episodeData.value =
-                    Resource.Success(
-                        EpisodeData(
-                            1,
-                            listData,
-                            1,
-                            1,
-                            "",
-                            listData.size,
-                            null,
-                            -1,
-                            listData.size
+
+                    listData.add(
+                        episode.toDomain().copy(
+                            episode = index + 1, // 1 dan tartib
+                            snapshot = snapshotUrl
                         )
                     )
+                }
+                episodeData.value =
+                    Resource.Success(EpisodeData(1, listData, 1, 1, "", -1, null, -1, -1))
             }
         }
     }
+
+    fun loadMovieSeriesEpisodesBySeason(imdbId: String, season: Int) {
+        viewModelScope.launch {
+            val listData = ArrayList<Data>()
+            movieSource.getEpisodes(imdbId).let { pairData ->
+                val episodes = pairData.first.filter { it.season == season }
+                val backdrops = pairData.second
+                val halfIndex = backdrops.size / 2
+                val totalSeasons = pairData.first.map { it.season }.distinct().size
+
+                val firstHalf = backdrops.take(halfIndex)
+                val secondHalf = backdrops.drop(halfIndex).shuffled()
+
+                val fullBackdropList = firstHalf + secondHalf
+
+                episodes.forEachIndexed { index, episode ->
+                    val snapshotUrl = if (index < fullBackdropList.size) {
+                        fullBackdropList[index].originalUrl
+                    } else {
+                        fullBackdropList.shuffled().last().originalUrl
+                    }
+
+                    listData.add(
+                        episode.toDomain().copy(
+                            episode2 = episode.episode,
+                            episode = index + 1,
+                            title = episode.title,// 1 dan tartib
+                            snapshot = snapshotUrl
+                        )
+                    )
+                }
+                episodeData.value =
+                    Resource.Success(EpisodeData(1, listData, 1, 1, "", -1, null, -1,  totalSeasons))
+            }
+        }
+    }
+
 
     fun loadEpisodeByPage(page: Int, id: String) {
         episodeData.value = Resource.Loading
