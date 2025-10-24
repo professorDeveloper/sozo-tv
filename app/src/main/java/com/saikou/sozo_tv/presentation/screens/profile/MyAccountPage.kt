@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.MyAccountPageBinding
+import com.saikou.sozo_tv.utils.LocalData
 
 
 class MyAccountPage : Fragment() {
@@ -89,6 +90,7 @@ class MyAccountPage : Fragment() {
 
     private fun setModeAnime(enabled: Boolean) {
         preferenceManager.setModeAnime(enabled)
+        LocalData.isAnimeEnabled = enabled
     }
 
     @SuppressLint("SetTextI18n")

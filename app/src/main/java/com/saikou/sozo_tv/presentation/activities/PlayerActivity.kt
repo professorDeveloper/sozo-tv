@@ -88,7 +88,6 @@ class PlayerActivity : AppCompatActivity() {
 
                     } else {
                         playerViewModel.loadSeriesById(id = id)
-
                     }
                 }
             }

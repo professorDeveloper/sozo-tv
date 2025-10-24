@@ -87,10 +87,8 @@ fun createOkHttpClient(): OkHttpClient {
 
 fun createTmdbClient(): Retrofit {
     val gson = GsonBuilder().create()
-
     val tmdbInterceptor = Interceptor { chain ->
         val token = Security.getToken()
-//        Log.d("GGG", "createTmdbClient:$token ")
         val newRequest = chain.request().newBuilder()
             .addHeader("Authorization", "Bearer $token")
             .addHeader("accept", "application/json")

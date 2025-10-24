@@ -19,4 +19,5 @@ data class DetailModel(
     val mediaSource: MediaSource?,
     val airingSchedule: AiringSchedule = AiringSchedule(),
     val isAdult: Boolean = false,
+    val isSeries: Boolean = false,
 )

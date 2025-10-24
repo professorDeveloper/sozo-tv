@@ -25,8 +25,8 @@ interface ImdbService {
     ): Response<TmdbListResponse>
 
 
-    @GET("movie/popular")
-    suspend fun getPopularMovies(
+    @GET("tv/popular")
+    suspend fun getPopularSeries(
         @Query("language") language: String = "en-US",
         @Query("page") page: Int = 1
     ): Response<TmdbListResponse>
@@ -114,4 +114,9 @@ interface ImdbService {
     suspend fun getTvExternalIds(
         @Path("id") tvId: Int,
     ): Response<ExternalIdsResponse>
+    @GET("trending/tv/day")
+    suspend fun getTrendingSeries(
+        @Query("language") language: String = "en-US"
+    ): Response<TmdbListResponse>
+
 }

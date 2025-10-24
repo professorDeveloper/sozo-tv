@@ -42,6 +42,7 @@ class MovieEpisodeScreen : Fragment() {
     private lateinit var categoriesAdapter: EpisodeTabAdapter
     private lateinit var currentMediaId: String
     private var selectedPosition = 0
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -80,7 +81,7 @@ class MovieEpisodeScreen : Fragment() {
                 PlayImdb::class.java.simpleName,
                 ContextCompat.getColor(requireContext(), R.color.orange)
             )
-            viewModel.findImdbIdSeries(args.tmdbId.toString(), args.title, args.image)
+            viewModel.findImdbIdSeries(args.tmdbId.toString(), args.title, args.image, args.isMovie)
             viewModel.dataFound.observe(viewLifecycleOwner) { dataFound ->
                 when (dataFound) {
                     is Resource.Error -> {
@@ -116,7 +117,7 @@ class MovieEpisodeScreen : Fragment() {
                             showWrongTitleDialog(dataFound.data.name)
                         }
                         binding.topContainer.adapter = adapter
-                        viewModel.loadMovieSeriesEpisodes(currentMediaId)
+                        viewModel.loadMovieSeriesEpisodes(currentMediaId, args.isMovie)
                         binding.placeHolder.root.gone()
                         binding.loadingLayout.visible()
                         viewModel.episodeData.observe(viewLifecycleOwner) { result ->
@@ -145,13 +146,18 @@ class MovieEpisodeScreen : Fragment() {
                                         result.data.data ?: arrayListOf()
                                     )
                                     adapter.setOnItemClickedListener { it, currentIndex ->
-//                                        findNavController().navigate(
-//                                            EpisodeScreenDirections.actionEpisodeScreenToAdultPlayerScreen(
-//                                                it.session ?: "",
-//                                                args.episodeTitle,
-//                                                it.episode.toString()
-//                                            )
-//                                        )
+                                        findNavController().navigate(
+                                            MovieEpisodeScreenDirections.actionMovieEpisodeScreenToMovieSeriesPlayerScreen(
+                                                args.tmdbId,
+                                                args.isMovie,
+                                                dataFound.data.link,
+                                                1,
+                                                currentIndex,
+                                                args.title,
+                                                args.image,
+                                                it.session ?: "",
+                                            )
+                                        )
                                     }
 //                                    val partList = ArrayList<Part>()
 //                                    categoriesAdapter = EpisodeTabAdapter()

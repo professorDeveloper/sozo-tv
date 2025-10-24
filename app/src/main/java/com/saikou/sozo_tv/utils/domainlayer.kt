@@ -95,7 +95,7 @@ fun AnimeBookmark.toDomain(): MainModel {
     )
 }
 
-fun MediaDetails.toDomain(): DetailModel {
+fun MediaDetails.toDomain(isSeries: Boolean): DetailModel {
     val genres = ArrayList<String>()
     if (this.genres?.isNotEmpty() == true) {
         this.genres.forEach {
@@ -115,6 +115,7 @@ fun MediaDetails.toDomain(): DetailModel {
         this.production_companies?.map { it.name ?: "" } ?: arrayListOf(),
         0,
         MediaSource.ORIGINAL,
+        isSeries = isSeries
     )
 }
 

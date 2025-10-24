@@ -6,7 +6,6 @@ import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.anilist.HomeModel
 import com.saikou.sozo_tv.data.model.anilist.Title
 import com.saikou.sozo_tv.data.model.jikan.BannerHomeData
-import com.saikou.sozo_tv.data.model.tmdb.TmdbListItem
 import com.saikou.sozo_tv.data.remote.ImdbService
 import com.saikou.sozo_tv.data.remote.safeExecute
 import com.saikou.sozo_tv.domain.model.BannerItem
@@ -62,7 +61,7 @@ class ImdbHomeRepositoryImpl(
     override suspend fun loadCategories(): Result<ArrayList<Category>> = safeExecute {
         val categories = arrayListOf<Category>()
 
-        val trendingResponse = api.getPopularMovies()
+        val trendingResponse = api.getPopularSeries()
         val trendingList = trendingResponse.body()?.results ?: emptyList()
 
         val trendingCategory = Category(name = "Trending All", list = trendingList.map {
@@ -76,7 +75,7 @@ class ImdbHomeRepositoryImpl(
                     format = MediaFormat.MOVIE,
                     source = MediaSource.NOVEL,
                     title = Title(it.titleFormat ?: it.name ?: ""),
-                    isSeries =it.media_type=="tv"
+                    isSeries = true
 
                 )
             )
@@ -97,16 +96,16 @@ class ImdbHomeRepositoryImpl(
                     format = MediaFormat.MOVIE,
                     source = MediaSource.NOVEL,
                     title = Title(it.titleFormat ?: it.name ?: ""),
-                    isSeries =it.media_type=="tv"
+                    isSeries = it.media_type == "tv"
 
                 )
             )
         })
         categories.add(topRatedCategory)
-        val trendingMovieResponse = api.getTrendingMovies()
+        val trendingMovieResponse = api.getTrendingSeries()
         val trendingMovieList = trendingMovieResponse.body()?.results ?: emptyList()
         val trendingMovieCategory =
-            Category(name = "Trending Movies", list = trendingMovieList.map {
+            Category(name = "Trending Series", list = trendingMovieList.map {
                 CategoryDetails(
                     content = HomeModel(
                         id = it.id ?: 0,
@@ -117,18 +116,18 @@ class ImdbHomeRepositoryImpl(
                         format = MediaFormat.MOVIE,
                         source = MediaSource.NOVEL,
                         title = Title(it.titleFormat ?: it.name ?: ""),
-                        isSeries =it.media_type=="tv"
+                        isSeries = true
 
                     )
                 )
             })
         categories.add(trendingMovieCategory)
         val randomPage = Random.nextInt(10, 20)
-        val randomRecommendResponse = api.getPopularMovies(page = randomPage)
+        val randomRecommendResponse = api.getPopularSeries(page = randomPage)
 
         val allMovies = randomRecommendResponse.body()?.results ?: emptyList()
         val randomRecommendCategory = Category(
-            name = "Recommend Movies",
+            name = "Recommend Series",
             list = allMovies.map {
                 CategoryDetails(
                     content = HomeModel(
@@ -140,7 +139,7 @@ class ImdbHomeRepositoryImpl(
                         format = MediaFormat.MOVIE,
                         source = MediaSource.NOVEL,
                         title = Title(it.titleFormat ?: it.name ?: ""),
-                        isSeries =it.media_type=="tv"
+                        isSeries = true
                     )
                 )
             }

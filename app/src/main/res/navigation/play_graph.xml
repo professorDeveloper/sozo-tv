@@ -123,16 +123,54 @@
         android:id="@+id/movieEpisodeScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.episodes.MovieEpisodeScreen"
         android:label="MovieEpisodeScreen"
-        tools:layout="@layout/episode_screen" >
+        tools:layout="@layout/episode_screen">
         <argument
             android:name="title"
             app:argType="string" />
         <argument
             android:name="image"
             app:argType="string" />
+        <argument
+            android:name="isMovie"
+            app:argType="boolean" />
 
         <argument
             android:name="tmdbId"
             app:argType="integer" />
+        <action
+            android:id="@+id/action_movieEpisodeScreen_to_movieSeriesPlayerScreen"
+            app:destination="@id/movieSeriesPlayerScreen" />
+    </fragment>
+    <fragment
+        android:id="@+id/movieSeriesPlayerScreen"
+        android:name="com.saikou.sozo_tv.presentation.screens.play.MovieSeriesPlayerScreen"
+        android:label="MovieSeriesPlayerScreen"
+        tools:layout="@layout/series_player_screen">
+        <argument
+            android:name="tmdbId"
+            app:argType="integer" />
+        <argument
+            android:name="isMovie"
+            app:argType="boolean"/>
+        <argument
+            android:name="imdbId"
+            app:argType="string" />
+        <argument
+            android:name="currentPage"
+            app:argType="integer" />
+        <argument
+            android:name="currentIndex"
+            app:argType="integer" />
+
+        <argument
+            android:name="name"
+            app:argType="string" />
+        <argument
+            android:name="image"
+            app:argType="string" />
+
+        <argument
+            android:name="iframeLink"
+            app:argType="string" />
     </fragment>
 </navigation>

@@ -17,11 +17,14 @@ import com.saikou.sozo_tv.domain.repository.DetailRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.anime.AnimePahe
+import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.VideoOption
+import com.saikou.sozo_tv.parser.movie.PlayImdb
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.cleanImdbUrl
 import com.saikou.sozo_tv.utils.extractImdbVideoId
+import com.saikou.sozo_tv.utils.toDomain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -53,6 +56,7 @@ class PlayViewModel(
     var getWatchedHistoryEntity: WatchHistoryEntity? = null
 
     val animePahe = AnimePahe()
+    val playImdb = PlayImdb()
     val currentEpisodeData = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     val currentQualityEpisode = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     var seriesResponse: VodMovieResponse? = null
@@ -67,20 +71,50 @@ class PlayViewModel(
         }
     }
 
-    fun getMalId() {
+
+    fun getAllEpisodeByImdb(imdbId: String) {
+        viewModelScope.launch {
+            allEpisodeData.value = Resource.Loading
+            val listData = ArrayList<Data>()
+            playImdb.getEpisodes(imdbId).let { pairData ->
+                val episodes = pairData.first
+                val backdrops = pairData.second
+                val halfIndex = backdrops.size / 2
+                val firstHalf = backdrops.take(halfIndex)
+                val secondHalf = backdrops.drop(halfIndex).shuffled()
+
+                val fullBackdropList = firstHalf + secondHalf
+
+                episodes.forEachIndexed { index, episode ->
+                    val snapshotUrl = if (index < fullBackdropList.size) {
+                        fullBackdropList[index].originalUrl
+                    } else {
+                        fullBackdropList.shuffled().last().originalUrl
+                    }
+
+                    listData.add(
+                        episode.toDomain().copy(
+                            episode2 = episode.episode,
+                            episode = index + 1,
+                            title = episode.title,// 1 dan tartib
+                            snapshot = snapshotUrl
+                        )
+                    )
+                }
+                allEpisodeData.value =
+                    Resource.Success(EpisodeData(1, listData, 1, 1, "", -1, null, -1, 1))
+            }
+        }
 
     }
 
+
     suspend fun loadTimeStamps(
-        malId: Int?,
-        episodeNum: Int?,
-        duration: Long,
-        useProxyForTimeStamps: Boolean
+        malId: Int?, episodeNum: Int?, duration: Long, useProxyForTimeStamps: Boolean
     ) {
         malId ?: return
         episodeNum ?: return
-        if (timeStampsMap.containsKey(episodeNum))
-            return timeStamps.postValue(timeStampsMap[episodeNum])
+        if (timeStampsMap.containsKey(episodeNum)) return timeStamps.postValue(timeStampsMap[episodeNum])
         val result = AniSkip.getResult(malId, episodeNum, duration, useProxyForTimeStamps)
         timeStampsMap[episodeNum] = result
         timeStamps.postValue(result)
@@ -115,17 +149,13 @@ class PlayViewModel(
                     Log.d("GGG", "getCurrentEpisodeVod: ")
 
                     seriesResponse = VodMovieResponse(
-                        authInfo = "",
-                        subtitleList = "",
-                        urlobj = it
+                        authInfo = "", subtitleList = "", urlobj = it
 
                     )
                     currentQualityEpisode.postValue(
                         Resource.Success(
                             VodMovieResponse(
-                                authInfo = "",
-                                subtitleList = "",
-                                urlobj = it
+                                authInfo = "", subtitleList = "", urlobj = it
 
                             )
                         )
@@ -136,7 +166,79 @@ class PlayViewModel(
         }
     }
 
-    fun getCurrentEpisodeVod(episodeId: String, mediaId: String) {
+    fun getCurrentEpisodeVodByImdb(
+        imdbId: String, episodeId: String, iframe: String, isMovie: Boolean
+    ) {
+        try {
+            viewModelScope.launch(Dispatchers.IO) {
+                if (!isMovie) {
+                    isWatched = isWatched(iframe.toString())
+                    if (isWatched) {
+                        getWatchedHistoryEntity = getWatchedEntity(episodeId.toString())
+                        currentSelectedVideoOptionIndex =
+                            getWatchedHistoryEntity?.currentQualityIndex ?: 0
+                    }
+
+                    currentEpisodeData.postValue(Resource.Loading)
+                    playImdb.extractSeriesIframe(iframe)?.let {
+                        println(it)
+                        playImdb.convertRcptProctor(it).let {
+                            println(it)
+                            playImdb.extractDirectM3u8(it).let { m3u8Link ->
+                                println(m3u8Link)
+                                seriesResponse = VodMovieResponse(
+                                    authInfo = "", subtitleList = "", urlobj = m3u8Link
+
+                                )
+                                currentEpisodeData.postValue(
+                                    Resource.Success(
+                                        VodMovieResponse(
+                                            authInfo = "", subtitleList = "", urlobj = it
+
+                                        )
+                                    )
+                                )
+
+                            }
+                        }
+                    }
+                } else {
+                    isWatched = isWatched(iframe.toString())
+                    if (isWatched) {
+                        getWatchedHistoryEntity = getWatchedEntity(episodeId.toString())
+                        currentSelectedVideoOptionIndex =
+                            getWatchedHistoryEntity?.currentQualityIndex ?: 0
+                    }
+
+                    currentEpisodeData.postValue(Resource.Loading)
+                    playImdb.convertRcptProctor(iframe).let {
+                        println(it)
+                        playImdb.extractDirectM3u8(it).let { m3u8Link ->
+                            println(m3u8Link)
+                            seriesResponse = VodMovieResponse(
+                                authInfo = "", subtitleList = "", urlobj = m3u8Link
+
+                            )
+                            currentEpisodeData.postValue(
+                                Resource.Success(
+                                    VodMovieResponse(
+                                        authInfo = "", subtitleList = "", urlobj = it
+
+                                    )
+                                )
+                            )
+
+                        }
+                    }
+                }
+
+            }
+        }catch (e:Exception){
+            currentEpisodeData.postValue(Resource.Error(e))
+        }
+    }
+
+    fun getCurrentEpisodeVodAnime(episodeId: String, mediaId: String, isAnime: Boolean = true) {
         viewModelScope.launch(Dispatchers.IO) {
             currentEpisodeData.postValue(Resource.Loading)
             isWatched = isWatched(episodeId.toString())
@@ -154,17 +256,13 @@ class PlayViewModel(
                     Log.d("GGG", "getCurrentEpisodeVod: ")
 
                     seriesResponse = VodMovieResponse(
-                        authInfo = "",
-                        subtitleList = "",
-                        urlobj = it
+                        authInfo = "", subtitleList = "", urlobj = it
 
                     )
                     currentEpisodeData.postValue(
                         Resource.Success(
                             VodMovieResponse(
-                                authInfo = "",
-                                subtitleList = "",
-                                urlobj = it
+                                authInfo = "", subtitleList = "", urlobj = it
 
                             )
                         )
@@ -252,14 +350,18 @@ class PlayViewModel(
 
     fun loadTrailer(name: String, isAnime: Boolean = true) {
         viewModelScope.launch(Dispatchers.IO) {
-            if (!isAnime) {
-                val trailer = IMDBScraping()
-                val list = trailer.searchMovie(name)
-                val trailerUrll = trailer.getTrailer(list)
-                val trailerMasterUrl =
-                    trailer.getTrailerLink(trailerUrll.first.extractImdbVideoId().toString())
-                Log.d("GGG", "loadTrailer:original Link: ${trailerMasterUrl.cleanImdbUrl()} ")
-                trailerData.postValue(trailerMasterUrl.cleanImdbUrl())
+            try {
+                if (!isAnime) {
+                    val trailer = IMDBScraping()
+                    val list = trailer.searchMovie(name)
+                    val trailerUrll = trailer.getTrailer(list)
+                    val trailerMasterUrl =
+                        trailer.getTrailerLink(trailerUrll.first.extractImdbVideoId().toString())
+                    Log.d("GGG", "loadTrailer:original Link: ${trailerMasterUrl.cleanImdbUrl()} ")
+                    trailerData.postValue(trailerMasterUrl.cleanImdbUrl())
+                }
+            } catch (e: Exception) {
+                errorData.postValue(e.message)
             }
         }
     }

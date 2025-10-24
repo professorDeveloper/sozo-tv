@@ -5,13 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
-import com.saikou.sozo_tv.data.model.tmdb.MediaDetails
 import com.saikou.sozo_tv.domain.repository.EpisodeRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.anime.AnimePahe
 import com.saikou.sozo_tv.parser.anime.HentaiMama
 import com.saikou.sozo_tv.parser.models.Data
-import com.saikou.sozo_tv.parser.models.Episode
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.movie.PlayImdb
@@ -48,78 +46,53 @@ class EpisodeViewModel(
         }
     }
 
-    fun loadMovieSeriesEpisodes(imdbId: String) {
+    fun loadMovieSeriesEpisodes(imdbId: String, isMovie: Boolean) {
+        val current = episodeData.value
+        if (current is Resource.Success && current.data.data?.isNotEmpty() == true) return
+
         viewModelScope.launch {
-            episodeData.value = Resource.Loading
-            val listData = ArrayList<Data>()
-            movieSource.getEpisodes(imdbId).let { pairData ->
-                val episodes = pairData.first
-                val backdrops = pairData.second
-                val halfIndex = backdrops.size / 2
+            episodeData.postValue(Resource.Loading)
 
-                val firstHalf = backdrops.take(halfIndex)
-                val secondHalf = backdrops.drop(halfIndex).shuffled()
+            try {
+                episodeData.value = Resource.Loading
 
-                val fullBackdropList = firstHalf + secondHalf
+                val listData = ArrayList<Data>()
 
-                episodes.forEachIndexed { index, episode ->
-                    val snapshotUrl = if (index < fullBackdropList.size) {
-                        fullBackdropList[index].originalUrl
-                    } else {
-                        fullBackdropList.shuffled().last().originalUrl
+                movieSource.getEpisodes(imdbId).let { pairData ->
+                    val episodes = pairData.first
+                    val backdrops = pairData.second
+                    val halfIndex = backdrops.size / 2
+
+                    val firstHalf = backdrops.take(halfIndex)
+                    val secondHalf = backdrops.drop(halfIndex).shuffled()
+                    val fullBackdropList = firstHalf + secondHalf
+
+                    episodes.forEachIndexed { index, episode ->
+                        val snapshotUrl = if (index < fullBackdropList.size) {
+                            fullBackdropList[index].originalUrl
+                        } else {
+                            fullBackdropList.shuffled().last().originalUrl
+                        }
+
+                        listData.add(
+                            episode.toDomain().copy(
+                                episode2 = episode.episode,
+                                episode = index + 1,
+                                title = episode.title, // 1 dan tartib
+                                snapshot = snapshotUrl
+                            )
+                        )
                     }
 
-                    listData.add(
-                        episode.toDomain().copy(
-                            episode2 = episode.episode,
-                            episode = index + 1,
-                            title = episode.title,// 1 dan tartib
-                            snapshot = snapshotUrl
-                        )
+                    episodeData.value = Resource.Success(
+                        EpisodeData(1, listData, 1, 1, "", -1, null, -1, 1)
                     )
                 }
-                episodeData.value =
-                    Resource.Success(EpisodeData(1, listData, 1, 1, "", -1, null, -1, 1))
+            } catch (e: Exception) {
+                episodeData.postValue(Resource.Error(e))
             }
         }
     }
-
-    fun loadMovieSeriesEpisodesBySeason(imdbId: String, season: Int) {
-        viewModelScope.launch {
-            val listData = ArrayList<Data>()
-            movieSource.getEpisodes(imdbId).let { pairData ->
-                val episodes = pairData.first.filter { it.season == season }
-                val backdrops = pairData.second
-                val halfIndex = backdrops.size / 2
-                val totalSeasons = pairData.first.map { it.season }.distinct().size
-
-                val firstHalf = backdrops.take(halfIndex)
-                val secondHalf = backdrops.drop(halfIndex).shuffled()
-
-                val fullBackdropList = firstHalf + secondHalf
-
-                episodes.forEachIndexed { index, episode ->
-                    val snapshotUrl = if (index < fullBackdropList.size) {
-                        fullBackdropList[index].originalUrl
-                    } else {
-                        fullBackdropList.shuffled().last().originalUrl
-                    }
-
-                    listData.add(
-                        episode.toDomain().copy(
-                            episode2 = episode.episode,
-                            episode = index + 1,
-                            title = episode.title,// 1 dan tartib
-                            snapshot = snapshotUrl
-                        )
-                    )
-                }
-                episodeData.value =
-                    Resource.Success(EpisodeData(1, listData, 1, 1, "", -1, null, -1, totalSeasons))
-            }
-        }
-    }
-
 
     fun loadEpisodeByPage(page: Int, id: String) {
         episodeData.value = Resource.Loading
@@ -140,22 +113,35 @@ class EpisodeViewModel(
         }
     }
 
-    fun findImdbIdSeries(tmdbId: String, title: String, image: String) {
+    fun findImdbIdSeries(tdbId: String, title: String, image: String, isMovie: Boolean) {
+        val current = dataFound.value
+        if (current is Resource.Success && current.data.link.isNotEmpty()) return
+
         viewModelScope.launch {
-            dataFound.value = Resource.Loading
-            val result = repo.extractImdbForSeries(tmdbId)
+            dataFound.postValue(Resource.Loading)
+            val result = if (isMovie) {
+                repo.extractImdbIdFromMovie(tdbId)
+            } else {
+                repo.extractImdbForSeries(tdbId)
+            }
+
             if (result.isSuccess) {
-                val imdbId = result.getOrNull()!!.imdb_id
+                val imdbId = result.getOrNull()?.imdb_id
                 if (imdbId != null) {
-                    dataFound.value = Resource.Success(
-                        ShowResponse(
-                            title ?: "",
-                            imdbId, image ?: ""
+                    dataFound.postValue(
+                        Resource.Success(
+                            ShowResponse(
+                                title,
+                                link = imdbId,
+                                image
+                            )
                         )
                     )
+                } else {
+                    dataFound.postValue(Resource.Error(Exception("IMDb ID not found")))
                 }
             } else {
-                dataFound.value = Resource.Error(result.exceptionOrNull()!!)
+                dataFound.postValue(Resource.Error(result.exceptionOrNull()!!))
             }
         }
     }

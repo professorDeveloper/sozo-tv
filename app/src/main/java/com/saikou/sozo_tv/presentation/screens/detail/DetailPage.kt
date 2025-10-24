@@ -270,7 +270,8 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
                 DetailPageDirections.actionDetailPage2ToMovieEpisodeScreen(
                     title = item.content.title,
                     image = item.content.coverImage.large,
-                    tmdbId = item.content.id
+                    tmdbId = item.content.id,
+                    isMovie = !item.content.isSeries
                 )
             )
         }

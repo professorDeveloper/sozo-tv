@@ -26,7 +26,7 @@ object LocalData {
         "English News",
     )
     val preferenceManager = PreferenceManager()
-    val isAnimeEnabled = preferenceManager.isModeAnimeEnabled()
+    var isAnimeEnabled = preferenceManager.isModeAnimeEnabled()
     val channelsd = arrayListOf(
         Channel(
             "0",

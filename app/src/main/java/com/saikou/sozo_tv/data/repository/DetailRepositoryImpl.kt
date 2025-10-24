@@ -39,7 +39,7 @@ class DetailRepositoryImpl(private val client: ApolloClient, private val api: Im
             val movieDetailRequest = api.getMovieDetails(id)
             if (movieDetailRequest.isSuccessful) {
                 val response = movieDetailRequest.body()!!
-                return Result.success(response.toDomain())
+                return Result.success(response.toDomain(false))
             } else {
                 return Result.failure(Exception(movieDetailRequest.errorBody()?.string()))
             }
@@ -53,7 +53,7 @@ class DetailRepositoryImpl(private val client: ApolloClient, private val api: Im
             val movieDetailRequest = api.getTvDetails(id)
             if (movieDetailRequest.isSuccessful) {
                 val response = movieDetailRequest.body()!!
-                return Result.success(response.toDomain())
+                return Result.success(response.toDomain(true))
             } else {
                 return Result.failure(Exception(movieDetailRequest.errorBody()?.string()))
             }

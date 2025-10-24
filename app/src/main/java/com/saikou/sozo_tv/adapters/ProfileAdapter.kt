@@ -195,15 +195,17 @@ class ProfileAdapter(
         notifyItemInserted(accounts.size)
     }
 
-    // ✅ Custom section selection
     fun setSectionSelected(index: Int) {
         if (index == selectedSectionIndex) return
         val previousIndex = selectedSectionIndex
         selectedSectionIndex = index
 
-        if (previousIndex != RecyclerView.NO_POSITION) {
-            notifyItemChanged(previousIndex + accounts.size + 2)
+        recyclerView.post {
+            if (previousIndex != RecyclerView.NO_POSITION) {
+                notifyItemChanged(previousIndex + accounts.size + 2)
+            }
+            notifyItemChanged(selectedSectionIndex + accounts.size + 2)
         }
-        notifyItemChanged(selectedSectionIndex + accounts.size + 2)
     }
+
 }

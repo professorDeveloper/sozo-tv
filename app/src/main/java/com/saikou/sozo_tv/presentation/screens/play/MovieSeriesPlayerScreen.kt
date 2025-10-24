@@ -44,6 +44,7 @@ import com.saikou.sozo_tv.components.SkipIntroView
 import com.saikou.sozo_tv.adapters.EpisodePlayerAdapter
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.databinding.ContentControllerTvSeriesBinding
+import com.saikou.sozo_tv.databinding.ImdbSeriesPlayerScreenBinding
 import com.saikou.sozo_tv.databinding.SeriesPlayerScreenBinding
 import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import com.saikou.sozo_tv.parser.models.Data
@@ -63,8 +64,8 @@ import okhttp3.OkHttpClient
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
-class SeriesPlayerScreen : Fragment() {
-    private var _binding: SeriesPlayerScreenBinding? = null
+class MovieSeriesPlayerScreen : Fragment() {
+    private var _binding: ImdbSeriesPlayerScreenBinding? = null
     private val binding get() = _binding!!
     private lateinit var player: ExoPlayer
     private lateinit var httpDataSource: HttpDataSource.Factory
@@ -72,7 +73,7 @@ class SeriesPlayerScreen : Fragment() {
     private val model by viewModel<PlayViewModel>()
     private val userPreferenceManager by lazy { UserPreferenceManager(requireContext()) }
     private lateinit var mediaSession: MediaSession
-    private val args by navArgs<SeriesPlayerScreenArgs>()
+    private val args by navArgs<MovieSeriesPlayerScreenArgs>()
     private val episodeList = arrayListOf<Data>()
 
     private var countdownShown = false
@@ -86,12 +87,10 @@ class SeriesPlayerScreen : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        _binding = SeriesPlayerScreenBinding.inflate(inflater, container, false)
+        _binding = ImdbSeriesPlayerScreenBinding.inflate(inflater, container, false)
         return binding.root
     }
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
+
 
     private fun showNextEpisodeCountdown() {
         binding.apply {
@@ -130,8 +129,8 @@ class SeriesPlayerScreen : Fragment() {
                     model.doNotAsk = false
                     model.lastPosition = 0
 
-                    model.getCurrentEpisodeVodAnime(
-                        episodeList[model.currentEpIndex].session.toString(), args.seriesMainId
+                    model.getCurrentEpisodeVodByImdb(
+                        args.imdbId, args.iframeLink, args.iframeLink, args.isMovie
                     )
 
                     model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
@@ -212,14 +211,15 @@ class SeriesPlayerScreen : Fragment() {
         }
 
 
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     navigateBack()
                 }
             })
         model.currentEpIndex = args.currentIndex
-        model.getAllEpisodeByPage(args.currentPage, args.seriesMainId)
+        model.getAllEpisodeByImdb(args.imdbId)
         binding.pvPlayer.controller.binding.filmTitle.text =
             "${args.name} - Episode ${model.currentEpIndex + 1}"
         model.allEpisodeData.observe(viewLifecycleOwner) {
@@ -236,7 +236,9 @@ class SeriesPlayerScreen : Fragment() {
                     episodeList.clear()
                     episodeList.addAll(it.data.data ?: listOf())
 
-                    model.getCurrentEpisodeVodAnime(args.id, args.seriesMainId)
+                    model.getCurrentEpisodeVodByImdb(
+                        args.imdbId, args.iframeLink, args.iframeLink, args.isMovie
+                    )
 
                     model.currentEpisodeData.observe(viewLifecycleOwner) {
                         when (it) {
@@ -280,9 +282,11 @@ class SeriesPlayerScreen : Fragment() {
                                         model.currentEpIndex = position
                                         model.lastPosition = 0
 
-                                        model.getCurrentEpisodeVodAnime(
+                                        model.getCurrentEpisodeVodByImdb(
+                                            args.imdbId,
                                             episodeList[position].session.toString(),
-                                            args.seriesMainId
+                                            episodeList[position].session.toString(),
+                                            args.isMovie
                                         )
 
                                         model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
@@ -305,9 +309,11 @@ class SeriesPlayerScreen : Fragment() {
                                         }
                                         model.currentEpIndex += 1
                                         model.doNotAsk = false
-                                        model.getCurrentEpisodeVodAnime(
+                                        model.getCurrentEpisodeVodByImdb(
+                                            args.imdbId,
                                             episodeList[model.currentEpIndex].session.toString(),
-                                            args.seriesMainId
+                                            episodeList[model.currentEpIndex].session.toString(),
+                                            args.isMovie
                                         )
                                         binding.pvPlayer.controller.binding.filmTitle.text =
                                             episodeList[model.currentEpIndex].title
@@ -336,9 +342,11 @@ class SeriesPlayerScreen : Fragment() {
                                             withContext(Dispatchers.Main) {
                                                 model.currentEpIndex -= 1
                                                 model.doNotAsk = false
-                                                model.getCurrentEpisodeVodAnime(
+                                                model.getCurrentEpisodeVodByImdb(
+                                                    args.imdbId,
                                                     episodeList[model.currentEpIndex].session.toString(),
-                                                    args.seriesMainId
+                                                    episodeList[model.currentEpIndex].session.toString(),
+                                                    args.isMovie
                                                 )
                                                 model.lastPosition = 0
                                                 binding.pvPlayer.controller.binding.filmTitle.text =
@@ -417,7 +425,7 @@ class SeriesPlayerScreen : Fragment() {
 
                 val newEp = getEpIndex.copy(
                     totalDuration = player.duration,
-                    lastEpisodeWatchedIndex = args.seriesMainId,
+                    lastEpisodeWatchedIndex = args.tmdbId.toString(),
                     isEpisode = true,
                     epIndex = model.currentEpIndex,
                     lastPosition = player.currentPosition,
@@ -447,7 +455,7 @@ class SeriesPlayerScreen : Fragment() {
                     mediaName = args.name,
                     episodeList[model.currentEpIndex].snapshot ?: return,
                     "",
-                    args.seriesMainId,
+                    args.tmdbId.toString(),
                     "",
                     "",
                     "",
@@ -457,7 +465,7 @@ class SeriesPlayerScreen : Fragment() {
                     model.seriesResponse?.urlobj.toString(),
                     totalDuration = player.duration,
                     lastPosition = player.currentPosition,
-                    lastEpisodeWatchedIndex = args.seriesMainId,
+                    lastEpisodeWatchedIndex = args.tmdbId.toString(),
                     epIndex = model.currentEpIndex,
                     isEpisode = true,
                     currentQualityIndex = model.currentSelectedVideoOptionIndex
@@ -527,11 +535,11 @@ class SeriesPlayerScreen : Fragment() {
                             player,
                             model,
                             handler,
-                            args.idMal ?: 0,
+                            0,
                             episodeList[model.currentEpIndex].episode ?: 0,
                             dur / 1000
                         )
-                        Log.d("GGG", "onPlaybackStateChanged:${args.id} ")
+                        Log.d("GGG", "onPlaybackStateChanged:${args.tmdbId} ")
                         Log.d(
                             "GGG",
                             "onPlaybackStateChanged: ${episodeList[model.currentEpIndex].episode} || ${dur / 1000} ||| ${model.currentEpIndex} || ${episodeList[model.currentEpIndex].anime_id}  "
@@ -664,7 +672,7 @@ class SeriesPlayerScreen : Fragment() {
                 binding.pvPlayer.controller.binding.epListContainer.visible()
             }
             val mediaItem =
-                MediaItem.Builder().setUri(videoUrl).setMimeType(MimeTypes.APPLICATION_MP4)
+                MediaItem.Builder().setUri(videoUrl).setMimeType(MimeTypes.APPLICATION_M3U8)
                     .setTag(args.name).build()
 
             player.setMediaItem(mediaItem)
@@ -695,7 +703,7 @@ class SeriesPlayerScreen : Fragment() {
                 dialog.setNoClearListener {
                     lifecycleScope.launch {
                         dialog.dismiss()
-                        model.removeHistory(args.id)
+                        model.removeHistory(args.iframeLink)
                         withContext(Dispatchers.Main) {
                             player.seekTo(0)
                             player.play()

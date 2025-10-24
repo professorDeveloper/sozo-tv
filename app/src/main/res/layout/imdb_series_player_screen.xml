@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.saikou.sozo_tv.components.PlayerTvView
+            android:id="@+id/pv_player"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:visibility="gone"
+            app:bar_height="90dp"
+            app:controller_layout_id="@layout/content_controller_tv_series"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:resize_mode="fit"
+            app:show_buffering="always"
+            app:show_next_button="true"
+            app:show_previous_button="true"
+            app:show_subtitle_button="true"
+            app:show_timeout="2000"
+            app:show_vr_button="true" />
+        <LinearLayout
+            android:id="@+id/loading_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:background="@color/black"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <TextView
+                android:id="@+id/loadingText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/days"
+                android:padding="8dp"
+                android:text="Movie is loading..."
+                android:textAlignment="center"
+
+                android:textColor="@color/lb_tv_white" />
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:indeterminate="true"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="4dp"
+                app:indicatorColor="@color/white40"
+                app:trackColor="@color/red" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <com.saikou.sozo_tv.components.CountdownOverlayView
+        android:id="@+id/countdown_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:id="@+id/sidebar_right"
+        android:layout_width="320dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@drawable/item_movie_history_bg"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:paddingEnd="8dp"
+        android:translationX="380dp"
+
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="4dp">
+
+            <FrameLayout
+                android:id="@+id/btn_hide_menu_right"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center"
+
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/shape_play_pause_circle_bottom"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:nextFocusDown="@id/episodeRv"
+
+                android:padding="2dp"
+                android:visibility="visible">
+
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:duplicateParentState="true"
+                    app:srcCompat="@drawable/close"
+                    app:tint="@color/color_black_white_text" />
+            </FrameLayout>
+
+
+            <TextView
+                android:id="@+id/textView9"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:fontFamily="@font/days"
+                android:padding="8dp"
+                android:text="Episode List"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <androidx.leanback.widget.VerticalGridView
+            android:id="@+id/episodeRv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:descendantFocusability="blocksDescendants"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:focusedByDefault="false"
+            android:nextFocusDown="@id/btn_hide_menu_right"
+            android:nextFocusUp="@id/btn_hide_menu_right"
+            android:orientation="horizontal"
+            app:focusOutFront="true"
+            android:padding="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/guideline26"
+            app:layout_constraintTop_toTopOf="parent"
+            app:numberOfColumns="2"
+            tools:itemCount="12"
+            tools:listitem="@layout/episode_item_little" />
+
+
+    </LinearLayout>
+
+
+</FrameLayout>
