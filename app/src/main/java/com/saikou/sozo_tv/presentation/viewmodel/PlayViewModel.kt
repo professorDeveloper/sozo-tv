@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.aniskip.AniSkip
+import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.local.entity.EpisodeInfoEntity
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
@@ -21,6 +22,7 @@ import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.parser.movie.PlayImdb
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.cleanImdbUrl
 import com.saikou.sozo_tv.utils.extractImdbVideoId
@@ -40,7 +42,7 @@ class PlayViewModel(
     var doNotAsk: Boolean = false
     var lastPosition: Long = 0
     var qualityProgress: Long = -1
-
+    var seasons = mapOf<Int, Int>()
     var currentEpIndex = -1
     val videoOptionsData = MutableLiveData<List<VideoOption>>()
     val videoOptions = ArrayList<VideoOption>()
@@ -72,42 +74,42 @@ class PlayViewModel(
     }
 
 
-    fun getAllEpisodeByImdb(imdbId: String) {
+    fun getAllEpisodeByImdb(imdbId: String, tmdbId: Int, season: Int) {
         viewModelScope.launch {
-            allEpisodeData.value = Resource.Loading
-            val listData = ArrayList<Data>()
-            playImdb.getEpisodes(imdbId).let { pairData ->
-                val episodes = pairData.first
-                val backdrops = pairData.second
-                val halfIndex = backdrops.size / 2
-                val firstHalf = backdrops.take(halfIndex)
-                val secondHalf = backdrops.drop(halfIndex).shuffled()
+            allEpisodeData.postValue(Resource.Loading)
+            try {
+                allEpisodeData.value = Resource.Loading
 
-                val fullBackdropList = firstHalf + secondHalf
+                val listData = ArrayList<Data>()
 
-                episodes.forEachIndexed { index, episode ->
-                    val snapshotUrl = if (index < fullBackdropList.size) {
-                        fullBackdropList[index].originalUrl
-                    } else {
-                        fullBackdropList.shuffled().last().originalUrl
+                playImdb.getEpisodes(imdbId).let { pairData ->
+                    val list = pairData
+                    val seasonCounts = list.groupingBy { it.season }.eachCount()
+                    if (seasons.isEmpty()) seasons = seasonCounts
+                    val backdrops = playImdb.getDetails(season, tmdbId)
+                    val episodes = list.filter { it.season == season }
+                    episodes.forEachIndexed { index, episode ->
+                        listData.add(
+                            episode.toDomain().copy(
+                                episode2 = episode.episode,
+                                episode = index + 1,
+                                title = episode.title, // 1 dan tartib
+                                snapshot = backdrops[index].originalUrl,
+                                season = episode.season
+                            )
+                        )
                     }
 
-                    listData.add(
-                        episode.toDomain().copy(
-                            episode2 = episode.episode,
-                            episode = index + 1,
-                            title = episode.title,// 1 dan tartib
-                            snapshot = snapshotUrl
-                        )
+                    allEpisodeData.value = Resource.Success(
+                        EpisodeData(1, listData, 1, 1, "", -1, null, -1, 1)
                     )
+
                 }
-                allEpisodeData.value =
-                    Resource.Success(EpisodeData(1, listData, 1, 1, "", -1, null, -1, 1))
+            } catch (e: Exception) {
+                allEpisodeData.postValue(Resource.Error(e))
             }
         }
-
     }
-
 
     suspend fun loadTimeStamps(
         malId: Int?, episodeNum: Int?, duration: Long, useProxyForTimeStamps: Boolean
@@ -180,11 +182,11 @@ class PlayViewModel(
                     }
 
                     currentEpisodeData.postValue(Resource.Loading)
-                    playImdb.extractSeriesIframe(iframe)?.let {
+                    playImdb.extractSeriesIframe( iframe)?.let {
                         println(it)
-                        playImdb.convertRcptProctor(it).let {
+                        playImdb.convertRcptProctor( it).let {
                             println(it)
-                            playImdb.extractDirectM3u8(it).let { m3u8Link ->
+                            playImdb.extractDirectM3u8( it).let { m3u8Link ->
                                 println(m3u8Link)
                                 seriesResponse = VodMovieResponse(
                                     authInfo = "", subtitleList = "", urlobj = m3u8Link
@@ -211,9 +213,9 @@ class PlayViewModel(
                     }
 
                     currentEpisodeData.postValue(Resource.Loading)
-                    playImdb.convertRcptProctor(iframe).let {
+                    playImdb.convertRcptProctor( iframe).let {
                         println(it)
-                        playImdb.extractDirectM3u8(it).let { m3u8Link ->
+                        playImdb.extractDirectM3u8( it).let { m3u8Link ->
                             println(m3u8Link)
                             seriesResponse = VodMovieResponse(
                                 authInfo = "", subtitleList = "", urlobj = m3u8Link
@@ -233,7 +235,7 @@ class PlayViewModel(
                 }
 
             }
-        }catch (e:Exception){
+        } catch (e: Exception) {
             currentEpisodeData.postValue(Resource.Error(e))
         }
     }
@@ -288,7 +290,11 @@ class PlayViewModel(
 
     fun addBookmark(movie: AnimeBookmark) {
         viewModelScope.launch(Dispatchers.IO) {
-            bookmarkRepo.addBookmark(movie)
+            if (LocalData.isAnimeEnabled) {
+                bookmarkRepo.addBookmark(movie)
+            } else {
+                bookmarkRepo.addBookmark(movie.copy(isAnime = false))
+            }
         }
     }
 

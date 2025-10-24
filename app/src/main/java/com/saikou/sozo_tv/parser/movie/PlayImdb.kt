@@ -1,12 +1,17 @@
 package com.saikou.sozo_tv.parser.movie
 
+import android.annotation.SuppressLint
+import android.util.Log
 import com.bugsnag.android.Bugsnag
+import com.google.gson.Gson
+import com.lagradost.nicehttp.Requests
 import com.saikou.sozo_tv.data.model.Backdrop
-import com.saikou.sozo_tv.data.remote.ImageUrlFormatter
+import com.saikou.sozo_tv.data.model.SeasonResponse
 import com.saikou.sozo_tv.parser.BaseParser
 import com.saikou.sozo_tv.parser.models.Episode
-import com.saikou.sozo_tv.utils.Utils
 import com.saikou.sozo_tv.utils.Utils.getJsoup
+import com.saikou.sozo_tv.utils.Utils.httpClient
+import com.saikou.sozo_tv.utils.parser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -23,10 +28,11 @@ class PlayImdb : BaseParser() {
     override val language: String = "en"
     override val isNSFW: Boolean = false
 
-    suspend fun getEpisodes(imdbId: String): Pair<List<Episode>, List<Backdrop>> {
+    suspend fun getEpisodes(imdbId: String): List<Episode> {
         return try {
             withContext(Dispatchers.IO) {
                 val doc: Document = getJsoup("$hostUrl/embed/$imdbId")
+                Log.d("GGG", "getEpisodes: DDD")
                 val episodes = mutableListOf<Episode>()
                 val epsDiv = doc.selectFirst("#eps")
                 if (epsDiv != null && epsDiv.select(".ep").isNotEmpty()) {
@@ -70,20 +76,20 @@ class PlayImdb : BaseParser() {
                         )
                     )
                 }
+                Log.d("GGG", "getEpisodes: ${episodes}")
 
-                return@withContext Pair(
-                    episodes.sortedWith(compareBy({ it.season }, { it.episode })),
-                    getDetails(imdbId)
-                )
+                return@withContext episodes.sortedWith(compareBy({ it.season }, { it.episode }))
+
             }
 
         } catch (e: Exception) {
             Bugsnag.notify(e)
-            return Pair(arrayListOf(), arrayListOf())
+            println(e)
+            return arrayListOf()
         }
     }
 
-    fun extractSeriesIframe(link: String): String? {
+        fun extractSeriesIframe(link: String): String? {
         val doc: Document = getJsoup(link)
 //        println(doc)
         val iframeSrc = doc.selectFirst("iframe#player_iframe")?.attr("src")
@@ -99,43 +105,82 @@ class PlayImdb : BaseParser() {
         println("⚠️ iframe#player_iframe not found")
         return null
     }
+    @SuppressLint("SetJavaScriptEnabled")
+//    suspend fun extractSeriesIframe(
+//        context: Context,
+//        link: String
+//    ): String? = withContext(Dispatchers.Main) {
+//        suspendCancellableCoroutine { cont ->
+//            try {
+//                val webView = WebView(context).apply {
+//                    settings.javaScriptEnabled = true
+//                    settings.domStorageEnabled = true
+//                    settings.loadsImagesAutomatically = false
+//                    settings.userAgentString =
+//                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+//                    visibility = View.GONE
+//                }
+//
+//                webView.webViewClient = object : WebViewClient() {
+//                    override fun onPageFinished(view: WebView?, url: String?) {
+//                        webView.evaluateJavascript(
+//                            "(function(){return document.documentElement.outerHTML;})();"
+//                        ) { html ->
+//                            try {
+//                                val doc = Jsoup.parse(html)
+//                                val iframe = doc.selectFirst("iframe#player_iframe")?.attr("src")
+//                                val finalUrl = when {
+//                                    iframe == null -> null
+//                                    iframe.startsWith("//") -> "https:$iframe"
+//                                    iframe.startsWith("/") -> link.substringBefore(
+//                                        '/',
+//                                        "${link.indexOf("//") + 2}"
+//                                    ) + iframe
+//
+//                                    else -> iframe
+//                                }
+//                                cont.resume(finalUrl, null)
+//                            } catch (e: Exception) {
+//                                Bugsnag.notify(e)
+//                                cont.resume(null, null)
+//                            } finally {
+//                                webView.destroy()
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                webView.loadUrl(link)
+//            } catch (e: Exception) {
+//                Bugsnag.notify(e)
+//                cont.resume(null, null)
+//            }
+//        }
+//    }
 
-    suspend fun getDetails(imdbId: String): ArrayList<Backdrop> {
-        try {
-            val backdrops = ArrayList<Backdrop>()
-            println()
-            val doc = getJsoup(
-                "https://imdb.com/title/${imdbId}/mediaindex/?ref_=mv_sm",
-                mapOf(
-                    "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-                    "Accept" to "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-
-                    )
+    suspend fun getDetails(season: Int, tmdbId: Int): ArrayList<Backdrop> {
+        val niceHttp = Requests(baseClient = httpClient, responseParser = parser)
+        val request = niceHttp.get(
+            "https://jumpfreedom.com/3/tv/${tmdbId}/season/${season}?language=en-US",
+            headers = mapOf(
+                "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:101.0) Gecko/20100101 Firefox/101.0",
             )
-            println("Details url :https://imdb.com/title/${imdbId}/mediaindex/?ref_=mv_sm")
-//        println("Details url :${doc}")
+        )
+        if (request.isSuccessful) {
 
-            val images = doc.select("img.ipc-image")
+            val body = request.body.string()
+            val data = Gson().fromJson(body, SeasonResponse::class.java)
+            val stillPaths = data.episodes.mapNotNull { it.stillPath }
 
-            for (image in images) {
-                val srcSet = image.attr("srcSet")
-                val links = srcSet.split(",")
 
-                val link1230 =
-                    links.firstOrNull { it.contains("UX1230") }?.trim()?.split(" ")?.first()
-
-                val finalLink = link1230 ?: image.attr("src")
-                backdrops.add(Backdrop(ImageUrlFormatter.formatImageUrl(finalLink)))
-            }
-
-            return backdrops
-        } catch (e: Exception) {
-            Bugsnag.notify(e)
-            return ArrayList()
+            return stillPaths.map { Backdrop("https://image.tmdb.org/t/p/w500/${it.toString()}") } as ArrayList<Backdrop>
+        }else {
+            println(request.body.string())
+            Log.d("GGG", "getDetails:fuck  life ")
         }
+        return ArrayList()
     }
-
-    suspend fun convertRcptProctor(iframeUrl: String): String = withContext(Dispatchers.IO) {
+        suspend fun convertRcptProctor(iframeUrl: String): String = withContext(Dispatchers.IO) {
         val maxRetries = 3
         var attempt = 0
 
@@ -203,8 +248,65 @@ class PlayImdb : BaseParser() {
 
         return@withContext ""
     }
+//    @SuppressLint("SetJavaScriptEnabled")
+//    suspend fun convertRcptProctor(
+//        context: Context,
+//        iframeUrl: String
+//    ): String = withContext(Dispatchers.Main) {
+//        suspendCancellableCoroutine { cont ->
+//            val webView = WebView(context).apply {
+//                settings.javaScriptEnabled = true
+//                settings.domStorageEnabled = true
+//                settings.userAgentString =
+//                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+//                visibility = View.GONE
+//            }
+//
+//            var attempts = 0
+//            val maxRetries = 3
+//
+//            fun loadAndCheck() {
+//                webView.webViewClient = object : WebViewClient() {
+//                    override fun onPageFinished(view: WebView?, url: String?) {
+//                        webView.evaluateJavascript(
+//                            "(function(){return document.documentElement.outerHTML;})();"
+//                        ) { html ->
+//                            try {
+//                                val regex = Regex("""src:\s*['"](/prorcp/[^'"]+)['"]""")
+//                                val match = regex.find(html)
+//                                val finalUrl =
+//                                    match?.groupValues?.get(1)?.let { "https://cloudnestra.com$it" }
+//                                        ?: ""
+//
+//                                if (finalUrl.isNotEmpty()) {
+//                                    cont.resume(finalUrl, null)
+//                                    webView.destroy()
+//                                } else if (++attempts < maxRetries) {
+//                                    Handler(Looper.getMainLooper()).postDelayed(
+//                                        { loadAndCheck() },
+//                                        1000
+//                                    )
+//                                } else {
+//                                    cont.resume("", null)
+//                                    webView.destroy()
+//                                }
+//                            } catch (e: Exception) {
+//                                Bugsnag.notify(e)
+//                                cont.resume("", null)
+//                                webView.destroy()
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                webView.loadUrl(iframeUrl)
+//            }
+//
+//            loadAndCheck()
+//        }
+//    }
 
-    suspend fun extractDirectM3u8(iframeUrl: String): String {
+        suspend fun extractDirectM3u8(iframeUrl: String): String {
         try {
             val response = Jsoup.connect(iframeUrl)
                 .method(Connection.Method.GET)
@@ -235,10 +337,47 @@ class PlayImdb : BaseParser() {
                 "empty"
             }
 
-        }catch (e:Exception) {
+        } catch (e: Exception) {
             Bugsnag.notify(e)
             return ""
         }
     }
+//    @SuppressLint("SetJavaScriptEnabled")
+//    suspend fun extractDirectM3u8(
+//        context: Context,
+//        iframeUrl: String
+//    ): String = withContext(Dispatchers.Main) {
+//        suspendCancellableCoroutine { cont ->
+//            val webView = WebView(context).apply {
+//                settings.javaScriptEnabled = true
+//                settings.domStorageEnabled = true
+//                settings.userAgentString =
+//                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+//                visibility = View.GONE
+//            }
+//
+//            webView.webViewClient = object : WebViewClient() {
+//                override fun onPageFinished(view: WebView?, url: String?) {
+//                    webView.evaluateJavascript(
+//                        "(function(){return document.documentElement.outerHTML;})();"
+//                    ) { html ->
+//                        try {
+//                            val regex = Regex("""https?://[^\s'"]+\.m3u8""")
+//                            val match = regex.find(html)
+//                            val finalM3u8 = match?.value ?: "empty"
+//                            cont.resume(finalM3u8, null)
+//                        } catch (e: Exception) {
+//                            Bugsnag.notify(e)
+//                            cont.resume("", null)
+//                        } finally {
+//                            webView.destroy()
+//                        }
+//                    }
+//                }
+//            }
+//
+//            webView.loadUrl(iframeUrl)
+//        }
+//    }
 
 }

@@ -10,6 +10,7 @@ import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.anime.AnimePahe
 import com.saikou.sozo_tv.parser.anime.HentaiMama
 import com.saikou.sozo_tv.parser.models.Data
+import com.saikou.sozo_tv.parser.models.Episode
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.movie.PlayImdb
@@ -28,6 +29,7 @@ class EpisodeViewModel(
     val dataFound: MutableLiveData<Resource<ShowResponse>> = MutableLiveData()
     private val animePahe = AnimePahe()
     private val adultSource = HentaiMama()
+    var seasons = mapOf<Int, Int>()
     private val movieSource = PlayImdb()
     var epListFromLocal = ArrayList<WatchHistoryEntity>()
 
@@ -46,48 +48,59 @@ class EpisodeViewModel(
         }
     }
 
-    fun loadMovieSeriesEpisodes(imdbId: String, isMovie: Boolean) {
-        val current = episodeData.value
-        if (current is Resource.Success && current.data.data?.isNotEmpty() == true) return
+     var cachedEpisodes: List<Episode>? = null
+     var cachedSeasons: Map<Int, Int> = emptyMap()
+     var    firstCategoryDataObserver = MutableLiveData<Unit>()
+
+    fun loadMovieSeriesEpisodes(imdbId: String, tmdbId: Int, season: Int) {
 
         viewModelScope.launch {
-            episodeData.postValue(Resource.Loading)
-
             try {
                 episodeData.value = Resource.Loading
-
                 val listData = ArrayList<Data>()
 
-                movieSource.getEpisodes(imdbId).let { pairData ->
-                    val episodes = pairData.first
-                    val backdrops = pairData.second
-                    val halfIndex = backdrops.size / 2
+                val allEpisodes = cachedEpisodes ?: movieSource.getEpisodes(imdbId).also {
+                    cachedEpisodes = it
+                    cachedSeasons = it.groupingBy { it.season }.eachCount()
+                }
 
-                    val firstHalf = backdrops.take(halfIndex)
-                    val secondHalf = backdrops.drop(halfIndex).shuffled()
-                    val fullBackdropList = firstHalf + secondHalf
+                if (cachedSeasons.isEmpty()) {
+                    cachedSeasons = allEpisodes.groupingBy { it.season }.eachCount()
+                    if (seasons.isEmpty()) seasons = cachedSeasons
+                }
+                val backdrops = movieSource.getDetails(season, tmdbId)
 
-                    episodes.forEachIndexed { index, episode ->
-                        val snapshotUrl = if (index < fullBackdropList.size) {
-                            fullBackdropList[index].originalUrl
-                        } else {
-                            fullBackdropList.shuffled().last().originalUrl
-                        }
+                Log.d("GGG", "loadMovieSeriesEpisodes: season=$season")
 
-                        listData.add(
-                            episode.toDomain().copy(
-                                episode2 = episode.episode,
-                                episode = index + 1,
-                                title = episode.title, // 1 dan tartib
-                                snapshot = snapshotUrl
-                            )
+                val episodes = allEpisodes.filter { it.season == season }
+
+                episodes.forEachIndexed { index, episode ->
+                    listData.add(
+                        episode.toDomain().copy(
+                            episode2 = episode.episode,
+                            episode = index + 1,
+                            title = episode.title,
+                            snapshot = backdrops[index].originalUrl,
+                            season = episode.season
                         )
-                    }
-
-                    episodeData.value = Resource.Success(
-                        EpisodeData(1, listData, 1, 1, "", -1, null, -1, 1)
                     )
                 }
+
+                episodeData.value = Resource.Success(
+                    EpisodeData(
+                        1,
+                        listData,
+                        1,
+                        1,
+                        "",
+                        -1,
+                        null,
+                        -1,
+                        1
+                    )
+                )
+                firstCategoryDataObserver.postValue( Unit)
+
             } catch (e: Exception) {
                 episodeData.postValue(Resource.Error(e))
             }

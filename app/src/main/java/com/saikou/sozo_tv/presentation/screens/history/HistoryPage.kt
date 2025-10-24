@@ -13,7 +13,7 @@ import com.saikou.sozo_tv.databinding.HistoryPageBinding
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
-import com.saikou.sozo_tv.utils.LocalData.isHistoryItemClicked
+import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -37,9 +37,9 @@ class HistoryPage : Fragment() {
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        LocalData.itemMovieWatch = null
         lifecycleScope.launch {
-            val watchHistoryList = model.getAllWatchHistory()
+            val watchHistoryList = if (LocalData.isAnimeEnabled) model.getAllWatchHistory()
+                .filter { it.isAnime } else model.getAllWatchHistory().filter { !it.isAnime }
             if (watchHistoryList.isNotEmpty()) {
                 binding.historyGroup.visibility = View.VISIBLE
                 binding.placeHolder.root.visibility = View.GONE
@@ -47,18 +47,38 @@ class HistoryPage : Fragment() {
                 binding.historyRv.adapter = historyAdapter
                 historyAdapter.setItemHistoryListener {
                     if (it.isEpisode) {
-                        val intent = Intent(binding.root.context, PlayerActivity::class.java)
-                        intent.putExtra("session", it.session)
-                        intent.putExtra("page", it.page)
-                        intent.putExtra("epIndex", it.epIndex)
-                        intent.putExtra("mediaId", it.categoryid)
-                        intent.putExtra("image", it.image)
-                        intent.putExtra("animeTitle", it.mediaName)
-                        intent.putExtra("isHistory", true)
+                        if (isAnimeEnabled) {
+                            val intent = Intent(binding.root.context, PlayerActivity::class.java)
+                            intent.putExtra("session", it.session)
+                            intent.putExtra("page", it.page)
+                            intent.putExtra("epIndex", it.epIndex)
+                            intent.putExtra("mediaId", it.categoryid)
+                            intent.putExtra("image", it.image)
+                            intent.putExtra("animeTitle", it.mediaName)
+                            intent.putExtra("isHistory", true)
+                            intent.putExtra("isSeries", it.isSeries)
+                            intent.putExtra("isAnime", it.isAnime)
 //                        LocalData.itemMovieWatch = it
 //                        LocalData.isSeries = true
-                        requireContext().startActivity(intent)
-                        binding.root.context.startActivity(intent)
+                            requireContext().startActivity(intent)
+                            binding.root.context.startActivity(intent)
+                        } else {
+                            val intent = Intent(binding.root.context, PlayerActivity::class.java)
+                            intent.putExtra("session", it.session)
+                            intent.putExtra("page", it.page)
+                            intent.putExtra("epIndex", it.epIndex)
+                            intent.putExtra("mediaId", it.categoryid)
+                            intent.putExtra("imdb", it.imdbID)
+                            intent.putExtra("image", it.image)
+                            intent.putExtra("animeTitle", it.mediaName)
+                            intent.putExtra("isHistory", true)
+//                            intent.putExtra("isSeries", it.isSeries)
+//                            intent.putExtra("isAnime", it.isAnime)
+//                        LocalData.itemMovieWatch = it
+//                        LocalData.isSeries = true
+                            requireContext().startActivity(intent)
+                            binding.root.context.startActivity(intent)
+                        }
                     }
                 }
 

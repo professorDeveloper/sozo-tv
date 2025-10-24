@@ -417,7 +417,7 @@ class SeriesPlayerScreen : Fragment() {
 
                 val newEp = getEpIndex.copy(
                     totalDuration = player.duration,
-                    lastEpisodeWatchedIndex = args.seriesMainId,
+                    imdbID = args.seriesMainId,
                     isEpisode = true,
                     epIndex = model.currentEpIndex,
                     lastPosition = player.currentPosition,
@@ -457,7 +457,7 @@ class SeriesPlayerScreen : Fragment() {
                     model.seriesResponse?.urlobj.toString(),
                     totalDuration = player.duration,
                     lastPosition = player.currentPosition,
-                    lastEpisodeWatchedIndex = args.seriesMainId,
+                    imdbID = args.seriesMainId,
                     epIndex = model.currentEpIndex,
                     isEpisode = true,
                     currentQualityIndex = model.currentSelectedVideoOptionIndex

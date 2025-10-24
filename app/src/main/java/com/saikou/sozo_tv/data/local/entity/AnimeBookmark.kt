@@ -10,8 +10,9 @@ data class AnimeBookmark(
     val title: String,
     val idMal: Int = -1,
     val image: String,
-
-    )
+    val isSeries: Boolean = false,
+    val isAnime: Boolean = true,
+)
 
 @Entity(tableName = "characterbookmark")
 data class CharacterEntity(
@@ -52,7 +53,9 @@ data class WatchHistoryEntity(
     val lastPosition: Long,
     val watchedAt: Long = System.currentTimeMillis(),
     val isEpisode: Boolean = true,
-    val lastEpisodeWatchedIndex: String = "-1",
+    val imdbID: String = "-1",
     var epIndex: Int = -1,
     val currentQualityIndex: Int = -1,
+    val isAnime: Boolean = true,
+    val isSeries: Boolean = false,
 )

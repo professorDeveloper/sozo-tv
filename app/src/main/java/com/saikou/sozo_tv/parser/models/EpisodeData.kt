@@ -1,4 +1,5 @@
 package com.saikou.sozo_tv.parser.models
+
 data class EpisodeData(
     val current_page: Int?,
     val `data`: List<Data>?,
@@ -32,9 +33,10 @@ data class AnimePaheData(
     val to: Int,
     val total: Int
 )
+
 data class DataD(
     val episodes: Int,
-    val id: Int ?,
+    val id: Int?,
     val poster: String?,
     val score: Double?,
     val season: String?,
@@ -46,17 +48,19 @@ data class DataD(
 )
 
 data class Data(
-    val anime_id: Int?=null,
+    val anime_id: Int? = null,
     val audio: String? = null,
     val created_at: String? = null,
     val disc: String? = null,
     val duration: String? = null,
     val edition: String? = null,
     val episode: Int? = null,
-    val episode2: Int?  = null,
+    val
+    episode2: Int? = null,
     val filler: Int? = null,
     val id: Int? = null,
     val session: String? = null,
     val snapshot: String? = null,
-    val title: String? = null
+    val title: String? = null,
+    val season: Int = 0,
 )

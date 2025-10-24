@@ -17,6 +17,8 @@ import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
 import com.saikou.sozo_tv.utils.toDomain
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
 
 class BookmarkScreen : Fragment() {
@@ -43,7 +45,6 @@ class BookmarkScreen : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         model.getAllCharacterBookmarks()
         model.getAllBookmarks()
-
         setupVerticalGridView()
 
         binding.bookmarkRv.adapter = animeAdapter
@@ -54,12 +55,23 @@ class BookmarkScreen : Fragment() {
 
 
         model.bookmarkData.observe(viewLifecycleOwner) { list ->
-            val domainList = list.map { it.toDomain() } as ArrayList<MainModel>
-            animeAdapter.updateCategoriesAll(domainList)
-            binding.bookmarkPlaceHolder.root.visibility =
-                if (domainList.isEmpty() && isAnimeSelected) View.VISIBLE else View.GONE
-            binding.bookmarkRv.visibility =
-                if (domainList.isEmpty() && isAnimeSelected) View.GONE else View.VISIBLE
+            if (LocalData.isAnimeEnabled) {
+                val domainList =
+                    list.map { it.toDomain() }.filter { it.isAnime } as ArrayList<MainModel>
+                animeAdapter.updateCategoriesAll(domainList)
+                binding.bookmarkPlaceHolder.root.visibility =
+                    if (domainList.isEmpty() && isAnimeSelected) View.VISIBLE else View.GONE
+                binding.bookmarkRv.visibility =
+                    if (domainList.isEmpty() && isAnimeSelected) View.GONE else View.VISIBLE
+            } else {
+                val domainList =
+                    list.map { it.toDomain() }.filter { !it.isAnime } as ArrayList<MainModel>
+                animeAdapter.updateCategoriesAll(domainList)
+                binding.bookmarkPlaceHolder.root.visibility =
+                    if (domainList.isEmpty() && isAnimeSelected) View.VISIBLE else View.GONE
+                binding.bookmarkRv.visibility =
+                    if (domainList.isEmpty() && isAnimeSelected) View.GONE else View.VISIBLE
+            }
         }
 
         model.characterData.observe(viewLifecycleOwner) { characters ->
@@ -78,6 +90,7 @@ class BookmarkScreen : Fragment() {
             showTopBar()
         }
 
+        binding.topBar.movieTxt.text = if (isAnimeEnabled) "Anime" else "Movie"
         binding.topBar.navCharacters.setOnClickListener {
             isAnimeSelected = false
             binding.bookmarkRv.adapter = characterAdapter

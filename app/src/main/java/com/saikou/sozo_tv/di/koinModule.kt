@@ -96,7 +96,7 @@ val koinModule = module {
     viewModel { HomeViewModel(repo = get(), imdbRepo = get()) }
     viewModel { TvGardenViewModel() }
     viewModel { EpisodeViewModel(watchHistoryRepository = get(),repo=get()) }
-    viewModel { WrongTitleViewModel() }
+    viewModel { WrongTitleViewModel(get()) }
     viewModel { UpdateViewModel() }
     viewModel { AdultPlayerViewModel() }
     viewModel { SplashViewModel(firebaseService = get()) }

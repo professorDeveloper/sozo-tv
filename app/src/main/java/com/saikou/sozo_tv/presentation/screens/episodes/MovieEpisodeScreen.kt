@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -50,9 +51,13 @@ class MovieEpisodeScreen : Fragment() {
         return binding.root
     }
 
+    private var isFirst = false
+
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        categoriesAdapter = EpisodeTabAdapter()
+
         binding.backBtn.setOnClickListener {
             findNavController().popBackStack()
         }
@@ -111,13 +116,17 @@ class MovieEpisodeScreen : Fragment() {
                         binding.textView7.startAnimation(anim)
                         currentMediaId = dataFound.data.link
                         adapter = SeriesPageAdapter()
-                        binding.wrongTitleContainer.visibility = View.VISIBLE
-                        binding.wrongTitleContainer.startAnimation(anim)
-                        binding.wrongTitleContainer.setOnClickListener { gg ->
-                            showWrongTitleDialog(dataFound.data.name)
-                        }
+//                        binding.wrongTitleContainer.visibility = View.GONE
+//                        binding.wrongTitleContainer.startAnimation(anim)
+//                        binding.wrongTitleContainer.setOnClickListener { gg ->
+//                            showWrongTitleDialog(dataFound.data.name)
+//                        }
                         binding.topContainer.adapter = adapter
-                        viewModel.loadMovieSeriesEpisodes(currentMediaId, args.isMovie)
+                        viewModel.loadMovieSeriesEpisodes(
+                            currentMediaId,
+                            tmdbId = args.tmdbId.toInt(),
+                            1
+                        )
                         binding.placeHolder.root.gone()
                         binding.loadingLayout.visible()
                         viewModel.episodeData.observe(viewLifecycleOwner) { result ->
@@ -137,11 +146,10 @@ class MovieEpisodeScreen : Fragment() {
                                 }
 
                                 is Resource.Success -> {
-                                    binding.tabRv.gone()
+
                                     binding.placeHolder.root.gone()
                                     binding.topContainer.visible()
                                     binding.loadingLayout.gone()
-                                    binding.tabRv.gone()
                                     adapter.updateEpisodeItems(
                                         result.data.data ?: arrayListOf()
                                     )
@@ -151,7 +159,7 @@ class MovieEpisodeScreen : Fragment() {
                                                 args.tmdbId,
                                                 args.isMovie,
                                                 dataFound.data.link,
-                                                1,
+                                                selectedPosition + 1,
                                                 currentIndex,
                                                 args.title,
                                                 args.image,
@@ -159,28 +167,33 @@ class MovieEpisodeScreen : Fragment() {
                                             )
                                         )
                                     }
-//                                    val partList = ArrayList<Part>()
-//                                    categoriesAdapter = EpisodeTabAdapter()
-//                                    binding.tabRv.visible()
-//                                    binding.tabRv.adapter = categoriesAdapter
-//                                    for (i in 1..result.data.total) {
-//                                        partList.add(Part("Season $i", i))
-//                                    }
-//                                    categoriesAdapter.submitList(partList)
-//                                    categoriesAdapter.setSelectedPosition(
-//                                        selectedPosition
-//                                    )
-//                                    binding.tabRv.scrollToPosition(selectedPosition)
-//                                    categoriesAdapter.setFocusedItemListener { _, i ->
-//                                        viewModel.loadMovieSeriesEpisodesBySeason(
-//                                            currentMediaId,
-//                                            i+1
-//                                        )
-//                                        selectedPosition = i
-//                                    }
                                 }
 
                                 else -> {}
+                            }
+                        }
+                        viewModel.firstCategoryDataObserver.observe(viewLifecycleOwner) {
+                            if (!isFirst) {
+                                val partList = ArrayList<Part>()
+
+
+                                binding.tabRv.visible()
+                                binding.tabRv.adapter = categoriesAdapter
+                                viewModel.cachedSeasons.keys.forEach {
+                                    partList.add(Part("Season $it", it))
+                                }
+                                categoriesAdapter.submitList(partList)
+                                categoriesAdapter.setSelectedPosition(
+                                    selectedPosition
+                                )
+                                binding.tabRv.scrollToPosition(selectedPosition)
+                                categoriesAdapter.setFocusedItemListener { item, i ->
+                                    viewModel.loadMovieSeriesEpisodes(
+                                        dataFound.data.link, args.tmdbId, item.part
+                                    )
+                                    selectedPosition = i
+                                }
+                                isFirst = true
                             }
                         }
                     }
@@ -191,19 +204,6 @@ class MovieEpisodeScreen : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun showWrongTitleDialog(animeTitle: String, isAdult: Boolean = false) {
-        val dialog: WrongTitleDialog =
-            WrongTitleDialog.newInstance(animeTitle = animeTitle, isAdult = isAdult)
-        dialog.onWrongTitleChanged = {
-            dialog.dismiss()
-            viewModel.findEpisodes(it.name)
-            currentMediaId = it.link
-            binding.textView7.text = "Selected Media: ${it.name}"
-
-        }
-        dialog.show(parentFragmentManager, "FilterDialog")
-    }
 
     private fun addAnimFocus() {
         binding.backBtn.setOnFocusChangeListener { _, hasFocus ->
@@ -277,5 +277,11 @@ class MovieEpisodeScreen : Fragment() {
             )
         }
         return spannable
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+        isFirst = false
     }
 }

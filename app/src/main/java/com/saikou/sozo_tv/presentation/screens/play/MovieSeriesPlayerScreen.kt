@@ -45,7 +45,6 @@ import com.saikou.sozo_tv.adapters.EpisodePlayerAdapter
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.databinding.ContentControllerTvSeriesBinding
 import com.saikou.sozo_tv.databinding.ImdbSeriesPlayerScreenBinding
-import com.saikou.sozo_tv.databinding.SeriesPlayerScreenBinding
 import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
@@ -219,7 +218,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                 }
             })
         model.currentEpIndex = args.currentIndex
-        model.getAllEpisodeByImdb(args.imdbId)
+        model.getAllEpisodeByImdb(args.imdbId, args.tmdbId, args.currentPage)
         binding.pvPlayer.controller.binding.filmTitle.text =
             "${args.name} - Episode ${model.currentEpIndex + 1}"
         model.allEpisodeData.observe(viewLifecycleOwner) {
@@ -425,7 +424,7 @@ class MovieSeriesPlayerScreen : Fragment() {
 
                 val newEp = getEpIndex.copy(
                     totalDuration = player.duration,
-                    lastEpisodeWatchedIndex = args.tmdbId.toString(),
+                    imdbID = args.tmdbId.toString(),
                     isEpisode = true,
                     epIndex = model.currentEpIndex,
                     lastPosition = player.currentPosition,
@@ -465,10 +464,12 @@ class MovieSeriesPlayerScreen : Fragment() {
                     model.seriesResponse?.urlobj.toString(),
                     totalDuration = player.duration,
                     lastPosition = player.currentPosition,
-                    lastEpisodeWatchedIndex = args.tmdbId.toString(),
+                    imdbID = args.imdbId.toString(),
                     epIndex = model.currentEpIndex,
                     isEpisode = true,
-                    currentQualityIndex = model.currentSelectedVideoOptionIndex
+                    currentQualityIndex = model.currentSelectedVideoOptionIndex,
+                    isSeries = !args.isMovie,
+                    isAnime = false
                 )
                 model.addHistory(historyBuild)
             }
@@ -802,7 +803,7 @@ class MovieSeriesPlayerScreen : Fragment() {
         super.onPause()
         stopProgressTracking()
 
-        if (::player.isInitialized) {
+        if (::player.isInitialized && player.currentPosition > 10) {
             player.pause()
             lifecycleScope.launch {
                 saveWatchHistory()

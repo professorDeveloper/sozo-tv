@@ -11,7 +11,8 @@ data class MainModel(
     val studios: List<String?>?,
     val averageScore: Int,
     val meanScore: Int = -1,
-    val isSeries : Boolean = false
+    val isSeries: Boolean = false,
+    val isAnime: Boolean = false
 ) : Serializable
 
 

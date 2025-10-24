@@ -92,6 +92,8 @@ fun AnimeBookmark.toDomain(): MainModel {
         null,
         null,
         -1,
+        isSeries = this.isSeries,
+        isAnime = this.isAnime,
     )
 }
 
