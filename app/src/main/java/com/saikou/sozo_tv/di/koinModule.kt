@@ -30,6 +30,7 @@ import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.LiveTvViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.NewsViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
@@ -49,6 +50,7 @@ val koinModule = module {
         ).build()
     }
     single { get<AppDatabase>().movieDao() }
+    single { get<AppDatabase>().tvDao() }
     single { get<AppDatabase>().watchHistoryDao() }
     single { get<AppDatabase>().characterDao() }
     factory { UserPreferenceManager(androidContext()) }
@@ -94,10 +96,11 @@ val koinModule = module {
 //
 //
     viewModel { HomeViewModel(repo = get(), imdbRepo = get()) }
-    viewModel { TvGardenViewModel() }
-    viewModel { EpisodeViewModel(watchHistoryRepository = get(),repo=get()) }
+    viewModel { TvGardenViewModel(get()) }
+    viewModel { EpisodeViewModel(watchHistoryRepository = get(), repo = get()) }
     viewModel { WrongTitleViewModel(get()) }
     viewModel { UpdateViewModel() }
+    viewModel { LiveTvViewModel(dao = get()) }
     viewModel { AdultPlayerViewModel() }
     viewModel { SplashViewModel(firebaseService = get()) }
     viewModel { PlayViewModel(repo = get(), bookmarkRepo = get(), watchHistoryRepository = get()) }

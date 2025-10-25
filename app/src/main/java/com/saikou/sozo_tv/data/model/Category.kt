@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.data.model
 
 import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
 
 data class Category(
     val key: String, val name: String
@@ -18,7 +19,7 @@ data class Channel(
     @SerializedName("language") val language: String,
     @SerializedName("country") val country: String,
     @SerializedName("isGeoBlocked") val isGeoBlocked: Boolean
-)
+) : java.io.Serializable
 
 data class GitHubFile(
     @SerializedName("name") val name: String, @SerializedName("type") val type: String

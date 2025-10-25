@@ -3,18 +3,25 @@ package com.saikou.sozo_tv.presentation.viewmodel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.saikou.sozo_tv.data.local.dao.ChannelDao
+import com.saikou.sozo_tv.data.local.entity.ChannelsEntity
+import com.saikou.sozo_tv.data.local.entity.CharacterEntity
 import com.saikou.sozo_tv.data.model.Category
 import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.data.model.Country
+import com.saikou.sozo_tv.domain.repository.CharacterBookmarkRepository
 import com.saikou.sozo_tv.parser.TvGarden
 import com.saikou.sozo_tv.utils.Resource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class TvGardenViewModel:ViewModel() {
+class TvGardenViewModel(
+    private val dao: ChannelDao
+) : ViewModel() {
     private val tvGarden = TvGarden()
-     val categories:MutableLiveData<Resource<List<Category>>> = MutableLiveData()
-     val countries:MutableLiveData<Resource<List<Country>>> = MutableLiveData()
-     val channels:MutableLiveData<List<Channel>> = MutableLiveData()
+    val categories: MutableLiveData<Resource<List<Category>>> = MutableLiveData()
+    val countries: MutableLiveData<Resource<List<Country>>> = MutableLiveData()
+    val channels: MutableLiveData<List<Channel>> = MutableLiveData()
     var isCountrySelected = false
     var currentSort = ""
     var isOpened = false
@@ -27,7 +34,9 @@ class TvGardenViewModel:ViewModel() {
         }
     }
 
-    fun loadChannelsByCategory(category: Category){
+
+
+    fun loadChannelsByCategory(category: Category) {
         viewModelScope.launch {
             tvGarden.getChannelsByCategory(category).let {
                 channels.postValue(it)
@@ -35,14 +44,15 @@ class TvGardenViewModel:ViewModel() {
         }
     }
 
-    fun loadChannelsByCountry(country: Country){
+    fun loadChannelsByCountry(country: Country) {
         viewModelScope.launch {
             tvGarden.getChannelsByCountry(country).let {
                 channels.postValue(it)
             }
         }
     }
-    fun loadChannelCountries(){
+
+    fun loadChannelCountries() {
         countries.postValue(Resource.Loading)
         viewModelScope.launch {
             tvGarden.loadChannelCountries().let {

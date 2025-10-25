@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.google.gson.annotations.SerializedName
 
 @Entity(tableName = "moviebookmark")
 data class AnimeBookmark(
@@ -23,6 +24,16 @@ data class CharacterEntity(
     val role: String,
     val age: String,
     val isAnime: Boolean = true
+)
+
+@Entity(tableName = "channelsbookmark")
+data class ChannelsEntity(
+    @PrimaryKey
+    val id: String,
+    val name: String,
+    val iptvUrl: String,
+    val country: String,
+    val isGeoBlocked: Boolean
 )
 
 @Entity

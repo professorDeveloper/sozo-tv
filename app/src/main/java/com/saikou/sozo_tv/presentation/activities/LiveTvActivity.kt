@@ -23,9 +23,15 @@ import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.ui.PlayerControlView
 import androidx.navigation.fragment.findNavController
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.data.local.entity.ChannelsEntity
+import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.databinding.ActivityLiveTvBinding
 import com.saikou.sozo_tv.databinding.ControllerLiveTvBinding
 import com.saikou.sozo_tv.presentation.screens.play.TrailerPlayerScreen
+import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.LiveTvViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.TvGardenViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class LiveTvActivity : AppCompatActivity() {
 
@@ -33,7 +39,7 @@ class LiveTvActivity : AppCompatActivity() {
     private val liveStreamUrl by lazy { intent.getStringExtra("url") }
     private lateinit var player: ExoPlayer
     private lateinit var dataSourceFactory: DefaultHttpDataSource.Factory
-
+    private val model: LiveTvViewModel by viewModel()
     private val PlayerControlView.binding
         @OptIn(UnstableApi::class) get() = ControllerLiveTvBinding.bind(this.findViewById(R.id.cl_exo_controller))
 
@@ -44,10 +50,12 @@ class LiveTvActivity : AppCompatActivity() {
         setContentView(binding.root)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val title = intent.getStringExtra("title") ?: ""
+        val data = intent.getSerializableExtra("data") as Channel
         binding.pvPlayer.controller.binding.filmTitle.text = title
         initializeDataSourceFactory()
         initializePlayer()
         setupPlayerControls()
+        model.checkBookmark(data.nanoid ?: "")
     }
 
     @SuppressLint("UnsafeOptInUsageError")
@@ -109,7 +117,24 @@ class LiveTvActivity : AppCompatActivity() {
         binding.pvPlayer.controller.binding.frameBackButton.setOnClickListener {
             finish()
         }
-
+        model.isBookmark.observe(this) {
+            binding.pvPlayer.controller.binding.exoBookmark.setImageResource(if (it) R.drawable.ic_bookmark_fill else R.drawable.ic_bookmark)
+        }
+        binding.pvPlayer.controller.binding.bookmarkBtn.setOnClickListener {
+            val data = intent.getSerializableExtra("data", Channel::class.java)
+            val entity = ChannelsEntity(
+                data?.nanoid ?: "",
+                data?.name ?: "",
+                liveStreamUrl ?: "",
+                data?.country ?: "",
+                data?.isGeoBlocked ?: false
+            )
+            if (model.isBookmark.value == true) {
+                model.removeBookmark(entity)
+            } else {
+                model.addBookmark(entity)
+            }
+        }
         binding.pvPlayer.controller.binding.exoPlayPauseContainer.setOnClickListener {
             if (player.isPlaying) {
                 player.pause()

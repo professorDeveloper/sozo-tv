@@ -9,6 +9,5 @@ interface CharacterBookmarkRepository {
     suspend fun removeBookmark(movie: CharacterEntity)
     suspend fun isBookmarked(movieId: Int): Boolean
     suspend fun getAllBookmarks(): List<CharacterEntity>
-
     suspend fun clearAllBookmarks()
 }

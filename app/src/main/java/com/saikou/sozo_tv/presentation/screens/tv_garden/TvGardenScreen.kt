@@ -53,6 +53,7 @@ class TvGardenScreen : Fragment() {
                     val intent = Intent(requireContext(), LiveTvActivity::class.java)
                     intent.putExtra("url", it.iptvUrls[0])
                     intent.putExtra("title", it.name)
+                    intent.putExtra("data", it)
                     requireActivity().startActivity(intent)
                 } else {
                     Toast.makeText(requireContext(), "No stream available", Toast.LENGTH_SHORT)
