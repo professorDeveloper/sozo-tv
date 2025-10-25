@@ -17,6 +17,7 @@ import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
 import com.saikou.sozo_tv.utils.toDomain
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.data.model.BookmarkType
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
@@ -29,7 +30,7 @@ class BookmarkScreen : Fragment() {
     private val animeAdapter = CategoriesPageAdapter(isDetail = true)
     private val characterAdapter = CharactersPageAdapter()
 
-    private var isAnimeSelected = true
+    private var bookmarkType = BookmarkType.MEDIA
     private var lastScrollY = 0
 
     override fun onCreateView(
@@ -60,30 +61,30 @@ class BookmarkScreen : Fragment() {
                     list.map { it.toDomain() }.filter { it.isAnime } as ArrayList<MainModel>
                 animeAdapter.updateCategoriesAll(domainList)
                 binding.bookmarkPlaceHolder.root.visibility =
-                    if (domainList.isEmpty() && isAnimeSelected) View.VISIBLE else View.GONE
+                    if (domainList.isEmpty() && bookmarkType == BookmarkType.MEDIA) View.VISIBLE else View.GONE
                 binding.bookmarkRv.visibility =
-                    if (domainList.isEmpty() && isAnimeSelected) View.GONE else View.VISIBLE
+                    if (domainList.isEmpty() && bookmarkType == BookmarkType.MEDIA) View.GONE else View.VISIBLE
             } else {
                 val domainList =
                     list.map { it.toDomain() }.filter { !it.isAnime } as ArrayList<MainModel>
                 animeAdapter.updateCategoriesAll(domainList)
                 binding.bookmarkPlaceHolder.root.visibility =
-                    if (domainList.isEmpty() && isAnimeSelected) View.VISIBLE else View.GONE
+                    if (domainList.isEmpty() && bookmarkType == BookmarkType.MEDIA) View.VISIBLE else View.GONE
                 binding.bookmarkRv.visibility =
-                    if (domainList.isEmpty() && isAnimeSelected) View.GONE else View.VISIBLE
+                    if (domainList.isEmpty() && bookmarkType == BookmarkType.MEDIA) View.GONE else View.VISIBLE
             }
         }
 
         model.characterData.observe(viewLifecycleOwner) { characters ->
             characterAdapter.updateCharacters(characters)
             binding.bookmarkPlaceHolder.root.visibility =
-                if (characters.isEmpty() && !isAnimeSelected) View.VISIBLE else View.GONE
+                if (characters.isEmpty() && bookmarkType != BookmarkType.MEDIA) View.VISIBLE else View.GONE
             binding.bookmarkRv.visibility =
-                if (characters.isEmpty() && !isAnimeSelected) View.GONE else View.VISIBLE
+                if (characters.isEmpty() && bookmarkType != BookmarkType.MEDIA) View.GONE else View.VISIBLE
         }
 
         binding.topBar.navAnime.setOnClickListener {
-            isAnimeSelected = true
+            bookmarkType = BookmarkType.MEDIA
             binding.bookmarkRv.adapter = animeAdapter
             model.getAllBookmarks()
             updateTabSelection()
@@ -92,9 +93,15 @@ class BookmarkScreen : Fragment() {
 
         binding.topBar.movieTxt.text = if (isAnimeEnabled) "Anime" else "Movie"
         binding.topBar.navCharacters.setOnClickListener {
-            isAnimeSelected = false
+            bookmarkType = BookmarkType.CHARACTER
             binding.bookmarkRv.adapter = characterAdapter
             model.getAllCharacterBookmarks()
+            updateTabSelection()
+            showTopBar()
+        }
+        binding.topBar.navChannels.setOnClickListener {
+            bookmarkType = BookmarkType.TV_CHANNEL
+
             updateTabSelection()
             showTopBar()
         }
@@ -131,12 +138,26 @@ class BookmarkScreen : Fragment() {
     }
 
     private fun updateTabSelection() {
-        binding.topBar.navAnime.setBackgroundResource(
-            if (isAnimeSelected) R.drawable.tab_background_selector else R.drawable.tab_background_unselected
-        )
-        binding.topBar.navCharacters.setBackgroundResource(
-            if (!isAnimeSelected) R.drawable.tab_background_selector else R.drawable.tab_background_unselected
-        )
+        when (bookmarkType) {
+            BookmarkType.MEDIA -> {
+                binding.topBar.navAnime.setBackgroundResource(R.drawable.tab_background_selector)
+                binding.topBar.navCharacters.setBackgroundResource(R.drawable.tab_background_unselected)
+                binding.topBar.navChannels.setBackgroundResource(R.drawable.tab_background_unselected)
+            }
+
+            BookmarkType.CHARACTER -> {
+                binding.topBar.navAnime.setBackgroundResource(R.drawable.tab_background_unselected)
+                binding.topBar.navCharacters.setBackgroundResource(R.drawable.tab_background_selector)
+                binding.topBar.navChannels.setBackgroundResource(R.drawable.tab_background_unselected)
+            }
+
+            BookmarkType.TV_CHANNEL -> {
+                binding.topBar.navAnime.setBackgroundResource(R.drawable.tab_background_unselected)
+                binding.topBar.navCharacters.setBackgroundResource(R.drawable.tab_background_unselected)
+                binding.topBar.navChannels.setBackgroundResource(R.drawable.tab_background_selector)
+            }
+        }
+
     }
 
     private fun hideTopBar() {

@@ -49,7 +49,7 @@
     <color name="tv_focus_border">@color/red</color>
     <!-- Updated to Telegram-style colors with provided color scheme -->
     <color name="netflix_green">#46D369</color>
-    <color name="netflix_focus_overlay">#1A1A1A</color>
+    <color name="netflix_focus_overlay">#191212</color>
     <!-- Telegram Ad Colors -->
     <color name="telegram_ad_background">#2B2E33</color>
     <color name="telegram_title_color">#FFFFFF</color>

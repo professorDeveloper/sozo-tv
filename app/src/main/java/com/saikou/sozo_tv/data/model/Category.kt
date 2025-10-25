@@ -3,13 +3,11 @@ package com.saikou.sozo_tv.data.model
 import com.google.gson.annotations.SerializedName
 
 data class Category(
-    val key: String,
-    val name: String
+    val key: String, val name: String
 )
 
 data class Country(
-    val code: String,
-    val name: String
+    val code: String, val name: String
 )
 
 data class Channel(
@@ -23,6 +21,9 @@ data class Channel(
 )
 
 data class GitHubFile(
-    @SerializedName("name") val name: String,
-    @SerializedName("type") val type: String
+    @SerializedName("name") val name: String, @SerializedName("type") val type: String
 )
+
+enum class BookmarkType {
+    MEDIA, CHARACTER, TV_CHANNEL
+}

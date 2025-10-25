@@ -64,11 +64,9 @@ class IMDBScraping {
         val matchResult = regex.find(scriptData)
         val secondResponse = getCasts(document)
         if (matchResult != null) {
-            println("Founded m3u8 URL: ${matchResult.value}")
             Log.d("MMM", "getTrailer: {matchResult.value}")
             return Pair(matchResult.value, secondResponse)
         } else {
-            println("m3u8 URL notfound")
             Log.d("MMM", "getTrailer:m3u8 URL notfound ")
             return Pair("m3u8 URL notfound", secondResponse)
         }
