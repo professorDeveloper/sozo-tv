@@ -20,6 +20,7 @@ import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.ChannelsAdapter
 import com.saikou.sozo_tv.data.model.BookmarkType
 import com.saikou.sozo_tv.data.model.Channel
+import com.saikou.sozo_tv.presentation.activities.LiveTvActivity
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
@@ -84,10 +85,17 @@ class BookmarkScreen : Fragment() {
                 if (characters.isEmpty() && bookmarkType != BookmarkType.MEDIA) View.GONE else View.VISIBLE
         }
         val channelsAdapter = ChannelsAdapter() {
-
+            val intent = Intent(requireContext(), LiveTvActivity::class.java)
+            intent.putExtra("url", it.iptvUrls[0])
+            intent.putExtra("title", it.name)
+            intent.putExtra("data", it)
+            requireActivity().startActivity(intent)
         }
         model.channelData.observe(viewLifecycleOwner) { channels ->
             binding.bookmarkRv.visible()
+            binding.bookmarkPlaceHolder.root.visibility =
+                if (channels.isEmpty() && bookmarkType == BookmarkType.TV_CHANNEL) View.VISIBLE else View.GONE
+            binding.bookmarkRv.adapter=channelsAdapter
             val channelList = channels.map {
                 Channel(
                     it.id,
@@ -122,7 +130,7 @@ class BookmarkScreen : Fragment() {
         }
         binding.topBar.navChannels.setOnClickListener {
             bookmarkType = BookmarkType.TV_CHANNEL
-
+            model.getAllChannelBookmarks()
             updateTabSelection()
             showTopBar()
         }

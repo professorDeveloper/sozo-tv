@@ -84,7 +84,7 @@
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:gravity="center"
-        android:nextFocusLeft="@id/nav_anime"
+        android:nextFocusLeft="@id/nav_characters"
         app:focusOutEnd="true"
         app:focusOutFront="true">
 
