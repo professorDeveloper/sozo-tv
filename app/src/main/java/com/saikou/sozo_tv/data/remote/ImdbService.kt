@@ -4,7 +4,10 @@ import com.saikou.sozo_tv.data.model.tmdb.ExternalIdsResponse
 import com.saikou.sozo_tv.data.model.tmdb.MediaDetails
 import com.saikou.sozo_tv.data.model.tmdb.TmdbGenreResponse
 import com.saikou.sozo_tv.data.model.tmdb.TmdbListResponse
+import com.saikou.sozo_tv.data.model.tmdb.cast.CastDetail
+import com.saikou.sozo_tv.data.model.tmdb.cast.MediaCast
 import com.saikou.sozo_tv.data.model.tmdb.cast.MediaCastResponse
+import com.saikou.sozo_tv.data.model.tmdb.cast.MovieCast
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -61,13 +64,13 @@ interface ImdbService {
     @GET("movie/{id}")
     suspend fun getMovieDetails(
         @Path("id") id: Int,
-        @Query("language") lang: String = "en-US"
+//        @Query("language") lang: String = "en-US"
     ): Response<MediaDetails>
 
     @GET("tv/{id}")
     suspend fun getTvDetails(
         @Path("id") id: Int,
-        @Query("language") lang: String = "en-US"
+//        @Query("language") lang: String = "en-US"
     ): Response<MediaDetails>
 
 //    curl --request GET \
@@ -89,20 +92,20 @@ interface ImdbService {
         @Query("page") page: Int = 1
     ): Response<TmdbListResponse>
 
-//    curl --request GET \
+    //    curl --request GET \
 //    --url 'https://api.themoviedb.org/3/movie/movie_id/credits?language=en-US' \
 //    --header 'accept: application/json'
 //
     @GET("movie/{id}/credits")
     suspend fun getCreditsForMovie(
-    @Path("id") id: Int,
-    @Query("language") lang: String = "en-US"
-): Response<MediaCastResponse>
+        @Path("id") id: Int,
+//        @Query("language") lang: String = "en-US"
+    ): Response<MediaCastResponse>
 
     @GET("tv/{series_id}/credits")
     suspend fun getCreditsForSeries(
         @Path("series_id") series_id: Int,
-        @Query("language") lang: String = "en-US"
+//        @Query("language") lang: String = "en-US"
     ): Response<MediaCastResponse>
 
     @GET("movie/{id}/external_ids")
@@ -114,9 +117,27 @@ interface ImdbService {
     suspend fun getTvExternalIds(
         @Path("id") tvId: Int,
     ): Response<ExternalIdsResponse>
+
     @GET("trending/tv/day")
     suspend fun getTrendingSeries(
         @Query("language") language: String = "en-US"
     ): Response<TmdbListResponse>
 
+    @GET("person/{person_id}/movie_credits")
+    suspend fun getPersonMovieCredits(
+        @Path("person_id") person_id: Int,
+//        @Query("language") lang: String = "en-US"
+    ): Response<MovieCast>
+
+    @GET("person/{person_id}/tv_credits")
+    suspend fun getPersonTvCredits(
+        @Path("person_id") person_id: Int,
+////        @Query("language") lang: String = "en-US"
+    ): Response<MediaCastResponse>
+
+    @GET("person/{person_id}")
+    suspend fun getPersonDetails(
+        @Path("person_id") personId: Int,
+//        @Query("language") lang: String = "en-US"
+    ): Response<CastDetail>
 }

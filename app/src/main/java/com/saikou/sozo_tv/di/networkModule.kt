@@ -30,7 +30,7 @@ import javax.net.ssl.X509TrustManager
 
 const val JIKAN_BASE_URL = "https://api.jikan.moe/"
 const val BASE_URL = "https://graphql.anilist.co/"
-const val TMDB_BASE_URL = "https://api.themoviedb.org/3/"
+const val TMDB_BASE_URL = "https://jumpfreedom.com/3/"
 
 val NetworkModule = module {
     single { EncryptedPreferencesManager(androidContext()) }
@@ -90,7 +90,7 @@ fun createTmdbClient(): Retrofit {
     val tmdbInterceptor = Interceptor { chain ->
         val token = Security.getToken()
         val newRequest = chain.request().newBuilder()
-            .addHeader("Authorization", "Bearer $token")
+//            .addHeader("Authorization", "Bearer $token")
             .addHeader("accept", "application/json")
             .build()
         chain.proceed(newRequest)

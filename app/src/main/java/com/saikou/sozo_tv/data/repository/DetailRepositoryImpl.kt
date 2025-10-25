@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.data.repository
 
+import android.util.Log
 import com.animestudios.animeapp.GetAnimeByIdQuery
 import com.animestudios.animeapp.GetCharacterDetailQuery
 import com.animestudios.animeapp.GetCharactersAnimeByIdQuery
@@ -9,12 +10,19 @@ import com.apollographql.apollo3.api.Optional
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.tmdb.TmdbListResponse
 import com.saikou.sozo_tv.data.remote.ImdbService
+import com.saikou.sozo_tv.data.remote.safeApiCall
+import com.saikou.sozo_tv.data.remote.safeExecute
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.CastDetailModel
 import com.saikou.sozo_tv.domain.model.DetailModel
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.DetailRepository
+import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.toDomain
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import kotlin.random.Random
 
 class DetailRepositoryImpl(private val client: ApolloClient, private val api: ImdbService) :
@@ -113,7 +121,7 @@ class DetailRepositoryImpl(private val client: ApolloClient, private val api: Im
 
             response.body()!!.cast.map {
                 Cast(
-                    id = it.cast_id, it.profileImg, it.original_name, it.character, "0"
+                    id = it.id, it.profileImg, it.original_name, it.character, "0"
                 )
             }
         }
@@ -168,6 +176,28 @@ class DetailRepositoryImpl(private val client: ApolloClient, private val api: Im
 
         } catch (e: Exception) {
             return Result.failure(e)
+        }
+    }
+
+    override suspend fun creditDetail(id: Int): Result<CastDetailModel> {
+        return safeExecute {
+            val response = api.getPersonDetails(personId = id).body()!!
+            val list = api.getPersonMovieCredits(id).body()!!
+            CastDetailModel(
+                "${LocalData.IMDB_IMAGE_PATH}${response.profile_path}",
+                if (response.gender == 2) "Male" else "Female",
+                response.name,
+                role = if (response.also_known_as?.isNotEmpty() == true) response.also_known_as[0] else "Empty",
+                list.cast.map { it.toDomain() },
+                (response.birthday.let {
+                    val date =
+                        LocalDate.parse(it, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                    val age = ChronoUnit.YEARS.between(date, LocalDate.now()).toInt()
+                    age
+                } ?: -1).toString(),
+
+                response.popularity.toInt()
+            )
         }
     }
 }

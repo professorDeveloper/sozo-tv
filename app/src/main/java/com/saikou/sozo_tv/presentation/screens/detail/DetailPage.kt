@@ -288,6 +288,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     override fun onCastItemClicked(item: Cast) {
         isBookmarkClicked = false
         Log.d("GGG", "onCastItemClicked:${item.id} ")
+        Log.d("GGG", "onCastItemClicked:${item.name} ")
         findNavController().navigate(
             DetailPageDirections.actionDetailPage2ToCastDetailScreen(
                 item.id

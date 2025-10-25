@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.utils
 
+import android.media.MediaCas
 import com.animestudios.animeapp.GetAnimeByGenreQuery
 import com.animestudios.animeapp.GetAnimeByIdQuery
 import com.animestudios.animeapp.GetAnimeByOnlGenreQuery
@@ -15,6 +16,7 @@ import com.saikou.sozo_tv.data.model.jikan.BannerHomeData
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.data.model.tmdb.MediaDetails
 import com.saikou.sozo_tv.data.model.tmdb.TmdbListItem
+import com.saikou.sozo_tv.data.model.tmdb.cast.MediaCast
 import com.saikou.sozo_tv.domain.model.AiringSchedule
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
@@ -30,6 +32,20 @@ import com.saikou.sozo_tv.domain.model.SearchModel
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.Episode
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
+
+fun com.saikou.sozo_tv.data.model.tmdb.cast.Cast.toDomain(): MainModel {
+    return MainModel(
+        this.id,
+        this.title,
+        -1,
+        this.imageUrl?:"",
+        null,
+        null,
+        -1,
+        -1,
+        isSeries = false
+    )
+}
 
 fun TmdbListItem.toDomain(): MainModel {
     return MainModel(
@@ -79,7 +95,8 @@ fun DetailModel.toDomain(): AnimeBookmark {
 
 fun CastAdapterModel.toDomain(id: Int): CharacterEntity {
     return CharacterEntity(
-        id = id, name = this.name, image = this.image, role = this.role, age = this.age
+        id = id, name = this.name, image = this.image, role = this.role, age = this.age,
+        isAnime = LocalData.isAnimeEnabled
     )
 }
 

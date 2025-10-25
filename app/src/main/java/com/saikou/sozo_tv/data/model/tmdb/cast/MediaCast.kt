@@ -1,8 +1,8 @@
 package com.saikou.sozo_tv.data.model.tmdb.cast
 
 data class MediaCast(
-    val adult: Boolean,
     val cast_id: Int,
+    val adult: Boolean,
     val character: String,
     val credit_id: String,
     val gender: Int,

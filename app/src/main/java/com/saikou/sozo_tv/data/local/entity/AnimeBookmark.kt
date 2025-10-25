@@ -22,6 +22,7 @@ data class CharacterEntity(
     val name: String,
     val role: String,
     val age: String,
+    val isAnime: Boolean = true
 )
 
 @Entity
