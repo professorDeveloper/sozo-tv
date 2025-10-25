@@ -720,34 +720,37 @@ class MovieSeriesPlayerScreen : Fragment() {
                 val videoSource = HlsMediaSource.Factory(dataSourceFactory)
                     .createMediaSource(MediaItem.fromUri(videoUri))
 
-                val mergedSource: MediaSource = if (subtitleItem != null && !subtitleItem.url.isNullOrEmpty()) {
-                    try {
-                        val localFile = File(requireContext().cacheDir, "sub.srt")
-                        URL(subtitleItem.url).openStream().use { input ->
-                            localFile.outputStream().use { output -> input.copyTo(output) }
+                val mergedSource: MediaSource =
+                    if (subtitleItem != null && !subtitleItem.url.isNullOrEmpty()) {
+                        try {
+                            val localFile = File(requireContext().cacheDir, "sub.srt")
+                            URL(subtitleItem.url).openStream().use { input ->
+                                localFile.outputStream().use { output -> input.copyTo(output) }
+                            }
+
+                            extendSubtitleDuration(localFile, extraMs = 12000L)
+
+                            val subUri = Uri.fromFile(localFile)
+                            val subtitleSource = SingleSampleMediaSource.Factory(dataSourceFactory)
+                                .createMediaSource(
+                                    MediaItem.SubtitleConfiguration.Builder(subUri)
+                                        .setMimeType(MimeTypes.APPLICATION_SUBRIP)
+                                        .setLanguage("en")
+                                        .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+                                        .build(),
+                                    33_000_000L
+                                )
+
+                            Log.d("Subtitle", "English subtitle loaded and extended by 2s")
+                            MergingMediaSource(videoSource, subtitleSource)
+                        } catch (e: Exception) {
+                            Log.e("Subtitle", "Subtitle load failed: ${e.message}")
+                            videoSource
                         }
-
-                        val subUri = Uri.fromFile(localFile)
-                        val subtitleSource = SingleSampleMediaSource.Factory(dataSourceFactory)
-                            .createMediaSource(
-                                MediaItem.SubtitleConfiguration.Builder(subUri)
-                                    .setMimeType(MimeTypes.APPLICATION_SUBRIP)
-                                    .setLanguage("en")
-                                    .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-                                    .build(),
-                                5_000_000L
-                            )
-
-                        Log.d("Subtitle", "English subtitle loaded: ")
-                        MergingMediaSource(videoSource, subtitleSource)
-                    } catch (e: Exception) {
-                        Log.e("Subtitle", "Subtitle load failed: ${e.message}")
+                    } else {
+                        Log.w("Subtitle", "No English subtitle found, playing without subtitles")
                         videoSource
                     }
-                } else {
-                    Log.w("Subtitle", "No English subtitle found, playing without subtitles")
-                    videoSource
-                }
 
                 withContext(Dispatchers.Main) {
                     player.setMediaSource(mergedSource)
@@ -814,6 +817,28 @@ class MovieSeriesPlayerScreen : Fragment() {
 
             }
         }
+    }
+
+    suspend fun extendSubtitleDuration(file: File, extraMs: Long = 2000L) {
+        val lines = file.readLines().toMutableList()
+        val regex = Regex("(\\d{2}:\\d{2}:\\d{2},\\d{3}) --> (\\d{2}:\\d{2}:\\d{2},\\d{3})")
+
+        for (i in lines.indices) {
+            val match = regex.find(lines[i])
+            if (match != null) {
+                val (start, end) = match.destructured
+                val newEnd = addMsToTimestamp(end, extraMs)
+                lines[i] = "$start --> $newEnd"
+            }
+        }
+        file.writeText(lines.joinToString("\n"))
+    }
+
+    private fun addMsToTimestamp(timestamp: String, extraMs: Long): String {
+        val sdf = java.text.SimpleDateFormat("HH:mm:ss,SSS", java.util.Locale.US)
+        val date = sdf.parse(timestamp) ?: return timestamp
+        val newTime = date.time + extraMs
+        return sdf.format(java.util.Date(newTime))
     }
 
 
