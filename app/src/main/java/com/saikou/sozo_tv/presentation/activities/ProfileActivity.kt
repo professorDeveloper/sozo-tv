@@ -29,12 +29,12 @@ class ProfileActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityProfileBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
-        LocalData.isHistoryItemClicked = false
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             viewBinding.navProfile.isFocusedByDefault = true
         }
         isSettingsOpen = intent.getBooleanExtra("isSettings", false)
         setUpRv()
+        isHistoryItemClicked=false
         onBackPressedDispatcher.addCallback(this) {
             when (backPressCount) {
                 0 -> {
@@ -77,7 +77,7 @@ class ProfileActivity : AppCompatActivity() {
             recyclerView = viewBinding.profileRv
         ).also { viewBinding.profileRv.adapter = it }
 
-        if (!LocalData.isHistoryItemClicked) {
+        if (!isHistoryItemClicked) {
             viewBinding.apply {
                 profileRv.post {
                     profileRv.requestFocusFromTouch()
@@ -90,11 +90,11 @@ class ProfileActivity : AppCompatActivity() {
 
             focusRecyclerViewToPosition(accountList.size + 2)
         } else {
-            focusRecyclerViewToPosition(accountList.size + 3)
+            focusRecyclerViewToPosition(accountList.size + 4)
             viewBinding.apply {
                 profileRv.post {
                     profileRv.requestFocusFromTouch()
-                    val sectionPosition = accountList.size + 3
+                    val sectionPosition = accountList.size + 4
                     profileRv.smoothScrollToPosition(sectionPosition)
                     profileRv.requestFocusFromTouch()
                 }
@@ -170,7 +170,6 @@ class ProfileActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        backPressCount = 0
     }
 
     companion object {

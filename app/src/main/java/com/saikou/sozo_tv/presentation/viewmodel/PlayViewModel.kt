@@ -74,39 +74,84 @@ class PlayViewModel(
     }
 
 
-    fun getAllEpisodeByImdb(imdbId: String, tmdbId: Int, season: Int) {
+    fun getAllEpisodeByImdb(
+        imdbId: String,
+        tmdbId: Int,
+        season: Int,
+        isMovie: Boolean,
+        img: String
+    ) {
         viewModelScope.launch {
-            allEpisodeData.postValue(Resource.Loading)
-            try {
-                allEpisodeData.value = Resource.Loading
+            if (!isMovie) {
+                allEpisodeData.postValue(Resource.Loading)
+                try {
+                    allEpisodeData.value = Resource.Loading
+                    val listData = ArrayList<Data>()
+                    playImdb.getEpisodes(imdbId).let { pairData ->
+                        val list = pairData
+                        val seasonCounts = list.groupingBy { it.season }.eachCount()
+                        if (seasons.isEmpty()) seasons = seasonCounts
+                        val backdrops = playImdb.getDetails(season, tmdbId)
+                        val episodes = list.filter { it.season == season }
+                        episodes.forEachIndexed { index, episode ->
+                            if (backdrops.size > index) {
+                                listData.add(
+                                    episode.toDomain().copy(
+                                        episode2 = episode.episode,
+                                        episode = index + 1,
+                                        title = episode.title, // 1 dan tartib
+                                        snapshot = backdrops[index].originalUrl,
+                                        season = episode.season
+                                    )
+                                )
+                            } else {
+                                listData.add(
+                                    episode.toDomain().copy(
+                                        episode2 = episode.episode,
+                                        episode = index + 1,
+                                        title = episode.title, // 1 dan tartib
+                                        snapshot = LocalData.anime404,
+                                        season = episode.season
+                                    )
+                                )
+                            }
+                        }
 
-                val listData = ArrayList<Data>()
-
-                playImdb.getEpisodes(imdbId).let { pairData ->
-                    val list = pairData
-                    val seasonCounts = list.groupingBy { it.season }.eachCount()
-                    if (seasons.isEmpty()) seasons = seasonCounts
-                    val backdrops = playImdb.getDetails(season, tmdbId)
-                    val episodes = list.filter { it.season == season }
-                    episodes.forEachIndexed { index, episode ->
-                        listData.add(
-                            episode.toDomain().copy(
-                                episode2 = episode.episode,
-                                episode = index + 1,
-                                title = episode.title, // 1 dan tartib
-                                snapshot = backdrops[index].originalUrl,
-                                season = episode.season
-                            )
+                        allEpisodeData.value = Resource.Success(
+                            EpisodeData(1, listData, 1, 1, "", -1, null, -1, 1)
                         )
+
                     }
-
-                    allEpisodeData.value = Resource.Success(
-                        EpisodeData(1, listData, 1, 1, "", -1, null, -1, 1)
-                    )
-
+                } catch (e: Exception) {
+                    allEpisodeData.postValue(Resource.Error(e))
                 }
-            } catch (e: Exception) {
-                allEpisodeData.postValue(Resource.Error(e))
+            } else {
+                allEpisodeData.postValue(Resource.Loading)
+                try {
+                    allEpisodeData.value = Resource.Loading
+
+                    val listData = ArrayList<Data>()
+
+                    playImdb.getEpisodes(imdbId).let { pairData ->
+                        val list = pairData
+                        list.forEachIndexed { index, episode ->
+                            listData.add(
+                                episode.toDomain().copy(
+                                    episode2 = episode.episode,
+                                    episode = index + 1,// 1 dan tartib
+                                    snapshot = img,
+                                    season = 1
+                                )
+                            )
+                        }
+                        allEpisodeData.value = Resource.Success(
+                            EpisodeData(1, listData, 1, 1, "", -1, null, -1, 1)
+                        )
+
+                    }
+                } catch (e: Exception) {
+                    allEpisodeData.postValue(Resource.Error(e))
+                }
             }
         }
     }
@@ -174,20 +219,19 @@ class PlayViewModel(
         try {
             viewModelScope.launch(Dispatchers.IO) {
                 if (!isMovie) {
-                    isWatched = isWatched(iframe.toString())
+                    isWatched = isWatched(iframe)
                     if (isWatched) {
                         getWatchedHistoryEntity = getWatchedEntity(episodeId.toString())
                         currentSelectedVideoOptionIndex =
                             getWatchedHistoryEntity?.currentQualityIndex ?: 0
                     }
-
                     currentEpisodeData.postValue(Resource.Loading)
-                    playImdb.extractSeriesIframe( iframe)?.let {
-                        println(it)
-                        playImdb.convertRcptProctor( it).let {
-                            println(it)
-                            playImdb.extractDirectM3u8( it).let { m3u8Link ->
-                                println(m3u8Link)
+                    playImdb.extractSeriesIframe(iframe)?.let {
+                        Log.d("GGG", "getCurrentEpisodeVodByImdb:${it} ")
+                        playImdb.convertRcptProctor(it).let {
+                            Log.d("GGG", "convert:${it} ")
+                            playImdb.extractDirectM3u8(it).let { m3u8Link ->
+                                Log.d("GGG", "extract:${it} ")
                                 seriesResponse = VodMovieResponse(
                                     authInfo = "", subtitleList = "", urlobj = m3u8Link
 
@@ -213,9 +257,9 @@ class PlayViewModel(
                     }
 
                     currentEpisodeData.postValue(Resource.Loading)
-                    playImdb.convertRcptProctor( iframe).let {
+                    playImdb.convertRcptProctor(iframe).let {
                         println(it)
-                        playImdb.extractDirectM3u8( it).let { m3u8Link ->
+                        playImdb.extractDirectM3u8(it).let { m3u8Link ->
                             println(m3u8Link)
                             seriesResponse = VodMovieResponse(
                                 authInfo = "", subtitleList = "", urlobj = m3u8Link

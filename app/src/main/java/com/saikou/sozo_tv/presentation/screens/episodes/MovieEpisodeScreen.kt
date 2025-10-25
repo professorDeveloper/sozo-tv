@@ -125,7 +125,9 @@ class MovieEpisodeScreen : Fragment() {
                         viewModel.loadMovieSeriesEpisodes(
                             currentMediaId,
                             tmdbId = args.tmdbId.toInt(),
-                            1
+                            1,
+                            args.isMovie,
+                            args.image
                         )
                         binding.placeHolder.root.gone()
                         binding.loadingLayout.visible()
@@ -189,7 +191,9 @@ class MovieEpisodeScreen : Fragment() {
                                 binding.tabRv.scrollToPosition(selectedPosition)
                                 categoriesAdapter.setFocusedItemListener { item, i ->
                                     viewModel.loadMovieSeriesEpisodes(
-                                        dataFound.data.link, args.tmdbId, item.part
+                                        dataFound.data.link, args.tmdbId, item.part,
+                                        args.isMovie,
+                                        args.image
                                     )
                                     selectedPosition = i
                                 }

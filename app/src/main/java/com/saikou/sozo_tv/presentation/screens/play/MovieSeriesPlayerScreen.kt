@@ -28,8 +28,10 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
@@ -179,7 +181,6 @@ class MovieSeriesPlayerScreen : Fragment() {
 
     private fun navigateBack() {
         if (!isAdded) return
-
         if (LocalData.isHistoryItemClicked) {
             val intent = Intent(context, ProfileActivity::class.java)
             startActivity(intent)
@@ -218,7 +219,13 @@ class MovieSeriesPlayerScreen : Fragment() {
                 }
             })
         model.currentEpIndex = args.currentIndex
-        model.getAllEpisodeByImdb(args.imdbId, args.tmdbId, args.currentPage)
+        model.getAllEpisodeByImdb(
+            args.imdbId,
+            args.tmdbId,
+            args.currentPage,
+            args.isMovie,
+            args.image
+        )
         binding.pvPlayer.controller.binding.filmTitle.text =
             "${args.name} - Episode ${model.currentEpIndex + 1}"
         model.allEpisodeData.observe(viewLifecycleOwner) {
@@ -490,17 +497,24 @@ class MovieSeriesPlayerScreen : Fragment() {
         dataSourceFactory =
             DefaultDataSource.Factory(requireContext(), OkHttpDataSource.Factory(client))
 
-        val renderersFactory =
-            DefaultRenderersFactory(requireContext()).setEnableDecoderFallback(true)
-                .setMediaCodecSelector(MediaCodecSelector.DEFAULT).setEnableAudioFloatOutput(false)
+        val renderersFactory = DefaultRenderersFactory(requireContext())
+            .setEnableDecoderFallback(true)
+            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
 
         httpDataSource = DefaultHttpDataSource.Factory()
 
         player = ExoPlayer.Builder(requireContext(), renderersFactory)
             .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
-            .setRenderersFactory(renderersFactory).setVideoChangeFrameRateStrategy(
-                C.VIDEO_CHANGE_FRAME_RATE_STRATEGY_ONLY_IF_SEAMLESS
-            ).build()
+            .setLoadControl(
+                DefaultLoadControl.Builder()
+                    .setBufferDurationsMs(
+                        5000, // minBufferMs
+                        15000, // maxBufferMs
+                        1000, // bufferForPlaybackMs
+                        5000  // bufferForPlaybackAfterRebufferMs
+                    ).build()
+            )
+            .build()
 
         player.setPlayWhenReady(true)
         player.setWakeMode(C.WAKE_MODE_LOCAL)
@@ -520,45 +534,47 @@ class MovieSeriesPlayerScreen : Fragment() {
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
-                when (playbackState) {
-                    Player.STATE_READY -> {
-                        if (!LocalData.isHistoryItemClicked) {
-                            resetCountdownState()
-                            startProgressTracking()
+                if (LocalData.isAnimeEnabled){
+                    when (playbackState) {
+                        Player.STATE_READY -> {
+                            if (!LocalData.isHistoryItemClicked) {
+                                resetCountdownState()
+                                startProgressTracking()
 
-                        }
-                        val dur = player.duration
-                        if (::skipIntroView.isInitialized) {
-                            skipIntroView.cleanup()
-                        }
-                        skipIntroView = SkipIntroView(
-                            binding.pvPlayer.controller.binding.root,
-                            player,
-                            model,
-                            handler,
-                            0,
-                            episodeList[model.currentEpIndex].episode ?: 0,
-                            dur / 1000
-                        )
-                        Log.d("GGG", "onPlaybackStateChanged:${args.tmdbId} ")
-                        Log.d(
-                            "GGG",
-                            "onPlaybackStateChanged: ${episodeList[model.currentEpIndex].episode} || ${dur / 1000} ||| ${model.currentEpIndex} || ${episodeList[model.currentEpIndex].anime_id}  "
-                        )
-                        skipIntroView.initialize()
-                    }
-
-                    Player.STATE_ENDED -> {
-                        if (!LocalData.isHistoryItemClicked) {
-                            stopProgressTracking()
-                            if (!isCountdownActive) {
-                                playNextEpisodeAutomatically()
                             }
+                            val dur = player.duration
+                            if (::skipIntroView.isInitialized) {
+                                skipIntroView.cleanup()
+                            }
+                            skipIntroView = SkipIntroView(
+                                binding.pvPlayer.controller.binding.root,
+                                player,
+                                model,
+                                handler,
+                                0,
+                                episodeList[model.currentEpIndex].episode ?: 0,
+                                dur / 1000
+                            )
+                            Log.d("GGG", "onPlaybackStateChanged:${args.tmdbId} ")
+                            Log.d(
+                                "GGG",
+                                "onPlaybackStateChanged: ${episodeList[model.currentEpIndex].episode} || ${dur / 1000} ||| ${model.currentEpIndex} || ${episodeList[model.currentEpIndex].anime_id}  "
+                            )
+                            skipIntroView.initialize()
+                        }
 
+                        Player.STATE_ENDED -> {
+                            if (!LocalData.isHistoryItemClicked) {
+                                stopProgressTracking()
+                                if (!isCountdownActive) {
+                                    playNextEpisodeAutomatically()
+                                }
+
+                            }
                         }
                     }
                 }
-            }
+             }
         })
 
         binding.pvPlayer.player = player
@@ -663,6 +679,7 @@ class MovieSeriesPlayerScreen : Fragment() {
         lifecycleScope.launch {
             val videoUrl = model.seriesResponse!!.urlobj
             val lastPosition = model.getWatchedHistoryEntity?.lastPosition ?: 0L
+
             if (LocalData.isHistoryItemClicked) {
                 binding.pvPlayer.controller.binding.exoNextContainer.gone()
                 binding.pvPlayer.controller.binding.exoPrevContainer.gone()
@@ -672,11 +689,21 @@ class MovieSeriesPlayerScreen : Fragment() {
                 binding.pvPlayer.controller.binding.exoPrevContainer.visible()
                 binding.pvPlayer.controller.binding.epListContainer.visible()
             }
-            val mediaItem =
-                MediaItem.Builder().setUri(videoUrl).setMimeType(MimeTypes.APPLICATION_M3U8)
-                    .setTag(args.name).build()
 
-            player.setMediaItem(mediaItem)
+            val hlsFactory = HlsMediaSource.Factory(dataSourceFactory)
+                .setAllowChunklessPreparation(true)
+
+            val mediaItem = MediaItem.Builder()
+                .setUri(videoUrl)
+                .setMimeType(MimeTypes.APPLICATION_M3U8)
+                .setTag(args.name)
+                .build()
+
+            val mediaSource = hlsFactory.createMediaSource(mediaItem)
+
+            player.setMediaSource(mediaSource)
+            player.prepare()
+            player.playWhenReady = true
 
             if (!model.doNotAsk) {
                 if (lastPosition > 0) {

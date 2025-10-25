@@ -14,6 +14,7 @@ import com.saikou.sozo_tv.parser.models.Episode
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.movie.PlayImdb
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.toDomain
 import kotlinx.coroutines.Dispatchers
@@ -48,14 +49,79 @@ class EpisodeViewModel(
         }
     }
 
-     var cachedEpisodes: List<Episode>? = null
-     var cachedSeasons: Map<Int, Int> = emptyMap()
-     var    firstCategoryDataObserver = MutableLiveData<Unit>()
+    var cachedEpisodes: List<Episode>? = null
+    var cachedSeasons: Map<Int, Int> = emptyMap()
+    var firstCategoryDataObserver = MutableLiveData<Unit>()
 
-    fun loadMovieSeriesEpisodes(imdbId: String, tmdbId: Int, season: Int) {
+    fun loadMovieSeriesEpisodes(imdbId: String, tmdbId: Int, season: Int,isMovie: Boolean,img:String) {
+        if (!isMovie){
+            viewModelScope.launch {
+                try {
+                    episodeData.value = Resource.Loading
+                    val listData = ArrayList<Data>()
 
-        viewModelScope.launch {
-            try {
+                    val allEpisodes = cachedEpisodes ?: movieSource.getEpisodes(imdbId).also {
+                        cachedEpisodes = it
+                        cachedSeasons = it.groupingBy { it.season }.eachCount()
+                    }
+
+                    if (cachedSeasons.isEmpty()) {
+                        cachedSeasons = allEpisodes.groupingBy { it.season }.eachCount()
+                        if (seasons.isEmpty()) seasons = cachedSeasons
+                    }
+                    val backdrops = movieSource.getDetails(season, tmdbId)
+
+                    Log.d("GGG", "loadMovieSeriesEpisodes: season=$season")
+
+                    val episodes = if (allEpisodes.filter { it.season == season }
+                            .isNotEmpty()) allEpisodes.filter { it.season == season } else allEpisodes
+                    episodes.forEachIndexed { index, episode ->
+                        if (backdrops.size > index) {
+                            listData.add(
+                                episode.toDomain().copy(
+                                    episode2 = episode.episode,
+                                    episode = index + 1,
+                                    title = episode.title,
+                                    snapshot = backdrops[index].originalUrl,
+                                    season = episode.season.takeIf {
+                                        it != 0
+                                    } ?: 1
+                                )
+                            )
+                        } else {
+                            listData.add(
+                                episode.toDomain().copy(
+                                    episode2 = episode.episode,
+                                    episode = index + 1,
+                                    title = episode.title,
+                                    snapshot = LocalData.anime404,
+                                    season = episode.season
+                                )
+                            )
+                        }
+                    }
+
+                    episodeData.value = Resource.Success(
+                        EpisodeData(
+                            1,
+                            listData,
+                            1,
+                            1,
+                            "",
+                            -1,
+                            null,
+                            -1,
+                            1
+                        )
+                    )
+                    firstCategoryDataObserver.postValue(Unit)
+
+                } catch (e: Exception) {
+                    episodeData.postValue(Resource.Error(e))
+                }
+            }
+        }else{
+            viewModelScope.launch {
                 episodeData.value = Resource.Loading
                 val listData = ArrayList<Data>()
 
@@ -68,24 +134,17 @@ class EpisodeViewModel(
                     cachedSeasons = allEpisodes.groupingBy { it.season }.eachCount()
                     if (seasons.isEmpty()) seasons = cachedSeasons
                 }
-                val backdrops = movieSource.getDetails(season, tmdbId)
-
-                Log.d("GGG", "loadMovieSeriesEpisodes: season=$season")
-
-                val episodes = allEpisodes.filter { it.season == season }
-
-                episodes.forEachIndexed { index, episode ->
-                    listData.add(
-                        episode.toDomain().copy(
-                            episode2 = episode.episode,
-                            episode = index + 1,
-                            title = episode.title,
-                            snapshot = backdrops[index].originalUrl,
-                            season = episode.season
-                        )
-                    )
-                }
-
+             allEpisodes.forEachIndexed { index, episode ->
+                 listData.add(
+                     episode.toDomain().copy(
+                         episode2 = episode.episode,
+                         episode = index + 1,
+                         title = episode.title,
+                         snapshot = img,
+                         season = 1
+                     )
+                 )
+             }
                 episodeData.value = Resource.Success(
                     EpisodeData(
                         1,
@@ -99,10 +158,6 @@ class EpisodeViewModel(
                         1
                     )
                 )
-                firstCategoryDataObserver.postValue( Unit)
-
-            } catch (e: Exception) {
-                episodeData.postValue(Resource.Error(e))
             }
         }
     }

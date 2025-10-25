@@ -89,7 +89,7 @@ class PlayImdb : BaseParser() {
         }
     }
 
-        fun extractSeriesIframe(link: String): String? {
+    fun extractSeriesIframe(link: String): String? {
         val doc: Document = getJsoup(link)
 //        println(doc)
         val iframeSrc = doc.selectFirst("iframe#player_iframe")?.attr("src")
@@ -105,6 +105,7 @@ class PlayImdb : BaseParser() {
         println("⚠️ iframe#player_iframe not found")
         return null
     }
+
     @SuppressLint("SetJavaScriptEnabled")
 //    suspend fun extractSeriesIframe(
 //        context: Context,
@@ -174,13 +175,14 @@ class PlayImdb : BaseParser() {
 
 
             return stillPaths.map { Backdrop("https://image.tmdb.org/t/p/w500/${it.toString()}") } as ArrayList<Backdrop>
-        }else {
-            println(request.body.string())
+        } else {
             Log.d("GGG", "getDetails:fuck  life ")
+            return arrayListOf()
         }
         return ArrayList()
     }
-        suspend fun convertRcptProctor(iframeUrl: String): String = withContext(Dispatchers.IO) {
+
+    suspend fun convertRcptProctor(iframeUrl: String): String = withContext(Dispatchers.IO) {
         val maxRetries = 3
         var attempt = 0
 
@@ -306,7 +308,7 @@ class PlayImdb : BaseParser() {
 //        }
 //    }
 
-        suspend fun extractDirectM3u8(iframeUrl: String): String {
+    suspend fun extractDirectM3u8(iframeUrl: String): String {
         try {
             val response = Jsoup.connect(iframeUrl)
                 .method(Connection.Method.GET)

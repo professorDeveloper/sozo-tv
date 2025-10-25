@@ -24,7 +24,6 @@ class ProfileAdapter(
     private lateinit var itemListener: () -> Unit
     private lateinit var onSectionClick: (SectionItem, Int) -> Unit
 
-    // ✅ Yangi: tanlangan section index
     private var selectedSectionIndex: Int = RecyclerView.NO_POSITION
 
     fun setOnExitClickListener(listener: () -> Unit) {
@@ -200,12 +199,10 @@ class ProfileAdapter(
         val previousIndex = selectedSectionIndex
         selectedSectionIndex = index
 
-        recyclerView.post {
-            if (previousIndex != RecyclerView.NO_POSITION) {
-                notifyItemChanged(previousIndex + accounts.size + 2)
-            }
-            notifyItemChanged(selectedSectionIndex + accounts.size + 2)
+        if (previousIndex != RecyclerView.NO_POSITION) {
+            notifyItemChanged(previousIndex + accounts.size + 2)
         }
+        notifyItemChanged(selectedSectionIndex + accounts.size + 2)
     }
 
 }
