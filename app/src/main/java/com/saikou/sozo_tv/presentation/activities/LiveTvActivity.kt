@@ -55,65 +55,62 @@ class LiveTvActivity : AppCompatActivity() {
         initializeDataSourceFactory()
         initializePlayer()
         setupPlayerControls()
-        model.checkBookmark(data.nanoid ?: "")
+        model.checkBookmark(data.nanoid)
     }
 
     @SuppressLint("UnsafeOptInUsageError")
     private fun initializeDataSourceFactory() {
-        dataSourceFactory = DefaultHttpDataSource.Factory()
-            .setUserAgent(Util.getUserAgent(this, "SozoTV"))
-            .setConnectTimeoutMs(30000)
-            .setReadTimeoutMs(30000)
-            .setAllowCrossProtocolRedirects(true)
+        dataSourceFactory =
+            DefaultHttpDataSource.Factory().setUserAgent(Util.getUserAgent(this, "SozoTV"))
+                .setConnectTimeoutMs(30000).setReadTimeoutMs(30000)
+                .setAllowCrossProtocolRedirects(true)
     }
 
     @SuppressLint("UnsafeOptInUsageError")
     private fun initializePlayer() {
-        player = ExoPlayer.Builder(this)
-            .build()
-            .also { player ->
-                binding.pvPlayer.player = player
-                player.setAudioAttributes(
-                    AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
-                        .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
-                    true,
-                )
+        player = ExoPlayer.Builder(this).build().also { player ->
+            binding.pvPlayer.player = player
+            player.setAudioAttributes(
+                AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
+                true,
+            )
 
 
-                val hlsMediaSource = HlsMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(MediaItem.fromUri(liveStreamUrl ?: ""))
+            val hlsMediaSource = HlsMediaSource.Factory(dataSourceFactory)
+                .createMediaSource(MediaItem.fromUri(liveStreamUrl ?: ""))
 
-                // Prepare and start playback
-                player.setMediaSource(hlsMediaSource)
-                player.playWhenReady = true
-                player.prepare()
-                player.setWakeMode(C.WAKE_MODE_LOCAL)
+            // Prepare and start playback
+            player.setMediaSource(hlsMediaSource)
+            player.playWhenReady = true
+            player.prepare()
+            player.setWakeMode(C.WAKE_MODE_LOCAL)
 
-                player.addListener(object : Player.Listener {
-                    override fun onPlayerError(error: PlaybackException) {
-                        super.onPlayerError(error)
-                        handlePlayerError(error)
-                    }
+            player.addListener(object : Player.Listener {
+                override fun onPlayerError(error: PlaybackException) {
+                    super.onPlayerError(error)
+                    handlePlayerError(error)
+                }
 
-                    override fun onPlaybackStateChanged(playbackState: Int) {
-                        super.onPlaybackStateChanged(playbackState)
-                        when (playbackState) {
-                            Player.STATE_BUFFERING -> {
-                                binding.progressBar.visibility = View.VISIBLE
-                                binding.pvPlayer.visibility = View.GONE
-                            }
-
-                            Player.STATE_READY -> {
-                                binding.progressBar.visibility = View.GONE
-                                binding.pvPlayer.visibility = View.VISIBLE
-                                binding.errorLayout.visibility = View.GONE
-                            }
-
-                            Player.STATE_ENDED -> restartStream()
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    super.onPlaybackStateChanged(playbackState)
+                    when (playbackState) {
+                        Player.STATE_BUFFERING -> {
+                            binding.progressBar.visibility = View.VISIBLE
+                            binding.pvPlayer.visibility = View.GONE
                         }
+
+                        Player.STATE_READY -> {
+                            binding.progressBar.visibility = View.GONE
+                            binding.pvPlayer.visibility = View.VISIBLE
+                            binding.errorLayout.visibility = View.GONE
+                        }
+
+                        Player.STATE_ENDED -> restartStream()
                     }
-                })
-            }
+                }
+            })
+        }
         binding.pvPlayer.controller.binding.frameBackButton.setOnClickListener {
             finish()
         }
@@ -121,13 +118,13 @@ class LiveTvActivity : AppCompatActivity() {
             binding.pvPlayer.controller.binding.exoBookmark.setImageResource(if (it) R.drawable.ic_bookmark_fill else R.drawable.ic_bookmark)
         }
         binding.pvPlayer.controller.binding.bookmarkBtn.setOnClickListener {
-            val data = intent.getSerializableExtra("data", Channel::class.java)
+            val data = intent.getSerializableExtra("data") as Channel
             val entity = ChannelsEntity(
-                data?.nanoid ?: "",
-                data?.name ?: "",
+                data.nanoid,
+                data.name,
                 liveStreamUrl ?: "",
-                data?.country ?: "",
-                data?.isGeoBlocked ?: false
+                data.country,
+                data.isGeoBlocked
             )
             if (model.isBookmark.value == true) {
                 model.removeBookmark(entity)
@@ -167,14 +164,11 @@ class LiveTvActivity : AppCompatActivity() {
         binding.errorLayout.visibility = View.VISIBLE
 
         val errorMessage = when (error.errorCode) {
-            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ->
-                "Network connection failed. Please check your internet connection."
+            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> "Network connection failed. Please check your internet connection."
 
-            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ->
-                "Connection timeout. Please try again."
+            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> "Connection timeout. Please try again."
 
-            PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ->
-                "Stream format error. The live stream may be temporarily unavailable."
+            PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED -> "Stream format error. The live stream may be temporarily unavailable."
 
             else -> "Playback error: ${error.message}"
         }
