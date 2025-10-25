@@ -4,9 +4,11 @@ import android.annotation.SuppressLint
 import android.util.Log
 import com.bugsnag.android.Bugsnag
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.lagradost.nicehttp.Requests
 import com.saikou.sozo_tv.data.model.Backdrop
 import com.saikou.sozo_tv.data.model.SeasonResponse
+import com.saikou.sozo_tv.data.model.SubtitleItem
 import com.saikou.sozo_tv.parser.BaseParser
 import com.saikou.sozo_tv.parser.models.Episode
 import com.saikou.sozo_tv.utils.Utils.getJsoup
@@ -158,6 +160,34 @@ class PlayImdb : BaseParser() {
 //            }
 //        }
 //    }
+    //https://sub.wyzie.ru/search?id=119051&season=1&episode=1
+
+    suspend fun getSubTitleList(tmdbId: Int, season: Int, episode: Int): ArrayList<SubtitleItem> {
+        val niceHttp = Requests(baseClient = httpClient, responseParser = parser)
+
+        val request = niceHttp.get(
+            "https://sub.wyzie.ru/search?id=${tmdbId}&season=${season}&episode=${episode}",
+            headers = mapOf(
+                "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:101.0) Gecko/20100101 Firefox/101.0",
+            )
+        )
+
+        if (request.isSuccessful) {
+            val body = request.body.string()
+            try {
+                val listType = object : TypeToken<List<SubtitleItem>>() {}.type
+                val data: List<SubtitleItem> = Gson().fromJson(body, listType)
+
+                if (data.isNotEmpty()) {
+                    return data as ArrayList<SubtitleItem>
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        return arrayListOf()
+    }
+
 
     suspend fun getDetails(season: Int, tmdbId: Int): ArrayList<Backdrop> {
         val niceHttp = Requests(baseClient = httpClient, responseParser = parser)

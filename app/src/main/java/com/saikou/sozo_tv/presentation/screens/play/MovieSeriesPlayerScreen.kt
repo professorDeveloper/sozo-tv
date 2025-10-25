@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.presentation.screens.play
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -226,6 +227,7 @@ class MovieSeriesPlayerScreen : Fragment() {
             args.isMovie,
             args.image
         )
+
         binding.pvPlayer.controller.binding.filmTitle.text =
             "${args.name} - Episode ${model.currentEpIndex + 1}"
         model.allEpisodeData.observe(viewLifecycleOwner) {
@@ -534,7 +536,7 @@ class MovieSeriesPlayerScreen : Fragment() {
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
-                if (LocalData.isAnimeEnabled){
+                if (LocalData.isAnimeEnabled) {
                     when (playbackState) {
                         Player.STATE_READY -> {
                             if (!LocalData.isHistoryItemClicked) {
@@ -574,7 +576,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                         }
                     }
                 }
-             }
+            }
         })
 
         binding.pvPlayer.player = player
@@ -678,8 +680,9 @@ class MovieSeriesPlayerScreen : Fragment() {
     private fun displayVideo() {
         lifecycleScope.launch {
             val videoUrl = model.seriesResponse!!.urlobj
+            Bugsnag.notify(Exception("Checkout: "+videoUrl))
             val lastPosition = model.getWatchedHistoryEntity?.lastPosition ?: 0L
-
+            binding.pvPlayer.subtitleView?.visible()
             if (LocalData.isHistoryItemClicked) {
                 binding.pvPlayer.controller.binding.exoNextContainer.gone()
                 binding.pvPlayer.controller.binding.exoPrevContainer.gone()
@@ -689,22 +692,44 @@ class MovieSeriesPlayerScreen : Fragment() {
                 binding.pvPlayer.controller.binding.exoPrevContainer.visible()
                 binding.pvPlayer.controller.binding.epListContainer.visible()
             }
-
             val hlsFactory = HlsMediaSource.Factory(dataSourceFactory)
                 .setAllowChunklessPreparation(true)
+            var sub: MediaItem.SubtitleConfiguration? = null
+            lifecycleScope.launch(Dispatchers.IO) {
+                val subItem = model.getEngSubtitleById(
+                    args.tmdbId,
+                    args.currentPage,
+                    model.currentEpIndex + 1
+                )
+                if (subItem != null) {
+                    Log.d("GGG", "displayVideo:tushdi :${subItem.url} ")
+                    sub = MediaItem.SubtitleConfiguration
+                        .Builder(Uri.parse(subItem.url))
+                        .setSelectionFlags(C.SELECTION_FLAG_FORCED)
+                        .setMimeType(
+                            MimeTypes.APPLICATION_SUBRIP
+                        )
+                        .build()
 
+                }
+
+            }
+            Log.d("GGG", "displayVideo:tushdi qotg ")
             val mediaItem = MediaItem.Builder()
                 .setUri(videoUrl)
                 .setMimeType(MimeTypes.APPLICATION_M3U8)
                 .setTag(args.name)
-                .build()
+//            if (sub != null) {
+//                mediaItem.setSubtitleConfigurations(mutableListOf(sub!!))
+//            }
 
-            val mediaSource = hlsFactory.createMediaSource(mediaItem)
 
+            val mediaSource = hlsFactory.createMediaSource(mediaItem.build())
             player.setMediaSource(mediaSource)
             player.prepare()
-            player.playWhenReady = true
+            binding.pvPlayer.subtitleView?.visible()
 
+            player.playWhenReady = true
             if (!model.doNotAsk) {
                 if (lastPosition > 0) {
                     Log.d("PlayerScreen", "Resuming from last position: $lastPosition")

@@ -9,6 +9,7 @@ import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.local.entity.EpisodeInfoEntity
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
+import com.saikou.sozo_tv.data.model.SubtitleItem
 import com.saikou.sozo_tv.data.model.VodMovieResponse
 import com.saikou.sozo_tv.data.remote.IMDBScraping
 import com.saikou.sozo_tv.domain.model.Cast
@@ -62,6 +63,7 @@ class PlayViewModel(
     val currentEpisodeData = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     val currentQualityEpisode = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     var seriesResponse: VodMovieResponse? = null
+    val subtitleResponseData = MutableLiveData<SubtitleItem>()
     val allEpisodeData = MutableLiveData<Resource<EpisodeData>>(Resource.Idle)
     fun getAllEpisodeByPage(page: Int, mediaId: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -73,13 +75,21 @@ class PlayViewModel(
         }
     }
 
+    fun getEngSubtitleById(tmdbId: Int, season: Int, ep: Int): SubtitleItem? {
+        viewModelScope.launch {
+            playImdb.getSubTitleList(tmdbId, season, ep).let {
+                it.forEach {
+                    if (it.lang == "en") {
+                        return@launch subtitleResponseData.postValue(it)
+                    }
+                }
+            }
+        }
+        return null
+    }
 
     fun getAllEpisodeByImdb(
-        imdbId: String,
-        tmdbId: Int,
-        season: Int,
-        isMovie: Boolean,
-        img: String
+        imdbId: String, tmdbId: Int, season: Int, isMovie: Boolean, img: String
     ) {
         viewModelScope.launch {
             if (!isMovie) {
@@ -137,10 +147,8 @@ class PlayViewModel(
                         list.forEachIndexed { index, episode ->
                             listData.add(
                                 episode.toDomain().copy(
-                                    episode2 = episode.episode,
-                                    episode = index + 1,// 1 dan tartib
-                                    snapshot = img,
-                                    season = 1
+                                    episode2 = episode.episode, episode = index + 1,// 1 dan tartib
+                                    snapshot = img, season = 1
                                 )
                             )
                         }
