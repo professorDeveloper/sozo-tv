@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.presentation.screens.play
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -23,6 +24,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
@@ -35,8 +37,12 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.exoplayer.source.SingleSampleMediaSource
 import androidx.media3.session.MediaSession
+import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerControlView
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -64,6 +70,8 @@ import kotlinx.coroutines.withContext
 import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.io.File
+import java.net.URL
 
 
 class MovieSeriesPlayerScreen : Fragment() {
@@ -535,6 +543,16 @@ class MovieSeriesPlayerScreen : Fragment() {
                 Bugsnag.notify(error)
             }
 
+            override fun onTracksChanged(tracks: Tracks) {
+                for (group in tracks.groups) {
+                    val trackGroup = group.mediaTrackGroup
+                    for (i in 0 until trackGroup.length) {
+                        val format = trackGroup.getFormat(i)
+                        Log.d("SubtitleCheck", "Track: ${format.sampleMimeType}")
+                    }
+                }
+            }
+
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (LocalData.isAnimeEnabled) {
                     when (playbackState) {
@@ -680,7 +698,6 @@ class MovieSeriesPlayerScreen : Fragment() {
     private fun displayVideo() {
         lifecycleScope.launch {
             val videoUrl = model.seriesResponse!!.urlobj
-            Bugsnag.notify(Exception("Checkout: "+videoUrl))
             val lastPosition = model.getWatchedHistoryEntity?.lastPosition ?: 0L
             binding.pvPlayer.subtitleView?.visible()
             if (LocalData.isHistoryItemClicked) {
@@ -692,44 +709,70 @@ class MovieSeriesPlayerScreen : Fragment() {
                 binding.pvPlayer.controller.binding.exoPrevContainer.visible()
                 binding.pvPlayer.controller.binding.epListContainer.visible()
             }
-            val hlsFactory = HlsMediaSource.Factory(dataSourceFactory)
-                .setAllowChunklessPreparation(true)
-            var sub: MediaItem.SubtitleConfiguration? = null
-            lifecycleScope.launch(Dispatchers.IO) {
-                val subItem = model.getEngSubtitleById(
+            withContext(Dispatchers.IO) {
+                val subtitleItem = model.getEngSubtitleById(
                     args.tmdbId,
                     args.currentPage,
                     model.currentEpIndex + 1
                 )
-                if (subItem != null) {
-                    Log.d("GGG", "displayVideo:tushdi :${subItem.url} ")
-                    sub = MediaItem.SubtitleConfiguration
-                        .Builder(Uri.parse(subItem.url))
-                        .setSelectionFlags(C.SELECTION_FLAG_FORCED)
-                        .setMimeType(
-                            MimeTypes.APPLICATION_SUBRIP
-                        )
-                        .build()
 
+                val videoUri = Uri.parse(videoUrl)
+                val videoSource = HlsMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(MediaItem.fromUri(videoUri))
+
+                val mergedSource: MediaSource = if (subtitleItem != null && !subtitleItem.url.isNullOrEmpty()) {
+                    try {
+                        val localFile = File(requireContext().cacheDir, "sub.srt")
+                        URL(subtitleItem.url).openStream().use { input ->
+                            localFile.outputStream().use { output -> input.copyTo(output) }
+                        }
+
+                        val subUri = Uri.fromFile(localFile)
+                        val subtitleSource = SingleSampleMediaSource.Factory(dataSourceFactory)
+                            .createMediaSource(
+                                MediaItem.SubtitleConfiguration.Builder(subUri)
+                                    .setMimeType(MimeTypes.APPLICATION_SUBRIP)
+                                    .setLanguage("en")
+                                    .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+                                    .build(),
+                                5_000_000L
+                            )
+
+                        Log.d("Subtitle", "English subtitle loaded: ")
+                        MergingMediaSource(videoSource, subtitleSource)
+                    } catch (e: Exception) {
+                        Log.e("Subtitle", "Subtitle load failed: ${e.message}")
+                        videoSource
+                    }
+                } else {
+                    Log.w("Subtitle", "No English subtitle found, playing without subtitles")
+                    videoSource
                 }
 
+                withContext(Dispatchers.Main) {
+                    player.setMediaSource(mergedSource)
+                    player.prepare()
+                    player.playWhenReady = true
+
+                    binding.pvPlayer.subtitleView?.apply {
+                        visibility = if (subtitleItem != null && !subtitleItem.url.isNullOrEmpty())
+                            View.VISIBLE
+                        else
+                            View.GONE
+
+                        setStyle(
+                            CaptionStyleCompat(
+                                Color.WHITE,
+                                Color.TRANSPARENT,
+                                Color.TRANSPARENT,
+                                CaptionStyleCompat.EDGE_TYPE_OUTLINE,
+                                Color.BLACK,
+                                null
+                            )
+                        )
+                    }
+                }
             }
-            Log.d("GGG", "displayVideo:tushdi qotg ")
-            val mediaItem = MediaItem.Builder()
-                .setUri(videoUrl)
-                .setMimeType(MimeTypes.APPLICATION_M3U8)
-                .setTag(args.name)
-//            if (sub != null) {
-//                mediaItem.setSubtitleConfigurations(mutableListOf(sub!!))
-//            }
-
-
-            val mediaSource = hlsFactory.createMediaSource(mediaItem.build())
-            player.setMediaSource(mediaSource)
-            player.prepare()
-            binding.pvPlayer.subtitleView?.visible()
-
-            player.playWhenReady = true
             if (!model.doNotAsk) {
                 if (lastPosition > 0) {
                     Log.d("PlayerScreen", "Resuming from last position: $lastPosition")

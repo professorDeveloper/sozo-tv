@@ -31,6 +31,7 @@ import com.saikou.sozo_tv.utils.toDomain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class PlayViewModel(
     private val repo: DetailRepository,
@@ -75,17 +76,12 @@ class PlayViewModel(
         }
     }
 
-    fun getEngSubtitleById(tmdbId: Int, season: Int, ep: Int): SubtitleItem? {
-        viewModelScope.launch {
-            playImdb.getSubTitleList(tmdbId, season, ep).let {
-                it.forEach {
-                    if (it.lang == "en") {
-                        return@launch subtitleResponseData.postValue(it)
-                    }
-                }
-            }
+    suspend fun getEngSubtitleById(tmdbId: Int, season: Int, ep: Int): SubtitleItem? {
+        return withContext(Dispatchers.IO) {
+            val list = playImdb.getSubTitleList(tmdbId, season, ep)
+//            Log.d("GGG", "getEngSubtitleById:${list}")
+            list.firstOrNull { it.lang == "English" }
         }
-        return null
     }
 
     fun getAllEpisodeByImdb(
