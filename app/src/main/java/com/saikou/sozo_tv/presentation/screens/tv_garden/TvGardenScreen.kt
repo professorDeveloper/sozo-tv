@@ -125,45 +125,49 @@ class TvGardenScreen : Fragment() {
             }
 
         }
-        categoriesAdapter.setLastItemClickListener {
-            val dialogGarden = FilterDialogGarden.newInstance(currentSort)
-            dialogGarden.show(parentFragmentManager, "FilterDialogGarden")
-            dialogGarden.onFiltersApplied = { sort ->
-                model.currentSort = sort ?: ""
-                model.isCountrySelected = sort == "By Country"
-                if (model.isCountrySelected) {
-                    currentSort = sort
-                    model.loadChannelCountries()
-                } else if (sort == "By Category") {
-                    currentSort = sort
-                    model.loadChannelCategories()
-                } else {
-                    currentSort = sort
-                    categoriesAdapter.submitList(LocalData.customTv)
-                    channelsAdapter.updateChannels(
-                        LocalData.channelsByCategory.get("Telemundo") ?: arrayListOf()
-                    )
+        if (::categoriesAdapter.isInitialized) {
+            categoriesAdapter.setLastItemClickListener {
+                val dialogGarden = FilterDialogGarden.newInstance(currentSort)
+                dialogGarden.show(parentFragmentManager, "FilterDialogGarden")
+                dialogGarden.onFiltersApplied = { sort ->
+                    model.currentSort = sort ?: ""
+                    model.isCountrySelected = sort == "By Country"
+                    if (model.isCountrySelected) {
+                        currentSort = sort
+                        model.loadChannelCountries()
+                    } else if (sort == "By Category") {
+                        currentSort = sort
+                        model.loadChannelCategories()
+                    } else {
+                        currentSort = sort
+                        categoriesAdapter.submitList(LocalData.customTv)
+                        channelsAdapter.updateChannels(
+                            LocalData.channelsByCategory.get("Telemundo") ?: arrayListOf()
+                        )
+                    }
                 }
             }
-        }
-        categoriesAdapter.setFocusedItemListener { s, i ->
-            if (model.currentSort != "Custom List") {
-                if (s != "Adlt") {
-                    if (model.isCountrySelected) {
-                        val findCategory = countryList.find { it.name == s }
-                        selectedPosCount = i
-                        model.loadChannelsByCountry(findCategory!!)
+            categoriesAdapter.setFocusedItemListener { s, i ->
+                if (model.currentSort != "Custom List") {
+                    if (s != "Adlt") {
+                        if (model.isCountrySelected) {
+                            val findCategory = countryList.find { it.name == s }
+                            selectedPosCount = i
+                            model.loadChannelsByCountry(findCategory!!)
+                        } else {
+                            selectedPosCat = i
+                            val findCategory = categoryList.find { it.name == s }
+                            model.loadChannelsByCategory(findCategory!!)
+                        }
                     } else {
-                        selectedPosCat = i
-                        val findCategory = categoryList.find { it.name == s }
-                        model.loadChannelsByCategory(findCategory!!)
+                        channelsAdapter.updateChannels(LocalData.channelsd)
+
                     }
                 } else {
-                    channelsAdapter.updateChannels(LocalData.channelsd)
-
+                    channelsAdapter.updateChannels(
+                        LocalData.channelsByCategory.get(s) ?: arrayListOf()
+                    )
                 }
-            } else {
-                channelsAdapter.updateChannels(LocalData.channelsByCategory.get(s) ?: arrayListOf())
             }
         }
         model.channels.observe(viewLifecycleOwner) {
