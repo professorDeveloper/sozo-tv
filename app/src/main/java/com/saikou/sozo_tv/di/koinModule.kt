@@ -83,18 +83,6 @@ val koinModule = module {
     single<DetailRepository> {
         DetailRepositoryImpl(client = get(), api = get())
     }
-//    single<ProfileRepository> {
-//        ProfileRepositoryImpl(service = get(), pref = get())
-//    }klklkkkkjkjgjbhg  bgbnhjbgjbjhnhubetew
-//
-//    single<LiveTvRepository> {
-//        LiveTvRepositoryImpl(api = get(), pref = get())
-//    }
-//    single<WatchHistoryRepository> {
-//        WatchHistoryRepositoryImpl(watchHistoryDao = get())
-//    }
-//
-//
     viewModel { HomeViewModel(repo = get(), imdbRepo = get()) }
     viewModel { TvGardenViewModel(get()) }
     viewModel { EpisodeViewModel(watchHistoryRepository = get(), repo = get()) }
@@ -107,24 +95,14 @@ val koinModule = module {
     viewModel { CategoriesViewModel(repo = get()) }
     viewModel { SearchViewModel(repo = get()) }
     viewModel { CastDetailViewModel(repo = get(), bookmarkRepo = get()) }
-    viewModel { BookmarkViewModel(bookmarkRepository = get(), characterRepo = get()) }
+    viewModel {
+        BookmarkViewModel(
+            bookmarkRepository = get(),
+            characterRepo = get(),
+            channelDao = get()
+        )
+    }
     viewModel { NewsViewModel(get()) }
-
-//    viewModel {
-//        PlayViewModel(
-//            homeRepository = get(),
-//            watchHistoryRepository = get(),
-//            movieRepository = get(),
-//            liveTvRepository = get()
-//        )
-//    }
-//    viewModel { SplashViewModel(repo = get(), pref = get(), firebaseService = get()) }
-//    viewModel { UpdateViewModel() }
-//    viewModel { ProfileViewModel(repo = get()) }
-//    viewModel { CategoryViewModel(repo = get()) }
-//    viewModel { HomeViewModel(repo = get(), liveTvUseCase = get()) }
-//    viewModel { BookmarkViewModel(bookmarkRepository = get(), homeRepo = get()) }
-
 }
 
 val firebaseModule = module {

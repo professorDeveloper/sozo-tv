@@ -33,6 +33,7 @@ data class ChannelsEntity(
     val name: String,
     val iptvUrl: String,
     val country: String,
+    val language: String,
     val isGeoBlocked: Boolean
 )
 

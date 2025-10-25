@@ -17,10 +17,13 @@ import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
 import com.saikou.sozo_tv.utils.toDomain
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.adapters.ChannelsAdapter
 import com.saikou.sozo_tv.data.model.BookmarkType
+import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
+import com.saikou.sozo_tv.utils.visible
 
 class BookmarkScreen : Fragment() {
     private var _binding: BookmarkScreenBinding? = null
@@ -34,9 +37,7 @@ class BookmarkScreen : Fragment() {
     private var lastScrollY = 0
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = BookmarkScreenBinding.inflate(inflater, container, false)
         return binding.root
@@ -82,7 +83,27 @@ class BookmarkScreen : Fragment() {
             binding.bookmarkRv.visibility =
                 if (characters.isEmpty() && bookmarkType != BookmarkType.MEDIA) View.GONE else View.VISIBLE
         }
+        val channelsAdapter = ChannelsAdapter() {
 
+        }
+        model.channelData.observe(viewLifecycleOwner) { channels ->
+            binding.bookmarkRv.visible()
+            val channelList = channels.map {
+                Channel(
+                    it.id,
+                    it.name,
+                    arrayListOf(it.iptvUrl),
+                    arrayListOf(),
+                    it.language,
+                    it.country,
+                    it.isGeoBlocked
+                )
+            }
+            binding.bookmarkRv.setNumColumns(4)
+            binding.bookmarkRv.visibility = if (channelList.isEmpty()) View.GONE else View.VISIBLE
+            channelsAdapter.updateChannels(channelList)
+
+        }
         binding.topBar.navAnime.setOnClickListener {
             bookmarkType = BookmarkType.MEDIA
             binding.bookmarkRv.adapter = animeAdapter
@@ -161,19 +182,14 @@ class BookmarkScreen : Fragment() {
     }
 
     private fun hideTopBar() {
-        binding.topBar.root.animate()
-            .translationY(-binding.topBar.root.height.toFloat())
+        binding.topBar.root.animate().translationY(-binding.topBar.root.height.toFloat())
             .setDuration(200)
-            .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
-            .start()
+            .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator()).start()
     }
 
     private fun showTopBar() {
-        binding.topBar.root.animate()
-            .translationY(0f)
-            .setDuration(200)
-            .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
-            .start()
+        binding.topBar.root.animate().translationY(0f).setDuration(200)
+            .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator()).start()
     }
 
     private fun openPlayerCharacter(id: Int) {

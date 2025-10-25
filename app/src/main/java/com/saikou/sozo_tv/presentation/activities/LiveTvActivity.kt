@@ -124,6 +124,7 @@ class LiveTvActivity : AppCompatActivity() {
                 data.name,
                 liveStreamUrl ?: "",
                 data.country,
+                data.language,
                 data.isGeoBlocked
             )
             if (model.isBookmark.value == true) {
