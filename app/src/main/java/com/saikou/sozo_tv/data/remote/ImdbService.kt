@@ -133,7 +133,7 @@ interface ImdbService {
     suspend fun getPersonTvCredits(
         @Path("person_id") person_id: Int,
 ////        @Query("language") lang: String = "en-US"
-    ): Response<MediaCastResponse>
+    ): Response<MovieCast>
 
     @GET("person/{person_id}")
     suspend fun getPersonDetails(

@@ -182,13 +182,15 @@ class DetailRepositoryImpl(private val client: ApolloClient, private val api: Im
     override suspend fun creditDetail(id: Int): Result<CastDetailModel> {
         return safeExecute {
             val response = api.getPersonDetails(personId = id).body()!!
-            val list = api.getPersonMovieCredits(id).body()!!
+            val seriesList = api.getPersonMovieCredits(id)
+                .body()!!.cast.map { it.toDomain() } as ArrayList<MainModel>
+
             CastDetailModel(
                 "${LocalData.IMDB_IMAGE_PATH}${response.profile_path}",
                 if (response.gender == 2) "Male" else "Female",
                 response.name,
                 role = if (response.also_known_as?.isNotEmpty() == true) response.also_known_as[0] else "Empty",
-                list.cast.map { it.toDomain() },
+                seriesList,
                 (response.birthday.let {
                     val date =
                         LocalDate.parse(it, DateTimeFormatter.ofPattern("yyyy-MM-dd"))

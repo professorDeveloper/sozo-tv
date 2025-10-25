@@ -19,7 +19,7 @@
         app:focusOutFront="true"
         android:focusableInTouchMode="true"
         android:padding="8dp"
-        android:background="@drawable/tab_background_unselected"
+        android:background="@drawable/tab_background_selector"
         android:focusable="true"
         android:gravity="center"
         android:nextFocusRight="@id/nav_characters">

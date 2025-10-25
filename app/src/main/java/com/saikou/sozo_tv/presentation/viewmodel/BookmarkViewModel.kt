@@ -7,6 +7,7 @@ import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.local.entity.CharacterEntity
 import com.saikou.sozo_tv.domain.repository.CharacterBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
+import com.saikou.sozo_tv.utils.LocalData
 import kotlinx.coroutines.launch
 
 class BookmarkViewModel(
@@ -23,7 +24,9 @@ class BookmarkViewModel(
     val characterData = MutableLiveData<List<CharacterEntity>>()
     fun getAllCharacterBookmarks() {
         viewModelScope.launch {
-            characterData.postValue(characterRepo.getAllBookmarks())
+            characterData.postValue(
+                characterRepo.getAllBookmarks()
+                    .filter { if (LocalData.isAnimeEnabled) it.isAnime else !it.isAnime })
         }
     }
 }

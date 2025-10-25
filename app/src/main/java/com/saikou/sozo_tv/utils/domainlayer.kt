@@ -36,9 +36,9 @@ import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 fun com.saikou.sozo_tv.data.model.tmdb.cast.Cast.toDomain(): MainModel {
     return MainModel(
         this.id,
-        this.title,
+        titleFormat,
         -1,
-        this.imageUrl?:"",
+        this.imageUrl ?: "",
         null,
         null,
         -1,

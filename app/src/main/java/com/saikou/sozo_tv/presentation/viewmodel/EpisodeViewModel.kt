@@ -53,8 +53,14 @@ class EpisodeViewModel(
     var cachedSeasons: Map<Int, Int> = emptyMap()
     var firstCategoryDataObserver = MutableLiveData<Unit>()
 
-    fun loadMovieSeriesEpisodes(imdbId: String, tmdbId: Int, season: Int,isMovie: Boolean,img:String) {
-        if (!isMovie){
+    fun loadMovieSeriesEpisodes(
+        imdbId: String,
+        tmdbId: Int,
+        season: Int,
+        isMovie: Boolean,
+        img: String
+    ) {
+        if (!isMovie) {
             viewModelScope.launch {
                 try {
                     episodeData.value = Resource.Loading
@@ -120,7 +126,7 @@ class EpisodeViewModel(
                     episodeData.postValue(Resource.Error(e))
                 }
             }
-        }else{
+        } else {
             viewModelScope.launch {
                 episodeData.value = Resource.Loading
                 val listData = ArrayList<Data>()
@@ -134,17 +140,17 @@ class EpisodeViewModel(
                     cachedSeasons = allEpisodes.groupingBy { it.season }.eachCount()
                     if (seasons.isEmpty()) seasons = cachedSeasons
                 }
-             allEpisodes.forEachIndexed { index, episode ->
-                 listData.add(
-                     episode.toDomain().copy(
-                         episode2 = episode.episode,
-                         episode = index + 1,
-                         title = episode.title,
-                         snapshot = img,
-                         season = 1
-                     )
-                 )
-             }
+                allEpisodes.forEachIndexed { index, episode ->
+                    listData.add(
+                        episode.toDomain().copy(
+                            episode2 = episode.episode,
+                            episode = index + 1,
+                            title = episode.title,
+                            snapshot = img,
+                            season = 1
+                        )
+                    )
+                }
                 episodeData.value = Resource.Success(
                     EpisodeData(
                         1,

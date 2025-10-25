@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.data.model.tmdb.cast
 
+import com.google.gson.annotations.SerializedName
 import com.saikou.sozo_tv.utils.LocalData
 
 data class Cast(
@@ -11,15 +12,18 @@ data class Cast(
     val id: Int,
     val order: Int,
     val original_language: String,
-    val original_title: String,
+    @SerializedName("original_title")
+    val original_title: String?,
     val overview: String,
     val popularity: Double,
     val poster_path: String?,
     val release_date: String,
-    val title: String,
+    @SerializedName("title")
+    val title: String?,
     val video: Boolean,
     val vote_average: Double,
     val vote_count: Int
 ) {
+    val titleFormat get() = title ?: original_title ?: ""
     val imageUrl get() = "${LocalData.IMDB_IMAGE_PATH}${poster_path}"
 }

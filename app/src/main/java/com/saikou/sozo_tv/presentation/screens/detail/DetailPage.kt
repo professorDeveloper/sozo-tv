@@ -143,13 +143,12 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
 
     @UnstableApi
     private fun initializePlayer() {
-        val okHttpClient = OkHttpClient.Builder()
-            .ignoreAllSSLErrors() // ⚠️ Sertifikat tekshiruvini bekor qiladi
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .writeTimeout(15, TimeUnit.SECONDS)
-            .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.CLEARTEXT))
-            .build()
+        val okHttpClient =
+            OkHttpClient.Builder().ignoreAllSSLErrors() // ⚠️ Sertifikat tekshiruvini bekor qiladi
+                .connectTimeout(15, TimeUnit.SECONDS).readTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(15, TimeUnit.SECONDS)
+                .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.CLEARTEXT))
+                .build()
 
         val okHttpDataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
             .setDefaultRequestProperties(mapOf("User-Agent" to "ExoPlayer"))
@@ -184,9 +183,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         } else {
             binding.replaceImage.visible()
         }
-        val mediaItem = MediaItem.Builder()
-            .setUri(hlsUrl)
-            .build()
+        val mediaItem = MediaItem.Builder().setUri(hlsUrl).build()
 
         player?.apply {
             setMediaItem(mediaItem)

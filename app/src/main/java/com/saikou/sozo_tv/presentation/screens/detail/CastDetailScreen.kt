@@ -53,6 +53,7 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
                 val intent =
                     Intent(binding.root.context, PlayerActivity::class.java)
                 intent.putExtra("model", it.id)
+                intent.putExtra("isMovie", !it.isSeries)
                 requireActivity().startActivity(intent)
                 requireActivity().finish()
             }
