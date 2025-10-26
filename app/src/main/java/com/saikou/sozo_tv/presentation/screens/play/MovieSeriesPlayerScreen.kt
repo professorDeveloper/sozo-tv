@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.presentation.screens.play
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -20,6 +21,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
@@ -46,13 +48,16 @@ import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerControlView
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bugsnag.android.Bugsnag
 import com.lagradost.nicehttp.ignoreAllSSLErrors
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.components.SkipIntroView
 import com.saikou.sozo_tv.adapters.EpisodePlayerAdapter
+import com.saikou.sozo_tv.adapters.QualityAdapter
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.databinding.ContentControllerTvSeriesBinding
+import com.saikou.sozo_tv.databinding.DialogQualitySelectionBinding
 import com.saikou.sozo_tv.databinding.ImdbSeriesPlayerScreenBinding
 import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import com.saikou.sozo_tv.parser.models.Data
@@ -700,7 +705,89 @@ class MovieSeriesPlayerScreen : Fragment() {
     }
 
     private var isSubtitle = true
+    @SuppressLint("UnsafeOptInUsageError")
+    private fun initPopupQuality(): Dialog {
+        val dialog = Dialog(requireActivity(), R.style.DialogTheme)
+        val dialogBinding =
+            DialogQualitySelectionBinding.inflate(LayoutInflater.from(requireContext()))
+        dialog.setContentView(dialogBinding.root)
 
+        dialog.window?.apply {
+            setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            setBackgroundDrawableResource(android.R.color.transparent)
+        }
+
+        dialogBinding.qualityRecyclerView.apply {
+            layoutManager = LinearLayoutManager(requireActivity())
+            setHasFixedSize(true)
+        }
+
+        val qualityFormats = mutableListOf<Format>()
+        player?.currentTrackGroups?.let { groups ->
+            for (i in 0 until groups.length) {
+                val trackGroup = groups.get(i)
+                for (j in 0 until trackGroup.length) {
+                    qualityFormats.add(trackGroup.getFormat(j))
+                }
+            }
+        }
+
+        val adapter = QualityAdapter(qualityFormats) { selectedFormat, isAuto ->
+            applyQualityToExoPlayer(selectedFormat, isAuto)
+            dialog.dismiss()
+        }
+
+        dialogBinding.qualityRecyclerView.adapter = adapter
+
+        // Apply the last selected quality
+        applyLastSelectedQuality(qualityFormats, adapter)
+
+        dialog.setOnDismissListener {
+            dialog.dismiss()
+        }
+
+        return dialog
+    }
+    private fun applyLastSelectedQuality(qualities: List<Format>, adapter: QualityAdapter) {
+        val lastPosition = QualityAdapter.lastSelectedPosition
+        val isAuto = lastPosition == QualityAdapter.AUTO_POSITION
+        val selectedFormat = if (isAuto) null else qualities.getOrNull(lastPosition - 1)
+
+        // Update the adapter's selection
+        adapter.updateSelectedQuality(selectedFormat)
+        // Apply to player
+        applyQualityToExoPlayer(selectedFormat, isAuto)
+    }
+    @SuppressLint("UnsafeOptInUsageError")
+    private fun applyQualityToExoPlayer(selectedFormat: Format?, isAuto: Boolean) {
+        player?.let { exoPlayer ->
+            val trackSelector = exoPlayer.trackSelector
+            val parametersBuilder = trackSelector?.parameters?.buildUpon()
+
+            if (isAuto) {
+                parametersBuilder?.apply {
+                    clearVideoSizeConstraints()
+                    setMaxVideoFrameRate(-1)
+                }
+            } else {
+                selectedFormat?.let { format ->
+                    parametersBuilder?.apply {
+                        setPreferredVideoMimeType(format.sampleMimeType)
+                        setMaxVideoSize(format.width, format.height)
+                        setMaxVideoFrameRate(format.frameRate.toInt())
+                    }
+                }
+            }
+
+            trackSelector?.parameters = parametersBuilder?.build()!!
+
+            val currentPosition = exoPlayer.currentPosition
+            exoPlayer.seekTo(currentPosition)
+        }
+    }
     @OptIn(UnstableApi::class)
     private fun displayVideo() {
         lifecycleScope.launch {
