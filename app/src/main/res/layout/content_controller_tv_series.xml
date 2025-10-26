@@ -231,11 +231,11 @@
                 android:id="@+id/exo_play_pause_container"
                 android:layout_width="52dp"
                 android:layout_height="52dp"
-                android:focusedByDefault="true"
                 android:layout_marginHorizontal="8dp"
                 android:background="@drawable/shape_play_pause_circle_bottom"
                 android:focusable="true"
-                android:focusableInTouchMode="true">
+                android:focusableInTouchMode="true"
+                android:focusedByDefault="true">
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/exo_play_paused"
@@ -325,9 +325,40 @@
                     android:layout_gravity="center"
                     android:duplicateParentState="true"
                     android:nextFocusUp="@id/exo_progress"
-                    android:padding="14dp"
+                    android:padding="12dp"
                     android:tint="@color/color_black_white_text"
                     app:srcCompat="@drawable/ic_hd_movie"
+                    app:tint="@color/color_black_white_text"
+                    app:tintMode="multiply" />
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/exo_subtidtle"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="7dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="7dp"
+                android:background="@drawable/shape_play_settings"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/exo_settings"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/exo_subtitlee"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:duplicateParentState="true"
+                    android:nextFocusUp="@id/exo_progress"
+                    android:padding="8dp"
+                    android:tint="@color/color_black_white_text"
+                    app:srcCompat="@drawable/ic_subtitle_fill"
                     app:tint="@color/color_black_white_text"
                     app:tintMode="multiply" />
 

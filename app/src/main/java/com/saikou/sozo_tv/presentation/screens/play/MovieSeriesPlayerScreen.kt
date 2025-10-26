@@ -60,6 +60,7 @@ import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
+import com.saikou.sozo_tv.utils.SubtitleManager
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.observeOnce
 import com.saikou.sozo_tv.utils.visible
@@ -85,7 +86,7 @@ class MovieSeriesPlayerScreen : Fragment() {
     private lateinit var mediaSession: MediaSession
     private val args by navArgs<MovieSeriesPlayerScreenArgs>()
     private val episodeList = arrayListOf<Data>()
-
+    private lateinit var subtitleManager: SubtitleManager
     private var countdownShown = false
     private var isCountdownActive = false
     private var progressHandler: Handler? = null
@@ -272,6 +273,9 @@ class MovieSeriesPlayerScreen : Fragment() {
                                     "Part ${args.currentPage} • Episode ${episodeList.size}"
                                 displayVideo()
 
+                                binding.pvPlayer.controller.binding.exoQuality.gone()
+                                binding.pvPlayer.controller.binding.exoSubtidtle.visible()
+                                binding.pvPlayer.controller.binding.exoSubtidtle.visible()
                                 binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
                                 binding.pvPlayer.controller.binding.epListContainer.setOnClickListener {
                                     binding.episodeRv.scrollToPosition(model.currentEpIndex)
@@ -518,10 +522,10 @@ class MovieSeriesPlayerScreen : Fragment() {
             .setLoadControl(
                 DefaultLoadControl.Builder()
                     .setBufferDurationsMs(
-                        5000, // minBufferMs
-                        15000, // maxBufferMs
-                        1000, // bufferForPlaybackMs
-                        5000  // bufferForPlaybackAfterRebufferMs
+                        5000,
+                        15000,
+                        1000,
+                        5000
                     ).build()
             )
             .build()
@@ -537,7 +541,7 @@ class MovieSeriesPlayerScreen : Fragment() {
         if (!::mediaSession.isInitialized) {
             mediaSession = MediaSession.Builder(requireContext(), player).build()
         }
-
+        subtitleManager = SubtitleManager(requireContext(), dataSourceFactory)
         player.addListener(object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
                 Bugsnag.notify(error)
@@ -553,6 +557,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                 }
             }
 
+            @SuppressLint("SwitchIntDef")
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (LocalData.isAnimeEnabled) {
                     when (playbackState) {
@@ -596,6 +601,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                 }
             }
         })
+
 
         binding.pvPlayer.player = player
 
@@ -693,6 +699,7 @@ class MovieSeriesPlayerScreen : Fragment() {
         model.qualityProgress = 0
     }
 
+    private var isSubtitle = true
 
     @OptIn(UnstableApi::class)
     private fun displayVideo() {
@@ -713,7 +720,8 @@ class MovieSeriesPlayerScreen : Fragment() {
                 val subtitleItem = model.getEngSubtitleById(
                     args.tmdbId,
                     args.currentPage,
-                    model.currentEpIndex + 1
+                    model.currentEpIndex + 1,
+                    args.isMovie
                 )
 
                 val videoUri = Uri.parse(videoUrl)
@@ -762,7 +770,6 @@ class MovieSeriesPlayerScreen : Fragment() {
                             View.VISIBLE
                         else
                             View.GONE
-
                         setStyle(
                             CaptionStyleCompat(
                                 Color.WHITE,
@@ -774,6 +781,11 @@ class MovieSeriesPlayerScreen : Fragment() {
                             )
                         )
                     }
+                    binding.pvPlayer.controller.binding.exoSubtidtle.visibility =
+                        if (subtitleItem != null && !subtitleItem.url.isNullOrEmpty())
+                            View.VISIBLE
+                        else
+                            View.GONE
                 }
             }
             if (!model.doNotAsk) {
@@ -790,6 +802,14 @@ class MovieSeriesPlayerScreen : Fragment() {
             player.prepare()
             player.play()
 
+            binding.pvPlayer.controller.binding.exoSubtidtle.setOnClickListener {
+                isSubtitle = !isSubtitle
+                binding.pvPlayer.subtitleView?.visibility =
+                    if (isSubtitle) View.VISIBLE else View.GONE
+                binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(
+                    if (isSubtitle) R.drawable.ic_subtitle_fill else R.drawable.ic_subtitle_off
+                )
+            }
             if (player.isPlaying) {
                 binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_play_to_pause)
             } else {

@@ -75,11 +75,58 @@ class PlayViewModel(
             }
         }
     }
+    val subtitleListData = MutableLiveData<List<SubtitleItem>>()
+    var currentSelectedSubtitle: SubtitleItem? = null
+    var isSubtitleEnabled = true
 
-    suspend fun getEngSubtitleById(tmdbId: Int, season: Int, ep: Int): SubtitleItem? {
+    // <CHANGE> Add method to load all subtitles
+    fun loadAllSubtitles(
+        isMovie: Boolean,
+        tmdbId: Int,
+        season: Int,
+        ep: Int
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val list = getAllSubtitleList(isMovie, tmdbId, season, ep)
+                subtitleListData.postValue(list)
+            } catch (e: Exception) {
+                Log.e("PlayViewModel", "Error loading subtitles: ${e.message}")
+                subtitleListData.postValue(emptyList())
+            }
+        }
+    }
+
+    suspend fun getAllSubtitleList(
+        isMovie: Boolean,
+        tmdbId: Int,
+        season: Int,
+        ep: Int
+    ): ArrayList<SubtitleItem> {
         return withContext(Dispatchers.IO) {
-            val list = playImdb.getSubTitleList(tmdbId, season, ep)
-//            Log.d("GGG", "getEngSubtitleById:${list}")
+            val list =
+                if (isMovie) playImdb.getSubtitleListForMovie(tmdbId) else playImdb.getSubTitleList(
+                    tmdbId,
+                    season,
+                    ep
+                )
+            list
+        }
+    }
+
+    suspend fun getEngSubtitleById(
+        tmdbId: Int,
+        season: Int,
+        ep: Int,
+        isMovie: Boolean,
+    ): SubtitleItem? {
+        return withContext(Dispatchers.IO) {
+            val list =
+                if (isMovie) playImdb.getSubtitleListForMovie(tmdbId) else playImdb.getSubTitleList(
+                    tmdbId,
+                    season,
+                    ep
+                )
             list.firstOrNull { it.lang == "English" }
         }
     }
