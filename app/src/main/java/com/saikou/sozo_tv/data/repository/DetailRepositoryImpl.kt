@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.data.repository
 
+import android.annotation.SuppressLint
 import android.util.Log
 import com.animestudios.animeapp.GetAnimeByIdQuery
 import com.animestudios.animeapp.GetCharacterDetailQuery
@@ -179,6 +180,7 @@ class DetailRepositoryImpl(private val client: ApolloClient, private val api: Im
         }
     }
 
+    @SuppressLint("NewApi")
     override suspend fun creditDetail(id: Int): Result<CastDetailModel> {
         return safeExecute {
             val response = api.getPersonDetails(personId = id).body()!!
