@@ -1,11 +1,14 @@
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.konan.properties.Properties
 import java.io.FileInputStream
+import java.net.URL
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-parcelize")
 //    id("kotlinx-serialization")
+    id("org.jetbrains.dokka") version "1.9.20" // Eng yangi
     id("androidx.navigation.safeargs.kotlin")
     id("kotlin-kapt")
     id("com.apollographql.apollo3") version "3.7.0"
@@ -73,6 +76,26 @@ android {
     }
 }
 
+tasks.withType<DokkaTask>().configureEach {
+    dokkaSourceSets {
+        configureEach {
+            moduleName.set("SozoTv")
+            outputDirectory.set(file("$projectDir/docs"))
+
+            // Android SDK havolalari
+            externalDocumentationLink {
+                url.set(URL("https://developer.android.com/reference"))
+                packageListUrl.set(URL("https://developer.android.com/reference/package-list"))
+            }
+
+            // Har sahifaga FOOTER
+            perPackageOption {
+                matchingRegex.set(".*")
+
+            }
+        }
+    }
+}
 dependencies {
 
     implementation("androidx.core:core-ktx:1.9.0")

@@ -16,6 +16,11 @@ import com.jakewharton.threetenabp.AndroidThreeTen
 import com.saikou.sozo_tv.di.NetworkModule
 import com.saikou.sozo_tv.di.firebaseModule
 import com.saikou.sozo_tv.di.koinModule
+/**
+ * Main activity for SozoTv app.
+ * @author Azamov
+ * @version 2.3
+ */
 
 class MyApp : Application() {
     @SuppressLint("StaticFieldLeak")
