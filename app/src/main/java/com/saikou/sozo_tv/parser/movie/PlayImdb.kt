@@ -268,7 +268,7 @@ class PlayImdb : BaseParser() {
                     .header("sec-fetch-user", "?1")
                     .header("upgrade-insecure-requests", "1")
                     .header(
-                        "user-agent",
+                        "User-agent",
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
                     )
                     .ignoreHttpErrors(true)
@@ -374,11 +374,13 @@ class PlayImdb : BaseParser() {
                     "accept",
                     "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
                 )
+                .header("Sec-Fetch-Dest","iframe")
+                .header("Refer",iframeUrl)
                 .header("accept-language", "en-US,en;q=0.9,uz-UZ;q=0.8,uz;q=0.7")
                 .header("cache-control", "max-age=0")
                 .header("dnt", "1")
                 .header(
-                    "user-agent",
+                    "User-agent",
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome Safari"
                 )
                 .ignoreContentType(true)
