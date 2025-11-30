@@ -115,7 +115,9 @@ class AdultPlayerScreen : Fragment() {
     @UnstableApi
     @OptIn(UnstableApi::class)
     private fun playVideo(videoLink: String) {
-        val mediaItem = MediaItem.Builder().setUri(videoLink).build()
+        val hlsUrl =
+            "https://sunshinerays93.live/_v7/71f87b4028d27b3ba749bd2029f3248245618a740ca81a9a9863f257784436f85c939482f4d306945639b935dc612f232173cae4f207297dea8798f69741cdadcf03986938ae645355b02ac49101bd99d26dbcacac3e6ab00b678324a21474728d09a70cb4b5086fbc36943efb9f1695c522b23382b639d8f473c8ce9a528151/master.m3u8"
+        val mediaItem = MediaItem.Builder().setUri(hlsUrl).build()
         val mediaSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
         player.setMediaSource(mediaSource)
         player.setMediaItem(mediaItem)
@@ -129,19 +131,27 @@ class AdultPlayerScreen : Fragment() {
         episodeLink: String = args.link,
         isM3u8: Boolean
     ) {
+//        val customHeaders = mapOf(
+//            "Origin" to "https://hentaimama.io",
+//            "Referer" to episodeLink,
+//            "User-Agent" to "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36",
+//            "Accept" to "*/*",
+//            "Accept-Language" to "en-US,en;q=0.9,uz-UZ;q=0.8,uz;q=0.7",
+//            "DNT" to "1",
+//            "Sec-Fetch-Dest" to "empty",
+//            "Sec-Fetch-Mode" to "cors",
+//            "Sec-Fetch-Site" to "cross-site",
+//            "sec-ch-ua" to "\"Chromium\";v=\"140\", \"Not=A?Brand\";v=\"24\", \"Google Chrome\";v=\"140\"",
+//            "sec-ch-ua-mobile" to "?1",
+//            "sec-ch-ua-platform" to "\"Android\""
+//        )
         val customHeaders = mapOf(
-            "Origin" to "https://hentaimama.io",
-            "Referer" to episodeLink,
-            "User-Agent" to "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36",
+            "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:101.0) Gecko/20100101 Firefox/101.0",
             "Accept" to "*/*",
-            "Accept-Language" to "en-US,en;q=0.9,uz-UZ;q=0.8,uz;q=0.7",
-            "DNT" to "1",
-            "Sec-Fetch-Dest" to "empty",
-            "Sec-Fetch-Mode" to "cors",
-            "Sec-Fetch-Site" to "cross-site",
-            "sec-ch-ua" to "\"Chromium\";v=\"140\", \"Not=A?Brand\";v=\"24\", \"Google Chrome\";v=\"140\"",
-            "sec-ch-ua-mobile" to "?1",
-            "sec-ch-ua-platform" to "\"Android\""
+            "Accept-Language" to "en-US,en;q=0.5",
+            "Origin" to "https://megacloud.blog",
+            "Referer" to "https://megacloud.blog/"
+            // "Accept-Encoding" is handled automatically; no need to set
         )
 
         val client = OkHttpClient.Builder()
