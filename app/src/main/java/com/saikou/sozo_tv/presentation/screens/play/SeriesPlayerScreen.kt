@@ -70,7 +70,6 @@ class SeriesPlayerScreen : Fragment() {
     private lateinit var httpDataSource: HttpDataSource.Factory
     private lateinit var dataSourceFactory: DataSource.Factory
     private val model by viewModel<PlayViewModel>()
-    private val userPreferenceManager by lazy { UserPreferenceManager(requireContext()) }
     private lateinit var mediaSession: MediaSession
     private val args by navArgs<SeriesPlayerScreenArgs>()
     private val episodeList = arrayListOf<Data>()
