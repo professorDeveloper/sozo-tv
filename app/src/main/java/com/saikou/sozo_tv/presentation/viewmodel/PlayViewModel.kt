@@ -75,6 +75,7 @@ class PlayViewModel(
             }
         }
     }
+
     val subtitleListData = MutableLiveData<List<SubtitleItem>>()
     var currentSelectedSubtitle: SubtitleItem? = null
     var isSubtitleEnabled = true
@@ -247,13 +248,16 @@ class PlayViewModel(
                     Log.d("GGG", "getCurrentEpisodeVod: ")
 
                     seriesResponse = VodMovieResponse(
-                        authInfo = "", subtitleList = "", urlobj = it
+                        authInfo = "", subtitleList = "", urlobj = it,
+                        header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
+
 
                     )
                     currentQualityEpisode.postValue(
                         Resource.Success(
                             VodMovieResponse(
-                                authInfo = "", subtitleList = "", urlobj = it
+                                authInfo = "", subtitleList = "", urlobj = it,
+                                header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
 
                             )
                         )
@@ -284,13 +288,18 @@ class PlayViewModel(
                             playImdb.extractDirectM3u8(it).let { m3u8Link ->
                                 Log.d("GGG", "extract:${it} ")
                                 seriesResponse = VodMovieResponse(
-                                    authInfo = "", subtitleList = "", urlobj = m3u8Link
-
+                                    authInfo = "",
+                                    subtitleList = "",
+                                    urlobj = m3u8Link,
+                                    header = mapOf()
                                 )
                                 currentEpisodeData.postValue(
                                     Resource.Success(
                                         VodMovieResponse(
-                                            authInfo = "", subtitleList = "", urlobj = it
+                                            authInfo = "",
+                                            subtitleList = "",
+                                            urlobj = it,
+                                            header = mapOf()
 
                                         )
                                     )
@@ -313,13 +322,16 @@ class PlayViewModel(
                         playImdb.extractDirectM3u8(it).let { m3u8Link ->
                             println(m3u8Link)
                             seriesResponse = VodMovieResponse(
-                                authInfo = "", subtitleList = "", urlobj = m3u8Link
-
+                                authInfo = "", subtitleList = "", urlobj = m3u8Link,
+                                header = mapOf()
                             )
                             currentEpisodeData.postValue(
                                 Resource.Success(
                                     VodMovieResponse(
-                                        authInfo = "", subtitleList = "", urlobj = it
+                                        authInfo = "",
+                                        subtitleList = "",
+                                        urlobj = it,
+                                        header = mapOf()
 
                                     )
                                 )
@@ -341,7 +353,6 @@ class PlayViewModel(
             isWatched = isWatched(episodeId.toString())
             if (isWatched) {
                 getWatchedHistoryEntity = getWatchedEntity(episodeId.toString())
-//                epListFromLocal = getWatchedHistoryEntity!!.epList
                 currentSelectedVideoOptionIndex = getWatchedHistoryEntity?.currentQualityIndex ?: 0
 
             }
@@ -353,13 +364,16 @@ class PlayViewModel(
                     Log.d("GGG", "getCurrentEpisodeVod: ")
 
                     seriesResponse = VodMovieResponse(
-                        authInfo = "", subtitleList = "", urlobj = it
-
+                        authInfo = "", subtitleList = "", urlobj = it,
+                        header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
                     )
                     currentEpisodeData.postValue(
                         Resource.Success(
                             VodMovieResponse(
-                                authInfo = "", subtitleList = "", urlobj = it
+                                authInfo = "",
+                                subtitleList = "",
+                                urlobj = it,
+                                header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
 
                             )
                         )

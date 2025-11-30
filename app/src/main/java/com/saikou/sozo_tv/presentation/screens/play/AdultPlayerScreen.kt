@@ -131,7 +131,7 @@ class AdultPlayerScreen : Fragment() {
     ) {
         val customHeaders = mapOf(
             "Origin" to "https://hentaimama.io",
-            "Referer" to "${episodeLink}",
+            "Referer" to episodeLink,
             "User-Agent" to "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36",
             "Accept" to "*/*",
             "Accept-Language" to "en-US,en;q=0.9,uz-UZ;q=0.8,uz;q=0.7",
@@ -179,12 +179,11 @@ class AdultPlayerScreen : Fragment() {
                     } catch (e: Exception) {
                         exception = e
                         if (attempt < 3) {
-                            Thread.sleep(1000L * attempt) // Exponential backoff
+                            Thread.sleep(1000L * attempt)
                         }
                     }
                 }
 
-                // If all retries failed, throw the last exception
                 throw exception ?: RuntimeException("All retry attempts failed")
             }
             .build()

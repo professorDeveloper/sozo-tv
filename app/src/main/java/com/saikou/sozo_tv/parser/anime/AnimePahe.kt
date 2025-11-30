@@ -142,7 +142,6 @@ class AnimePahe : BaseParser() {
     }
 
     suspend fun extractVideo(url: String): String {
-
         val doc = getJsoup(url, mapOf("User-Agent" to USER_AGENT, "Referer" to hostUrl))
         val scripts: Elements = doc.getElementsByTag("script")
         var evalContent: String? = null

@@ -88,6 +88,7 @@ class SeriesPlayerScreen : Fragment() {
         _binding = SeriesPlayerScreenBinding.inflate(inflater, container, false)
         return binding.root
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
@@ -211,7 +212,8 @@ class SeriesPlayerScreen : Fragment() {
         }
 
 
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     navigateBack()

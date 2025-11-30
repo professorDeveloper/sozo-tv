@@ -4,6 +4,8 @@ import java.io.Serializable
 
 data class VodMovieResponse(
     val authInfo: String,
-    @Transient val subtitleList: Any,  // Ignored during serialization
+    var header: Map<String, String>,
+    @Transient
+    val subtitleList: Any,  // Ignored during serialization
     val urlobj: String
 ) : Serializable
