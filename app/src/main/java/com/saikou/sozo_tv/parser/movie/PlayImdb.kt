@@ -108,59 +108,6 @@ class PlayImdb : BaseParser() {
         return null
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
-//    suspend fun extractSeriesIframe(
-//        context: Context,
-//        link: String
-//    ): String? = withContext(Dispatchers.Main) {
-//        suspendCancellableCoroutine { cont ->
-//            try {
-//                val webView = WebView(context).apply {
-//                    settings.javaScriptEnabled = true
-//                    settings.domStorageEnabled = true
-//                    settings.loadsImagesAutomatically = false
-//                    settings.userAgentString =
-//                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
-//                    visibility = View.GONE
-//                }
-//
-//                webView.webViewClient = object : WebViewClient() {
-//                    override fun onPageFinished(view: WebView?, url: String?) {
-//                        webView.evaluateJavascript(
-//                            "(function(){return document.documentElement.outerHTML;})();"
-//                        ) { html ->
-//                            try {
-//                                val doc = Jsoup.parse(html)
-//                                val iframe = doc.selectFirst("iframe#player_iframe")?.attr("src")
-//                                val finalUrl = when {
-//                                    iframe == null -> null
-//                                    iframe.startsWith("//") -> "https:$iframe"
-//                                    iframe.startsWith("/") -> link.substringBefore(
-//                                        '/',
-//                                        "${link.indexOf("//") + 2}"
-//                                    ) + iframe
-//
-//                                    else -> iframe
-//                                }
-//                                cont.resume(finalUrl, null)
-//                            } catch (e: Exception) {
-//                                Bugsnag.notify(e)
-//                                cont.resume(null, null)
-//                            } finally {
-//                                webView.destroy()
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                webView.loadUrl(link)
-//            } catch (e: Exception) {
-//                Bugsnag.notify(e)
-//                cont.resume(null, null)
-//            }
-//        }
-//    }
-    //https://sub.wyzie.ru/search?id=119051&season=1&episode=1
 
 
     suspend fun getSubtitleListForMovie(tmdbId: Int): ArrayList<SubtitleItem> {
@@ -273,10 +220,9 @@ class PlayImdb : BaseParser() {
                     )
                     .ignoreHttpErrors(true)
                     .ignoreContentType(true)
-                    .timeout(10_000) // 10 soniya timeout
+                    .timeout(10_000)
                     .execute()
 
-                // JS yuklanish uchun biroz kutish (simulyatsiya)
                 delay(800)
 
                 val document = Jsoup.parse(response.body())
@@ -308,63 +254,6 @@ class PlayImdb : BaseParser() {
 
         return@withContext ""
     }
-//    @SuppressLint("SetJavaScriptEnabled")
-//    suspend fun convertRcptProctor(
-//        context: Context,
-//        iframeUrl: String
-//    ): String = withContext(Dispatchers.Main) {
-//        suspendCancellableCoroutine { cont ->
-//            val webView = WebView(context).apply {
-//                settings.javaScriptEnabled = true
-//                settings.domStorageEnabled = true
-//                settings.userAgentString =
-//                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
-//                visibility = View.GONE
-//            }
-//
-//            var attempts = 0
-//            val maxRetries = 3
-//
-//            fun loadAndCheck() {
-//                webView.webViewClient = object : WebViewClient() {
-//                    override fun onPageFinished(view: WebView?, url: String?) {
-//                        webView.evaluateJavascript(
-//                            "(function(){return document.documentElement.outerHTML;})();"
-//                        ) { html ->
-//                            try {
-//                                val regex = Regex("""src:\s*['"](/prorcp/[^'"]+)['"]""")
-//                                val match = regex.find(html)
-//                                val finalUrl =
-//                                    match?.groupValues?.get(1)?.let { "https://cloudnestra.com$it" }
-//                                        ?: ""
-//
-//                                if (finalUrl.isNotEmpty()) {
-//                                    cont.resume(finalUrl, null)
-//                                    webView.destroy()
-//                                } else if (++attempts < maxRetries) {
-//                                    Handler(Looper.getMainLooper()).postDelayed(
-//                                        { loadAndCheck() },
-//                                        1000
-//                                    )
-//                                } else {
-//                                    cont.resume("", null)
-//                                    webView.destroy()
-//                                }
-//                            } catch (e: Exception) {
-//                                Bugsnag.notify(e)
-//                                cont.resume("", null)
-//                                webView.destroy()
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                webView.loadUrl(iframeUrl)
-//            }
-//
-//            loadAndCheck()
-//        }
-//    }
 
     suspend fun extractDirectM3u8(iframeUrl: String): String {
         try {
@@ -374,8 +263,8 @@ class PlayImdb : BaseParser() {
                     "accept",
                     "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
                 )
-                .header("Sec-Fetch-Dest","iframe")
-                .header("Refer",iframeUrl)
+                .header("Sec-Fetch-Dest", "iframe")
+                .header("Refer", iframeUrl)
                 .header("accept-language", "en-US,en;q=0.9,uz-UZ;q=0.8,uz;q=0.7")
                 .header("cache-control", "max-age=0")
                 .header("dnt", "1")
