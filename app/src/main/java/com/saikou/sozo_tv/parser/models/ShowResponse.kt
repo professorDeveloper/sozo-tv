@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.parser.models
 
+import com.saikou.sozo_tv.data.model.hianime.MegaTrack
 import java.io.Serializable
 
 data class ShowResponse(
@@ -8,12 +9,11 @@ data class ShowResponse(
     val coverUrl: String,
     val otherNames: List<String> = listOf(),
     val total: Int? = null,
-    val extra : Map<String,String>?=null,
+    val extra: Map<String, String>? = null,
     val seasons: List<Int> = listOf(),
 ) : Serializable {
 
 }
-
 
 
 data class VideoOption(
@@ -23,7 +23,8 @@ data class VideoOption(
     val audioType: AudioType,
     val quality: String,
     val isActive: Boolean,
-    val fullText: String
+    val fullText: String,
+    var tracks: List<MegaTrack> = arrayListOf()
 )
 
 

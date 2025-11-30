@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.parser.anime
 
 import com.saikou.sozo_tv.parser.BaseParser
 import com.saikou.sozo_tv.parser.extractor.HiAnimeVideoExtractor
+import com.saikou.sozo_tv.parser.extractor.MegacloudExtractor
 import com.saikou.sozo_tv.parser.models.AudioType
 import com.saikou.sozo_tv.parser.models.Episode
 import com.saikou.sozo_tv.parser.models.EpisodeHi
@@ -19,7 +20,7 @@ class HiAnime : BaseParser() {
     override val language: String = "en"
 
     private val source = HiAnimeSource()
-    private val videoExtractor = HiAnimeVideoExtractor()
+    private val extractor = HiAnimeVideoExtractor()
 
     suspend fun search(query: String): List<ShowResponse> {
         return source.searchAnime(query).map {
@@ -37,6 +38,27 @@ class HiAnime : BaseParser() {
         return eps
     }
 
+    suspend fun getEpisodeVideo(id: String, epId: String): List<VideoOption> {
+        val servers = extractor.extractServers(epId.toInt())
+        if (servers.isEmpty()) return emptyList()
+
+        val embedUrl = extractor.extractVideoFromServer(servers.first().id)
+
+        val (m3u8, tracks) = MegacloudExtractor().extractVideoUrl(embedUrl)
+
+        return listOf(
+            VideoOption(
+                kwikUrl = m3u8,
+                fansub = "HiAnime",
+                resolution = "HLS",
+                audioType = AudioType.SUB,
+                quality = "Adaptive",
+                isActive = true,
+                fullText = "HiAnime Stream",
+                tracks
+            )
+        )
+    }
 
     private fun String.extractAnimeId(): Int? {
         return Regex("-(\\d+)").find(this)?.groupValues?.get(1)?.toIntOrNull()
