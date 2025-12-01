@@ -24,7 +24,8 @@ data class VideoOption(
     val quality: String,
     val isActive: Boolean,
     val fullText: String,
-    var tracks: List<MegaTrack> = arrayListOf()
+    var tracks: List<MegaTrack> = arrayListOf(),
+    var headers: Map<String, String> = mapOf()
 )
 
 

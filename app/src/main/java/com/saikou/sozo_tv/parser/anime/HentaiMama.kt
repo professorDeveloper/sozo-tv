@@ -4,7 +4,9 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lagradost.nicehttp.Requests
 import com.saikou.sozo_tv.parser.BaseParser
+import com.saikou.sozo_tv.parser.models.AnimePaheData
 import com.saikou.sozo_tv.parser.models.Data
+import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.Kiwi
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.utils.Utils
@@ -45,7 +47,8 @@ class HentaiMama : BaseParser() {
     override val isNSFW: Boolean = true
     override val language: String = "jp"
 
-    suspend fun search(query: String): List<ShowResponse> = withContext(Dispatchers.IO) {
+
+    override suspend fun search(query: String): List<ShowResponse> = withContext(Dispatchers.IO) {
         val updatedQuery = if (query.length > 7) query.substring(0, 7) else query
         val url = "$hostUrl/?s=${updatedQuery.replace(" ", "+")}"
         val document = Utils.getJsoup(url)
@@ -60,11 +63,11 @@ class HentaiMama : BaseParser() {
     }
 
 
-    suspend fun loadEpisodes(
-        animeLink: String,
-        extra: Map<String, String>?
-    ): List<Data> = withContext(Dispatchers.IO) {
-        val pageBody = Utils.getJsoup(animeLink)
+    override suspend fun loadEpisodes(
+        id: String,
+        page: Int, showResponse: ShowResponse
+    ): EpisodeData = withContext(Dispatchers.IO) {
+        val pageBody = Utils.getJsoup(id)
 
         val episodes =
             pageBody.select("div#episodes.sbox.fixidtab div.module.series div.content.series div.items article")
@@ -78,7 +81,7 @@ class HentaiMama : BaseParser() {
                     Data(episode = epNum.toInt(), session = url ?: "", snapshot = thumb ?: "")
                 }
 
-        return@withContext episodes
+        return@withContext EpisodeData(1, episodes, 1, 1, null, -1, null, 1, episodes.size)
     }
 
     suspend fun loadVideoServers(

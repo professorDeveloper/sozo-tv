@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.parser.extractor
 
+import android.util.Log
 import com.google.gson.Gson
 import com.saikou.sozo_tv.data.model.hianime.EpisodeServers
 import com.saikou.sozo_tv.data.model.hianime.HiServer
@@ -16,7 +17,8 @@ class HiAnimeVideoExtractor {
     fun extractServers(episodeId: Int): List<HiServer> {
         val json = Utils.get("$base/ajax/v2/episode/servers?episodeId=$episodeId")
         val resp = gson.fromJson(json, EpisodeServers::class.java)
-
+        Log.d("GGG", "extractServers:$base/ajax/v2/episode/servers?episodeId=$episodeId ")
+        Log.d("GGG", "extractServers:${json} ")
         val doc = Jsoup.parse(resp.html)
 
         return doc.select(".server-item[data-id]").map {

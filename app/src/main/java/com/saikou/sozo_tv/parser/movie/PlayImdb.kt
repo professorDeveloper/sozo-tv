@@ -11,6 +11,8 @@ import com.saikou.sozo_tv.data.model.SeasonResponse
 import com.saikou.sozo_tv.data.model.SubtitleItem
 import com.saikou.sozo_tv.parser.BaseParser
 import com.saikou.sozo_tv.parser.models.Episode
+import com.saikou.sozo_tv.parser.models.EpisodeData
+import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.utils.Utils.getJsoup
 import com.saikou.sozo_tv.utils.Utils.httpClient
 import com.saikou.sozo_tv.utils.parser
@@ -29,6 +31,7 @@ class PlayImdb : BaseParser() {
     override val hostUrl: String = "https://streamimdb.me/"
     override val language: String = "en"
     override val isNSFW: Boolean = false
+
 
     suspend fun getEpisodes(imdbId: String): List<Episode> {
         return try {
@@ -89,6 +92,14 @@ class PlayImdb : BaseParser() {
             println(e)
             return arrayListOf()
         }
+    }
+
+    override suspend fun loadEpisodes(id: String, page: Int,showResponse: ShowResponse): EpisodeData? {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun search(query: String): List<ShowResponse> {
+        TODO("Not yet implemented")
     }
 
     fun extractSeriesIframe(link: String): String? {

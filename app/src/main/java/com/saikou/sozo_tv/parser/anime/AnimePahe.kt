@@ -53,7 +53,7 @@ class AnimePahe : BaseParser() {
     }
 
 
-    suspend fun search(query: String): List<ShowResponse> {
+    override suspend fun search(query: String): List<ShowResponse> {
         val headers = getDefaultHeaders()
         val formattedQuery = query.replace(" ", "%20")
         val requests = Requests(httpClient, defaultHeaders = headers, responseParser = parser)
@@ -74,12 +74,16 @@ class AnimePahe : BaseParser() {
         return list
     }
 
-    suspend fun loadEpisodes(id: String, curPage: Int): EpisodeData? {
+    override suspend fun loadEpisodes(
+        id: String,
+        page: Int,
+        showResponse: ShowResponse
+    ): EpisodeData? {
         val headers = getDefaultHeaders()
         val requests = Requests(httpClient, responseParser = parser, defaultHeaders = headers)
         return try {
             requests.get(
-                "${hostUrl}api?m=release&id=$id&sort=episode_asc&page=$curPage", headers = headers
+                "${hostUrl}api?m=release&id=$id&sort=episode_asc&page=$page", headers = headers
             ).parsed()
         } catch (e: Exception) {
             Bugsnag.notify(e)
@@ -133,7 +137,7 @@ class AnimePahe : BaseParser() {
     }
 
 
-    suspend fun getEpisodeVideo(epId: String, id: String): List<VideoOption> {
+    override suspend fun getEpisodeVideo(epId: String, id: String): List<VideoOption> {
         val headers = getDefaultHeaders()
         val doc = getJsoup("https://animepahe.si/play/${id}/${epId}", headers)
         val videoOptions = getVideoOptions(doc)
@@ -141,7 +145,7 @@ class AnimePahe : BaseParser() {
         return videoOptions
     }
 
-    suspend fun extractVideo(url: String): String {
+    override suspend fun extractVideo(url: String): String {
         val doc = getJsoup(url, mapOf("User-Agent" to USER_AGENT, "Referer" to hostUrl))
         val scripts: Elements = doc.getElementsByTag("script")
         var evalContent: String? = null

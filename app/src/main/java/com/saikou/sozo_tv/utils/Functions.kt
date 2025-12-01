@@ -37,6 +37,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
+import java.io.Serializable
 import java.net.URL
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
@@ -257,45 +258,59 @@ fun disableSSLCertificateChecking(connection: HttpsURLConnection) {
         e.printStackTrace()
     }
 }
-
-
-fun <T> readData(fileName: String, context: Context? = null, toast: Boolean = true): T? {
-    val a = context ?: MyApp.context
-    try {
-        if (a.fileList() != null)
-            if (fileName in a.fileList()) {
-                val fileIS: FileInputStream = a.openFileInput(fileName)
-                val objIS = ObjectInputStream(fileIS)
-                val data = objIS.readObject() as T
-                objIS.close()
-                fileIS.close()
-                return data
-            }
-    } catch (e: Exception) {
-        if (toast) snackString("Error loading data $fileName")
-        e.printStackTrace()
-    }
-    return null
-}
-
 fun <T> tryWith(post: Boolean = false, snackbar: Boolean = true, call: () -> T): T? {
     return try {
         call.invoke()
     } catch (e: Throwable) {
+        e.printStackTrace()
         null
     }
 }
 
-fun saveData(fileName: String, data: Any?, context: Context? = null) {
-    tryWith {
-        val a = context ?: MyApp.context
-        if (a != null) {
-            val fos: FileOutputStream = a.openFileOutput(fileName, Context.MODE_PRIVATE)
-            val os = ObjectOutputStream(fos)
-            os.writeObject(data)
-            os.close()
-            fos.close()
+fun <T : Serializable> readData(
+    fileName: String,
+    context: Context? = null,
+    toast: Boolean = true
+): T? {
+    val a = context ?: MyApp.context ?: return null
+
+    try {
+        val files = a.fileList()
+        if (files != null && fileName in files) {
+            val fileIS = a.openFileInput(fileName)
+            val objIS = ObjectInputStream(fileIS)
+            @Suppress("UNCHECKED_CAST")
+            val data = objIS.readObject() as T
+            objIS.close()
+            fileIS.close()
+            return data
         }
+    } catch (e: Exception) {
+        if (toast) snackString("Error loading data $fileName")
+        e.printStackTrace()
+
+        try {
+            a.deleteFile(fileName)
+        } catch (_: Exception) { }
+    }
+    return null
+}
+
+fun <T : java.io.Serializable> saveData(
+    fileName: String,
+    data: T?,
+    context: Context? = null
+) {
+    if (data == null) return
+
+    tryWith {
+        val a = context ?: MyApp.context ?: return@tryWith null
+        val fos: FileOutputStream = a.openFileOutput(fileName, Context.MODE_PRIVATE)
+        val os = ObjectOutputStream(fos)
+        os.writeObject(data)
+        os.close()
+        fos.close()
+        null
     }
 }
 @SuppressLint("HardwareIds")

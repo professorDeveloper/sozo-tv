@@ -1,6 +1,10 @@
 package com.saikou.sozo_tv.parser
 
 import com.saikou.sozo_tv.domain.model.MainModel
+import com.saikou.sozo_tv.parser.anime.Video
+import com.saikou.sozo_tv.parser.models.EpisodeData
+import com.saikou.sozo_tv.parser.models.ShowResponse
+import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.utils.readData
 import com.saikou.sozo_tv.utils.saveData
 import java.io.Serializable
@@ -45,6 +49,17 @@ abstract class BaseParser {
         showUserTextListener?.invoke(showUserText)
     }
 
+    open suspend fun getEpisodeVideo(id: String, epId: String): List<VideoOption> = emptyList()
+
+    abstract suspend fun loadEpisodes(
+        id: String,
+        page: Int = 1,
+        showResponse: ShowResponse
+    ): EpisodeData?
+
+    open suspend fun extractVideo(url: String): String = ""
+
+    abstract suspend fun search(query: String): List<ShowResponse>
     fun encode(input: String): String = URLEncoder.encode(input, "utf-8").replace("+", "%20")
     fun decode(input: String): String = URLDecoder.decode(input, "utf-8")
 }

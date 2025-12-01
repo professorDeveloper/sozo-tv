@@ -7,13 +7,14 @@ import com.saikou.sozo_tv.domain.repository.EpisodeRepository
 import com.saikou.sozo_tv.parser.anime.AnimePahe
 import com.saikou.sozo_tv.parser.anime.HentaiMama
 import com.saikou.sozo_tv.parser.models.ShowResponse
+import com.saikou.sozo_tv.parser.sources.AnimeSources
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import kotlinx.coroutines.launch
 
 class WrongTitleViewModel(private val repo: EpisodeRepository) : ViewModel() {
     val dataFound: MutableLiveData<Resource<List<ShowResponse>>> = MutableLiveData()
-    private val animePahe = AnimePahe()
+    private val animePahe = AnimeSources.getCurrent()
     private val adultSource = HentaiMama()
 
 

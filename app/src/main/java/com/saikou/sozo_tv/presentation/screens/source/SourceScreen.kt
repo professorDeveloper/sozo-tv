@@ -17,6 +17,7 @@ import com.saikou.sozo_tv.databinding.SourceScreenBinding
 import androidx.leanback.widget.VerticalGridView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.parser.sources.SourceManager
 import com.saikou.sozo_tv.utils.readData
 import com.saikou.sozo_tv.utils.saveData
 
@@ -65,6 +66,7 @@ class SourceScreen : Fragment() {
                     for (child in snapshot.children) {
                         child.getValue(SubSource::class.java)?.let { list.add(it) }
                     }
+                    saveData("sources", list)
                     binding.sourcePlaceHolder.root.visibility = View.GONE
                     binding.sourceRv.visibility = View.VISIBLE
                     adapter.updateList(list)
@@ -73,6 +75,7 @@ class SourceScreen : Fragment() {
                     )
                     val selected = list.find { it.sourceId == currentSelectedSource }
                     if (selected != null) {
+                        SourceManager.setCurrentSource(selected.sourceId)
                         saveData("subSource", selected.sourceId)
                         binding.textView6.text = "Current Selected Source: ${selected.title}"
                     } else {

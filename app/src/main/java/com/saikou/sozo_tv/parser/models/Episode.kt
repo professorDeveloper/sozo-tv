@@ -6,4 +6,5 @@ data class Episode(
     val title: String,
     val iframeUrl: String,
     var snapshot: String = "",
+    var description: String = "",
 )

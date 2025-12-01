@@ -8,6 +8,7 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -57,8 +58,8 @@ class EpisodeScreen : Fragment() {
 
         addAnimFocus()
 
-        val currentSource = readData<String>("subSource") ?: ""
-        if (currentSource != "animepahe" && !args.isAdult) {
+        val currentSource = readData("subSource") ?: ""
+        if (currentSource == "" && !args.isAdult) {
             binding.topContainer.gone()
             binding.loadingLayout.gone()
             binding.textView6.gone()
@@ -73,233 +74,232 @@ class EpisodeScreen : Fragment() {
                 intent.putExtra("openSettings", true)
                 requireActivity().startActivity(intent)
             }
-        } else
-            if (!args.isAdult) {
-                val sourceText = "Current Selected Source: $currentSource"
-                binding.textView6.text = sourceText.highlightPart(
-                    currentSource, ContextCompat.getColor(requireContext(), R.color.orange)
-                )
+        } else if (!args.isAdult) {
+            initializeAnimeSource(currentSource)
+        } else {
+            initializeAdultSource()
+        }
+    }
 
-                viewModel.findEpisodes(args.episodeTitle)
-                viewModel.dataFound.observe(viewLifecycleOwner) { dataFound ->
-                    when (dataFound) {
-                        is Resource.Error -> {
-                            binding.placeHolder.root.visible()
-                            binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
-                            binding.placeHolder.placeholderTxt.text = dataFound.throwable.message
-                        }
+    private fun initializeAnimeSource(currentSource: String) {
+        val sourceText = "Current Selected Source: $currentSource"
+        binding.textView6.text = sourceText.highlightPart(
+            currentSource, ContextCompat.getColor(requireContext(), R.color.orange)
+        )
 
-                        Resource.Loading -> {
-                            binding.placeHolder.root.gone()
-                            binding.topContainer.gone()
-                            binding.tabRv.gone()
-                            binding.loadingLayout.visible()
-                            binding.loadingText.text = "Media is loading.."
-                        }
-
-                        is Resource.Success -> {
-                            val mediaText = "Selected Media: ${dataFound.data.name}"
-                            binding.textView7.gone()
-                            val anim =
-                                AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
-                            binding.textView7.text = mediaText.highlightPart(
-                                dataFound.data.name,
-                                ContextCompat.getColor(requireContext(), R.color.red80)
-                            )
-                            binding.textView7.visible()
-                            binding.textView7.startAnimation(anim)
-                            currentMediaId = dataFound.data.link
-                            adapter = SeriesPageAdapter(localEpisode = viewModel.epListFromLocal)
-                            binding.wrongTitleContainer.visibility = View.VISIBLE
-                            binding.wrongTitleContainer.startAnimation(anim)
-                            binding.wrongTitleContainer.setOnClickListener { gg ->
-                                showWrongTitleDialog(dataFound.data.name, args.isAdult)
-                            }
-
-                            binding.topContainer.adapter = adapter
-                            viewModel.loadEpisodeByPage(1, currentMediaId)
-                            binding.placeHolder.root.gone()
-                            binding.loadingLayout.gone()
-                            viewModel.episodeData.observe(viewLifecycleOwner) { result ->
-                                when (result) {
-                                    is Resource.Error -> {
-                                        binding.placeHolder.root.visible()
-                                        binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
-                                        binding.placeHolder.placeholderTxt.text =
-                                            result.throwable.message
-                                    }
-
-                                    Resource.Loading -> {
-                                        binding.placeHolder.root.gone()
-                                        binding.loadingLayout.visible()
-                                        binding.topContainer.gone()
-                                        binding.loadingText.text = "Episodes are loading.."
-                                    }
-
-                                    is Resource.Success -> {
-                                        if (result.data.last_page != null && result.data.data != null) {
-                                            if (result.data.last_page == 1) {
-                                                binding.tabRv.gone()
-                                                binding.placeHolder.root.gone()
-                                                binding.topContainer.visible()
-                                                binding.loadingLayout.gone()
-
-                                                adapter.updateEpisodeItems(result.data.data)
-                                                adapter.setOnItemClickedListener { it, currentIndex ->
-                                                    findNavController().navigate(
-                                                        EpisodeScreenDirections.actionEpisodeScreenToSeriesPlayerScreen(
-                                                            id = it.session ?: "",
-                                                            idMal = args.mediaId,
-                                                            name = dataFound.data.name,
-                                                            currentEpisode = (it.episode
-                                                                ?: 0).toString(),
-                                                            image = it.snapshot
-                                                                ?: LocalData.anime404,
-                                                            seriesMainId = currentMediaId ?: "",
-                                                            currentPage = selectedPosition + 1,
-                                                            currentIndex = currentIndex
-                                                        )
-                                                    )
-                                                }
-                                            } else {
-                                                binding.topContainer.visible()
-                                                adapter.updateEpisodeItems(result.data.data)
-                                                adapter.setOnItemClickedListener { it, index ->
-                                                    findNavController().navigate(
-                                                        EpisodeScreenDirections.actionEpisodeScreenToSeriesPlayerScreen(
-                                                            id = it.session ?: "",
-                                                            name = dataFound.data.name,
-                                                            currentEpisode = (it.episode
-                                                                ?: 0).toString(),
-                                                            image = it.snapshot
-                                                                ?: LocalData.anime404,
-                                                            seriesMainId = currentMediaId ?: "",
-                                                            currentPage = selectedPosition + 1,
-                                                            currentIndex = index,
-                                                            idMal = args.malId
-                                                        )
-                                                    )
-                                                }
-                                                val partList = ArrayList<Part>()
-                                                categoriesAdapter = EpisodeTabAdapter()
-                                                binding.tabRv.visible()
-                                                binding.tabRv.adapter = categoriesAdapter
-                                                for (i in 1..result.data.last_page) {
-                                                    partList.add(Part("Part $i", i))
-                                                }
-                                                categoriesAdapter.submitList(partList)
-                                                categoriesAdapter.setSelectedPosition(
-                                                    selectedPosition
-                                                )
-                                                binding.tabRv.scrollToPosition(selectedPosition)
-                                                categoriesAdapter.setFocusedItemListener { _, i ->
-                                                    viewModel.loadEpisodeByPage(
-                                                        i + 1, currentMediaId
-                                                    )
-                                                    selectedPosition = i
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    else -> {}
-                                }
-                            }
-                        }
-
-                        else -> {}
-                    }
+        viewModel.findEpisodes(args.episodeTitle)
+        Log.d("GGG", "initializeAnimeSource:Tushdi ")
+        viewModel.dataFound.observe(viewLifecycleOwner) { dataFound ->
+            when (dataFound) {
+                is Resource.Error -> {
+                    binding.placeHolder.root.visible()
+                    binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
+                    binding.placeHolder.placeholderTxt.text = dataFound.throwable.message
                 }
-            } else {
-                val sourceText = "Current Selected Source:${HentaiMama::class.java.simpleName}"
-                binding.textView6.text = sourceText.highlightPart(
-                    HentaiMama::class.java.simpleName,
-                    ContextCompat.getColor(requireContext(), R.color.orange)
-                )
-                viewModel.findEpisodes(args.episodeTitle, isAdult = args.isAdult)
-                viewModel.dataFound.observe(viewLifecycleOwner) { dataFound ->
-                    when (dataFound) {
-                        is Resource.Error -> {
-                            binding.placeHolder.root.visible()
-                            binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
-                            binding.placeHolder.placeholderTxt.text = dataFound.throwable.message
-                        }
 
-                        Resource.Loading -> {
-                            binding.placeHolder.root.gone()
-                            binding.topContainer.gone()
-                            binding.tabRv.gone()
-                            binding.loadingLayout.visible()
-                            binding.loadingText.text = "Media is loading.."
-                        }
+                Resource.Loading -> {
+                    binding.placeHolder.root.gone()
+                    binding.topContainer.gone()
+                    binding.tabRv.gone()
+                    binding.loadingLayout.visible()
+                    binding.loadingText.text = "Media is loading.."
+                }
 
-                        is Resource.Success -> {
-                            val mediaText = "Selected Media: ${dataFound.data.name}"
-                            binding.textView7.gone()
-                            val anim =
-                                AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
-                            binding.textView7.text = mediaText.highlightPart(
-                                dataFound.data.name,
-                                ContextCompat.getColor(requireContext(), R.color.red80)
-                            )
-                            binding.textView7.visible()
-                            binding.textView7.startAnimation(anim)
-                            currentMediaId = dataFound.data.link
-                            adapter = SeriesPageAdapter()
-                            binding.wrongTitleContainer.visibility = View.VISIBLE
-                            binding.wrongTitleContainer.startAnimation(anim)
-                            binding.wrongTitleContainer.setOnClickListener { gg ->
-                                showWrongTitleDialog(dataFound.data.name, isAdult = args.isAdult)
+                is Resource.Success -> {
+                    val mediaText = "Selected Media: ${dataFound.data.name}"
+                    binding.textView7.gone()
+                    val anim = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
+                    binding.textView7.text = mediaText.highlightPart(
+                        dataFound.data.name, ContextCompat.getColor(requireContext(), R.color.red80)
+                    )
+                    binding.textView7.visible()
+                    binding.textView7.startAnimation(anim)
+                    currentMediaId = dataFound.data.link
+                    adapter = SeriesPageAdapter(localEpisode = viewModel.epListFromLocal)
+                    binding.wrongTitleContainer.visibility = View.VISIBLE
+                    binding.wrongTitleContainer.startAnimation(anim)
+                    binding.wrongTitleContainer.setOnClickListener { gg ->
+                        showWrongTitleDialog(dataFound.data.name, args.isAdult)
+                    }
+
+                    binding.topContainer.adapter = adapter
+                    viewModel.loadEpisodeByPage(1, currentMediaId, dataFound.data)
+                    binding.placeHolder.root.gone()
+                    binding.loadingLayout.gone()
+                    viewModel.episodeData.observe(viewLifecycleOwner) { result ->
+                        when (result) {
+                            is Resource.Error -> {
+                                binding.placeHolder.root.visible()
+                                binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
+                                binding.placeHolder.placeholderTxt.text = result.throwable.message
                             }
 
-                            binding.topContainer.adapter = adapter
-                            viewModel.loadAdultEpisodes(currentMediaId)
-                            binding.placeHolder.root.gone()
-                            binding.loadingLayout.gone()
-                            viewModel.episodeData.observe(viewLifecycleOwner) { result ->
-                                when (result) {
-                                    is Resource.Error -> {
-                                        binding.placeHolder.root.visible()
-                                        binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
-                                        binding.placeHolder.placeholderTxt.text =
-                                            result.throwable.message
-                                    }
+                            Resource.Loading -> {
+                                binding.placeHolder.root.gone()
+                                binding.loadingLayout.visible()
+                                binding.topContainer.gone()
+                                binding.loadingText.text = "Episodes are loading.."
+                            }
 
-                                    Resource.Loading -> {
-                                        binding.placeHolder.root.gone()
-                                        binding.loadingLayout.visible()
-                                        binding.topContainer.gone()
-                                        binding.loadingText.text = "Episodes are loading.."
-                                    }
-
-                                    is Resource.Success -> {
+                            is Resource.Success -> {
+                                if (result.data.last_page != null && result.data.data != null) {
+                                    if (result.data.last_page == 1) {
                                         binding.tabRv.gone()
                                         binding.placeHolder.root.gone()
                                         binding.topContainer.visible()
                                         binding.loadingLayout.gone()
-                                        adapter.updateEpisodeItems(
-                                            result.data.data ?: arrayListOf()
-                                        )
+
+                                        adapter.updateEpisodeItems(result.data.data)
                                         adapter.setOnItemClickedListener { it, currentIndex ->
                                             findNavController().navigate(
-                                                EpisodeScreenDirections.actionEpisodeScreenToAdultPlayerScreen(
-                                                    it.session ?: "",
-                                                    args.episodeTitle,
-                                                    it.episode.toString()
+                                                EpisodeScreenDirections.actionEpisodeScreenToSeriesPlayerScreen(
+                                                    id = it.session ?: "",
+                                                    idMal = args.mediaId,
+                                                    name = dataFound.data.name,
+                                                    currentEpisode = (it.episode ?: 0).toString(),
+                                                    image = it.snapshot ?: LocalData.anime404,
+                                                    seriesMainId = currentMediaId ?: "",
+                                                    currentPage = selectedPosition + 1,
+                                                    currentIndex = currentIndex
                                                 )
                                             )
                                         }
+                                    } else {
+                                        binding.topContainer.visible()
+                                        adapter.updateEpisodeItems(result.data.data)
+                                        adapter.setOnItemClickedListener { it, index ->
+                                            findNavController().navigate(
+                                                EpisodeScreenDirections.actionEpisodeScreenToSeriesPlayerScreen(
+                                                    id = it.session ?: "",
+                                                    name = dataFound.data.name,
+                                                    currentEpisode = (it.episode ?: 0).toString(),
+                                                    image = it.snapshot ?: LocalData.anime404,
+                                                    seriesMainId = currentMediaId ?: "",
+                                                    currentPage = selectedPosition + 1,
+                                                    currentIndex = index,
+                                                    idMal = args.malId
+                                                )
+                                            )
+                                        }
+                                        val partList = ArrayList<Part>()
+                                        categoriesAdapter = EpisodeTabAdapter()
+                                        binding.tabRv.visible()
+                                        binding.tabRv.adapter = categoriesAdapter
+                                        for (i in 1..result.data.last_page) {
+                                            partList.add(Part("Part $i", i))
+                                        }
+                                        categoriesAdapter.submitList(partList)
+                                        categoriesAdapter.setSelectedPosition(
+                                            selectedPosition
+                                        )
+                                        binding.tabRv.scrollToPosition(selectedPosition)
+                                        categoriesAdapter.setFocusedItemListener { _, i ->
+                                            viewModel.loadEpisodeByPage(
+                                                i + 1, currentMediaId, dataFound.data
+                                            )
+                                            selectedPosition = i
+                                        }
                                     }
-
-                                    else -> {}
                                 }
                             }
-                        }
 
-                        else -> {}
+                            else -> {}
+                        }
                     }
                 }
+
+                else -> {}
             }
+        }
+    }
+
+    private fun initializeAdultSource() {
+        val sourceText = "Current Selected Source:${HentaiMama::class.java.simpleName}"
+        binding.textView6.text = sourceText.highlightPart(
+            HentaiMama::class.java.simpleName,
+            ContextCompat.getColor(requireContext(), R.color.orange)
+        )
+        viewModel.findEpisodes(args.episodeTitle, isAdult = args.isAdult)
+
+        viewModel.dataFound.observe(viewLifecycleOwner) { dataFound ->
+            when (dataFound) {
+                is Resource.Error -> {
+                    binding.placeHolder.root.visible()
+                    binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
+                    binding.placeHolder.placeholderTxt.text = dataFound.throwable.message
+                }
+
+                Resource.Loading -> {
+                    binding.placeHolder.root.gone()
+                    binding.topContainer.gone()
+                    binding.tabRv.gone()
+                    binding.loadingLayout.visible()
+                    binding.loadingText.text = "Media is loading.."
+                }
+
+                is Resource.Success -> {
+                    val mediaText = "Selected Media: ${dataFound.data.name}"
+                    binding.textView7.gone()
+                    val anim = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
+                    binding.textView7.text = mediaText.highlightPart(
+                        dataFound.data.name, ContextCompat.getColor(requireContext(), R.color.red80)
+                    )
+                    binding.textView7.visible()
+                    binding.textView7.startAnimation(anim)
+                    currentMediaId = dataFound.data.link
+                    adapter = SeriesPageAdapter()
+                    binding.wrongTitleContainer.visibility = View.VISIBLE
+                    binding.wrongTitleContainer.startAnimation(anim)
+                    binding.wrongTitleContainer.setOnClickListener { gg ->
+                        showWrongTitleDialog(dataFound.data.name, isAdult = args.isAdult)
+                    }
+
+                    binding.topContainer.adapter = adapter
+                    viewModel.loadAdultEpisodes(currentMediaId, dataFound.data)
+                    binding.placeHolder.root.gone()
+                    binding.loadingLayout.gone()
+                    viewModel.episodeData.observe(viewLifecycleOwner) { result ->
+                        when (result) {
+                            is Resource.Error -> {
+                                binding.placeHolder.root.visible()
+                                binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
+                                binding.placeHolder.placeholderTxt.text = result.throwable.message
+                            }
+
+                            Resource.Loading -> {
+                                binding.placeHolder.root.gone()
+                                binding.loadingLayout.visible()
+                                binding.topContainer.gone()
+                                binding.loadingText.text = "Episodes are loading.."
+                            }
+
+                            is Resource.Success -> {
+                                binding.tabRv.gone()
+                                binding.placeHolder.root.gone()
+                                binding.topContainer.visible()
+                                binding.loadingLayout.gone()
+                                adapter.updateEpisodeItems(
+                                    result.data.data ?: arrayListOf()
+                                )
+                                adapter.setOnItemClickedListener { it, currentIndex ->
+                                    findNavController().navigate(
+                                        EpisodeScreenDirections.actionEpisodeScreenToAdultPlayerScreen(
+                                            it.session ?: "",
+                                            args.episodeTitle,
+                                            it.episode.toString()
+                                        )
+                                    )
+                                }
+                            }
+
+                            else -> {}
+                        }
+                    }
+                }
+
+                else -> {}
+            }
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -308,7 +308,7 @@ class EpisodeScreen : Fragment() {
             WrongTitleDialog.newInstance(animeTitle = animeTitle, isAdult = isAdult)
         dialog.onWrongTitleChanged = {
             dialog.dismiss()
-            viewModel.findEpisodes(it.name)
+            viewModel.loadEpisodeByPage(1, it.link, showResponse = it)
             currentMediaId = it.link
             binding.textView7.text = "Selected Media: ${it.name}"
 
@@ -370,23 +370,4 @@ class EpisodeScreen : Fragment() {
         return spannable
     }
 
-    private fun String.toSpannable(highlight: String): SpannableString {
-        val spannable = SpannableString(this)
-        val start = this.indexOf(highlight)
-        if (start >= 0) {
-            spannable.setSpan(
-                ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.red)),
-                start,
-                start + highlight.length,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-            spannable.setSpan(
-                StyleSpan(Typeface.BOLD),
-                start,
-                start + highlight.length,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-        }
-        return spannable
-    }
 }

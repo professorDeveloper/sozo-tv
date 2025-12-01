@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.aniskip.AniSkip
-import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.local.entity.EpisodeInfoEntity
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
@@ -21,8 +20,11 @@ import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.anime.AnimePahe
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.EpisodeData
+import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.parser.movie.PlayImdb
+import com.saikou.sozo_tv.parser.sources.AnimeSources
+import com.saikou.sozo_tv.parser.sources.SourceManager
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.cleanImdbUrl
@@ -59,18 +61,17 @@ class PlayViewModel(
     var epListFromLocal = ArrayList<EpisodeInfoEntity>()
     var getWatchedHistoryEntity: WatchHistoryEntity? = null
 
-    val animePahe = AnimePahe()
+    val parser = AnimeSources.getCurrent()
     val playImdb = PlayImdb()
     val currentEpisodeData = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     val currentQualityEpisode = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     var seriesResponse: VodMovieResponse? = null
     val subtitleResponseData = MutableLiveData<SubtitleItem>()
     val allEpisodeData = MutableLiveData<Resource<EpisodeData>>(Resource.Idle)
-    fun getAllEpisodeByPage(page: Int, mediaId: String) {
+    fun getAllEpisodeByPage(page: Int, mediaId: String, showResponse: ShowResponse) {
         viewModelScope.launch(Dispatchers.IO) {
             allEpisodeData.postValue(Resource.Loading)
-            animePahe.loadEpisodes(id = mediaId, curPage = page)?.let {
-
+            parser.loadEpisodes(id = mediaId, page = page, showResponse)?.let {
                 allEpisodeData.postValue(Resource.Success(it))
             }
         }
@@ -80,7 +81,6 @@ class PlayViewModel(
     var currentSelectedSubtitle: SubtitleItem? = null
     var isSubtitleEnabled = true
 
-    // <CHANGE> Add method to load all subtitles
     fun loadAllSubtitles(
         isMovie: Boolean,
         tmdbId: Int,
@@ -98,7 +98,7 @@ class PlayViewModel(
         }
     }
 
-    suspend fun getAllSubtitleList(
+    private suspend fun getAllSubtitleList(
         isMovie: Boolean,
         tmdbId: Int,
         season: Int,
@@ -244,25 +244,24 @@ class PlayViewModel(
     fun updateQualityByIndex() {
         if (videoOptions.isNotEmpty()) {
             viewModelScope.launch(Dispatchers.IO) {
-                animePahe.extractVideo(videoOptions[currentSelectedVideoOptionIndex].kwikUrl).let {
-                    Log.d("GGG", "getCurrentEpisodeVod: ")
+                val source = SourceManager.getCurrentSourceKey()
+                if (source == "pahe") {
+                    parser.extractVideo(videoOptions[currentSelectedVideoOptionIndex].kwikUrl).let {
+                        Log.d("GGG", "getCurrentEpisodeVod: ")
+                        seriesResponse = VodMovieResponse(
+                            authInfo = "", subtitleList = "", urlobj = it,
+                            header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
+                        )
+                        currentQualityEpisode.postValue(
+                            Resource.Success(
+                                VodMovieResponse(
+                                    authInfo = "", subtitleList = "", urlobj = it,
+                                    header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
 
-                    seriesResponse = VodMovieResponse(
-                        authInfo = "", subtitleList = "", urlobj = it,
-                        header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
-
-
-                    )
-                    currentQualityEpisode.postValue(
-                        Resource.Success(
-                            VodMovieResponse(
-                                authInfo = "", subtitleList = "", urlobj = it,
-                                header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
-
+                                )
                             )
                         )
-                    )
-
+                    }
                 }
             }
         }
@@ -347,7 +346,7 @@ class PlayViewModel(
         }
     }
 
-    fun getCurrentEpisodeVodAnime(episodeId: String, mediaId: String, isAnime: Boolean = true) {
+    fun getCurrentEpisodeVodAnime(episodeId: String, mediaId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             currentEpisodeData.postValue(Resource.Loading)
             isWatched = isWatched(episodeId.toString())
@@ -356,29 +355,50 @@ class PlayViewModel(
                 currentSelectedVideoOptionIndex = getWatchedHistoryEntity?.currentQualityIndex ?: 0
 
             }
-            animePahe.getEpisodeVideo(epId = episodeId, id = mediaId).let {
+            parser.getEpisodeVideo(epId = episodeId, id = mediaId).let {
                 videoOptionsData.postValue(it)
                 videoOptions.clear()
                 videoOptions.addAll(it)
-                animePahe.extractVideo(it[currentSelectedVideoOptionIndex].kwikUrl).let {
-                    Log.d("GGG", "getCurrentEpisodeVod: ")
+                val source = SourceManager.getCurrentSourceKey()
+                if (source == "pahe") {
+                    parser.extractVideo(it[currentSelectedVideoOptionIndex].kwikUrl).let {
+                        Log.d("GGG", "getCurrentEpisodeVod: ")
 
-                    seriesResponse = VodMovieResponse(
-                        authInfo = "", subtitleList = "", urlobj = it,
-                        header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
-                    )
-                    currentEpisodeData.postValue(
-                        Resource.Success(
-                            VodMovieResponse(
-                                authInfo = "",
-                                subtitleList = "",
-                                urlobj = it,
-                                header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
+                        seriesResponse = VodMovieResponse(
+                            authInfo = "", subtitleList = "", urlobj = it,
+                            header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
+                        )
+                        currentEpisodeData.postValue(
+                            Resource.Success(
+                                VodMovieResponse(
+                                    authInfo = "",
+                                    subtitleList = "",
+                                    urlobj = it,
+                                    header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
 
+                                )
                             )
                         )
-                    )
 
+                    }
+
+                } else {
+                    it.get(currentSelectedVideoOptionIndex).let {
+                        seriesResponse = VodMovieResponse(
+                            authInfo = "", subtitleList = "", urlobj = it.kwikUrl,
+                            header = it.headers
+                        )
+                        currentEpisodeData.postValue(
+                            Resource.Success(
+                                VodMovieResponse(
+                                    authInfo = "",
+                                    subtitleList = "",
+                                    urlobj = it.kwikUrl,
+                                    header = it.headers
+                                )
+                            )
+                        )
+                    }
                 }
             }
 
@@ -471,8 +491,13 @@ class PlayViewModel(
                     val list = trailer.searchMovie(name)
                     val trailerUrll = trailer.getTrailer(list)
                     val trailerMasterUrl =
-                        trailer.getTrailerLink(trailerUrll.first.extractImdbVideoId().toString())
-                    Log.d("GGG", "loadTrailer:original Link: ${trailerMasterUrl.cleanImdbUrl()} ")
+                        trailer.getTrailerLink(
+                            trailerUrll.first.extractImdbVideoId().toString()
+                        )
+                    Log.d(
+                        "GGG",
+                        "loadTrailer:original Link: ${trailerMasterUrl.cleanImdbUrl()} "
+                    )
                     trailerData.postValue(trailerMasterUrl.cleanImdbUrl())
                 }
             } catch (e: Exception) {

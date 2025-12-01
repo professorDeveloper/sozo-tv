@@ -45,8 +45,9 @@ import com.saikou.sozo_tv.adapters.EpisodePlayerAdapter
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.databinding.ContentControllerTvSeriesBinding
 import com.saikou.sozo_tv.databinding.SeriesPlayerScreenBinding
-import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
+import com.saikou.sozo_tv.parser.anime.VideoType
 import com.saikou.sozo_tv.parser.models.Data
+import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
@@ -59,8 +60,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.ConnectionSpec
+import okhttp3.Headers
+import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.util.concurrent.TimeUnit
 
 
 class SeriesPlayerScreen : Fragment() {
@@ -87,10 +91,6 @@ class SeriesPlayerScreen : Fragment() {
     ): View {
         _binding = SeriesPlayerScreenBinding.inflate(inflater, container, false)
         return binding.root
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
     }
 
     private fun showNextEpisodeCountdown() {
@@ -137,7 +137,7 @@ class SeriesPlayerScreen : Fragment() {
                     model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
                         if (resource is Resource.Success) {
                             val newUrl = resource.data.urlobj
-                            playNewEpisode(newUrl, args.name)
+                            playNewEpisode(newUrl, args.name, headers = resource.data.header)
 
                             binding.pvPlayer.controller.binding.filmTitle.text =
                                 "${args.name} - Episode ${model.currentEpIndex + 1}"
@@ -206,21 +206,21 @@ class SeriesPlayerScreen : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        initializeVideo()
         binding.pvPlayer.controller.binding.frameBackButton.setOnClickListener {
             navigateBack()
         }
 
 
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner,
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     navigateBack()
                 }
             })
         model.currentEpIndex = args.currentIndex
-        model.getAllEpisodeByPage(args.currentPage, args.seriesMainId)
+        model.getAllEpisodeByPage(
+            args.currentPage, args.seriesMainId, ShowResponse(args.name, args.id, args.image)
+        )
         binding.pvPlayer.controller.binding.filmTitle.text =
             "${args.name} - Episode ${model.currentEpIndex + 1}"
         model.allEpisodeData.observe(viewLifecycleOwner) {
@@ -253,6 +253,7 @@ class SeriesPlayerScreen : Fragment() {
                                 binding.pvPlayer.visible()
                                 binding.textView9.text =
                                     "Part ${args.currentPage} • Episode ${episodeList.size}"
+                                initializeVideo(headers = model.videoOptions.get(model.currentSelectedVideoOptionIndex).headers)
                                 displayVideo()
 
                                 binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
@@ -290,7 +291,11 @@ class SeriesPlayerScreen : Fragment() {
                                             if (resource is Resource.Success) {
                                                 val newUrl =
                                                     resource.data.urlobj ?: return@observeOnce
-                                                playNewEpisode(newUrl, args.name)
+                                                playNewEpisode(
+                                                    newUrl,
+                                                    args.name,
+                                                    headers = resource.data.header
+                                                )
                                                 binding.pvPlayer.controller.binding.filmTitle.text =
                                                     "${args.name} - Episode ${position + 1}"
                                             }
@@ -315,7 +320,11 @@ class SeriesPlayerScreen : Fragment() {
                                         model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
                                             if (resource is Resource.Success) {
                                                 val newUrl = resource.data.urlobj
-                                                playNewEpisode(newUrl, args.name)
+                                                playNewEpisode(
+                                                    newUrl,
+                                                    args.name,
+                                                    headers = resource.data.header
+                                                )
                                                 binding.pvPlayer.controller.binding.filmTitle.text =
                                                     "${args.name} - Episode ${model.currentEpIndex + 1}"
                                             }
@@ -350,7 +359,11 @@ class SeriesPlayerScreen : Fragment() {
                                                     if (resource is Resource.Success) {
                                                         val newUrl = resource.data.urlobj
 
-                                                        playNewEpisode(newUrl, args.name)
+                                                        playNewEpisode(
+                                                            newUrl,
+                                                            args.name,
+                                                            headers = resource.data.header
+                                                        )
                                                         binding.pvPlayer.controller.binding.filmTitle.text =
                                                             "${args.name} - Episode ${model.currentEpIndex + 1}"
                                                     }
@@ -472,11 +485,28 @@ class SeriesPlayerScreen : Fragment() {
 
     @SuppressLint("WrongConstant")
     @OptIn(UnstableApi::class)
-    private fun initializeVideo() {
+    private fun initializeVideo(headers: Map<String, String> = mapOf()) {
         if (::player.isInitialized) return
 
         val client = OkHttpClient.Builder()
-            .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.CLEARTEXT))
+            .connectionSpecs(
+                listOf(
+                    ConnectionSpec.MODERN_TLS,
+                    ConnectionSpec.COMPATIBLE_TLS,
+                    ConnectionSpec.CLEARTEXT
+                )
+            )
+            .addInterceptor { chain ->
+                val originalRequest = chain.request()
+                val modifiedRequest = originalRequest.newBuilder()
+                    .headers(headers.toHeaders())
+                    .build()
+                chain.proceed(modifiedRequest)
+            }.connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .callTimeout(120, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
             .ignoreAllSSLErrors().build()
 
         dataSourceFactory =
@@ -549,6 +579,7 @@ class SeriesPlayerScreen : Fragment() {
 
                         }
                     }
+
                 }
             }
         })
@@ -597,8 +628,8 @@ class SeriesPlayerScreen : Fragment() {
     }
 
     @OptIn(UnstableApi::class)
-    private fun playNewEpisode(videoUrl: String, title: String) {
-        if (!::player.isInitialized) initializeVideo()
+    private fun playNewEpisode(videoUrl: String, title: String, headers: Map<String, String>) {
+        if (!::player.isInitialized) initializeVideo(headers)
 
         if (::skipIntroView.isInitialized) {
             Log.d("SeriesPlayerScreen", "[v0] Resetting skip intro view for new episode")
@@ -611,14 +642,16 @@ class SeriesPlayerScreen : Fragment() {
         player.stop()
         player.clearMediaItems()
 
-        val mediaItem =
-            MediaItem.Builder().setUri(videoUrl).setMimeType(MimeTypes.VIDEO_MP4).setTag(title)
-                .build()
+        val mediaItem = MediaItem.Builder().setUri(videoUrl)
 
+            .setMimeType(if (model.videoOptions.get(model.currentSelectedVideoOptionIndex).resolution == "HLS") MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4)
+            .setTag(args.name).build()
         val mediaSource =
-            ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+            DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
+
 
         player.setMediaSource(mediaSource)
+        player.setMediaItem(mediaItem)
         player.prepare()
         player.play()
     }
@@ -634,14 +667,15 @@ class SeriesPlayerScreen : Fragment() {
 
         player.stop()
         player.clearMediaItems()
+        val mediaItem = MediaItem.Builder().setUri(videoUrl)
 
-        val mediaItem =
-            MediaItem.Builder().setUri(videoUrl).setMimeType(MimeTypes.VIDEO_MP4).setTag(title)
-                .build()
-
+            .setMimeType(if (model.videoOptions.get(model.currentSelectedVideoOptionIndex).resolution == "HLS") MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4)
+            .setTag(args.name).build()
         val mediaSource =
-            ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+            DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
 
+
+        player.setMediaItem(mediaItem)
         player.setMediaSource(mediaSource)
         player.prepare()
         player.play()
@@ -664,11 +698,15 @@ class SeriesPlayerScreen : Fragment() {
                 binding.pvPlayer.controller.binding.exoPrevContainer.visible()
                 binding.pvPlayer.controller.binding.epListContainer.visible()
             }
-            val mediaItem =
-                MediaItem.Builder().setUri(videoUrl).setMimeType(MimeTypes.APPLICATION_MP4)
-                    .setTag(args.name).build()
+            val mediaItem = MediaItem.Builder().setUri(videoUrl)
+
+                .setMimeType(if (model.videoOptions.get(model.currentSelectedVideoOptionIndex).resolution == "HLS") MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4)
+                .setTag(args.name).build()
+            val mediaSource =
+                DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
 
             player.setMediaItem(mediaItem)
+            player.setMediaSource(mediaSource)
 
             if (!model.doNotAsk) {
                 if (lastPosition > 0) {
