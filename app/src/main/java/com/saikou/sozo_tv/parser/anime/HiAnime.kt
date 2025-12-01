@@ -149,6 +149,8 @@ class HiAnime : BaseParser() {
 
         val (m3u8, tracks) = MegacloudExtractor().extractVideoUrl(embedUrl)
 
+        Log.d("GGG", "getEpisodeVideo:${servers} ")
+
         return listOf(
             VideoOption(
                 kwikUrl = m3u8,
