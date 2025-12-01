@@ -11,6 +11,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
+import java.util.Locale
 
 object GardenDataManager {
     private val client = OkHttpClient()
@@ -200,7 +201,7 @@ object GardenDataManager {
                     throw IOException("Unexpected response code: ${response.code}")
                 }
 
-                val json = response.body?.string() ?: throw IOException("Empty response body")
+                val json = response.body.string()
 
                 val type = object : TypeToken<List<GitHubFile>>() {}.type
                 val files: List<GitHubFile> = gson.fromJson(json, type) ?: emptyList()
@@ -209,7 +210,7 @@ object GardenDataManager {
                     .map { file ->
                         val key = file.name.removeSuffix(".json")
                         val name = key.split("-")
-                            .joinToString(" ") { it.capitalize() }  // e.g., "all-channels" -> "All Channels"
+                            .joinToString(" ") { it.capitalize(Locale.ROOT) }
                         Category(key, name)
                     }.sortedBy { it.name }
             }
@@ -230,7 +231,7 @@ object GardenDataManager {
                     throw IOException("Unexpected response code: ${response.code}")
                 }
 
-                val json = response.body?.string() ?: throw IOException("Empty response body")
+                val json = response.body.string()
 
                 val type = object : TypeToken<List<GitHubFile>>() {}.type
                 val files: List<GitHubFile> = gson.fromJson(json, type) ?: emptyList()
@@ -239,7 +240,7 @@ object GardenDataManager {
                     .map { file ->
                         val code = file.name.removeSuffix(".json").lowercase()
                         val name = isoCountryNames[code]
-                            ?: code.uppercase()  // Fallback to uppercase code if no name
+                            ?: code.uppercase()
                         Country(code, name)
                     }.sortedBy { it.name }
             }
@@ -261,7 +262,7 @@ object GardenDataManager {
                         throw IOException("Unexpected response code: ${response.code}")
                     }
 
-                    val json = response.body?.string() ?: throw IOException("Empty response body")
+                    val json = response.body.string()
 
                     if (json.trim().isEmpty()) {
                         throw IOException("JSON content is empty")
@@ -288,7 +289,7 @@ object GardenDataManager {
                         throw IOException("Unexpected response code: ${response.code}")
                     }
 
-                    val json = response.body?.string() ?: throw IOException("Empty response body")
+                    val json = response.body.string()
 
                     if (json.trim().isEmpty()) {
                         throw IOException("JSON content is empty")

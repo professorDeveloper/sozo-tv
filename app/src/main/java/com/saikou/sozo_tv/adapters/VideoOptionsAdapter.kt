@@ -3,18 +3,14 @@ package com.saikou.sozo_tv.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewbinding.ViewBinding
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ItemVideoQualityBinding
 import com.saikou.sozo_tv.parser.models.AudioType
 import com.saikou.sozo_tv.parser.models.VideoOption
 
 class VideoOptionsAdapter(
-    private var videoOptions: List<VideoOption>,
-    private val onItemClick: (VideoOption, Int) -> Unit
+    private var videoOptions: List<VideoOption>, private val onItemClick: (VideoOption, Int) -> Unit
 ) : RecyclerView.Adapter<VideoOptionsAdapter.VideoOptionViewHolder>() {
 
     private var selectedPosition = -1
@@ -28,10 +24,8 @@ class VideoOptionsAdapter(
 
             binding.tvAudioType.text = videoOption.audioType.name
             binding.tvAudioType.setBackgroundResource(
-                if (videoOption.audioType == AudioType.SUB)
-                    R.drawable.badge_audio_type
-                else
-                    R.drawable.badge_audio_type
+                if (videoOption.audioType == AudioType.SUB) R.drawable.badge_audio_type
+                else R.drawable.badge_audio_type
             )
 
             binding.tvFansub.text = videoOption.fansub
@@ -58,16 +52,12 @@ class VideoOptionsAdapter(
                 onItemClick(videoOption, position)
             }
 
-
-
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VideoOptionViewHolder {
         val binding = ItemVideoQualityBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
+            LayoutInflater.from(parent.context), parent, false
         )
         return VideoOptionViewHolder(binding)
     }
@@ -78,10 +68,6 @@ class VideoOptionsAdapter(
 
     override fun getItemCount(): Int = videoOptions.size
 
-    fun updateVideoOptions(newVideoOptions: List<VideoOption>) {
-        videoOptions = newVideoOptions
-        notifyDataSetChanged()
-    }
 
     fun setDefaultSelected(index: Int) {
         if (index in 0 until videoOptions.size) {
@@ -95,18 +81,5 @@ class VideoOptionsAdapter(
         }
     }
 
-    fun getSelectedPosition(): Int = selectedPosition
 
-    fun getSelectedVideoOption(): VideoOption? {
-        return if (selectedPosition != -1 && selectedPosition < videoOptions.size) {
-            videoOptions[selectedPosition]
-        } else null
-    }
-
-    fun setSelectedByActiveState() {
-        val activeIndex = videoOptions.indexOfFirst { it.isActive }
-        if (activeIndex != -1) {
-            setDefaultSelected(activeIndex)
-        }
-    }
 }

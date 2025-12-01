@@ -10,12 +10,3 @@ data class HiAnime(
     val subCount: Int?,
     val dubCount: Int?
 )
-
-data class EpisodeHi(
-    val number: Int,
-    val id: Int,
-    val title: String,
-    val link: String
-)
-
-data class EpisodeResponse(val html: String)

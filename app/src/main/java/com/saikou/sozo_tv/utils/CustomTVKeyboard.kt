@@ -24,7 +24,6 @@ class CustomTVKeyboard @JvmOverloads constructor(
     }
 
     private fun setupKeyboard() {
-        // Setup letter keys
         val letterKeys = listOf(
             "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
             "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
@@ -38,7 +37,6 @@ class CustomTVKeyboard @JvmOverloads constructor(
             }
         }
 
-        // Setup number keys
         val numberKeys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
         numberKeys.forEach { number ->
             val keyId = resources.getIdentifier("key_$number", "id", context.packageName)
@@ -48,13 +46,11 @@ class CustomTVKeyboard @JvmOverloads constructor(
             }
         }
 
-        // Setup spacebar
         findViewById<TextView>(R.id.key_space)?.setOnClickListener {
             onKeyClickListener?.invoke(" ")
             updateKeyFocus(it)
         }
 
-        // Setup control keys
         findViewById<TextView>(R.id.key_backspace)?.setOnClickListener {
             onBackspaceClickListener?.invoke()
             updateKeyFocus(it)
@@ -63,7 +59,6 @@ class CustomTVKeyboard @JvmOverloads constructor(
     }
 
     private fun updateKeyFocus(clickedView: View) {
-        // Add visual feedback for key press
         clickedView.animate()
             .scaleX(0.9f)
             .scaleY(0.9f)

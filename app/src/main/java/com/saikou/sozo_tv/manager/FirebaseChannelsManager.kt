@@ -36,7 +36,6 @@ object FirebaseChannelsManager {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     try {
-                        // 🔹 1) Har bir fieldni qo‘lda parse qilamiz — to‘liq xavfsiz usul
                         val name = snapshot.child("name").getValue(String::class.java) ?: ""
                         val viewType = snapshot.child("viewType").getValue(Int::class.java) ?: 0
 
@@ -65,23 +64,19 @@ object FirebaseChannelsManager {
                             viewType = viewType
                         )
 
-                        println("✅ Channels fetched successfully: ${channel.name} (${channel.list.size} items)")
                         onDataReceived(channel)
 
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        println("❌ Error parsing snapshot: ${e.message}")
                         onDataReceived(null)
                     }
 
                 } else {
-                    // 🔹 Agar mavjud bo‘lmasa — default yaratamiz
                     val defaultChannels = initializeDefaultChannels()
                     saveChannelsToRealtimeDatabase(defaultChannels) { success, error ->
                         if (success) {
                             onDataReceived(defaultChannels)
                         } else {
-                            println("❌ Error saving default channels: $error")
                             onDataReceived(null)
                         }
                     }
@@ -89,7 +84,6 @@ object FirebaseChannelsManager {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                println("❌ Firebase read cancelled: ${error.message}")
                 onDataReceived(null)
             }
         })

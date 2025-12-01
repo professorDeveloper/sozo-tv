@@ -19,12 +19,8 @@ import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.SearchScreenBinding
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
-import com.saikou.sozo_tv.utils.SearchHistoryManager
-import com.saikou.sozo_tv.utils.CustomTVKeyboard
 import com.saikou.sozo_tv.utils.applyFocusedStyle
-import com.saikou.sozo_tv.utils.hideKeyboard
 import com.saikou.sozo_tv.utils.resetStyle
-import com.saikou.sozo_tv.utils.showKeyboard
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -34,7 +30,6 @@ class SearchScreen : Fragment() {
     private var _binding: SearchScreenBinding? = null
     private val binding get() = _binding!!
     private lateinit var searchAdapter: SearchAdapter
-    private lateinit var searchHistoryManager: SearchHistoryManager
     private val model: SearchViewModel by viewModel()
     private var searchJob: Job? = null
     private var lastSearchQuery = ""
@@ -50,7 +45,6 @@ class SearchScreen : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        searchHistoryManager = SearchHistoryManager(requireContext())
         setupRecyclerView()
         setupCustomKeyboard()
         initializeSearch()
@@ -188,7 +182,6 @@ class SearchScreen : Fragment() {
                 model.searchMovie(query.trim())
             }
             searchAdapter.setQueryText(query.trim())
-            searchHistoryManager.addSearchQuery(query.trim())
             binding.recommendationsTitle.visibility = View.VISIBLE
             binding.recommendationsTitle.text = "Search Results for \"$query\""
         }

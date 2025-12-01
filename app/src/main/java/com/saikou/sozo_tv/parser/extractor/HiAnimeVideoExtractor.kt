@@ -19,13 +19,23 @@ class HiAnimeVideoExtractor {
         val resp = gson.fromJson(json, EpisodeServers::class.java)
         Log.d("GGG", "extractServers:$base/ajax/v2/episode/servers?episodeId=$episodeId ")
         Log.d("GGG", "extractServers:${json} ")
+
         val doc = Jsoup.parse(resp.html)
 
-        return doc.select(".server-item[data-id]").map {
-            HiServer(
-                id = it.attr("data-id"),
-                label = it.select("a.btn").text()
-            )
+        return doc.select(".server-item[data-id]").mapNotNull { el ->
+            val id = el.attr("data-id")
+            val label = el.selectFirst("a.btn")?.text().orEmpty()
+            val type = el.attr("data-type")  
+
+            if (id.isBlank() || type.isBlank()) {
+                null
+            } else {
+                HiServer(
+                    id = id,
+                    label = label,
+                    type = type
+                )
+            }
         }
     }
 

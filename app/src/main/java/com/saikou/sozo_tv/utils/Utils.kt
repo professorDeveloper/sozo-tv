@@ -1,49 +1,14 @@
 package com.saikou.sozo_tv.utils
 
-import com.google.gson.JsonElement
-import com.google.gson.JsonParser
 import okhttp3.FormBody
-import okhttp3.HttpUrl
 import okhttp3.Request
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
 object Utils {
 
-     var httpClient = UnsafeOkHttpClient.getUnsafeOkHttpClient()
+    var httpClient = UnsafeOkHttpClient.getUnsafeOkHttpClient()
 
-    fun getAsilMedia(
-        host: String? = null,
-        pathSegment: ArrayList<String>? = null,
-        mapOfHeaders: Map<String, String>? = null,
-        params: Map<String, String>? = null,
-    ): String {
-        val urlBuilder = HttpUrl.Builder()
-            .scheme("http")
-            .host(host!!)
-        pathSegment?.forEach {
-            urlBuilder.addPathSegment(it)
-        }
-
-
-        if (!params.isNullOrEmpty()) {
-            params.forEach {
-                urlBuilder.addQueryParameter(it.key, it.value)
-            }
-        }
-
-        val requestBuilder = Request.Builder().url(urlBuilder.build())
-        if (!mapOfHeaders.isNullOrEmpty()) {
-            mapOfHeaders.forEach {
-                requestBuilder.addHeader(it.key, it.value)
-            }
-        }
-        val data = httpClient.newCall(requestBuilder.build())
-            .execute()
-
-        println(data.body?.string())
-        return data.body.string()
-    }
 
     fun get(
         url: String,
@@ -56,7 +21,7 @@ object Utils {
             }
         }
         return httpClient.newCall(requestBuilder.build())
-            .execute().body!!.string()
+            .execute().body.string()
     }
 
     fun post(
