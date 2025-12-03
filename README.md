@@ -36,6 +36,10 @@ Stay updated with the newest versions, announcements, and fixes by following our
 <br>
 <br>
 
+## Viewer 
+
+<img src="[https://count.getloli.com/@:name](https://count.getloli.com/@professorDeveloper?name=ProfessorDeveloper&theme=rule34&padding=8&offset=0&align=top&scale=1&pixelated=1&darkmode=auto)" alt="https://github.com/professorDeveloper" />
+
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
