@@ -36,8 +36,11 @@ Stay updated with the newest versions, announcements, and fixes by following our
 <br>
 <br>
 
+
 ## Viewer 
-<img src="https://count.getloli.com/@:professorDeveloper" alt=":name" />
+
+<img src="https://count.getloli.com/@professorDeveloper?name=Sozo-tv&theme=rule34&padding=8&offset=0&align=top&scale=1&pixelated=1&darkmode=auto" />
+
 
 ## License
 
