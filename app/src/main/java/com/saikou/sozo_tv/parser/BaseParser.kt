@@ -1,13 +1,8 @@
 package com.saikou.sozo_tv.parser
 
-import com.saikou.sozo_tv.domain.model.MainModel
-import com.saikou.sozo_tv.parser.anime.Video
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.models.VideoOption
-import com.saikou.sozo_tv.utils.readData
-import com.saikou.sozo_tv.utils.saveData
-import java.io.Serializable
 import java.net.URLDecoder
 import java.net.URLEncoder
 

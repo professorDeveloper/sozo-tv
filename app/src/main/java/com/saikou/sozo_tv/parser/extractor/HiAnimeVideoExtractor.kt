@@ -25,7 +25,7 @@ class HiAnimeVideoExtractor {
         return doc.select(".server-item[data-id]").mapNotNull { el ->
             val id = el.attr("data-id")
             val label = el.selectFirst("a.btn")?.text().orEmpty()
-            val type = el.attr("data-type")  
+            val type = el.attr("data-type")
 
             if (id.isBlank() || type.isBlank()) {
                 null

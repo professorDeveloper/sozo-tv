@@ -15,7 +15,6 @@ class HiAnimeSource {
 
     private val BASE_URL = "https://hianime.bz"
 
-    /** SEARCH ANIME (same as your code) */
     suspend fun searchAnime(keyword: String): List<HiAnime> = withContext(Dispatchers.IO) {
         try {
             val doc = Utils.getJsoup("$BASE_URL/search?keyword=$keyword")
@@ -57,7 +56,6 @@ class HiAnimeSource {
         }
     }
 
-    /** GET EPISODES (same as your code) */
     suspend fun getEpisodeListById(id: Int): List<Episode> = withContext(Dispatchers.IO) {
         val episodes = mutableListOf<Episode>()
         try {
@@ -73,7 +71,6 @@ class HiAnimeSource {
                 val number = item.attr("data-number").toIntOrNull() ?: continue
                 val epId = item.attr("data-id").toIntOrNull() ?: continue
                 val title = item.attr("title")
-                val link = BASE_URL + item.attr("href")
 
                 episodes.add(
                     Episode(
@@ -98,17 +95,5 @@ class HiAnimeSource {
         return Regex("-(\\d+)$").find(cleanString)?.groupValues?.get(1)?.toIntOrNull()
     }
 
-    fun String.extractEpId(): Int? {
-        return try {
-            val uri = URI(this)
-            val query = uri.query ?: return null
-            query.split("&")
-                .map { it.split("=") }
-                .firstOrNull { it.first() == "ep" }
-                ?.getOrNull(1)
-                ?.toIntOrNull()
-        } catch (e: Exception) {
-            null
-        }
-    }
+
 }

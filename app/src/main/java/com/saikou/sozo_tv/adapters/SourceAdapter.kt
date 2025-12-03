@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.model.SubSource
 import com.saikou.sozo_tv.databinding.ItemSourceBinding
+import com.saikou.sozo_tv.utils.saveData
 import com.saikou.sozo_tv.utils.snackString
 
 class SourceAdapter(
@@ -24,13 +25,10 @@ class SourceAdapter(
             binding.tvCode.text = item.title.uppercase()
             binding.tvTitle.text = item.country
 
-            val bgRes = if (isSelected)
-                R.drawable.bg_item_selected
-            else
-                R.drawable.bg_item_normal
+            val bgRes = if (isSelected) R.drawable.bg_item_selected
+            else R.drawable.bg_item_normal
 
-            binding.rootItem.background =
-                ContextCompat.getDrawable(binding.root.context, bgRes)
+            binding.rootItem.background = ContextCompat.getDrawable(binding.root.context, bgRes)
 
             binding.rootItem.setOnClickListener {
                 val oldIndex = selectedIndex
@@ -55,6 +53,7 @@ class SourceAdapter(
     override fun getItemCount(): Int = items.size
 
     fun updateList(newList: List<SubSource>) {
+        saveData("sources", arrayListOf(newList))
         items.clear()
         items.addAll(newList)
         selectedIndex = -1
@@ -64,9 +63,7 @@ class SourceAdapter(
 
     fun setSelectedIndex(item: String) {
         selectedIndex = items.indexOfFirst { it.sourceId == item }
-        if (
-            selectedIndex != -1
-        ) {
+        if (selectedIndex != -1) {
             snackString(selectedIndex.toString())
             notifyDataSetChanged()
         }

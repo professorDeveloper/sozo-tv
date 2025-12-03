@@ -63,7 +63,10 @@ fun createOkHttpClient(): OkHttpClient {
     val trustAllCerts = arrayOf<TrustManager>(
         @SuppressLint("CustomX509TrustManager")
         object : X509TrustManager {
-            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+            @SuppressLint("TrustAllX509TrustManager")
+            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {
+            }
+
             override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
             override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
         }
@@ -88,9 +91,7 @@ fun createOkHttpClient(): OkHttpClient {
 fun createTmdbClient(): Retrofit {
     val gson = GsonBuilder().create()
     val tmdbInterceptor = Interceptor { chain ->
-        val token = Security.getToken()
         val newRequest = chain.request().newBuilder()
-//            .addHeader("Authorization", "Bearer $token")
             .addHeader("accept", "application/json")
             .build()
         chain.proceed(newRequest)
@@ -109,7 +110,6 @@ fun createTmdbClient(): Retrofit {
 
 fun createRetrofit(okHttpClient: OkHttpClient, url: String): Retrofit {
     val gson: Gson = GsonBuilder().create()
-
     return Retrofit.Builder()
         .baseUrl(url)
         .client(okHttpClient)

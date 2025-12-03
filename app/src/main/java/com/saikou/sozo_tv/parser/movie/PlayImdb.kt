@@ -104,7 +104,6 @@ class PlayImdb : BaseParser() {
 
     fun extractSeriesIframe(link: String): String? {
         val doc: Document = getJsoup(link)
-//        println(doc)
         val iframeSrc = doc.selectFirst("iframe#player_iframe")?.attr("src")
 
         if (iframeSrc != null) {

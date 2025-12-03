@@ -1,7 +1,6 @@
 package com.saikou.sozo_tv.parser.anime
 
 import android.util.Log
-import com.saikou.sozo_tv.data.model.kitsu.KitsuEpisode
 import com.saikou.sozo_tv.data.remote.KitsuApi
 import com.saikou.sozo_tv.parser.BaseParser
 import com.saikou.sozo_tv.parser.extractor.HiAnimeVideoExtractor
@@ -10,15 +9,12 @@ import com.saikou.sozo_tv.parser.models.AudioType
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.Episode
 import com.saikou.sozo_tv.parser.models.EpisodeData
-import com.saikou.sozo_tv.parser.models.EpisodeHi
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.parser.sources.HiAnimeSource
-import com.saikou.sozo_tv.utils.toDomain
+import java.nio.file.Files
 
 class HiAnime : BaseParser() {
-
-
     override val name: String = "HiAnime"
     override val saveName: String = "hianime"
     override val hostUrl: String = "https://hianime.bz/"
@@ -45,7 +41,6 @@ class HiAnime : BaseParser() {
     ): EpisodeData? {
         val animeId = id.toInt()
         val searchId = kitsuApi.searchId(showResponse.name).toString()
-
         if (!episodeCache.containsKey(animeId)) {
             val episodes = source.getEpisodeListById(animeId)
             if (episodes.isEmpty()) return null
@@ -62,7 +57,6 @@ class HiAnime : BaseParser() {
         val neededNumbers = paginatedEpisodes.map { it.episode }.toSet()
 
         val cachedThumbnails = thumbnailCache.getOrPut(searchId) { mutableMapOf() }
-
         val thumbnailMap = mutableMapOf<Int, String?>()
         val missingNumbers = mutableSetOf<Int>()
         neededNumbers.forEach { num ->
@@ -73,7 +67,6 @@ class HiAnime : BaseParser() {
                 missingNumbers.add(num)
             }
         }
-
         if (missingNumbers.isNotEmpty()) {
             val isFullyFetched = kitsuFullyFetched.getOrDefault(searchId, false)
             if (isFullyFetched) {
@@ -85,7 +78,7 @@ class HiAnime : BaseParser() {
                     val episodePage = kitsuApi.getEpisodes(searchId, currentPage)
                     if (episodePage.isEmpty()) {
                         kitsuFullyFetched[searchId] = true
-                        kitsuNextPage[searchId] = currentPage  // No more
+                        kitsuNextPage[searchId] = currentPage
                         break
                     }
 
@@ -116,7 +109,7 @@ class HiAnime : BaseParser() {
                 episode = ep.episode,
                 session = ep.iframeUrl,
                 title = ep.title,
-                snapshot = thumbnailMap[ep.episode] ?: showResponse.coverUrl,  // Fallback
+                snapshot = thumbnailMap[ep.episode] ?: showResponse.coverUrl,
                 season = ep.season,
                 episode2 = null,
                 audio = null,
@@ -173,19 +166,10 @@ class HiAnime : BaseParser() {
     }
 
     companion object {
-        const val USER_AGENT =
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
 
         private val episodeCache = mutableMapOf<Int, List<Episode>>()
         private val thumbnailCache = mutableMapOf<String, MutableMap<Int, String?>>()
-        private val kitsuNextPage = mutableMapOf<String, Int>()  // Next page to fetch per searchId
-        private val kitsuFullyFetched = mutableMapOf<String, Boolean>()  // If all pages fetched
-        private val kitsuEpisodeCounts =
-            mutableMapOf<String, Int>()
-
-        fun clearCaches(animeId: Int? = null, searchId: String? = null) {
-            if (animeId != null) episodeCache.remove(animeId)
-            if (searchId != null) thumbnailCache.remove(searchId)
-        }
+        private val kitsuNextPage = mutableMapOf<String, Int>()
+        private val kitsuFullyFetched = mutableMapOf<String, Boolean>()
     }
 }

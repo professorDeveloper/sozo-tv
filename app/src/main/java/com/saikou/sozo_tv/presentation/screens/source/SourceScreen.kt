@@ -26,7 +26,7 @@ class SourceScreen : Fragment() {
     private val binding get() = _binding!!
     private lateinit var dbRef: DatabaseReference
     private lateinit var adapter: SourceAdapter
-    private var currentSelectedSource = readData<String>("subSource") ?: ""
+    private var currentSelectedSource = readData("subSource") ?: ""
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -66,7 +66,6 @@ class SourceScreen : Fragment() {
                     for (child in snapshot.children) {
                         child.getValue(SubSource::class.java)?.let { list.add(it) }
                     }
-                    saveData("sources", list)
                     binding.sourcePlaceHolder.root.visibility = View.GONE
                     binding.sourceRv.visibility = View.VISIBLE
                     adapter.updateList(list)
