@@ -3,14 +3,23 @@ package com.saikou.sozo_tv.parser.sources
 import com.saikou.sozo_tv.parser.BaseParser
 import com.saikou.sozo_tv.parser.anime.AnimePahe
 import com.saikou.sozo_tv.parser.anime.HiAnime
+import com.saikou.sozo_tv.utils.LocalData.SOURCE
+import com.saikou.sozo_tv.utils.readData
 
 object AnimeSources {
 
     fun getCurrent(): BaseParser {
-        return when (SourceManager.getCurrentSourceKey()) {
+        val readData = readData<String>(SOURCE)
+        return when (readData) {
             "hianime" -> HiAnime()
             else -> AnimePahe()
         }
     }
 
+    fun getSourceById(id: String): BaseParser {
+        return when (id) {
+            "hianime" -> HiAnime()
+            else -> AnimePahe()
+        }
+    }
 }

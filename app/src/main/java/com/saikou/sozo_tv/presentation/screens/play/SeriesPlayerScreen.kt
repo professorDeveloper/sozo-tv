@@ -48,12 +48,14 @@ import com.saikou.sozo_tv.databinding.SeriesPlayerScreenBinding
 import com.saikou.sozo_tv.parser.anime.VideoType
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.ShowResponse
+import com.saikou.sozo_tv.parser.sources.SourceManager
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.observeOnce
+import com.saikou.sozo_tv.utils.readData
 import com.saikou.sozo_tv.utils.visible
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -100,7 +102,6 @@ class SeriesPlayerScreen : Fragment() {
                 if (nextEpisodeIndex < episodeList.size) {
                     countdownShown = true
                     isCountdownActive = true
-
                     countdownOverlay.startCountdown(seconds = 10,
                         nextEpisode = nextEpisodeIndex + 1,
                         currentEpisode = model.currentEpIndex + 1,
@@ -236,8 +237,11 @@ class SeriesPlayerScreen : Fragment() {
                     binding.loadingLayout.gone()
                     episodeList.clear()
                     episodeList.addAll(it.data.data ?: listOf())
-
-                    model.getCurrentEpisodeVodAnime(args.id, args.seriesMainId)
+                    model.loadWatched(args.id)
+                    Log.d("GGG", "onViewCreated:${args.id} ")
+                    model.isWatchedLiveData.observe(viewLifecycleOwner) { history ->
+                        model.getCurrentEpisodeVodAnime(args.id, args.seriesMainId, history)
+                    }
 
                     model.currentEpisodeData.observe(viewLifecycleOwner) {
                         when (it) {
@@ -474,7 +478,8 @@ class SeriesPlayerScreen : Fragment() {
                     imdbID = args.seriesMainId,
                     epIndex = model.currentEpIndex,
                     isEpisode = true,
-                    currentQualityIndex = model.currentSelectedVideoOptionIndex
+                    currentQualityIndex = model.currentSelectedVideoOptionIndex,
+                    source = readData<String>(LocalData.SOURCE) ?: ""
                 )
                 model.addHistory(historyBuild)
             }
@@ -642,8 +647,9 @@ class SeriesPlayerScreen : Fragment() {
         player.stop()
         player.clearMediaItems()
 
+        Log.d("GGG", "playNewEpisode:${model.currentSelectedVideoOptionIndex} ")
+        Log.d("GGG", "playNewEpisode:${model.videoOptions} ")
         val mediaItem = MediaItem.Builder().setUri(videoUrl)
-
             .setMimeType(if (model.videoOptions.get(model.currentSelectedVideoOptionIndex).resolution == "HLS") MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4)
             .setTag(args.name).build()
         val mediaSource =
@@ -667,8 +673,8 @@ class SeriesPlayerScreen : Fragment() {
 
         player.stop()
         player.clearMediaItems()
+        Log.d("GGG", "playQualityVideo:${model.videoOptions} ")
         val mediaItem = MediaItem.Builder().setUri(videoUrl)
-
             .setMimeType(if (model.videoOptions.get(model.currentSelectedVideoOptionIndex).resolution == "HLS") MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4)
             .setTag(args.name).build()
         val mediaSource =

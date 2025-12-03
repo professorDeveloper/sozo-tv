@@ -18,6 +18,8 @@ import androidx.leanback.widget.VerticalGridView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.parser.sources.SourceManager
+import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.LocalData.SOURCE
 import com.saikou.sozo_tv.utils.readData
 import com.saikou.sozo_tv.utils.saveData
 
@@ -26,7 +28,7 @@ class SourceScreen : Fragment() {
     private val binding get() = _binding!!
     private lateinit var dbRef: DatabaseReference
     private lateinit var adapter: SourceAdapter
-    private var currentSelectedSource = readData("subSource") ?: ""
+    private var currentSelectedSource = readData(LocalData.SOURCE) ?: ""
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -44,7 +46,7 @@ class SourceScreen : Fragment() {
         adapter = SourceAdapter(
             onClick = { sub ->
                 binding.textView6.text = "Current Selected Source: ${sub.title}"
-                saveData("subSource", sub.sourceId)
+                saveData(SOURCE, sub.sourceId)
             },
         )
         binding.sourceRv.adapter = adapter
@@ -75,7 +77,7 @@ class SourceScreen : Fragment() {
                     val selected = list.find { it.sourceId == currentSelectedSource }
                     if (selected != null) {
                         SourceManager.setCurrentSource(selected.sourceId)
-                        saveData("subSource", selected.sourceId)
+                        saveData(LocalData.SOURCE, selected.sourceId)
                         binding.textView6.text = "Current Selected Source: ${selected.title}"
                     } else {
                         binding.textView6.text = "Source"

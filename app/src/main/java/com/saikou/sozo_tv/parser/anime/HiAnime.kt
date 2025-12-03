@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.parser.anime
 
 import android.util.Log
+import com.saikou.sozo_tv.data.model.hianime.MegaTrack
 import com.saikou.sozo_tv.data.remote.KitsuApi
 import com.saikou.sozo_tv.parser.BaseParser
 import com.saikou.sozo_tv.parser.extractor.HiAnimeVideoExtractor
@@ -12,6 +13,9 @@ import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.parser.sources.HiAnimeSource
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import java.nio.file.Files
 
 class HiAnime : BaseParser() {
@@ -133,37 +137,47 @@ class HiAnime : BaseParser() {
         )
     }
 
-    override suspend fun getEpisodeVideo(id: String, epId: String): List<VideoOption> {
-        Log.d("GGG", "getEpisodeVideo:${id} | epId:${epId} ")
-        val servers = extractor.extractServers(epId.toInt())
-        if (servers.isEmpty()) return emptyList()
+    override suspend fun getEpisodeVideo(id: String, epId: String): List<VideoOption> =
+        coroutineScope {
 
-        val embedUrl = extractor.extractVideoFromServer(servers.first().id)
+            Log.d("GGG", "getEpisodeVideo: $id | epId: $epId")
 
-        val (m3u8, tracks) = MegacloudExtractor().extractVideoUrl(embedUrl)
+            val servers = extractor.extractServers(epId.toInt())
+            if (servers.isEmpty()) return@coroutineScope emptyList()
 
-        Log.d("GGG", "getEpisodeVideo:${servers} ")
+            Log.d("GGG", "Servers: $servers")
 
-        return listOf(
-            VideoOption(
-                kwikUrl = m3u8,
-                fansub = "HiAnime",
-                resolution = "HLS",
-                audioType = AudioType.SUB,
-                quality = "Adaptive",
-                isActive = true,
-                fullText = "HiAnime Stream",
-                tracks,
-                mapOf(
-                    "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:101.0) Gecko/20100101 Firefox/101.0",
-                    "Accept" to "*/*",
-                    "Accept-Language" to "en-US,en;q=0.5",
-                    "Origin" to "https://megacloud.blog",
-                    "Referer" to "https://megacloud.blog/"
-                )
+            val mega = MegacloudExtractor()
+            val headers = mapOf(
+                "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:101.0) Gecko/20100101 Firefox/101.0",
+                "Accept" to "*/*",
+                "Accept-Language" to "en-US,en;q=0.5",
+                "Origin" to "https://megacloud.blog",
+                "Referer" to "https://megacloud.blog/"
             )
-        )
-    }
+
+            val jobs = servers.map { server ->
+                async {
+                    val embedUrl = extractor.extractVideoFromServer(server.id)
+                    val (m3u8, tracks) = mega.extractVideoUrl(embedUrl)
+
+                    VideoOption(
+                        kwikUrl = m3u8,
+                        fansub = "HiAnime",
+                        resolution = "HLS",
+                        audioType = if (server.type == "dub") AudioType.DUB else AudioType.SUB,
+                        quality = "Adaptive",
+                        isActive = true,
+                        fullText = "HiAnime Stream",
+                        tracks = tracks,
+                        headers = headers
+                    )
+                }
+            }
+
+            jobs.awaitAll()
+        }
+
 
     companion object {
 

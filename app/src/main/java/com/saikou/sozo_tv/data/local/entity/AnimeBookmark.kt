@@ -71,4 +71,5 @@ data class WatchHistoryEntity(
     val currentQualityIndex: Int = -1,
     val isAnime: Boolean = true,
     val isSeries: Boolean = false,
+    var source: String = "",
 )

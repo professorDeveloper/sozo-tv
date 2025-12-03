@@ -26,9 +26,11 @@ import com.saikou.sozo_tv.parser.movie.PlayImdb
 import com.saikou.sozo_tv.parser.sources.AnimeSources
 import com.saikou.sozo_tv.parser.sources.SourceManager
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.LocalData.SOURCE
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.cleanImdbUrl
 import com.saikou.sozo_tv.utils.extractImdbVideoId
+import com.saikou.sozo_tv.utils.readData
 import com.saikou.sozo_tv.utils.toDomain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -58,19 +60,25 @@ class PlayViewModel(
     val trailerData = MutableLiveData<String>()
     val isBookmark = MutableLiveData<Boolean>()
     var isWatched = false
-    var epListFromLocal = ArrayList<EpisodeInfoEntity>()
+    var isWatchedLiveData = MutableLiveData<Boolean>()
     var getWatchedHistoryEntity: WatchHistoryEntity? = null
 
-    val parser = AnimeSources.getCurrent()
+    var parser = AnimeSources.getCurrent()
     val playImdb = PlayImdb()
     val currentEpisodeData = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     val currentQualityEpisode = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     var seriesResponse: VodMovieResponse? = null
     val subtitleResponseData = MutableLiveData<SubtitleItem>()
     val allEpisodeData = MutableLiveData<Resource<EpisodeData>>(Resource.Idle)
-    fun getAllEpisodeByPage(page: Int, mediaId: String, showResponse: ShowResponse) {
+    fun getAllEpisodeByPage(
+        page: Int,
+        mediaId: String,
+        showResponse: ShowResponse,
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             allEpisodeData.postValue(Resource.Loading)
+
+            parser = AnimeSources.getCurrent()
             parser.loadEpisodes(id = mediaId, page = page, showResponse)?.let {
                 allEpisodeData.postValue(Resource.Success(it))
             }
@@ -82,10 +90,7 @@ class PlayViewModel(
     var isSubtitleEnabled = true
 
     fun loadAllSubtitles(
-        isMovie: Boolean,
-        tmdbId: Int,
-        season: Int,
-        ep: Int
+        isMovie: Boolean, tmdbId: Int, season: Int, ep: Int
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -99,17 +104,12 @@ class PlayViewModel(
     }
 
     private suspend fun getAllSubtitleList(
-        isMovie: Boolean,
-        tmdbId: Int,
-        season: Int,
-        ep: Int
+        isMovie: Boolean, tmdbId: Int, season: Int, ep: Int
     ): ArrayList<SubtitleItem> {
         return withContext(Dispatchers.IO) {
             val list =
                 if (isMovie) playImdb.getSubtitleListForMovie(tmdbId) else playImdb.getSubTitleList(
-                    tmdbId,
-                    season,
-                    ep
+                    tmdbId, season, ep
                 )
             list
         }
@@ -124,9 +124,7 @@ class PlayViewModel(
         return withContext(Dispatchers.IO) {
             val list =
                 if (isMovie) playImdb.getSubtitleListForMovie(tmdbId) else playImdb.getSubTitleList(
-                    tmdbId,
-                    season,
-                    ep
+                    tmdbId, season, ep
                 )
             list.firstOrNull { it.lang == "English" }
         }
@@ -219,6 +217,13 @@ class PlayViewModel(
         timeStamps.postValue(result)
     }
 
+    fun loadWatched(session: String) {
+        viewModelScope.launch {
+            getWatchedHistoryEntity = watchHistoryRepository.getWatchHistoryById(session)
+            isWatchedLiveData.postValue(watchHistoryRepository.isWatched(session))
+        }
+    }
+
     suspend fun isWatched(session: String): Boolean {
         return watchHistoryRepository.isWatched(session)
     }
@@ -236,7 +241,6 @@ class PlayViewModel(
     }
 
     suspend fun updateHistory(history: WatchHistoryEntity) {
-//        getWatchedHistoryEntity = history
         watchHistoryRepository.addHistory(history)
     }
 
@@ -245,23 +249,46 @@ class PlayViewModel(
         if (videoOptions.isNotEmpty()) {
             viewModelScope.launch(Dispatchers.IO) {
                 val source = SourceManager.getCurrentSourceKey()
-                if (source == "pahe") {
+                if (source == "animepahe") {
                     parser.extractVideo(videoOptions[currentSelectedVideoOptionIndex].kwikUrl).let {
-                        Log.d("GGG", "getCurrentEpisodeVod: ")
                         seriesResponse = VodMovieResponse(
-                            authInfo = "", subtitleList = "", urlobj = it,
+                            authInfo = "",
+                            subtitleList = "",
+                            urlobj = it,
                             header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
                         )
                         currentQualityEpisode.postValue(
                             Resource.Success(
                                 VodMovieResponse(
-                                    authInfo = "", subtitleList = "", urlobj = it,
+                                    authInfo = "",
+                                    subtitleList = "",
+                                    urlobj = it,
                                     header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
 
                                 )
                             )
                         )
                     }
+                } else {
+                    videoOptions.get(currentSelectedVideoOptionIndex).let {
+                        seriesResponse = VodMovieResponse(
+                            authInfo = "",
+                            subtitleList = it.tracks,
+                            urlobj = it.kwikUrl,
+                            header = it.headers
+                        )
+                        currentEpisodeData.postValue(
+                            Resource.Success(
+                                VodMovieResponse(
+                                    authInfo = "",
+                                    subtitleList = it.tracks,
+                                    urlobj = it.kwikUrl,
+                                    header = it.headers
+                                )
+                            )
+                        )
+                    }
+
                 }
             }
         }
@@ -321,7 +348,9 @@ class PlayViewModel(
                         playImdb.extractDirectM3u8(it).let { m3u8Link ->
                             println(m3u8Link)
                             seriesResponse = VodMovieResponse(
-                                authInfo = "", subtitleList = "", urlobj = m3u8Link,
+                                authInfo = "",
+                                subtitleList = "",
+                                urlobj = m3u8Link,
                                 header = mapOf()
                             )
                             currentEpisodeData.postValue(
@@ -346,26 +375,32 @@ class PlayViewModel(
         }
     }
 
-    fun getCurrentEpisodeVodAnime(episodeId: String, mediaId: String) {
+    fun getCurrentEpisodeVodAnime(episodeId: String, mediaId: String, isHistory: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
             currentEpisodeData.postValue(Resource.Loading)
-            isWatched = isWatched(episodeId.toString())
+            isWatched = isWatched(episodeId)
             if (isWatched) {
-                getWatchedHistoryEntity = getWatchedEntity(episodeId.toString())
+                getWatchedHistoryEntity = getWatchedEntity(episodeId)
                 currentSelectedVideoOptionIndex = getWatchedHistoryEntity?.currentQualityIndex ?: 0
-
             }
+            val source =
+                if (!isHistory) SourceManager.getCurrentSourceKey() else getWatchedHistoryEntity?.source!!
+
+            Log.d(
+                "GGG",
+                "getCurrentEpisodeVodAnime:${source} || watchedSource ${getWatchedHistoryEntity?.source} "
+            )
+            parser = AnimeSources.getSourceById(source)
             parser.getEpisodeVideo(epId = episodeId, id = mediaId).let {
                 videoOptionsData.postValue(it)
                 videoOptions.clear()
                 videoOptions.addAll(it)
-                val source = SourceManager.getCurrentSourceKey()
-                if (source == "pahe") {
+                if (source == "animepahe") {
                     parser.extractVideo(it[currentSelectedVideoOptionIndex].kwikUrl).let {
-                        Log.d("GGG", "getCurrentEpisodeVod: ")
-
                         seriesResponse = VodMovieResponse(
-                            authInfo = "", subtitleList = "", urlobj = it,
+                            authInfo = "",
+                            subtitleList = "",
+                            urlobj = it,
                             header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
                         )
                         currentEpisodeData.postValue(
@@ -379,13 +414,14 @@ class PlayViewModel(
                                 )
                             )
                         )
-
                     }
 
                 } else {
                     it.get(currentSelectedVideoOptionIndex).let {
                         seriesResponse = VodMovieResponse(
-                            authInfo = "", subtitleList = "", urlobj = it.kwikUrl,
+                            authInfo = "",
+                            subtitleList = "",
+                            urlobj = it.kwikUrl,
                             header = it.headers
                         )
                         currentEpisodeData.postValue(
@@ -490,13 +526,11 @@ class PlayViewModel(
                     val trailer = IMDBScraping()
                     val list = trailer.searchMovie(name)
                     val trailerUrll = trailer.getTrailer(list)
-                    val trailerMasterUrl =
-                        trailer.getTrailerLink(
-                            trailerUrll.first.extractImdbVideoId().toString()
-                        )
+                    val trailerMasterUrl = trailer.getTrailerLink(
+                        trailerUrll.first.extractImdbVideoId().toString()
+                    )
                     Log.d(
-                        "GGG",
-                        "loadTrailer:original Link: ${trailerMasterUrl.cleanImdbUrl()} "
+                        "GGG", "loadTrailer:original Link: ${trailerMasterUrl.cleanImdbUrl()} "
                     )
                     trailerData.postValue(trailerMasterUrl.cleanImdbUrl())
                 }

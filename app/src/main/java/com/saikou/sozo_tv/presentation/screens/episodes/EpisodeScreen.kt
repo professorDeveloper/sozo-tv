@@ -57,8 +57,7 @@ class EpisodeScreen : Fragment() {
         }
 
         addAnimFocus()
-
-        val currentSource = readData("subSource") ?: ""
+        val currentSource = readData(LocalData.SOURCE) ?: ""
         if (currentSource == "" && !args.isAdult) {
             binding.topContainer.gone()
             binding.loadingLayout.gone()

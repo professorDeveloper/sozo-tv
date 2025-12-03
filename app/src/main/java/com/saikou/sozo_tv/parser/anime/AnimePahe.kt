@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.parser.anime
 
+import android.util.Log
 import com.bugsnag.android.Bugsnag
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -137,11 +138,11 @@ class AnimePahe : BaseParser() {
     }
 
 
-    override suspend fun getEpisodeVideo(epId: String, id: String): List<VideoOption> {
+    override suspend fun getEpisodeVideo(id: String, epId: String): List<VideoOption> {
         val headers = getDefaultHeaders()
         val doc = getJsoup("https://animepahe.si/play/${id}/${epId}", headers)
         val videoOptions = getVideoOptions(doc)
-
+        Log.d("GGG", "getEpisodeVideo:https://animepahe.si/play/${id}/${epId} ")
         return videoOptions
     }
 
