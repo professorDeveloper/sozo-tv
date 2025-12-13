@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.saikou.sozo_tv.adapters.SubtitleAdapter
 import com.saikou.sozo_tv.data.model.SubTitle
@@ -17,7 +18,7 @@ class SubtitleChooserDialog : BottomSheetDialogFragment() {
     private var currentSelected: SubTitle? = null
     private var useSubtitles: Boolean = false
     private lateinit var adapter: SubtitleAdapter
-    private lateinit var listener: (SubTitle) -> Unit
+    private lateinit var listener: (SubTitle?) -> Unit
     companion object {
         fun newInstance(
             subtitles: List<SubTitle>,
@@ -32,7 +33,7 @@ class SubtitleChooserDialog : BottomSheetDialogFragment() {
         }
     }
 
-    fun setSubtitleSelectionListener(listener: (SubTitle)->Unit) {
+    fun setSubtitleSelectionListener(listener: (SubTitle?) -> Unit) {
         this.listener = listener
     }
 
@@ -48,6 +49,7 @@ class SubtitleChooserDialog : BottomSheetDialogFragment() {
                 currentSelected = selectedSub
                 adapter.selected = selectedSub
                 adapter.notifyDataSetChanged()
+                dismiss()
             }
             rvSubtitles.layoutManager = LinearLayoutManager(context)
             rvSubtitles.adapter = adapter
@@ -62,7 +64,14 @@ class SubtitleChooserDialog : BottomSheetDialogFragment() {
                     currentSelected = subtitles[0]
                     adapter.selected = currentSelected
                     adapter.notifyDataSetChanged()
+                } else if (!isChecked) {
+                    currentSelected = null
+                    dismiss()
                 }
+            }
+
+            subtitleToggleContainer.setOnClickListener {
+                subtitleSwitch.toggle()
             }
         }
         return binding.root
@@ -72,9 +81,19 @@ class SubtitleChooserDialog : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         view.isFocusableInTouchMode = true
         view.requestFocus()
+
+        dialog?.let {
+            val bottomSheet = it.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+            bottomSheet?.let { sheet ->
+                val behavior = BottomSheetBehavior.from(sheet)
+                behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                behavior.skipCollapsed = true
+            }
+        }
     }
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
+        listener(currentSelected)
     }
 }

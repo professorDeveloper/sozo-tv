@@ -12,7 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/netflix_focusable_background"
-        android:clickable="true"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:gravity="center_vertical"
@@ -32,6 +31,7 @@
                 android:layout_marginBottom="4dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="Subtitles"
+                android:textColor="@color/netflix_white"
                 android:textSize="16sp" />
 
             <TextView
@@ -40,8 +40,7 @@
                 android:fontFamily="sans-serif"
                 android:textColor="@color/grayText"
                 android:text="@string/enable_or_disable_subtitles"
-                android:textSize="13sp"
-                android:theme="@style/NetflixSwitchTheme" />
+                android:textSize="13sp" />
         </LinearLayout>
 
         <Switch

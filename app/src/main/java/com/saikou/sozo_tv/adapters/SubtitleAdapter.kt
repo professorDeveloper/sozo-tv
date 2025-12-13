@@ -1,10 +1,10 @@
 package com.saikou.sozo_tv.adapters
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import com.saikou.sozo_tv.data.model.SubTitle
 import com.saikou.sozo_tv.databinding.SubtitleItemBinding
+
 class SubtitleAdapter(
     private val subtitles: List<SubTitle>,
     selectedSubtitle: SubTitle?,
@@ -25,7 +25,7 @@ class SubtitleAdapter(
         with(holder.binding) {
             tvLanguage.text = subtitle.label
             tvInfo.text = extractInfo(subtitle)
-            imgSelected.visibility = if (subtitle == selected) View.VISIBLE else View.GONE
+            imgSelected.visibility = if (subtitle == selected) android.view.View.VISIBLE else android.view.View.GONE
         }
         holder.itemView.setOnClickListener {
             onItemClick(subtitle)
