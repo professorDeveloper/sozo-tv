@@ -713,7 +713,7 @@ class SeriesPlayerScreen : Fragment() {
             val videoUrl = model.seriesResponse!!.urlobj
             val subtitles = model.seriesResponse?.subtitleList.orEmpty()
             val isSubtitleHave = subtitles.isNotEmpty()
-            var useSubtitles = isSubtitleHave // Initialize to true if subtitles available
+            var useSubtitles = isSubtitleHave
             val lastPosition = model.getWatchedHistoryEntity?.lastPosition ?: 0L
             if (LocalData.isHistoryItemClicked) {
                 binding.pvPlayer.controller.binding.exoNextContainer.gone()
@@ -759,18 +759,17 @@ class SeriesPlayerScreen : Fragment() {
 
             binding.pvPlayer.controller.binding.exoSubtidtle.setOnClickListener {
                 if (!isSubtitleHave) return@setOnClickListener
-                val subtitles = model.seriesResponse?.subtitleList.orEmpty()
                 val currentSelected =
                     if (useSubtitles) subtitles.getOrNull(model.currentSubEpIndex) else null
 
                 val dialog =
                     SubtitleChooserDialog.newInstance(subtitles, currentSelected, useSubtitles)
                 dialog.setSubtitleSelectionListener { selectedSubtitle ->
+                    if (view == null) return@setSubtitleSelectionListener
                     val previousPos = player.currentPosition
                     player.pause()
-
-                    useSubtitles = selectedSubtitle!!.file.isNotEmpty() == true
-                    if (useSubtitles) {
+                    useSubtitles = selectedSubtitle?.file?.isNotEmpty() == true
+                    if (useSubtitles && selectedSubtitle != null) {
                         model.currentSubEpIndex = subtitles.indexOf(selectedSubtitle)
                         binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(R.drawable.ic_subtitle_fill)
                         binding.pvPlayer.subtitleView?.visibility = View.VISIBLE

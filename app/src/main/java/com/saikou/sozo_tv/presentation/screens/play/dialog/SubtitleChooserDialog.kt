@@ -54,25 +54,7 @@ class SubtitleChooserDialog : BottomSheetDialogFragment() {
             rvSubtitles.layoutManager = LinearLayoutManager(context)
             rvSubtitles.adapter = adapter
 
-            subtitleSwitch.isChecked = useSubtitles
             rvSubtitles.visibility = if (useSubtitles) View.VISIBLE else View.GONE
-
-            subtitleSwitch.setOnCheckedChangeListener { _, isChecked ->
-                useSubtitles = isChecked
-                rvSubtitles.visibility = if (isChecked) View.VISIBLE else View.GONE
-                if (isChecked && currentSelected == null && subtitles.isNotEmpty()) {
-                    currentSelected = subtitles[0]
-                    adapter.selected = currentSelected
-                    adapter.notifyDataSetChanged()
-                } else if (!isChecked) {
-                    currentSelected = null
-                    dismiss()
-                }
-            }
-
-            subtitleToggleContainer.setOnClickListener {
-                subtitleSwitch.toggle()
-            }
         }
         return binding.root
     }

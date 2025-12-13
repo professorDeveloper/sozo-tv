@@ -13,10 +13,12 @@ class SubtitleAdapter(
 
     var selected: SubTitle? = selectedSubtitle
 
-    inner class ViewHolder(val binding: SubtitleItemBinding) : androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root)
+    inner class ViewHolder(val binding: SubtitleItemBinding) :
+        androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = SubtitleItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding =
+            SubtitleItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding)
     }
 
@@ -25,7 +27,8 @@ class SubtitleAdapter(
         with(holder.binding) {
             tvLanguage.text = subtitle.label
             tvInfo.text = extractInfo(subtitle)
-            imgSelected.visibility = if (subtitle == selected) android.view.View.VISIBLE else android.view.View.GONE
+            imgSelected.visibility =
+                if (subtitle == selected) android.view.View.VISIBLE else android.view.View.GONE
         }
         holder.itemView.setOnClickListener {
             onItemClick(subtitle)
@@ -37,6 +40,6 @@ class SubtitleAdapter(
     override fun getItemCount(): Int = subtitles.size
 
     private fun extractInfo(subtitle: SubTitle): String {
-        return "From: ${subtitle.file}"
+        return "From: ${subtitle.label}"
     }
 }

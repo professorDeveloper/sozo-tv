@@ -34,24 +34,8 @@
                 android:textColor="@color/netflix_white"
                 android:textSize="16sp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
-                android:textColor="@color/grayText"
-                android:text="@string/enable_or_disable_subtitles"
-                android:textSize="13sp" />
         </LinearLayout>
 
-        <Switch
-            android:id="@+id/subtitle_switch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:theme="@style/NetflixSwitchTheme"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
