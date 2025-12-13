@@ -25,6 +25,7 @@ import com.saikou.sozo_tv.di.koinModule
 class MyApp : Application() {
     @SuppressLint("StaticFieldLeak")
     companion object {
+        @SuppressLint("StaticFieldLeak")
         lateinit var context: Context
 
     }
