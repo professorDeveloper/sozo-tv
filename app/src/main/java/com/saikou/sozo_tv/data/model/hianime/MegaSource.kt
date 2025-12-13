@@ -1,4 +1,5 @@
 package com.saikou.sozo_tv.data.model.hianime
+
 data class MegaSource(
     val file: String,
     val type: String
@@ -6,7 +7,7 @@ data class MegaSource(
 
 data class MegaTrack(
     val file: String,
-    val label: String,
+    val label: String? = "",
     val kind: String
 )
 

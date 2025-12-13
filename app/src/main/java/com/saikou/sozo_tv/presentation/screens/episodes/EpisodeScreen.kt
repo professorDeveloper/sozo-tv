@@ -87,7 +87,6 @@ class EpisodeScreen : Fragment() {
         )
 
         viewModel.findEpisodes(args.episodeTitle)
-        Log.d("GGG", "initializeAnimeSource:Tushdi ")
         viewModel.dataFound.observe(viewLifecycleOwner) { dataFound ->
             when (dataFound) {
                 is Resource.Error -> {

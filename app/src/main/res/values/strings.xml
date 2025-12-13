@@ -111,5 +111,14 @@
     <string name="live_tv">LIVE TV</string>
     <string name="retry">Retry</string>
     <string name="guest">Guest</string>
+    <string name="episode">%1$s - Episode %2$d</string>
+    <string name="episode_is_loading">Episode %1$s is loading…</string>
+    <string name="part_episode">Part %1$d • Episode %2$d</string>
+    <string name="part_are_episodes_loading">Part %1$s are episodes loading...</string>
+    <string name="current_episode">%1$s - Episode %2$s</string>
+    <string name="this_is_the_last_episode">This is the last episode</string>
+    <string name="this_is_the_first_episode">This is the first episode</string>
+    <string name="choose_subtitle">Choose Subtitle</string>
+    <string name="enable_or_disable_subtitles">Enable or disable subtitles</string>
 
 </resources>
