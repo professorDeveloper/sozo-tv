@@ -760,14 +760,16 @@ class SeriesPlayerScreen : Fragment() {
             binding.pvPlayer.controller.binding.exoSubtidtle.setOnClickListener {
                 if (!isSubtitleHave) return@setOnClickListener
                 val subtitles = model.seriesResponse?.subtitleList.orEmpty()
-                val currentSelected = if (useSubtitles) subtitles.getOrNull(model.currentSubEpIndex) else null
+                val currentSelected =
+                    if (useSubtitles) subtitles.getOrNull(model.currentSubEpIndex) else null
 
-                val dialog = SubtitleChooserDialog.newInstance(subtitles, currentSelected, useSubtitles)
+                val dialog =
+                    SubtitleChooserDialog.newInstance(subtitles, currentSelected, useSubtitles)
                 dialog.setSubtitleSelectionListener { selectedSubtitle ->
                     val previousPos = player.currentPosition
                     player.pause()
 
-                    useSubtitles = selectedSubtitle.file.isNotEmpty() == true
+                    useSubtitles = selectedSubtitle!!.file.isNotEmpty() == true
                     if (useSubtitles) {
                         model.currentSubEpIndex = subtitles.indexOf(selectedSubtitle)
                         binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(R.drawable.ic_subtitle_fill)
