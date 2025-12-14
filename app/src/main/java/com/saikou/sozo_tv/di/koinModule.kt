@@ -2,7 +2,6 @@ package com.saikou.sozo_tv.di
 
 import androidx.room.Room
 import com.google.firebase.database.FirebaseDatabase
-import com.saikou.sozo_tv.data.local.dao.WatchHistoryDao
 import com.saikou.sozo_tv.data.local.database.AppDatabase
 import com.saikou.sozo_tv.data.repository.CategoriesRepositoryImpl
 import com.saikou.sozo_tv.data.repository.CharacterBookmarkRepositoryImpl
@@ -28,7 +27,7 @@ import com.saikou.sozo_tv.presentation.viewmodel.AdultPlayerViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
-import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.episode.anime.EpisodeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.LiveTvViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.NewsViewModel

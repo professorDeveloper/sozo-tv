@@ -1,4 +1,4 @@
-package com.saikou.sozo_tv.presentation.viewmodel
+package com.saikou.sozo_tv.presentation.viewmodel.episode.anime
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
@@ -8,9 +8,7 @@ import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.model.SubSource
 import com.saikou.sozo_tv.domain.repository.EpisodeRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
-import com.saikou.sozo_tv.parser.BaseParser
 import com.saikou.sozo_tv.parser.anime.HentaiMama
-import com.saikou.sozo_tv.parser.anime.HiAnime
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.Episode
 import com.saikou.sozo_tv.parser.models.EpisodeData
@@ -132,7 +130,8 @@ class EpisodeViewModel(
                     episodeData.postValue(Resource.Error(e))
                 }
             }
-        } else {
+        }
+        else {
             viewModelScope.launch {
                 episodeData.value = Resource.Loading
                 val listData = ArrayList<Data>()
@@ -204,7 +203,6 @@ class EpisodeViewModel(
             } else {
                 repo.extractImdbForSeries(tdbId)
             }
-
             if (result.isSuccess) {
                 val imdbId = result.getOrNull()?.imdb_id
                 if (imdbId != null) {

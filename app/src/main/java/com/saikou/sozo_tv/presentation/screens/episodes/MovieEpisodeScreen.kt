@@ -8,12 +8,12 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -21,13 +21,10 @@ import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.EpisodeTabAdapter
 import com.saikou.sozo_tv.adapters.SeriesPageAdapter
 import com.saikou.sozo_tv.databinding.EpisodeScreenBinding
-import com.saikou.sozo_tv.parser.anime.HentaiMama
 import com.saikou.sozo_tv.parser.models.Part
 import com.saikou.sozo_tv.parser.movie.PlayImdb
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
-import com.saikou.sozo_tv.presentation.screens.wrong_title.WrongTitleDialog
-import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
-import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.presentation.viewmodel.episode.anime.EpisodeViewModel
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.readData
@@ -151,6 +148,7 @@ class MovieEpisodeScreen : Fragment() {
                                         result.data.data ?: arrayListOf()
                                     )
                                     adapter.setOnItemClickedListener { it, currentIndex ->
+                                        Log.d("GGG", "onViewCreated:${it.season} ")
                                         findNavController().navigate(
                                             MovieEpisodeScreenDirections.actionMovieEpisodeScreenToMovieSeriesPlayerScreen(
                                                 args.tmdbId,
@@ -258,25 +256,6 @@ class MovieEpisodeScreen : Fragment() {
         return spannable
     }
 
-    private fun String.toSpannable(highlight: String): SpannableString {
-        val spannable = SpannableString(this)
-        val start = this.indexOf(highlight)
-        if (start >= 0) {
-            spannable.setSpan(
-                ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.red)),
-                start,
-                start + highlight.length,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-            spannable.setSpan(
-                StyleSpan(Typeface.BOLD),
-                start,
-                start + highlight.length,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-        }
-        return spannable
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()
