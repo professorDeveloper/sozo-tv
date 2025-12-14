@@ -64,7 +64,7 @@ class MovieEpisodeScreen : Fragment() {
 
         addAnimFocus()
 
-        val currentSource = readData<String>("movieSource") ?: "playimdb"
+        val currentSource = readData("movieSource") ?: "playimdb"
         if (currentSource != "playimdb") {
             binding.topContainer.gone()
             binding.loadingLayout.gone()
@@ -116,15 +116,10 @@ class MovieEpisodeScreen : Fragment() {
                         binding.textView7.startAnimation(anim)
                         currentMediaId = dataFound.data.link
                         adapter = SeriesPageAdapter()
-//                        binding.wrongTitleContainer.visibility = View.GONE
-//                        binding.wrongTitleContainer.startAnimation(anim)
-//                        binding.wrongTitleContainer.setOnClickListener { gg ->
-//                            showWrongTitleDialog(dataFound.data.name)
-//                        }
                         binding.topContainer.adapter = adapter
                         viewModel.loadMovieSeriesEpisodes(
                             currentMediaId,
-                            tmdbId = args.tmdbId.toInt(),
+                            tmdbId = args.tmdbId,
                             1,
                             args.isMovie,
                             args.image
