@@ -30,6 +30,6 @@ class VidSrc : BaseParser() {
     }
 
     override suspend fun extractVideo(url: String): String {
-        return null
+        return "null"
     }
 }
