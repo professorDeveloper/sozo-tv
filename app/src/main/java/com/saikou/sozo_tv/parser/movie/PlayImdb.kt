@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.parser.movie
 
-import android.annotation.SuppressLint
 import android.util.Log
 import com.bugsnag.android.Bugsnag
 import com.google.gson.Gson
@@ -254,7 +253,7 @@ class PlayImdb : BaseParser() {
                     Bugsnag.notify(e)
                     return@withContext ""
                 } else {
-                    delay(1000) // qayta urinishdan oldin 1 soniya kutish
+                    delay(1000)
                 }
             } catch (e: Exception) {
                 Bugsnag.notify(e)
@@ -265,7 +264,7 @@ class PlayImdb : BaseParser() {
         return@withContext ""
     }
 
-    suspend fun extractDirectM3u8(iframeUrl: String): String {
+    fun extractDirectM3u8(iframeUrl: String): String {
         try {
             val response = Jsoup.connect(iframeUrl)
                 .method(Connection.Method.GET)
