@@ -301,21 +301,27 @@ class PlayViewModel(
                             getWatchedHistoryEntity?.currentQualityIndex ?: 0
                     }
                     currentEpisodeData.postValue(Resource.Loading)
-                    playImdb.invokeVidSrcXyz(imdbId).let { m3u8Link ->
-                        Log.d("GGG", "extract:${m3u8Link} ")
-                        val data = VodMovieResponse(
-                            authInfo = "",
-                            subtitleList = arrayListOf(),
-                            urlobj = m3u8Link,
-                            header = mapOf()
+                    val getProcp = playImdb.extractProrcpUrl(iframe)
+                    getProcp.let {
+                        playImdb.invokeVidSrcXyz(
+                            prorcpUrl = it.toString(),
+                            iframeUrl = iframe
+                        ).let { m3u8Link ->
+                            Log.d("GGG", "extract:${m3u8Link} ")
+                            val data = VodMovieResponse(
+                                authInfo = "",
+                                subtitleList = arrayListOf(),
+                                urlobj = m3u8Link,
+                                header = mapOf()
 
-                        )
-                        seriesResponse = data
-                        currentEpisodeData.postValue(
-                            Resource.Success(
-                                data
                             )
-                        )
+                            seriesResponse = data
+                            currentEpisodeData.postValue(
+                                Resource.Success(
+                                    data
+                                )
+                            )
+                        }
                     }
                 } else {
                     isWatched = isWatched(iframe)

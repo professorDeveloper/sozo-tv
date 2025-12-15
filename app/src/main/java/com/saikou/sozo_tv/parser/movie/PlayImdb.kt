@@ -114,7 +114,7 @@ class PlayImdb : BaseParser() {
     }
 
 
-    private suspend fun extractProrcpUrl(iframeUrl: String): String? {
+    suspend fun extractProrcpUrl(iframeUrl: String): String? {
         Log.d("GGG", "extractProrcpUrl: ${iframeUrl}")
         val doc = Requests(baseClient = httpClient, responseParser = parser).get(
             iframeUrl, referer = iframeUrl, headers = mapOf(
@@ -225,6 +225,14 @@ class PlayImdb : BaseParser() {
 
     }
 
+    suspend fun invokeVidSrcXyz(
+        prorcpUrl: String,
+        iframeUrl: String,
+    ): String {
+
+        val decryptedSource = extractAndDecryptSource(prorcpUrl, iframeUrl) ?: return ""
+        return decryptedSource.get(0).second.normalizeStreamUrl()
+    }
 
     suspend fun getSubTitleList(
         tmdbId: Int,
