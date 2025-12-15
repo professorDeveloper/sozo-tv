@@ -1,6 +1,6 @@
 package com.saikou.sozo_tv.parser.sources
 
-import com.saikou.sozo_tv.parser.BaseParser
+import com.saikou.sozo_tv.parser.base.BaseParser
 import com.saikou.sozo_tv.parser.anime.AnimePahe
 import com.saikou.sozo_tv.parser.anime.HiAnime
 import com.saikou.sozo_tv.utils.LocalData.SOURCE

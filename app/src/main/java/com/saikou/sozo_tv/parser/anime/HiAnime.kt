@@ -1,9 +1,8 @@
 package com.saikou.sozo_tv.parser.anime
 
 import android.util.Log
-import com.saikou.sozo_tv.data.model.hianime.MegaTrack
 import com.saikou.sozo_tv.data.remote.KitsuApi
-import com.saikou.sozo_tv.parser.BaseParser
+import com.saikou.sozo_tv.parser.base.BaseParser
 import com.saikou.sozo_tv.parser.extractor.HiAnimeVideoExtractor
 import com.saikou.sozo_tv.parser.extractor.MegacloudExtractor
 import com.saikou.sozo_tv.parser.models.AudioType
@@ -16,7 +15,6 @@ import com.saikou.sozo_tv.parser.sources.HiAnimeSource
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import java.nio.file.Files
 
 class HiAnime : BaseParser() {
     override val name: String = "HiAnime"
@@ -28,7 +26,7 @@ class HiAnime : BaseParser() {
     private val kitsuApi = KitsuApi()
     private val extractor = HiAnimeVideoExtractor()
 
-    override suspend fun search(query: String): List<ShowResponse> {
+     override suspend fun search(query: String): List<ShowResponse> {
         val map = source.searchAnime(query).map {
             ShowResponse(
                 name = it.title, link = it.id.toString(), coverUrl = it.imageUrl

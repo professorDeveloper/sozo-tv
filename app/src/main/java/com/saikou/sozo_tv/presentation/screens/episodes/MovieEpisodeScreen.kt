@@ -24,7 +24,7 @@ import com.saikou.sozo_tv.databinding.EpisodeScreenBinding
 import com.saikou.sozo_tv.parser.models.Part
 import com.saikou.sozo_tv.parser.movie.PlayImdb
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
-import com.saikou.sozo_tv.presentation.viewmodel.episode.anime.EpisodeViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.readData

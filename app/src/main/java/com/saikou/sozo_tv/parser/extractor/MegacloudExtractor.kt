@@ -25,6 +25,7 @@ class MegacloudExtractor {
 
         val apiUrl = "$mainUrl/embed-2/v3/e-1/getSources?id=$id&_k=$nonce"
         val json = Utils.get(apiUrl, headers)
+        println(apiUrl)
 
         val resp = gson.fromJson(json, MegaResponse::class.java)
         val encoded = resp.sources.firstOrNull()?.file
@@ -43,9 +44,9 @@ class MegacloudExtractor {
 
         val match2 = Regex("""([a-zA-Z0-9]{16}).*?([a-zA-Z0-9]{16}).*?([a-zA-Z0-9]{16})""")
             .find(html)
+        println(html)
 
-        return match2?.groupValues?.drop(1)?.joinToString("")
-            ?: error("Nonce not found")
+        return match2?.groupValues?.drop(1)?.joinToString("") ?: ""
     }
 
     private fun decryptVideo(encrypted: String, nonce: String): String {

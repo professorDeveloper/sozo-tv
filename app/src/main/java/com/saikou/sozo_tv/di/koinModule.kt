@@ -27,7 +27,7 @@ import com.saikou.sozo_tv.presentation.viewmodel.AdultPlayerViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
-import com.saikou.sozo_tv.presentation.viewmodel.episode.anime.EpisodeViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.LiveTvViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.NewsViewModel

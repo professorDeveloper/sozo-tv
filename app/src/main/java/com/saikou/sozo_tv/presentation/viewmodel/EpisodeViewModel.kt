@@ -1,4 +1,4 @@
-package com.saikou.sozo_tv.presentation.viewmodel.episode.anime
+package com.saikou.sozo_tv.presentation.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData

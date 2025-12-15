@@ -9,7 +9,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.lagradost.nicehttp.Requests
 import com.saikou.sozo_tv.p_a_c_k_e_r.JsUnpacker
-import com.saikou.sozo_tv.parser.BaseParser
+import com.saikou.sozo_tv.parser.base.BaseParser
 import com.saikou.sozo_tv.parser.models.AnimePaheData
 import com.saikou.sozo_tv.parser.models.AudioType
 import com.saikou.sozo_tv.parser.models.EpisodeData

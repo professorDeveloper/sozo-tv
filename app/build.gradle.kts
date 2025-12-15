@@ -2,6 +2,7 @@ import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.konan.properties.Properties
 import java.io.FileInputStream
 import java.net.URL
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -216,7 +217,7 @@ dependencies {
 
     //Json
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-//    implementation("com.github.Blatzar:CloudstreamApi:0.1.7")
+//    implementation("com.github.Blatzar:CloudstreamApi:0.1.1")
 
 
 }

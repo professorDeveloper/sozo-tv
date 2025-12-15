@@ -1,4 +1,4 @@
-package com.saikou.sozo_tv.parser
+package com.saikou.sozo_tv.parser.base
 
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse

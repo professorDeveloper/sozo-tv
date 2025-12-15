@@ -83,8 +83,7 @@ class PlayViewModel(
                 allEpisodeData.postValue(Resource.Success(it))
             }
         }
-    }
-    /*
+    }/*
         val subtitleListData = MutableLiveData<List<SubtitleItem>>()
         var currentSelectedSubtitle: SubtitleItem? = null
         var isSubtitleEnabled = true
@@ -252,7 +251,7 @@ class PlayViewModel(
                     videoOptions.get(currentSelectedVideoOptionIndex).let {
                         val vodMovieResponse = VodMovieResponse(
                             authInfo = "",
-                            subtitleList = it.tracks.map { SubTitle(it.file, it.label?:"") },
+                            subtitleList = it.tracks.map { SubTitle(it.file, it.label ?: "") },
                             urlobj = it.kwikUrl,
                             header = it.headers
                         )
@@ -302,66 +301,70 @@ class PlayViewModel(
                             getWatchedHistoryEntity?.currentQualityIndex ?: 0
                     }
                     currentEpisodeData.postValue(Resource.Loading)
-                    playImdb.extractSeriesIframe(iframe)?.let {
-                        Log.d("GGG", "getCurrentEpisodeVodByImdb:${it} ")
-                        playImdb.convertRcptProctor(it).let {
-                            Log.d("GGG", "convert:${it} ")
-                            playImdb.extractDirectM3u8(it).let { m3u8Link ->
-                                Log.d("GGG", "extract:${it} ")
-                                seriesResponse = VodMovieResponse(
-                                    authInfo = "",
-                                    subtitleList = arrayListOf(),
-                                    urlobj = m3u8Link,
-                                    header = mapOf()
-                                )
-                                currentEpisodeData.postValue(
-                                    Resource.Success(
-                                        VodMovieResponse(
-                                            authInfo = "",
-                                            subtitleList = arrayListOf(),
-                                            urlobj = it,
-                                            header = mapOf()
+                    playImdb.invokeVidSrcXyz(imdbId).let { m3u8Link ->
+                        Log.d("GGG", "extract:${m3u8Link} ")
+                        val data = VodMovieResponse(
+                            authInfo = "",
+                            subtitleList = arrayListOf(),
+                            urlobj = m3u8Link,
+                            header = mapOf()
 
-                                        )
-                                    )
-                                )
-
-                            }
-                        }
+                        )
+                        seriesResponse = data
+                        currentEpisodeData.postValue(
+                            Resource.Success(
+                                data
+                            )
+                        )
                     }
                 } else {
-                    isWatched = isWatched(iframe.toString())
+                    isWatched = isWatched(iframe)
                     if (isWatched) {
                         getWatchedHistoryEntity = getWatchedEntity(episodeId.toString())
                         currentSelectedVideoOptionIndex =
                             getWatchedHistoryEntity?.currentQualityIndex ?: 0
                     }
-
                     currentEpisodeData.postValue(Resource.Loading)
-                    playImdb.convertRcptProctor(iframe).let {
-                        println(it)
-                        playImdb.extractDirectM3u8(it).let { m3u8Link ->
-                            println(m3u8Link)
-                            seriesResponse = VodMovieResponse(
-                                authInfo = "",
-                                subtitleList = arrayListOf(),
-                                urlobj = m3u8Link,
-                                header = mapOf()
-                            )
-                            currentEpisodeData.postValue(
-                                Resource.Success(
-                                    VodMovieResponse(
-                                        authInfo = "",
-                                        subtitleList = arrayListOf(),
-                                        urlobj = it,
-                                        header = mapOf()
+                    playImdb.invokeVidSrcXyz(imdbId).let { m3u8Link ->
+                        Log.d("GGG", "extract:${m3u8Link} ")
+                        val data = VodMovieResponse(
+                            authInfo = "",
+                            subtitleList = arrayListOf(),
+                            urlobj = m3u8Link,
+                            header = mapOf()
 
-                                    )
-                                )
+                        )
+                        seriesResponse = data
+                        currentEpisodeData.postValue(
+                            Resource.Success(
+                                data
                             )
-
-                        }
+                        )
                     }
+//                    playImdb.convertRcptProctor(iframe).let {
+//                        println(it)
+//                        playImdb.extractDirectM3u8(it).let { m3u8Link ->
+//                            println(m3u8Link)
+//                            seriesResponse = VodMovieResponse(
+//                                authInfo = "",
+//                                subtitleList = arrayListOf(),
+//                                urlobj = m3u8Link,
+//                                header = mapOf()
+//                            )
+//                            currentEpisodeData.postValue(
+//                                Resource.Success(
+//                                    VodMovieResponse(
+//                                        authInfo = "",
+//                                        subtitleList = arrayListOf(),
+//                                        urlobj = it,
+//                                        header = mapOf()
+//
+//                                    )
+//                                )
+//                            )
+//
+//                        }
+//                    }
                 }
 
             }

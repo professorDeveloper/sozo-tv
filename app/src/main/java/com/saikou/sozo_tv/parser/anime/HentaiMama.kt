@@ -3,8 +3,7 @@ package com.saikou.sozo_tv.parser.anime
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lagradost.nicehttp.Requests
-import com.saikou.sozo_tv.parser.BaseParser
-import com.saikou.sozo_tv.parser.models.AnimePaheData
+import com.saikou.sozo_tv.parser.base.BaseParser
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.Kiwi
