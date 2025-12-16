@@ -755,21 +755,14 @@ class SeriesPlayerScreen : Fragment() {
             }
 
             binding.pvPlayer.controller.binding.exoSubtidtle.setOnClickListener {
-                if (!isSubtitleHave) return@setOnClickListener
-                val currentSelected = if (useSubtitles) subtitles.getOrNull(model.currentSubEpIndex) else null
+                val currentSelected = subtitles.getOrNull(model.currentSubEpIndex)
                 val dialog =
                     SubtitleChooserDialog.newInstance(subtitles, currentSelected, useSubtitles)
-                dialog.setSubtitleSelectionListener { selectedSubtitle, useSubtitle ->
-                    if (view == null) return@setSubtitleSelectionListener
-                    if (useSubtitle) {
-                        model.currentSubEpIndex = subtitles.indexOf(selectedSubtitle)
-                        binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(R.drawable.ic_subtitle_fill)
-                        binding.pvPlayer.subtitleView?.visibility = View.VISIBLE
-                    } else {
-                        binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(R.drawable.ic_subtitle_off)
-                        binding.pvPlayer.subtitleView?.visibility = View.GONE
-                        return@setSubtitleSelectionListener
-                    }
+                dialog.setSubtitleSelectionListener { selectedSubtitle ->
+                    if (model.currentSubEpIndex == subtitles.indexOf(selectedSubtitle)) return@setSubtitleSelectionListener
+                    model.currentSubEpIndex = subtitles.indexOf(selectedSubtitle)
+                    binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(R.drawable.ic_subtitle_fill)
+                    binding.pvPlayer.subtitleView?.visibility = View.VISIBLE
                     val previousPos = player.currentPosition
                     player.pause()
                     useSubtitles = selectedSubtitle?.file?.isNotEmpty() ?: false

@@ -711,7 +711,6 @@ class MovieSeriesPlayerScreen : Fragment() {
         model.qualityProgress = 0
     }
 
-    //    private var isSubtitle = true
     private var canUseSubtitle = false
 
     @OptIn(UnstableApi::class)
@@ -756,31 +755,23 @@ class MovieSeriesPlayerScreen : Fragment() {
 
             binding.pvPlayer.controller.binding.exoSubtidtle.setOnClickListener {
                 val currentSelected = subtitles.getOrNull(model.currentSubEpIndex)
-                val dialog =
-                    SubtitleChooserDialog.newInstance(subtitles, currentSelected, canUseSubtitle)
-                dialog.setSubtitleSelectionListener { selectedSubtitle, useSubtitle ->
-                    if (view == null) return@setSubtitleSelectionListener
+                val dialog = SubtitleChooserDialog.newInstance(subtitles, currentSelected, canUseSubtitle)
+                dialog.setSubtitleSelectionListener { selectedSubtitle ->
                     if (model.currentSubEpIndex == subtitles.indexOf(selectedSubtitle)) return@setSubtitleSelectionListener
-                    canUseSubtitle = useSubtitle
-                    if (canUseSubtitle) {
-                        model.currentSubEpIndex = subtitles.indexOf(selectedSubtitle)
-                        binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(R.drawable.ic_subtitle_fill)
-                        binding.pvPlayer.subtitleView?.visibility = View.VISIBLE
-                        val previousPos = player.currentPosition
-                        player.pause()
-                        canUseSubtitle = selectedSubtitle?.file?.isNotEmpty() ?: false
-                        lifecycleScope.launch {
-                            val newSource = withContext(Dispatchers.IO) {
-                                buildMediaSourceWithSubtitle(videoUrl, canUseSubtitle)
-                            }
-                            player.setMediaSource(newSource)
-                            player.prepare()
-                            player.seekTo(previousPos)
-                            player.play()
+                    model.currentSubEpIndex = subtitles.indexOf(selectedSubtitle)
+                    binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(R.drawable.ic_subtitle_fill)
+                    binding.pvPlayer.subtitleView?.visibility = View.VISIBLE
+                    val previousPos = player.currentPosition
+                    player.pause()
+                    canUseSubtitle = selectedSubtitle?.file?.isNotEmpty() ?: false
+                    lifecycleScope.launch {
+                        val newSource = withContext(Dispatchers.IO) {
+                            buildMediaSourceWithSubtitle(videoUrl, canUseSubtitle)
                         }
-                    } else {
-                        binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(R.drawable.ic_subtitle_off)
-                        binding.pvPlayer.subtitleView?.visibility = View.GONE
+                        player.setMediaSource(newSource)
+                        player.prepare()
+                        player.seekTo(previousPos)
+                        player.play()
                     }
                 }
                 dialog.show(parentFragmentManager, "subtitle_chooser")

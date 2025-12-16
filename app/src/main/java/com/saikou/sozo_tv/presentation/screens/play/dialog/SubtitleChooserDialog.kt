@@ -25,7 +25,7 @@ class SubtitleChooserDialog : DialogFragment() {
     private var currentSelected: SubTitle? = null
     private var useSubtitles: Boolean = false
     private lateinit var adapter: SubtitleAdapter
-    private lateinit var listener: (SubTitle?, useSubtitle: Boolean) -> Unit
+    private lateinit var listener: (SubTitle?) -> Unit
     private var _binding: DialogSubtitleChooserBinding? = null
     private val binding get() = _binding!!
 
@@ -41,7 +41,7 @@ class SubtitleChooserDialog : DialogFragment() {
         }
     }
 
-    fun setSubtitleSelectionListener(listener: (SubTitle?, useSubtitle: Boolean) -> Unit) {
+    fun setSubtitleSelectionListener(listener: (SubTitle?) -> Unit) {
         this.listener = listener
     }
 
@@ -58,26 +58,21 @@ class SubtitleChooserDialog : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         setupDialogWindow()
         with(binding) {
-            binding.rvSubtitles.isVisible = channelSwitch.isEnabled
+            binding.rvSubtitles.isVisible = useSubtitles
             adapter = SubtitleAdapter(subtitles, currentSelected) { selectedSub ->
                 currentSelected = selectedSub
                 adapter.selected = selectedSub
                 adapter.notifyDataSetChanged()
             }
+
             binding.close.setOnClickListener {
+                Log.d("GG", "useSubtitles:${useSubtitles} ")
+                listener(currentSelected)
                 dismiss()
             }
             rvSubtitles.layoutManager = LinearLayoutManager(context)
             rvSubtitles.adapter = adapter
-            binding.channelSwitch.isChecked = useSubtitles
             rvSubtitles.visibility = if (useSubtitles) View.VISIBLE else View.GONE
-            subtitleToggleContainer.setOnClickListener {
-                Log.d("GG", "onViewCreated:$useSubtitles ")
-                channelSwitch.isChecked = !channelSwitch.isChecked
-                Log.d("GG", "channelSwitch.isChecked:${channelSwitch.isChecked} ")
-                binding.rvSubtitles.isVisible = channelSwitch.isChecked
-                useSubtitles = channelSwitch.isChecked
-            }
         }
 
     }
@@ -96,6 +91,5 @@ class SubtitleChooserDialog : DialogFragment() {
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
-        listener(currentSelected, useSubtitles)
     }
 }

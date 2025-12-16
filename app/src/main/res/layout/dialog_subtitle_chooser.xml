@@ -50,32 +50,6 @@
         android:orientation="horizontal"
         android:paddingVertical="12dp">
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:layout_weight="1"
-                android:fontFamily="sans-serif-medium"
-                android:text="@string/enable_or_disable_subtitles"
-                android:textColor="@color/netflix_white"
-                android:textSize="16sp" />
-
-            <Switch
-                android:id="@+id/channel_switch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:theme="@style/NetflixSwitchTheme"
-                tools:ignore="UseSwitchCompatOrMaterialXml" />
-
-        </LinearLayout>
 
     </LinearLayout>
 
