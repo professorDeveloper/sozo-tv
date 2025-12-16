@@ -294,7 +294,7 @@ class PlayViewModel(
         try {
             viewModelScope.launch(Dispatchers.IO) {
                 if (!isMovie) {
-                    isWatched = isWatched(iframe)
+               /*     isWatched = isWatched(iframe)
                     if (isWatched) {
                         getWatchedHistoryEntity = getWatchedEntity(episodeId.toString())
                         currentSelectedVideoOptionIndex =
@@ -304,25 +304,24 @@ class PlayViewModel(
                     val getProcp = playImdb.extractProrcpUrl(iframe)
                     getProcp.let {
                         playImdb.invokeVidSrcXyz(
-                            prorcpUrl = it.toString(),
-                            iframeUrl = iframe
-                        ).let { m3u8Link ->
-                            Log.d("GGG", "extract:${m3u8Link} ")
-                            val data = VodMovieResponse(
-                                authInfo = "",
-                                subtitleList = arrayListOf(),
-                                urlobj = m3u8Link,
-                                header = mapOf()
+                            prorcpUrl = it,
+                            iframeUrl = iframe).let { m3u8Link ->
+                        Log.d("GGG", "extract:${m3u8Link} ")
+                        val data = VodMovieResponse(
+                            authInfo = "",
+                            subtitleList = arrayListOf(),
+                            urlobj = m3u8Link,
+                            header = mapOf()
 
+                        )
+                        seriesResponse = data
+                        currentEpisodeData.postValue(
+                            Resource.Success(
+                                data
                             )
-                            seriesResponse = data
-                            currentEpisodeData.postValue(
-                                Resource.Success(
-                                    data
-                                )
-                            )
-                        }
+                        )
                     }
+                    }*/
                 } else {
                     isWatched = isWatched(iframe)
                     if (isWatched) {
