@@ -15,6 +15,7 @@ import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.DetailRepository
+import com.saikou.sozo_tv.domain.repository.EpisodeRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.anime.AnimePahe
@@ -40,8 +41,7 @@ class PlayViewModel(
     private val repo: DetailRepository,
     private val bookmarkRepo: MovieBookmarkRepository,
     private val watchHistoryRepository: WatchHistoryRepository,
-
-    ) : ViewModel() {
+) : ViewModel() {
     val timeStamps = MutableLiveData<List<AniSkip.Stamp>?>()
     private val timeStampsMap: MutableMap<Int, List<AniSkip.Stamp>?> = mutableMapOf()
     var doNotAsk: Boolean = false
@@ -455,22 +455,29 @@ class PlayViewModel(
         }
     }
 
-    fun loadTrailer(name: String, isAnime: Boolean = true) {
+    fun loadTrailer(tmdbId: Int, isAnime: Boolean = true, isMovie: Boolean=false) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 if (!isAnime) {
-                    val trailer = IMDBScraping()
-                    val list = trailer.searchMovie(name)
-                    val trailerUrll = trailer.getTrailer(list)
-                    val trailerMasterUrl = trailer.getTrailerLink(
-                        trailerUrll.first.extractImdbVideoId().toString()
-                    )
+                    /*  val trailer = IMDBScraping()
+                      val imdbId =
+                          if (isMovie) episodeRepository.extractImdbIdFromMovie(tmdbId.toString())
+                              .getOrNull() else episodeRepository.extractImdbForSeries(tmdbId.toString())
+                              .getOrNull()
+                      val trailerMasterUrl = trailer.getTrailerLink(
+                          imdbId?.imdb_id.toString()
+                      )
+                      Log.d(
+                          "GGG", "loadTrailer:original Link: ${trailerMasterUrl.cleanImdbUrl()} "
+                      )
+                      trailerData.postValue(trailerMasterUrl.cleanImdbUrl())*/
+                } else {
                     Log.d(
-                        "GGG", "loadTrailer:original Link: ${trailerMasterUrl.cleanImdbUrl()} "
+                        "GGG", "loadTrailer:Anime "
                     )
-                    trailerData.postValue(trailerMasterUrl.cleanImdbUrl())
                 }
             } catch (e: Exception) {
+                Log.d("GGG", "loadTrailer:fck :${e} ")
                 errorData.postValue(e.message)
             }
         }

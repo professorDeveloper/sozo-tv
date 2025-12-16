@@ -111,9 +111,9 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         playViewModel.detailData.observe(viewLifecycleOwner) { details ->
             playViewModel.checkBookmark(details.content.id)
             if (preference.isModeAnimeEnabled()) {
-                playViewModel.loadTrailer(details.content.title)
+                playViewModel.loadTrailer(details.content.id)
             } else {
-                playViewModel.loadTrailer(details.content.title, false)
+                playViewModel.loadTrailer(details.content.id, false, !details.content.isSeries)
             }
             binding.replaceImage.loadImage(details.content.bannerImage)
             val currentList = arrayListOf<DetailCategory>()
