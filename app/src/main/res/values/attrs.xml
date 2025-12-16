@@ -69,4 +69,8 @@
         <attr name="android:itemBackground" />
         <attr name="hideLineWhenFilled" format="boolean" />
     </declare-styleable>
+    <declare-styleable name="TvToggleRowView">
+        <attr name="titleText" format="string" />
+        <attr name="subtitleText" format="string" />
+    </declare-styleable>
 </resources>

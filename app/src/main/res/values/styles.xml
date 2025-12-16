@@ -12,6 +12,12 @@
         <item name="android:textSelectHandleLeft">@drawable/pv_invisible_image</item>
         <item name="android:textSelectHandleRight">@drawable/pv_invisible_image</item>
     </style>
+    <declare-styleable name="TvThemeCardView">
+        <attr name="themeTitle" format="string" />
+        <attr name="themeIcon" format="reference" />
+        <attr name="themeIconTint" format="color" />
+        <attr name="themePreviewBackground" format="reference" />
+    </declare-styleable>
 
     <style name="AppTheme.Widget.Tv.Button" parent="Theme.Tv">
         <item name="android:background">@drawable/bg_button_tv</item>

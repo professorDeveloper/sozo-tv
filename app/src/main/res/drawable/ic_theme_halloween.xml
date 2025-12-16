@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <path
+        android:fillColor="@color/netflix_green"
+        android:pathData="M11,2 L13,2 L13,6 L11,6 Z" />
+
+    <path
+        android:fillColor="@color/orange"
+        android:pathData="M12,5 C7.6,5 4,8.6 4,13 C4,17.4 7.6,21 12,21 C16.4,21 20,17.4 20,13 C20,8.6 16.4,5 12,5 Z" />
+    <path
+        android:fillColor="@color/netflix_background_primary"
+        android:pathData="M9,11 L7,14 L11,14 Z" />
+    <path
+        android:fillColor="@color/netflix_background_primary"
+        android:pathData="M15,11 L13,14 L17,14 Z" />
+    <path
+        android:fillColor="@color/netflix_background_primary"
+        android:pathData="M8,16 L10,15 L12,16 L14,15 L16,16 L16,18 L8,18 Z" />
+
+</vector>

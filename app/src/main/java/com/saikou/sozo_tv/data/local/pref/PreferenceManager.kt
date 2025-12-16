@@ -12,6 +12,8 @@ class PreferenceManager {
 
     companion object {
         private const val PREF_NAME = "app_preferences"
+
+        // existing
         private const val KEY_NSFW_ENABLED = "nsfw_enabled"
         private const val KEY_CHANNEL_ENABLED = "channel_enabled"
         private const val KEY_SKIP_INTRO_ENABLED = "skip_intro_enabled"
@@ -24,9 +26,13 @@ class PreferenceManager {
         private const val KEY_SUBTITLE_BG = "subtitle_bg"
         private const val KEY_SUBTITLE_OUTLINE = "subtitle_outline"
 
+        // dropdown states
         private const val KEY_APPEARANCE_EXPANDED = "appearance_expanded"
-    }
+        private const val KEY_CONTENT_CONTROLS_EXPANDED = "content_controls_expanded"
 
+        // demo theme
+        private const val KEY_DEMO_THEME = "demo_theme"
+    }
 
     fun isModeAnimeEnabled() = prefs.getBoolean(KEY_MODE_ANIME_ENABLED, true)
     fun setModeAnime(enabled: Boolean) =
@@ -44,7 +50,6 @@ class PreferenceManager {
     fun setChannelEnabled(enabled: Boolean) =
         prefs.edit().putBoolean(KEY_CHANNEL_ENABLED, enabled).apply()
 
-    /* ---------------- subtitle ---------------- */
 
     data class SubtitleStyle(
         val font: Font = Font.DEFAULT,
@@ -89,11 +94,29 @@ class PreferenceManager {
             .apply()
     }
 
-
     fun isAppearanceExpanded(): Boolean =
         prefs.getBoolean(KEY_APPEARANCE_EXPANDED, true)
 
     fun setAppearanceExpanded(expanded: Boolean) {
         prefs.edit().putBoolean(KEY_APPEARANCE_EXPANDED, expanded).apply()
+    }
+
+    fun isContentControlsExpanded(): Boolean =
+        prefs.getBoolean(KEY_CONTENT_CONTROLS_EXPANDED, false)
+
+    fun setContentControlsExpanded(expanded: Boolean) {
+        prefs.edit().putBoolean(KEY_CONTENT_CONTROLS_EXPANDED, expanded).apply()
+    }
+
+
+    enum class DemoTheme { DEFAULT, HALLOWEEN, WINTER }
+
+    fun getDemoTheme(): DemoTheme {
+        val raw = prefs.getString(KEY_DEMO_THEME, DemoTheme.DEFAULT.name) ?: DemoTheme.DEFAULT.name
+        return runCatching { DemoTheme.valueOf(raw) }.getOrDefault(DemoTheme.DEFAULT)
+    }
+
+    fun setDemoTheme(theme: DemoTheme) {
+        prefs.edit().putString(KEY_DEMO_THEME, theme.name).apply()
     }
 }

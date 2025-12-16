@@ -1,5 +1,7 @@
 package com.saikou.sozo_tv.presentation.screens.profile
 
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.Typeface
@@ -8,7 +10,8 @@ import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
+import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
@@ -17,12 +20,23 @@ import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.MyAccountPageBinding
 import com.saikou.sozo_tv.utils.LocalData
 
-
 class MyAccountPage : Fragment() {
+
     private var _binding: MyAccountPageBinding? = null
     private val binding get() = _binding!!
+
     private lateinit var preferenceManager: PreferenceManager
 
+    private var ignoreNsfwCallback = false
+    private var themePreviewAnimator: ValueAnimator? = null
+
+    /**
+     * Implement this in the Activity if you want real navigation:
+     * class MainActivity : AppCompatActivity(), MyAccountPage.AuthNavigator { override fun openLogin() { ... } }
+     */
+    interface AuthNavigator {
+        fun openLogin()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -32,43 +46,38 @@ class MyAccountPage : Fragment() {
         return binding.root
     }
 
+    override fun onDestroyView() {
+        themePreviewAnimator?.cancel()
+        themePreviewAnimator = null
+        _binding = null
+        super.onDestroyView()
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         preferenceManager = PreferenceManager()
-        loadChannelPreference()
-        loadNsfwPreference()
+
+        setupLoginButton()
+
         loadModePreference()
         setupModeButtons()
-        setupSubtitleStyle(binding, preferenceManager)
-        binding.channelToggleContainer.setOnClickListener {
-            binding.channelSwitch.toggle()
-        }
-        binding.channelSwitch.setOnCheckedChangeListener { _, isChecked ->
-            updateChannelStatus(isChecked)
-            saveChannelPreference(isChecked)
-        }
 
-        binding.nsfwToggleContainer.setOnClickListener {
-            binding.nsfwSwitch.toggle()
-        }
-        binding.nsfwSwitch.setOnCheckedChangeListener { _, isChecked ->
-            if (ignoreNsfwCallback) return@setOnCheckedChangeListener
-
-            if (isChecked && !preferenceManager.isNsfwEnabled()) {
-                ignoreNsfwCallback = true
-                binding.nsfwSwitch.isChecked = false
-                ignoreNsfwCallback = false
-
-                showNsfwWarningDialog()
-                return@setOnCheckedChangeListener
-            }
-
-            updateNsfStatus(isChecked)
-            saveNsfPreference(isChecked)
-        }
-
-
+        setupAppearanceSection()
+        setupContentControlsSection()
     }
+
+    private fun setupLoginButton() {
+        binding.loginButton.setOnClickListener {
+            val host = activity
+            if (host is AuthNavigator) {
+                host.openLogin()
+            } else {
+                Toast.makeText(requireContext(), "Login page not connected yet", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
 
     private fun setupModeButtons() {
         binding.apply {
@@ -81,13 +90,11 @@ class MyAccountPage : Fragment() {
                 setModeAnime(false)
                 updateModeUI(false)
             }
-
-
         }
     }
 
     private fun loadModePreference() {
-        val isAnimeMode = isModeAnimeEnabled()
+        val isAnimeMode = preferenceManager.isModeAnimeEnabled()
         updateModeUI(isAnimeMode)
     }
 
@@ -95,12 +102,7 @@ class MyAccountPage : Fragment() {
         binding.apply {
             updateButtonBackground(animeModeButton, isAnimeMode)
             updateButtonBackground(movieModeButton, !isAnimeMode)
-
         }
-    }
-
-    private fun isModeAnimeEnabled(): Boolean {
-        return preferenceManager.isModeAnimeEnabled()
     }
 
     private fun setModeAnime(enabled: Boolean) {
@@ -108,107 +110,190 @@ class MyAccountPage : Fragment() {
         LocalData.isAnimeEnabled = enabled
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun updateButtonBackground(button: android.widget.TextView, isActive: Boolean) {
-        if (isActive) {
-            button.setBackgroundResource(
-                R.drawable.switch_selected_background
-            )
-
-        } else {
-            button.setBackgroundResource(
-                R.drawable.switch_background
-            )
-
-        }
+    private fun updateButtonBackground(button: TextView, isActive: Boolean) {
+        button.setBackgroundResource(
+            if (isActive) R.drawable.switch_selected_background
+            else R.drawable.switch_background
+        )
     }
 
 
-    private var ignoreNsfwCallback = false
+    private fun setupAppearanceSection() {
+        setupSubtitleStyle(binding, preferenceManager)
+        setupThemeDemo(binding, preferenceManager)
+    }
+
+
+    private fun setupContentControlsSection() {
+        binding.contentControlsDropdown.setExpanded(
+            preferenceManager.isContentControlsExpanded(),
+            animate = false
+        )
+        binding.contentControlsDropdown.setOnExpandedChangeListener { expanded ->
+            preferenceManager.setContentControlsExpanded(expanded)
+        }
+
+        // Channel toggle
+        binding.channelToggleRow.setChecked(preferenceManager.isChannelEnabled())
+        binding.channelToggleRow.setOnCheckedChangedListener { isChecked ->
+            preferenceManager.setChannelEnabled(isChecked)
+            updateContentControlsHeader()
+        }
+
+        // NSFW toggle (with warning dialog once)
+        binding.nsfwToggleRow.setChecked(preferenceManager.isNsfwEnabled())
+        binding.nsfwToggleRow.setOnCheckedChangedListener { isChecked ->
+            if (ignoreNsfwCallback) return@setOnCheckedChangedListener
+
+            if (isChecked && !preferenceManager.isNsfwEnabled()) {
+                // first time enabling -> show warning
+                ignoreNsfwCallback = true
+                binding.nsfwToggleRow.setChecked(false)
+                ignoreNsfwCallback = false
+
+                showNsfwWarningDialog()
+                return@setOnCheckedChangedListener
+            }
+
+            preferenceManager.setNsfwEnabled(isChecked)
+            updateContentControlsHeader()
+        }
+
+        updateContentControlsHeader()
+    }
+
+    private fun updateContentControlsHeader() {
+        val ch = if (preferenceManager.isChannelEnabled()) "Enabled" else "Disabled"
+        val ns = if (preferenceManager.isNsfwEnabled()) "Enabled" else "Disabled"
+
+        binding.contentControlsDropdown.setSummary("Home Channels: $ch • Adult: $ns")
+        binding.contentControlsDropdown.setBadge(if (preferenceManager.isNsfwEnabled()) "18+" else null)
+    }
 
     private fun showNsfwWarningDialog() {
         val dialog = NsfwAlertDialog()
 
         dialog.setYesContinueListener {
             ignoreNsfwCallback = true
-            binding.nsfwSwitch.isChecked = true
+            binding.nsfwToggleRow.setChecked(true)
             ignoreNsfwCallback = false
 
-            updateNsfStatus(true)
-            saveNsfPreference(true)
+            preferenceManager.setNsfwEnabled(true)
+            updateContentControlsHeader()
+
             dialog.dismiss()
         }
 
         dialog.setOnBackPressedListener {
             ignoreNsfwCallback = true
-            binding.nsfwSwitch.isChecked = false
+            binding.nsfwToggleRow.setChecked(false)
             ignoreNsfwCallback = false
 
-            updateNsfStatus(false)
-            saveNsfPreference(false)
+            preferenceManager.setNsfwEnabled(false)
+            updateContentControlsHeader()
+
             dialog.dismiss()
         }
 
         dialog.show(parentFragmentManager, "NsfwWarningDialog")
     }
 
-    private fun saveChannelPreference(isEnabled: Boolean) {
-        preferenceManager.setChannelEnabled(isEnabled)
+
+    private fun PreferenceManager.DemoTheme.displayName(): String = when (this) {
+        PreferenceManager.DemoTheme.DEFAULT -> "Default"
+        PreferenceManager.DemoTheme.HALLOWEEN -> "Halloween"
+        PreferenceManager.DemoTheme.WINTER -> "Winter"
     }
 
-    private fun saveNsfPreference(isEnabled: Boolean) {
-        preferenceManager.setNsfwEnabled(isEnabled)
+    private fun setupThemeDemo(
+        binding: MyAccountPageBinding,
+        prefs: PreferenceManager,
+        onChanged: (() -> Unit)? = null
+    ) {
+        fun apply(theme: PreferenceManager.DemoTheme) {
+            prefs.setDemoTheme(theme)
+
+            binding.themeCardDefault.isSelected = theme == PreferenceManager.DemoTheme.DEFAULT
+            binding.themeCardHalloween.isSelected = theme == PreferenceManager.DemoTheme.HALLOWEEN
+            binding.themeCardWinter.isSelected = theme == PreferenceManager.DemoTheme.WINTER
+
+            binding.themeDropdown.setSummary(theme.displayName())
+            binding.themeDropdown.setBadge("DEMO")
+
+            applyThemePreview(theme)
+
+            onChanged?.invoke()
+        }
+
+        binding.themeCardDefault.setOnClickListener { apply(PreferenceManager.DemoTheme.DEFAULT) }
+        binding.themeCardHalloween.setOnClickListener { apply(PreferenceManager.DemoTheme.HALLOWEEN) }
+        binding.themeCardWinter.setOnClickListener { apply(PreferenceManager.DemoTheme.WINTER) }
+
+        apply(prefs.getDemoTheme())
     }
 
-    private fun loadChannelPreference() {
-        val isEnabled = preferenceManager.isChannelEnabled()
-        binding.channelSwitch.isChecked = isEnabled
-        updateChannelStatus(isEnabled)
-    }
+    private fun applyThemePreview(theme: PreferenceManager.DemoTheme) {
+        val ctx = requireContext()
 
-    private fun loadNsfwPreference() {
-        val isEnabled = preferenceManager.isNsfwEnabled()
-        binding.nsfwSwitch.isChecked = isEnabled
-        updateNsfStatus(isEnabled)
-    }
+        themePreviewAnimator?.cancel()
+        themePreviewAnimator = null
 
-    @SuppressLint("SetTextI18n")
-    private fun updateChannelStatus(isEnabled: Boolean) {
-        binding.apply {
-            if (isEnabled) {
-                channelStatusDot.background = ContextCompat.getDrawable(
-                    requireContext(),
-                    R.drawable.netflix_status_dot_enabled
+        val previewContainer = binding.themePreviewContainer
+        val previewText = binding.themePreviewText
+
+        when (theme) {
+            PreferenceManager.DemoTheme.DEFAULT -> {
+                previewContainer.setBackgroundResource(R.drawable.netflix_focusable_background)
+                previewText.text = "Theme: Default"
+                previewText.setTextColor(ContextCompat.getColor(ctx, R.color.netflix_white))
+            }
+
+            PreferenceManager.DemoTheme.HALLOWEEN -> {
+                previewContainer.setBackgroundResource(R.drawable.bg_theme_preview_halloween)
+                previewText.text = "Theme: Halloween 🎃"
+                startTextPulse(
+                    previewText,
+                    ContextCompat.getColor(ctx, R.color.orange),
+                    ContextCompat.getColor(ctx, R.color.netflix_red)
                 )
-                channelStatusText.text = "Enabled"
-                channelStatusText.setTextColor(
-                    ContextCompat.getColor(
-                        requireContext(),
-                        R.color.netflix_green
-                    )
-                )
-            } else {
-                channelStatusDot.background = ContextCompat.getDrawable(
-                    requireContext(),
-                    R.drawable.netflix_status_dot_disabled
-                )
-                channelStatusText.text = "Disabled"
-                channelStatusText.setTextColor(
-                    ContextCompat.getColor(
-                        requireContext(),
-                        R.color.netflix_gray
-                    )
+            }
+
+            PreferenceManager.DemoTheme.WINTER -> {
+                previewContainer.setBackgroundResource(R.drawable.bg_theme_preview_winter)
+                previewText.text = "Theme: Winter ❄"
+                startTextPulse(
+                    previewText,
+                    ContextCompat.getColor(ctx, R.color.cta_button_normal),
+                    ContextCompat.getColor(ctx, R.color.netflix_white)
                 )
             }
         }
     }
 
+    private fun startTextPulse(tv: TextView, fromColor: Int, toColor: Int) {
+        themePreviewAnimator?.cancel()
+        themePreviewAnimator = ValueAnimator.ofObject(ArgbEvaluator(), fromColor, toColor).apply {
+            duration = 900L
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            addUpdateListener { a ->
+                val c = a.animatedValue as Int
+                tv.setTextColor(c)
+            }
+            start()
+        }
+    }
+
+
     private fun setupSubtitleStyle(
         binding: MyAccountPageBinding,
-        prefs: PreferenceManager
+        prefs: PreferenceManager,
+        onChanged: (() -> Unit)? = null
     ) {
         var state = prefs.getSubtitleStyle()
         val preview = binding.subtitlePreviewText
+
+        fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
 
         fun colorName(color: Int): String {
             val ctx = preview.context
@@ -245,23 +330,14 @@ class MyAccountPage : Fragment() {
 
             preview.typeface = when (state.font) {
                 PreferenceManager.Font.DEFAULT -> Typeface.SANS_SERIF
-                PreferenceManager.Font.POPPINS -> ResourcesCompat.getFont(
-                    preview.context,
-                    R.font.poppins
-                )
-
+                PreferenceManager.Font.POPPINS -> ResourcesCompat.getFont(preview.context, R.font.poppins)
                 PreferenceManager.Font.DAYS -> ResourcesCompat.getFont(preview.context, R.font.days)
                 PreferenceManager.Font.MONO -> Typeface.MONOSPACE
             }
 
             if (state.background) {
-                preview.setBackgroundColor(
-                    ContextCompat.getColor(
-                        preview.context,
-                        R.color.netflix_focus_overlay
-                    )
-                )
-                preview.setPadding(12, 6, 12, 6)
+                preview.setBackgroundColor(ContextCompat.getColor(preview.context, R.color.netflix_focus_overlay))
+                preview.setPadding(dp(12), dp(6), dp(12), dp(6))
             } else {
                 preview.background = null
                 preview.setPadding(0, 0, 0, 0)
@@ -275,6 +351,7 @@ class MyAccountPage : Fragment() {
             prefs.saveSubtitleStyle(state)
             applyPreview()
             updateHeaderInfo()
+            onChanged?.invoke()
         }
 
         // init
@@ -306,7 +383,7 @@ class MyAccountPage : Fragment() {
             commit()
         }
 
-        // Colors (init selected ham)
+        // Colors
         val ctx = preview.context
         val colorMap = mapOf(
             binding.subtitleColorWhite to ContextCompat.getColor(ctx, R.color.netflix_white),
@@ -326,7 +403,7 @@ class MyAccountPage : Fragment() {
         }
         colorMap.forEach { (v, c) -> v.setOnClickListener { selectColor(v, c) } }
 
-        // BG init + click
+        // BG
         binding.subtitleBgOn.isSelected = state.background
         binding.subtitleBgOff.isSelected = !state.background
 
@@ -343,7 +420,7 @@ class MyAccountPage : Fragment() {
             commit()
         }
 
-        // Outline init + click
+        // Outline
         binding.subtitleOutlineOn.isSelected = state.outline
         binding.subtitleOutlineOff.isSelected = !state.outline
 
@@ -358,37 +435,6 @@ class MyAccountPage : Fragment() {
             binding.subtitleOutlineOn.isSelected = true
             state = state.copy(outline = true)
             commit()
-        }
-    }
-
-
-    private fun updateNsfStatus(isEnabled: Boolean) {
-        binding.apply {
-            if (isEnabled) {
-                nsfwStatusDot.background = ContextCompat.getDrawable(
-                    requireContext(),
-                    R.drawable.netflix_status_dot_enabled
-                )
-                nsfwStatusText.text = "Enabled"
-                nsfwStatusText.setTextColor(
-                    ContextCompat.getColor(
-                        requireContext(),
-                        R.color.netflix_green
-                    )
-                )
-            } else {
-                nsfwStatusDot.background = ContextCompat.getDrawable(
-                    requireContext(),
-                    R.drawable.netflix_status_dot_disabled
-                )
-                nsfwStatusText.text = "Disabled"
-                nsfwStatusText.setTextColor(
-                    ContextCompat.getColor(
-                        requireContext(),
-                        R.color.netflix_gray
-                    )
-                )
-            }
         }
     }
 }

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:id="@+id/toggle_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/netflix_focusable_background"
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingVertical="12dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/toggle_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/netflix_white"
+                android:textSize="16sp"
+                tools:text="Home Page Channels" />
+
+            <TextView
+                android:id="@+id/toggle_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:textColor="@color/netflix_gray"
+                android:textSize="13sp"
+                tools:text="Enable or disable channel content visibility" />
+        </LinearLayout>
+
+        <Switch
+            android:id="@+id/toggle_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:clickable="false"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:theme="@style/NetflixSwitchTheme"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/toggle_status_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="4dp">
+
+        <View
+            android:id="@+id/toggle_status_dot"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/netflix_status_dot_disabled" />
+
+        <TextView
+            android:id="@+id/toggle_status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+            android:text="Disabled"
+            android:textColor="@color/netflix_gray"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+</merge>
