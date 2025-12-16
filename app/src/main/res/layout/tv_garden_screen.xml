@@ -1,58 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.saikou.sozo_tv.components.SeasonalBackgroundLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/seasonalBackground"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/netflix_background_primary"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/textView6"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="8dp"
-        android:fontFamily="@font/days"
-        android:paddingVertical="4dp"
-        android:text="@string/main_menu_tvgarden"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp" />
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    <androidx.leanback.widget.HorizontalGridView
-        android:id="@+id/tabRv"
-        android:layout_width="match_parent"
-        android:visibility="visible"
-        android:layout_height="44dp"
-        android:layout_marginTop="8dp"
-        android:nextFocusDown="@id/bookmarkRv"
-        android:orientation="horizontal"
-        android:paddingVertical="4dp"
-        app:focusOutEnd="true"
+        <TextView
+            android:id="@+id/textView6"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/days"
+            android:paddingVertical="4dp"
+            android:text="@string/main_menu_tvgarden"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp" />
 
-        app:focusOutFront="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView6"
-        tools:itemCount="2"
-        tools:listitem="@layout/item_tv_category" />
+        <androidx.leanback.widget.HorizontalGridView
+            android:id="@+id/tabRv"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="8dp"
+            android:nextFocusDown="@id/bookmarkRv"
+            android:orientation="horizontal"
+            android:paddingVertical="4dp"
+            android:visibility="visible"
+            app:focusOutEnd="true"
 
-    <androidx.leanback.widget.VerticalGridView
-        android:id="@+id/bookmarkRv"
-        android:layout_width="match_parent"
-        android:nextFocusUp="@id/tabRv"
-        android:layout_height="0dp"
-        android:visibility="visible"
-        android:layout_weight="1"
-        android:clipChildren="false"
-        android:clipToPadding="false"
-        android:paddingHorizontal="8dp"
-        android:paddingBottom="16dp"
-        app:focusOutFront="true"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager" />
+            app:focusOutFront="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView6"
+            tools:itemCount="2"
+            tools:listitem="@layout/item_tv_category" />
 
-    <include
-        android:id="@+id/progressBar"
-        layout="@layout/layout_is_loading"/>
+        <androidx.leanback.widget.VerticalGridView
+            android:id="@+id/bookmarkRv"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:nextFocusUp="@id/tabRv"
+            android:paddingHorizontal="8dp"
+            android:paddingBottom="16dp"
+            android:visibility="visible"
+            app:focusOutFront="true"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager" />
 
-</LinearLayout>
+        <include
+            android:id="@+id/progressBar"
+            layout="@layout/layout_is_loading" />
+    </LinearLayout>
+
+</com.saikou.sozo_tv.components.SeasonalBackgroundLayout>

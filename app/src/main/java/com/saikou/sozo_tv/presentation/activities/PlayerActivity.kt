@@ -5,23 +5,20 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
-import androidx.preference.Preference
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.ActivityPlayerBinding
 import com.saikou.sozo_tv.presentation.screens.detail.CastDetailScreenArgs
-import com.saikou.sozo_tv.presentation.screens.episodes.EpisodeScreenArgs
-import com.saikou.sozo_tv.presentation.screens.play.MovieSeriesPlayerScreen
 import com.saikou.sozo_tv.presentation.screens.play.MovieSeriesPlayerScreenArgs
 import com.saikou.sozo_tv.presentation.screens.play.SeriesPlayerScreenArgs
+import com.saikou.sozo_tv.presentation.viewmodel.DetailViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
-import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.LocalData.isHistoryItemClicked
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class PlayerActivity : AppCompatActivity() {
-    private val playerViewModel: PlayViewModel by viewModel()
+    private val detailViewModel: DetailViewModel by viewModel()
     private lateinit var binding: ActivityPlayerBinding
     private var categoryDetails: Int = -1
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,21 +103,21 @@ class PlayerActivity : AppCompatActivity() {
             } else {
                 val preference = PreferenceManager()
                 if (preference.isModeAnimeEnabled()) {
-                    playerViewModel.loadAnimeById(id = categoryDetails)
-                    playerViewModel.loadCast(id = categoryDetails)
-                    playerViewModel.loadRelations(id = categoryDetails)
-                    playerViewModel.checkBookmark(id = categoryDetails)
+                    detailViewModel.loadAnimeById(id = categoryDetails)
+                    detailViewModel.loadCast(id = categoryDetails)
+                    detailViewModel.loadRelations(id = categoryDetails)
+                    detailViewModel.checkBookmark(id = categoryDetails)
                 } else {
                     val id = categoryDetails
                     val isMovie = intent.getBooleanExtra("isMovie", false)
-                    playerViewModel.loadRelationsMovieOrSeries(id, isMovie)
+                    detailViewModel.loadRelationsMovieOrSeries(id, isMovie)
                     if (isMovie) {
-                        playerViewModel.loadCastSeriesOrMovie(id, isMovie)
-                        playerViewModel.loadMovieById(id = id)
+                        detailViewModel.loadCastSeriesOrMovie(id, isMovie)
+                        detailViewModel.loadMovieById(id = id)
 
                     } else {
-                        playerViewModel.loadSeriesById(id = id)
-                        playerViewModel.loadCastSeriesOrMovie(id, isMovie)
+                        detailViewModel.loadSeriesById(id = id)
+                        detailViewModel.loadCastSeriesOrMovie(id, isMovie)
                     }
                 }
             }

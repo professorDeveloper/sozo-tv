@@ -15,10 +15,17 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.databinding.MyAccountPageBinding
+import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.utils.LocalData
+import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 class MyAccountPage : Fragment() {
 
@@ -29,6 +36,7 @@ class MyAccountPage : Fragment() {
 
     private var ignoreNsfwCallback = false
     private var themePreviewAnimator: ValueAnimator? = null
+    private val settingsViewModel: SettingsViewModel by activityViewModel()
 
     /**
      * Implement this in the Activity if you want real navigation:
@@ -57,6 +65,13 @@ class MyAccountPage : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         preferenceManager = PreferenceManager()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsViewModel.seasonalTheme.collect { theme ->
+                    binding.seasonalBackground.setTheme(theme)
+                }
+            }
+        }
 
         setupLoginButton()
 
@@ -120,7 +135,7 @@ class MyAccountPage : Fragment() {
 
     private fun setupAppearanceSection() {
         setupSubtitleStyle(binding, preferenceManager)
-        setupThemeDemo(binding, preferenceManager)
+        setupThemeDemo(binding)
     }
 
 
@@ -207,29 +222,44 @@ class MyAccountPage : Fragment() {
 
     private fun setupThemeDemo(
         binding: MyAccountPageBinding,
-        prefs: PreferenceManager,
         onChanged: (() -> Unit)? = null
     ) {
-        fun apply(theme: PreferenceManager.DemoTheme) {
-            prefs.setDemoTheme(theme)
+        fun apply(theme: SeasonalTheme) {
+            settingsViewModel.setSeasonalTheme(theme)
 
-            binding.themeCardDefault.isSelected = theme == PreferenceManager.DemoTheme.DEFAULT
-            binding.themeCardHalloween.isSelected = theme == PreferenceManager.DemoTheme.HALLOWEEN
-            binding.themeCardWinter.isSelected = theme == PreferenceManager.DemoTheme.WINTER
+            binding.themeCardDefault.isSelected = theme == SeasonalTheme.DEFAULT
+            binding.themeCardHalloween.isSelected = theme == SeasonalTheme.HALLOWEEN
+            binding.themeCardWinter.isSelected = theme == SeasonalTheme.WINTER
 
-            binding.themeDropdown.setSummary(theme.displayName())
+            binding.themeDropdown.setSummary(
+                when (theme) {
+                    SeasonalTheme.DEFAULT -> "Default"
+                    SeasonalTheme.HALLOWEEN -> "Halloween"
+                    SeasonalTheme.WINTER -> "Winter"
+                }
+            )
             binding.themeDropdown.setBadge("DEMO")
+            binding.seasonalBackground.setTheme(theme)
 
-            applyThemePreview(theme)
-
-            onChanged?.invoke()
+            applyThemePreview(
+                when (theme) {
+                    SeasonalTheme.DEFAULT -> PreferenceManager.DemoTheme.DEFAULT
+                    SeasonalTheme.HALLOWEEN -> PreferenceManager.DemoTheme.HALLOWEEN
+                    SeasonalTheme.WINTER -> PreferenceManager.DemoTheme.WINTER
+                }
+            )
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsViewModel.seasonalTheme.collect { apply(it) }
+            }
         }
 
-        binding.themeCardDefault.setOnClickListener { apply(PreferenceManager.DemoTheme.DEFAULT) }
-        binding.themeCardHalloween.setOnClickListener { apply(PreferenceManager.DemoTheme.HALLOWEEN) }
-        binding.themeCardWinter.setOnClickListener { apply(PreferenceManager.DemoTheme.WINTER) }
+        binding.themeCardDefault.setOnClickListener { apply(SeasonalTheme.DEFAULT) }
+        binding.themeCardHalloween.setOnClickListener { apply(SeasonalTheme.HALLOWEEN) }
+        binding.themeCardWinter.setOnClickListener { apply(SeasonalTheme.WINTER) }
 
-        apply(prefs.getDemoTheme())
+//        apply(prefs.getDemoTheme())
     }
 
     private fun applyThemePreview(theme: PreferenceManager.DemoTheme) {
@@ -269,6 +299,8 @@ class MyAccountPage : Fragment() {
             }
         }
     }
+
+
 
     private fun startTextPulse(tv: TextView, fromColor: Int, toColor: Int) {
         themePreviewAnimator?.cancel()

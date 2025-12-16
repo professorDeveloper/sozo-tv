@@ -4,6 +4,10 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
 import com.saikou.sozo_tv.app.MyApp
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 class PreferenceManager {
 
@@ -79,6 +83,24 @@ class PreferenceManager {
             outline = prefs.getBoolean(KEY_SUBTITLE_OUTLINE, true)
         )
     }
+
+    fun observeModeAnimeEnabled(): Flow<Boolean> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == KEY_MODE_ANIME_ENABLED) trySend(isModeAnimeEnabled())
+        }
+        trySend(isModeAnimeEnabled())
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.distinctUntilChanged()
+
+    fun observeDemoTheme(): Flow<DemoTheme> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == KEY_DEMO_THEME) trySend(getDemoTheme())
+        }
+        trySend(getDemoTheme())
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.distinctUntilChanged()
 
     fun isSubtitleCustom(): Boolean =
         prefs.getBoolean(KEY_SUBTITLE_CUSTOM, false)

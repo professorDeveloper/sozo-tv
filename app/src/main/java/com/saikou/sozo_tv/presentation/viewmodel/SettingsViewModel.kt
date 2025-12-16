@@ -1,0 +1,37 @@
+package com.saikou.sozo_tv.presentation.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.saikou.sozo_tv.data.model.ContentMode
+import com.saikou.sozo_tv.data.model.SeasonalTheme
+import com.saikou.sozo_tv.domain.repository.SettingsRepository
+import com.saikou.sozo_tv.utils.LocalData
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+
+class SettingsViewModel(
+    private val settingsRepository: SettingsRepository
+) : ViewModel() {
+
+    val contentMode: StateFlow<ContentMode> =
+        settingsRepository.contentMode
+            .stateIn(viewModelScope, SharingStarted.Eagerly, ContentMode.ANIME)
+
+    val seasonalTheme: StateFlow<SeasonalTheme> =
+        settingsRepository.seasonalTheme
+            .stateIn(viewModelScope, SharingStarted.Eagerly, SeasonalTheme.DEFAULT)
+
+    init {
+        viewModelScope.launch {
+            contentMode.collect { mode ->
+                LocalData.isAnimeEnabled = (mode == ContentMode.ANIME)
+            }
+        }
+    }
+
+    fun setContentMode(mode: ContentMode) = settingsRepository.setContentMode(mode)
+
+    fun setSeasonalTheme(theme: SeasonalTheme) = settingsRepository.setSeasonalTheme(theme)
+}

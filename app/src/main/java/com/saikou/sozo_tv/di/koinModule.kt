@@ -3,6 +3,7 @@ package com.saikou.sozo_tv.di
 import androidx.room.Room
 import com.google.firebase.database.FirebaseDatabase
 import com.saikou.sozo_tv.data.local.database.AppDatabase
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.repository.CategoriesRepositoryImpl
 import com.saikou.sozo_tv.data.repository.CharacterBookmarkRepositoryImpl
 import com.saikou.sozo_tv.data.repository.DetailRepositoryImpl
@@ -11,6 +12,7 @@ import com.saikou.sozo_tv.data.repository.HomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.ImdbHomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.MovieBookmarkRepositoryImpl
 import com.saikou.sozo_tv.data.repository.SearchRepositoryImpl
+import com.saikou.sozo_tv.data.repository.SharedPrefsSettingsRepository
 import com.saikou.sozo_tv.data.repository.WatchHistoryRepositoryImpl
 import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import com.saikou.sozo_tv.domain.repository.CategoriesRepository
@@ -21,18 +23,21 @@ import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.domain.repository.TMDBHomeRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.SearchRepository
+import com.saikou.sozo_tv.domain.repository.SettingsRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.presentation.activities.UpdateViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.AdultPlayerViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.DetailViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.LiveTvViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.NewsViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SplashViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.TvGardenViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.WrongTitleViewModel
@@ -58,6 +63,9 @@ val koinModule = module {
     }
     single<EpisodeRepository> {
         EpisodeRepositoryImpl(api = get())
+    }
+    single<SettingsRepository> {
+        SharedPrefsSettingsRepository(PreferenceManager())
     }
     single<TMDBHomeRepository> {
         ImdbHomeRepositoryImpl(api = get())
@@ -87,10 +95,12 @@ val koinModule = module {
     viewModel { EpisodeViewModel(watchHistoryRepository = get(), repo = get()) }
     viewModel { WrongTitleViewModel(get()) }
     viewModel { UpdateViewModel() }
+    viewModel { SettingsViewModel(get()) }
     viewModel { LiveTvViewModel(dao = get()) }
     viewModel { AdultPlayerViewModel() }
     viewModel { SplashViewModel(firebaseService = get()) }
     viewModel { PlayViewModel(repo = get(), bookmarkRepo = get(), watchHistoryRepository = get()) }
+    viewModel { DetailViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
     viewModel { SearchViewModel(repo = get()) }
     viewModel { CastDetailViewModel(repo = get(), bookmarkRepo = get()) }

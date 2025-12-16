@@ -9,7 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.CategoriesScreenBinding
@@ -18,6 +20,7 @@ import com.saikou.sozo_tv.domain.model.SearchResults
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.screens.category.dialog.FilterDialog
 import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.UiState
 import com.saikou.sozo_tv.utils.gone
@@ -25,6 +28,7 @@ import com.saikou.sozo_tv.utils.setupGridLayoutForCategories
 import com.saikou.sozo_tv.utils.visible
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
@@ -34,6 +38,7 @@ class CategoriesScreen : Fragment() {
     private val binding get() = _binding!!
     private val pageAdapter by lazy { CategoriesPageAdapter(isDetail = false) }
     private val model: CategoriesViewModel by viewModel()
+    private val settingViewModel: SettingsViewModel by activityViewModel()
     private var notSet = true
     private var selectedSort: String? = null
     private var selectedYear: String? = null
@@ -55,6 +60,13 @@ class CategoriesScreen : Fragment() {
             binding.textView6.text = "Filter Anime"
         } else {
             binding.textView6.text = "Filter Movie"
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingViewModel.seasonalTheme.collect { theme ->
+                    binding.seasonalBackground.setTheme(theme)
+                }
+            }
         }
         binding.topContainer.adapter = pageAdapter
         binding.topContainer.setupGridLayoutForCategories(pageAdapter)

@@ -10,24 +10,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.OptIn
-import androidx.media3.common.AudioAttributes
-import androidx.media3.common.C
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
-import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import androidx.media3.session.MediaSession
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.bugsnag.android.Bugsnag
 import com.lagradost.nicehttp.ignoreAllSSLErrors
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.DetailPageBinding
@@ -36,13 +31,16 @@ import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.screens.profile.NfcDisabledDialog
+import com.saikou.sozo_tv.presentation.viewmodel.DetailViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.loadImage
 import com.saikou.sozo_tv.utils.toDomain
 import com.saikou.sozo_tv.utils.visible
+import kotlinx.coroutines.launch
 import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
@@ -52,7 +50,7 @@ import java.util.concurrent.TimeUnit
 class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     private var _binding: DetailPageBinding? = null
     private val binding get() = _binding!!
-    private val playViewModel: PlayViewModel by activityViewModel()
+    private val detailModel: DetailViewModel by activityViewModel()
     private var player: ExoPlayer? = null
     private val preference by lazy { PreferenceManager() }
     private var trailerUrlPlayer: String? = null
@@ -90,30 +88,32 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     @SuppressLint("UnsafeOptInUsageError")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         initializeAdapter()
         initializePlayer()
-        playViewModel.relationsData.observe(viewLifecycleOwner) {
+
+        detailModel.relationsData.observe(viewLifecycleOwner) {
             detailsAdapter.submitRecommendedMovies(it)
         }
-        playViewModel.castResponseData.observe(viewLifecycleOwner) {
+        detailModel.castResponseData.observe(viewLifecycleOwner) {
             detailsAdapter.submitCast(it)
         }
-        playViewModel.trailerData.observe(viewLifecycleOwner) {
+        detailModel.trailerData.observe(viewLifecycleOwner) {
             if (it.isNotEmpty()) {
                 trailerUrlPlayer = it
                 prepareMedia(it)
                 detailsAdapter.updateTrailer(it)
             }
         }
-        playViewModel.isBookmark.observe(viewLifecycleOwner) {
+        detailModel.isBookmark.observe(viewLifecycleOwner) {
             detailsAdapter.updateBookmark(it)
         }
-        playViewModel.detailData.observe(viewLifecycleOwner) { details ->
-            playViewModel.checkBookmark(details.content.id)
+        detailModel.detailData.observe(viewLifecycleOwner) { details ->
+            detailModel.checkBookmark(details.content.id)
             if (preference.isModeAnimeEnabled()) {
-                playViewModel.loadTrailer(details.content.id)
+                detailModel.loadTrailer(details.content.id)
             } else {
-                playViewModel.loadTrailer(details.content.id, false, !details.content.isSeries)
+                detailModel.loadTrailer(details.content.id, false, !details.content.isSeries)
             }
             binding.replaceImage.loadImage(details.content.bannerImage)
             val currentList = arrayListOf<DetailCategory>()
@@ -130,13 +130,13 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
                 requireActivity().startActivity(intent)
                 requireActivity().finish()
             }
-            playViewModel.isBookmark.observe(viewLifecycleOwner) {
+            detailModel.isBookmark.observe(viewLifecycleOwner) {
                 detailsAdapter.updateBookmark(it)
             }
         }
 
 
-        playViewModel.errorData.observe(viewLifecycleOwner) {
+        detailModel.errorData.observe(viewLifecycleOwner) {
             Toast.makeText(requireActivity(), it, Toast.LENGTH_SHORT).show()
         }
     }
@@ -210,13 +210,13 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
 
     override fun onBookMarkClicked(itme: DetailCategory, bookmark: Boolean) {
         if (bookmark) {
-            playViewModel.removeBookmark(
+            detailModel.removeBookmark(
                 itme.content.toDomain()
             )
             LocalData.bookmark = false
             detailsAdapter.updateBookmark(false)
         } else {
-            playViewModel.addBookmark(
+            detailModel.addBookmark(
                 itme.content.toDomain()
             )
             LocalData.bookmark = true
@@ -297,7 +297,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         super.onDestroyView()
         _binding = null
         LocalData.bookmark = false
-        playViewModel.cancelTrailerLoading()
+        detailModel.cancelTrailerLoading()
         if (player != null) {
             player?.release()
             player = null

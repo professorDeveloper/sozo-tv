@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.CastAdapter
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.databinding.ItemPlayCastBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsHeaderBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsSectionBinding
@@ -61,7 +62,7 @@ class MovieDetailsAdapter(
             title: String,
             isFree: Boolean,
 
-        )
+            )
 
         fun onTrailerButtonClicked(item: DetailCategory)
     }
@@ -251,7 +252,7 @@ class MovieDetailsAdapter(
                         Html.fromHtml(item.content.description, Html.FROM_HTML_MODE_COMPACT)
                 } else {
                     descriptionTextView.text = Html.fromHtml(
-                        item.content.description + item.content.description+item.content.description+item.content.description,
+                        item.content.description + item.content.description + item.content.description + item.content.description,
                         Html.FROM_HTML_MODE_COMPACT
                     )
                 }
@@ -342,7 +343,7 @@ class MovieDetailsAdapter(
 
         @SuppressLint("SetTextI18n")
         fun bind(item: DetailCategory, interfaceListener: DetailsInterface) {
-
+            binding.seasonalBackground.setTheme(SeasonalTheme.WINTER)
             binding.backBtn.setOnClickListener {
                 interfaceListener.onCancelButtonClicked()
             }
