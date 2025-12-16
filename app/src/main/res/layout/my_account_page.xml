@@ -2,13 +2,15 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/accountScroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/netflix_background_primary"
+    android:descendantFocusability="afterDescendants"
     android:fillViewport="true"
-    android:descendantFocusability="beforeDescendants"
     android:focusable="true"
     android:focusableInTouchMode="true"
+    android:overScrollMode="never"
     android:scrollbars="none"
     tools:context=".presentation.screens.profile.MyAccountPage">
 
@@ -275,9 +277,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                app:sectionTitle="Subtitle Style"
+                app:expanded="true"
                 app:sectionSubtitle="Customize subtitle font, color and size (TV friendly)"
-                app:expanded="false">
+                app:sectionTitle="Subtitle Style">
+
                 <LinearLayout
                     android:id="@+id/subtitle_style_section"
                     android:layout_width="match_parent"
@@ -321,8 +324,7 @@
                             android:clickable="true"
                             android:focusable="true"
                             android:focusableInTouchMode="true"
-                            android:padding="14dp"
-                            >
+                            android:padding="14dp">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -376,7 +378,6 @@
                                 android:layout_weight="1"
                                 android:fontFamily="sans-serif-medium"
                                 android:gravity="center"
-                                android:selected="true"
                                 android:text="Default"
                                 android:textColor="@color/netflix_text_primary"
                                 android:textSize="14sp" />
@@ -464,9 +465,7 @@
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:focusableInTouchMode="true"
-                                android:padding="4dp"
-                                android:selected="true"
-                                >
+                                android:padding="4dp">
 
                                 <View
                                     android:layout_width="match_parent"
@@ -484,8 +483,7 @@
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:focusableInTouchMode="true"
-                                android:padding="4dp"
-                                >
+                                android:padding="4dp">
 
                                 <View
                                     android:layout_width="match_parent"
@@ -503,8 +501,7 @@
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:focusableInTouchMode="true"
-                                android:padding="4dp"
-                                >
+                                android:padding="4dp">
 
                                 <View
                                     android:layout_width="match_parent"
@@ -522,8 +519,7 @@
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:focusableInTouchMode="true"
-                                android:padding="4dp"
-                                >
+                                android:padding="4dp">
 
                                 <View
                                     android:layout_width="match_parent"
@@ -541,8 +537,7 @@
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:focusableInTouchMode="true"
-                                android:padding="4dp"
-                                >
+                                android:padding="4dp">
 
                                 <View
                                     android:layout_width="match_parent"
@@ -559,8 +554,7 @@
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:focusableInTouchMode="true"
-                                android:padding="4dp"
-                                >
+                                android:padding="4dp">
 
                                 <View
                                     android:layout_width="match_parent"
@@ -594,7 +588,6 @@
                                 android:layout_marginEnd="6dp"
                                 android:layout_weight="1"
                                 android:fontFamily="sans-serif-medium"
-                                android:selected="true"
                                 android:text="Off"
                                 android:textColor="@color/netflix_text_primary" />
 
@@ -631,7 +624,6 @@
                                 android:layout_marginEnd="6dp"
                                 android:layout_weight="1"
                                 android:fontFamily="sans-serif-medium"
-                                android:selected="true"
                                 android:text="Off"
                                 android:textColor="@color/netflix_text_primary" />
 
@@ -649,14 +641,15 @@
                 </LinearLayout>
             </com.saikou.sozo_tv.components.TvDropdownSectionView>
 
+
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginBottom="16dp"
                 android:background="@color/netflix_divider" />
 
-            <!-- Channel Toggle -->
             <LinearLayout
+                android:id="@+id/channeltoggels"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
@@ -743,7 +736,8 @@
                 android:layout_marginBottom="16dp"
                 android:background="@color/netflix_divider" />
 
-            <!-- NSFW Toggle -->
+            `
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

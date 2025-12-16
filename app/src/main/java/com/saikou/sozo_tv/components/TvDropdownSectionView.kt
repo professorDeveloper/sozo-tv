@@ -60,14 +60,7 @@ class TvDropdownSectionView @JvmOverloads constructor(
             }
         }
 
-        // Netflix-like fokus zoom (silliq)
-        header.setOnFocusChangeListener { v, hasFocus ->
-            v.animate()
-                .scaleX(if (hasFocus) 1.03f else 1f)
-                .scaleY(if (hasFocus) 1.03f else 1f)
-                .setDuration(120)
-                .start()
-        }
+
 
         context.withStyledAttributes(attrs, R.styleable.TvDropdownSectionView) {
             titleTv.text = getString(R.styleable.TvDropdownSectionView_sectionTitle) ?: ""

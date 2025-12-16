@@ -12,8 +12,6 @@ class PreferenceManager {
 
     companion object {
         private const val PREF_NAME = "app_preferences"
-
-        // existing
         private const val KEY_NSFW_ENABLED = "nsfw_enabled"
         private const val KEY_CHANNEL_ENABLED = "channel_enabled"
         private const val KEY_SKIP_INTRO_ENABLED = "skip_intro_enabled"

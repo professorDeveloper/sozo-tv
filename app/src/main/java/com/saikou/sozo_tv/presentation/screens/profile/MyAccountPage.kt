@@ -8,6 +8,7 @@ import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
@@ -21,6 +22,7 @@ class MyAccountPage : Fragment() {
     private var _binding: MyAccountPageBinding? = null
     private val binding get() = _binding!!
     private lateinit var preferenceManager: PreferenceManager
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
