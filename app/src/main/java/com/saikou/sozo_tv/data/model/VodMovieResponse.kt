@@ -14,4 +14,5 @@ data class VodMovieResponse(
 data class SubTitle(
     val file: String,
     val label: String,
+    val flag: String = "",
 )

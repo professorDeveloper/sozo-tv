@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -43,7 +42,6 @@ import androidx.media3.ui.PlayerControlView
 import androidx.media3.ui.PlayerView
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.animestudios.animeapp.type.MediaSource
 import com.bugsnag.android.Bugsnag
 import com.lagradost.nicehttp.ignoreAllSSLErrors
 import com.saikou.sozo_tv.R
@@ -74,7 +72,6 @@ import okhttp3.Request
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.io.IOException
-import java.net.URL
 import java.util.concurrent.TimeUnit
 
 
@@ -759,25 +756,23 @@ class SeriesPlayerScreen : Fragment() {
 
             binding.pvPlayer.controller.binding.exoSubtidtle.setOnClickListener {
                 if (!isSubtitleHave) return@setOnClickListener
-                val currentSelected =
-                    if (useSubtitles) subtitles.getOrNull(model.currentSubEpIndex) else null
-
+                val currentSelected = if (useSubtitles) subtitles.getOrNull(model.currentSubEpIndex) else null
                 val dialog =
                     SubtitleChooserDialog.newInstance(subtitles, currentSelected, useSubtitles)
-                dialog.setSubtitleSelectionListener { selectedSubtitle ->
+                dialog.setSubtitleSelectionListener { selectedSubtitle, useSubtitle ->
                     if (view == null) return@setSubtitleSelectionListener
-                    val previousPos = player.currentPosition
-                    player.pause()
-                    useSubtitles = selectedSubtitle?.file?.isNotEmpty() == true
-                    if (useSubtitles && selectedSubtitle != null) {
+                    if (useSubtitle) {
                         model.currentSubEpIndex = subtitles.indexOf(selectedSubtitle)
                         binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(R.drawable.ic_subtitle_fill)
                         binding.pvPlayer.subtitleView?.visibility = View.VISIBLE
                     } else {
                         binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(R.drawable.ic_subtitle_off)
                         binding.pvPlayer.subtitleView?.visibility = View.GONE
+                        return@setSubtitleSelectionListener
                     }
-
+                    val previousPos = player.currentPosition
+                    player.pause()
+                    useSubtitles = selectedSubtitle?.file?.isNotEmpty() ?: false
                     lifecycleScope.launch {
                         val newSource = withContext(Dispatchers.IO) {
                             buildMediaSourceWithSubtitle(videoUrl, useSubtitles)

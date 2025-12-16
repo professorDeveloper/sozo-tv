@@ -62,14 +62,12 @@ class PlayViewModel(
     var isWatched = false
     var isWatchedLiveData = MutableLiveData<Boolean>()
     var getWatchedHistoryEntity: WatchHistoryEntity? = null
-
     var parser = AnimeSources.getCurrent()
     val playImdb = PlayImdb()
     val currentEpisodeData = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     val currentQualityEpisode = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     var seriesResponse: VodMovieResponse? = null
 
-    /*val subtitleResponseData = MutableLiveData<SubtitleItem>()*/
     val allEpisodeData = MutableLiveData<Resource<EpisodeData>>(Resource.Idle)
     fun getAllEpisodeByPage(
         page: Int,
@@ -84,24 +82,8 @@ class PlayViewModel(
                 allEpisodeData.postValue(Resource.Success(it))
             }
         }
-    }/*
-        val subtitleListData = MutableLiveData<List<SubtitleItem>>()
-        var currentSelectedSubtitle: SubtitleItem? = null
-        var isSubtitleEnabled = true
+    }
 
-        fun loadAllSubtitles(
-            isMovie: Boolean, tmdbId: Int, season: Int, ep: Int
-        ) {
-            viewModelScope.launch(Dispatchers.IO) {
-                try {
-                    val list = getAllSubtitleList(isMovie, tmdbId, season, ep)
-                    subtitleListData.postValue(list)
-                } catch (e: Exception) {
-                    Log.e("PlayViewModel", "Error loading subtitles: ${e.message}")
-                    subtitleListData.postValue(emptyList())
-                }
-            }
-        }*/
 
     private suspend fun getAllSubtitleList(
         isMovie: Boolean, tmdbId: Int, season: Int, ep: Int
@@ -189,7 +171,7 @@ class PlayViewModel(
                         list.forEachIndexed { index, episode ->
                             listData.add(
                                 episode.toDomain().copy(
-                                    episode2 = episode.episode, episode = index + 1,// 1 dan tartib
+                                    episode2 = episode.episode, episode = index + 1,
                                     snapshot = img, season = 1
                                 )
                             )
@@ -295,13 +277,14 @@ class PlayViewModel(
         iframe: String,
         isMovie: Boolean,
         season: Int,
-        episode: Int
+        episode: Int,
+        tmdbId: Int
     ) {
         try {
             viewModelScope.launch(Dispatchers.IO) {
                 isWatched = isWatched(iframe)
                 if (isWatched) {
-                    getWatchedHistoryEntity = getWatchedEntity(episodeId.toString())
+                    getWatchedHistoryEntity = getWatchedEntity(episodeId)
                     currentSelectedVideoOptionIndex =
                         getWatchedHistoryEntity?.currentQualityIndex ?: 0
                 }
@@ -312,13 +295,15 @@ class PlayViewModel(
                         season,
                         episode
                     )
+                val subtitles = getAllSubtitleList(isMovie, tmdbId, season, episode)
+                val vodSubs = subtitles.map { it.toDomain() }
                 invokeVidSrcXyz.let { m3u8Link ->
                     Log.d("GGG", "extract:${m3u8Link} ")
                     val data = VodMovieResponse(
                         authInfo = "",
-                        subtitleList = arrayListOf(),
+                        subtitleList = vodSubs,
                         urlobj = m3u8Link,
-                        header = mapOf()
+                        header = mapOf(),
                     )
                     seriesResponse = data
                     currentEpisodeData.postValue(
@@ -344,11 +329,6 @@ class PlayViewModel(
             }
             val source =
                 if (!isHistory) SourceManager.getCurrentSourceKey() else getWatchedHistoryEntity?.source!!
-
-            Log.d(
-                "GGG",
-                "getCurrentEpisodeVodAnime:${source} || watchedSource ${getWatchedHistoryEntity?.source} "
-            )
             parser = AnimeSources.getSourceById(source)
             parser.getEpisodeVideo(epId = episodeId, id = mediaId).let {
                 videoOptionsData.postValue(it)

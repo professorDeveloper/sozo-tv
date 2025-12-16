@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.saikou.sozo_tv.data.model.SubTitle
 import com.saikou.sozo_tv.databinding.SubtitleItemBinding
+import com.saikou.sozo_tv.utils.loadImage
 
 class SubtitleAdapter(
     private val subtitles: List<SubTitle>,
@@ -29,6 +30,9 @@ class SubtitleAdapter(
             tvInfo.text = extractInfo(subtitle)
             imgSelected.visibility =
                 if (subtitle == selected) android.view.View.VISIBLE else android.view.View.GONE
+            if (subtitle.flag.isNotEmpty()) {
+                flagUrl.loadImage(subtitle.flag)
+            }
         }
         holder.itemView.setOnClickListener {
             onItemClick(subtitle)

@@ -11,6 +11,8 @@ import com.animestudios.animeapp.SearchAnimeQuery
 import com.animestudios.animeapp.type.MediaSource
 import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.local.entity.CharacterEntity
+import com.saikou.sozo_tv.data.model.SubTitle
+import com.saikou.sozo_tv.data.model.SubtitleItem
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.jikan.BannerHomeData
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
@@ -193,6 +195,14 @@ fun JikanBannerResponse.toDomain(): BannerModel {
         }
     }
     return BannerModel(viewType = HomeAdapter.VIEW_BANNER, data = list)
+}
+
+fun SubtitleItem.toDomain(): SubTitle {
+    return SubTitle(
+        this.url,
+        this.lang,
+        this.flagUrl
+    )
 }
 
 fun GetCharacterDetailQuery.Node.toDomain(): MainModel {

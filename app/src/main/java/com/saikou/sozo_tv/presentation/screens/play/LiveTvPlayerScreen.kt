@@ -139,7 +139,6 @@ class LiveTvPlayerScreen : Fragment() {
         binding.pvPlayer.useController = true
         binding.pvPlayer.controllerAutoShow = true
         binding.pvPlayer.controllerHideOnTouch = true
-
         binding.retryButton.setOnClickListener {
             retryConnection()
         }
@@ -149,7 +148,6 @@ class LiveTvPlayerScreen : Fragment() {
         binding.progressBar.visibility = View.GONE
         binding.pvPlayer.visibility = View.GONE
         binding.errorLayout.visibility = View.VISIBLE
-
         val errorMessage = when (error.errorCode) {
             PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ->
                 "Network connection failed. Please check your internet connection."

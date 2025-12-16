@@ -88,7 +88,8 @@ class PlayerActivity : AppCompatActivity() {
                         currentIndex = epIndex,
                         animeTitle ?: "",
                         image ?: "",
-                        session ?: ""
+                        session ?: "",
+                        epIndex + 1
                     ).toBundle()
                 )
             }

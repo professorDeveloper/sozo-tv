@@ -220,7 +220,7 @@ class TrailerPlayerScreen : Fragment() {
                 val previewWidth = previewBitmap?.width ?: 100
                 val previewHeight = previewBitmap?.height ?: 60
                 val previewX = (relativePos * width - previewWidth / 2).toInt()
-                val previewY = height - previewHeight - 20 // Adjust for padding
+                val previewY = height - previewHeight - 20
 
                 previewBitmap?.let {
                     canvas.drawBitmap(it, previewX.toFloat(), previewY.toFloat(), previewPaint)

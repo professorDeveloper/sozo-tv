@@ -1,25 +1,23 @@
 package com.saikou.sozo_tv.data.model.jikan
 
-import com.saikou.sozo_tv.utils.LocalData
-
 data class Data(
-    val aired: com.saikou.sozo_tv.data.model.jikan.Aired,
+    val aired: Aired,
     val airing: Boolean,
     val approved: Boolean,
     val background: String,
-    val broadcast: com.saikou.sozo_tv.data.model.jikan.Broadcast,
-    val demographics: List<com.saikou.sozo_tv.data.model.jikan.Demographic>,
+    val broadcast: Broadcast,
+    val demographics: List<Demographic>,
     val duration: String,
     val episodes: Int,
     val explicit_genres: List<Any?>,
     val favorites: Int,
-    val genres: List<com.saikou.sozo_tv.data.model.jikan.Genre>,
-    val images: com.saikou.sozo_tv.data.model.jikan.Images,
-    val licensors: List<com.saikou.sozo_tv.data.model.jikan.Licensor>,
+    val genres: List<Genre>,
+    val images: Images,
+    val licensors: List<Licensor>,
     val mal_id: Int,
     val members: Int,
     val popularity: Int,
-    val producers: List<com.saikou.sozo_tv.data.model.jikan.Producer>,
+    val producers: List<Producer>,
     val rank: Int,
     val rating: String,
     val score: Double,
@@ -27,15 +25,15 @@ data class Data(
     val season: String,
     val source: String,
     val status: String,
-    val studios: List<com.saikou.sozo_tv.data.model.jikan.Studio>,
+    val studios: List<Studio>,
     val synopsis: String,
-    val themes: List<com.saikou.sozo_tv.data.model.jikan.Theme>,
+    val themes: List<Theme>,
     val title: String,
     val title_english: String,
     val title_japanese: String,
     val title_synonyms: List<String>,
-    val titles: List<com.saikou.sozo_tv.data.model.jikan.Title>,
-    val trailer: com.saikou.sozo_tv.data.model.jikan.Trailer,
+    val titles: List<Title>,
+    val trailer: Trailer,
     val type: String,
     val url: String,
     val year: Int
@@ -47,8 +45,7 @@ data class BannerHomeData(
     val description: String,
     val mal_id: Int = -1,
     val imdb_id: Int = -1,
-    val genre_ids: List<Int> = emptyList(),
+    val genre_ids: List<Int>? = null,
     val isMovie: Boolean = false,
     val isSeries: Boolean = false
-) {
-}
+)

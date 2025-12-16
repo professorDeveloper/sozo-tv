@@ -42,7 +42,6 @@ import com.saikou.sozo_tv.utils.loadImage
 class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf()) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-//    private var bannerPosition = false
 
     interface HomeData {
         val viewType: Int
@@ -213,7 +212,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             if (item.contentItem.isMovie) {
                 val genreContainer = binding.genreButtons
                 genreContainer.removeAllViews()
-                item.contentItem.genre_ids.forEach { imdbId ->
+                item.contentItem.genre_ids?.forEach { imdbId ->
                     val genre = LocalData.genreTmdb.find { imdbId == it.id }
                     if (genre != null) {
                         val genreView = TextView(binding.root.context).apply {
@@ -221,7 +220,8 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                             textSize = 13f
                             setTextColor(Color.WHITE)
                             setPadding(16, 8, 16, 8)
-                            background = ContextCompat.getDrawable(context, R.drawable.background_button)
+                            background =
+                                ContextCompat.getDrawable(context, R.drawable.background_button)
                             ellipsize = TextUtils.TruncateAt.END
                             maxLines = 1
                             layoutParams = LinearLayout.LayoutParams(

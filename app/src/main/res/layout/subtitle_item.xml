@@ -15,6 +15,12 @@
     android:paddingEnd="16dp"
     android:paddingBottom="10dp">
 
+    <ImageView
+        android:id="@+id/flagUrl"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:contentDescription="@string/choose_subtitle" />
+
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
