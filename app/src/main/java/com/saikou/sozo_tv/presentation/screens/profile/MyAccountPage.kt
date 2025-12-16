@@ -5,13 +5,12 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.util.TypedValue
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.view.children
+import androidx.fragment.app.Fragment
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.MyAccountPageBinding
@@ -21,7 +20,7 @@ import com.saikou.sozo_tv.utils.LocalData
 class MyAccountPage : Fragment() {
     private var _binding: MyAccountPageBinding? = null
     private val binding get() = _binding!!
-    private lateinit var preferenceManager: com.saikou.sozo_tv.data.local.pref.PreferenceManager
+    private lateinit var preferenceManager: PreferenceManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -33,7 +32,7 @@ class MyAccountPage : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        preferenceManager = com.saikou.sozo_tv.data.local.pref.PreferenceManager()
+        preferenceManager = PreferenceManager()
         loadChannelPreference()
         loadNsfwPreference()
         loadModePreference()
