@@ -1,0 +1,9 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true" android:state_selected="true"
+        android:drawable="@drawable/tv_dropdown_header_focused_top" />
+    <item android:state_focused="true"
+        android:drawable="@drawable/tv_dropdown_header_focused_full" />
+    <item android:state_selected="true"
+        android:drawable="@drawable/tv_dropdown_header_top" />
+    <item android:drawable="@drawable/tv_dropdown_header_full" />
+</selector>

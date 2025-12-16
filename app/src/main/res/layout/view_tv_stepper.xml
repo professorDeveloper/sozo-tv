@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:id="@+id/btn_minus"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:gravity="center"
+        android:text="−"
+        android:textSize="22sp"
+        android:textColor="@color/netflix_white"
+        android:background="@drawable/tv_chip_selector"
+        android:focusable="false"
+        android:clickable="false" />
+
+    <TextView
+        android:id="@+id/txt_value"
+        android:layout_width="86dp"
+        android:layout_height="48dp"
+        android:gravity="center"
+        android:text="16sp"
+        android:textColor="@color/netflix_white"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-medium" />
+
+    <TextView
+        android:id="@+id/btn_plus"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:gravity="center"
+        android:text="+"
+        android:textSize="22sp"
+        android:textColor="@color/netflix_white"
+        android:background="@drawable/tv_chip_selector"
+        android:focusable="false"
+        android:clickable="false" />
+
+</merge>

@@ -7,6 +7,11 @@
         <attr name="menuGravity" />
         <attr name="menuSpacing" format="dimension" />
     </declare-styleable>
+    <declare-styleable name="TvDropdownSectionView">
+        <attr name="sectionTitle" format="string" />
+        <attr name="sectionSubtitle" format="string" />
+        <attr name="expanded" format="boolean" />
+    </declare-styleable>
 
 
     <declare-styleable name="TvFocusable">
@@ -16,7 +21,13 @@
         <attr name="tvFocusBorderColor" format="color" />
     </declare-styleable>
 
-    <!-- Adding custom attributes for NetflixChannelCard -->
+    <declare-styleable name="TvStepperView">
+        <attr name="minValue" format="integer" />
+        <attr name="maxValue" format="integer" />
+        <attr name="step" format="integer" />
+        <attr name="initialValue" format="integer" />
+        <attr name="unit" format="string" />
+    </declare-styleable>
     <declare-styleable name="NetflixChannelCard">
         <attr name="channelName" format="string" />
         <attr name="channelCountry" format="string" />
@@ -26,7 +37,6 @@
         <attr name="urlCount" format="integer" />
     </declare-styleable>
 
-    <!-- Adding custom attributes for NetflixFilterSelector -->
     <declare-styleable name="NetflixFilterSelector">
         <attr name="defaultFilterType" format="enum">
             <enum name="country" value="0" />
@@ -36,27 +46,27 @@
         <attr name="buttonTextColor" format="color" />
         <attr name="selectedButtonColor" format="color" />
     </declare-styleable>
-        <declare-styleable name="PinViewTheme">
-            <attr name="pinViewStyle" format="reference" />
-        </declare-styleable>
+    <declare-styleable name="PinViewTheme">
+        <attr name="pinViewStyle" format="reference" />
+    </declare-styleable>
 
-        <declare-styleable name="PinView">
-            <attr name="itemCount" format="integer" />
-            <attr name="itemWidth" format="dimension" />
-            <attr name="itemHeight" format="dimension" />
-            <attr name="itemRadius" format="dimension" />
-            <attr name="itemSpacing" format="dimension" />
-            <attr name="lineWidth" format="dimension" />
-            <attr name="lineColor" format="reference|color" />
-            <attr name="viewType" format="enum">
-                <enum name="rectangle" value="0" />
-                <enum name="line" value="1" />
-                <enum name="none" value="2" />
-            </attr>
-            <attr name="android:cursorVisible" />
-            <attr name="cursorWidth" format="dimension" />
-            <attr name="cursorColor" format="reference|color" />
-            <attr name="android:itemBackground" />
-            <attr name="hideLineWhenFilled" format="boolean" />
-        </declare-styleable>
+    <declare-styleable name="PinView">
+        <attr name="itemCount" format="integer" />
+        <attr name="itemWidth" format="dimension" />
+        <attr name="itemHeight" format="dimension" />
+        <attr name="itemRadius" format="dimension" />
+        <attr name="itemSpacing" format="dimension" />
+        <attr name="lineWidth" format="dimension" />
+        <attr name="lineColor" format="reference|color" />
+        <attr name="viewType" format="enum">
+            <enum name="rectangle" value="0" />
+            <enum name="line" value="1" />
+            <enum name="none" value="2" />
+        </attr>
+        <attr name="android:cursorVisible" />
+        <attr name="cursorWidth" format="dimension" />
+        <attr name="cursorColor" format="reference|color" />
+        <attr name="android:itemBackground" />
+        <attr name="hideLineWhenFilled" format="boolean" />
+    </declare-styleable>
 </resources>

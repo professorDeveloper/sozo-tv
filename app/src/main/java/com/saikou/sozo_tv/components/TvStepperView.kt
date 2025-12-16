@@ -39,8 +39,6 @@ class TvStepperView @JvmOverloads constructor(
         setPadding(dp(6), dp(4), dp(6), dp(4))
         setBackgroundResource(R.drawable.tv_chip_selector)
 
-        stateListAnimator = AnimatorInflater.loadStateListAnimator(context, R.animator.tv_focus_animator)
-
         inflate(context, R.layout.view_tv_stepper, this)
         btnMinus = findViewById(R.id.btn_minus)
         btnPlus = findViewById(R.id.btn_plus)
@@ -82,7 +80,7 @@ class TvStepperView @JvmOverloads constructor(
         setValue(_value - step)
     }
 
-    private fun setValue(v: Int) {
+    fun setValue(v: Int) {
         val newValue = v.coerceIn(minValue, maxValue)
         if (newValue == _value) return
         _value = newValue

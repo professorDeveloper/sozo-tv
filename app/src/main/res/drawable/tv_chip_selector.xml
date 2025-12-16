@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- selected + focused -->
+    <item android:state_selected="true" android:state_focused="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="14dp" />
+            <solid android:color="@color/netflix_background_secondary" />
+            <stroke android:width="2dp" android:color="@color/netflix_red" />
+        </shape>
+    </item>
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="14dp" />
+            <solid android:color="@color/netflix_background_secondary" />
+            <stroke android:width="2dp" android:color="@color/netflix_red" />
+        </shape>
+    </item>
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="14dp" />
+            <solid android:color="@color/netflix_background_secondary" />
+            <stroke android:width="2dp" android:color="@color/netflix_white" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="14dp" />
+            <solid android:color="@color/netflix_background_secondary" />
+            <stroke android:width="1dp" android:color="@color/netflix_divider" />
+        </shape>
+    </item>
+
+</selector>

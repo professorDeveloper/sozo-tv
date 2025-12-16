@@ -1,0 +1,5 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/netflix_card_background" />
+    <corners android:radius="14dp" />
+    <stroke android:width="1dp" android:color="@color/netflix_divider" />
+</shape>
