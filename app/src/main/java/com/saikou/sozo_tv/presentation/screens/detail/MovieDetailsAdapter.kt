@@ -343,7 +343,6 @@ class MovieDetailsAdapter(
 
         @SuppressLint("SetTextI18n")
         fun bind(item: DetailCategory, interfaceListener: DetailsInterface) {
-            binding.seasonalBackground.setTheme(SeasonalTheme.WINTER)
             binding.backBtn.setOnClickListener {
                 interfaceListener.onCancelButtonClicked()
             }
