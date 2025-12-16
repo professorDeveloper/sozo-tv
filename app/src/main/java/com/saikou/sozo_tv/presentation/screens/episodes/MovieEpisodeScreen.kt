@@ -160,8 +160,7 @@ class MovieEpisodeScreen : Fragment() {
                                                 args.title,
                                                 args.image,
                                                 it.session ?: "",
-                                                currentSeason,
-                                                it.episode?.toInt() ?: -1
+                                                it.episode ?: -1
                                             )
                                         )
                                     }
