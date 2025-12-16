@@ -151,7 +151,7 @@
             app:argType="integer" />
         <argument
             android:name="isMovie"
-            app:argType="boolean"/>
+            app:argType="boolean" />
         <argument
             android:name="imdbId"
             app:argType="string" />
@@ -172,5 +172,10 @@
         <argument
             android:name="iframeLink"
             app:argType="string" />
+
+        <argument
+            android:name="currentEp"
+            app:argType="integer" />
+
     </fragment>
 </navigation>

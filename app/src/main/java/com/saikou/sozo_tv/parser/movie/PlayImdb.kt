@@ -35,7 +35,6 @@ class PlayImdb : BaseParser() {
     override val language: String = "en"
     override val isNSFW: Boolean = false
 
-
     suspend fun getEpisodes(imdbId: String): List<Episode> {
         return try {
             withContext(Dispatchers.IO) {
@@ -97,24 +96,12 @@ class PlayImdb : BaseParser() {
         }
     }
 
-    override suspend fun loadEpisodes(
-        id: String,
-        page: Int,
-        showResponse: ShowResponse
-    ): EpisodeData? {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun search(query: String): List<ShowResponse> {
-        TODO("Not yet implemented")
-    }
-
     private fun getBaseUrl(url: String): String {
         return URI(url).let { "${it.scheme}://${it.host}" }
     }
 
 
-    suspend fun extractProrcpUrl(iframeUrl: String): String? {
+    private suspend fun extractProrcpUrl(iframeUrl: String): String? {
         Log.d("GGG", "extractProrcpUrl: ${iframeUrl}")
         val doc = Requests(baseClient = httpClient, responseParser = parser).get(
             iframeUrl, referer = iframeUrl, headers = mapOf(
@@ -159,7 +146,6 @@ class PlayImdb : BaseParser() {
             "v2" to "cloudnestra.com",
             "v3" to "thepixelpioneer.com",
             "v4" to "putgate.org",
-//            "v5" to ""
         )
         val placeholderRegex = "\\{(v\\d+)\\}".toRegex()
         val mirrors: List<Pair<String, String>> = decrypted
@@ -225,15 +211,6 @@ class PlayImdb : BaseParser() {
 
     }
 
-    suspend fun invokeVidSrcXyz(
-        prorcpUrl: String,
-        iframeUrl: String,
-    ): String {
-
-        val decryptedSource = extractAndDecryptSource(prorcpUrl, iframeUrl) ?: return ""
-        return decryptedSource.get(0).second.normalizeStreamUrl()
-    }
-
     suspend fun getSubTitleList(
         tmdbId: Int,
         season: Int = -1,
@@ -285,7 +262,6 @@ class PlayImdb : BaseParser() {
             Log.d("GGG", "getDetails:fuck  life ")
             return arrayListOf()
         }
-        return ArrayList()
     }
 
 

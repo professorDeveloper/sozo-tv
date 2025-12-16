@@ -146,7 +146,12 @@ class MovieSeriesPlayerScreen : Fragment() {
                     model.lastPosition = 0
 
                     model.getCurrentEpisodeVodByImdb(
-                        args.imdbId, args.iframeLink, args.iframeLink, args.isMovie
+                        args.imdbId,
+                        args.iframeLink,
+                        args.iframeLink,
+                        args.isMovie,
+                        args.currentPage,
+                        args.currentIndex
                     )
 
                     model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
@@ -259,7 +264,12 @@ class MovieSeriesPlayerScreen : Fragment() {
                     episodeList.addAll(it.data.data ?: listOf())
 
                     model.getCurrentEpisodeVodByImdb(
-                        args.imdbId, args.iframeLink, args.iframeLink, args.isMovie
+                        args.imdbId,
+                        args.iframeLink,
+                        args.iframeLink,
+                        args.isMovie,
+                        args.currentPage,
+                        args.currentEp
                     )
 
                     model.currentEpisodeData.observe(viewLifecycleOwner) {
@@ -311,8 +321,11 @@ class MovieSeriesPlayerScreen : Fragment() {
                                             args.imdbId,
                                             episodeList[position].session.toString(),
                                             episodeList[position].session.toString(),
-                                            args.isMovie
+                                            args.isMovie,
+                                            args.currentPage,
+                                            data.episode ?: -1
                                         )
+
 
                                         model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
                                             if (resource is Resource.Success) {
@@ -338,7 +351,10 @@ class MovieSeriesPlayerScreen : Fragment() {
                                             args.imdbId,
                                             episodeList[model.currentEpIndex].session.toString(),
                                             episodeList[model.currentEpIndex].session.toString(),
-                                            args.isMovie
+                                            args.isMovie,
+                                            args.currentPage,
+                                            model.currentEpIndex + 1
+
                                         )
                                         binding.pvPlayer.controller.binding.filmTitle.text =
                                             episodeList[model.currentEpIndex].title
@@ -371,7 +387,9 @@ class MovieSeriesPlayerScreen : Fragment() {
                                                     args.imdbId,
                                                     episodeList[model.currentEpIndex].session.toString(),
                                                     episodeList[model.currentEpIndex].session.toString(),
-                                                    args.isMovie
+                                                    args.isMovie,
+                                                    args.currentPage,
+                                                    model.currentEpIndex + 1
                                                 )
                                                 model.lastPosition = 0
                                                 binding.pvPlayer.controller.binding.filmTitle.text =
@@ -705,6 +723,7 @@ class MovieSeriesPlayerScreen : Fragment() {
     }
 
     private var isSubtitle = true
+
     @SuppressLint("UnsafeOptInUsageError")
     private fun initPopupQuality(): Dialog {
         val dialog = Dialog(requireActivity(), R.style.DialogTheme)
@@ -751,6 +770,7 @@ class MovieSeriesPlayerScreen : Fragment() {
 
         return dialog
     }
+
     private fun applyLastSelectedQuality(qualities: List<Format>, adapter: QualityAdapter) {
         val lastPosition = QualityAdapter.lastSelectedPosition
         val isAuto = lastPosition == QualityAdapter.AUTO_POSITION
@@ -761,6 +781,7 @@ class MovieSeriesPlayerScreen : Fragment() {
         // Apply to player
         applyQualityToExoPlayer(selectedFormat, isAuto)
     }
+
     @SuppressLint("UnsafeOptInUsageError")
     private fun applyQualityToExoPlayer(selectedFormat: Format?, isAuto: Boolean) {
         player?.let { exoPlayer ->
@@ -788,6 +809,7 @@ class MovieSeriesPlayerScreen : Fragment() {
             exoPlayer.seekTo(currentPosition)
         }
     }
+
     @OptIn(UnstableApi::class)
     private fun displayVideo() {
         lifecycleScope.launch {

@@ -19,6 +19,7 @@ import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.anime.AnimePahe
 import com.saikou.sozo_tv.parser.models.Data
+import com.saikou.sozo_tv.parser.models.Episode
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.models.VideoOption
@@ -205,7 +206,7 @@ class PlayViewModel(
         }
     }
 
-    suspend fun loadTimeStamps(
+    fun loadTimeStamps(
         malId: Int?, episodeNum: Int?, duration: Long, useProxyForTimeStamps: Boolean
     ) {
         malId ?: return
@@ -289,87 +290,42 @@ class PlayViewModel(
     }
 
     fun getCurrentEpisodeVodByImdb(
-        imdbId: String, episodeId: String, iframe: String, isMovie: Boolean
+        imdbId: String,
+        episodeId: String,
+        iframe: String,
+        isMovie: Boolean,
+        season: Int,
+        episode: Int
     ) {
         try {
             viewModelScope.launch(Dispatchers.IO) {
-                if (!isMovie) {
-               /*     isWatched = isWatched(iframe)
-                    if (isWatched) {
-                        getWatchedHistoryEntity = getWatchedEntity(episodeId.toString())
-                        currentSelectedVideoOptionIndex =
-                            getWatchedHistoryEntity?.currentQualityIndex ?: 0
-                    }
-                    currentEpisodeData.postValue(Resource.Loading)
-                    val getProcp = playImdb.extractProrcpUrl(iframe)
-                    getProcp.let {
-                        playImdb.invokeVidSrcXyz(
-                            prorcpUrl = it,
-                            iframeUrl = iframe).let { m3u8Link ->
-                        Log.d("GGG", "extract:${m3u8Link} ")
-                        val data = VodMovieResponse(
-                            authInfo = "",
-                            subtitleList = arrayListOf(),
-                            urlobj = m3u8Link,
-                            header = mapOf()
-
+                isWatched = isWatched(iframe)
+                if (isWatched) {
+                    getWatchedHistoryEntity = getWatchedEntity(episodeId.toString())
+                    currentSelectedVideoOptionIndex =
+                        getWatchedHistoryEntity?.currentQualityIndex ?: 0
+                }
+                currentEpisodeData.postValue(Resource.Loading)
+                val invokeVidSrcXyz =
+                    if (isMovie) playImdb.invokeVidSrcXyz(imdbId) else playImdb.invokeVidSrcXyz(
+                        imdbId,
+                        season,
+                        episode
+                    )
+                invokeVidSrcXyz.let { m3u8Link ->
+                    Log.d("GGG", "extract:${m3u8Link} ")
+                    val data = VodMovieResponse(
+                        authInfo = "",
+                        subtitleList = arrayListOf(),
+                        urlobj = m3u8Link,
+                        header = mapOf()
+                    )
+                    seriesResponse = data
+                    currentEpisodeData.postValue(
+                        Resource.Success(
+                            data
                         )
-                        seriesResponse = data
-                        currentEpisodeData.postValue(
-                            Resource.Success(
-                                data
-                            )
-                        )
-                    }
-                    }*/
-                } else {
-                    isWatched = isWatched(iframe)
-                    if (isWatched) {
-                        getWatchedHistoryEntity = getWatchedEntity(episodeId.toString())
-                        currentSelectedVideoOptionIndex =
-                            getWatchedHistoryEntity?.currentQualityIndex ?: 0
-                    }
-                    currentEpisodeData.postValue(Resource.Loading)
-                    playImdb.invokeVidSrcXyz(imdbId).let { m3u8Link ->
-                        Log.d("GGG", "extract:${m3u8Link} ")
-                        val data = VodMovieResponse(
-                            authInfo = "",
-                            subtitleList = arrayListOf(),
-                            urlobj = m3u8Link,
-                            header = mapOf()
-
-                        )
-                        seriesResponse = data
-                        currentEpisodeData.postValue(
-                            Resource.Success(
-                                data
-                            )
-                        )
-                    }
-//                    playImdb.convertRcptProctor(iframe).let {
-//                        println(it)
-//                        playImdb.extractDirectM3u8(it).let { m3u8Link ->
-//                            println(m3u8Link)
-//                            seriesResponse = VodMovieResponse(
-//                                authInfo = "",
-//                                subtitleList = arrayListOf(),
-//                                urlobj = m3u8Link,
-//                                header = mapOf()
-//                            )
-//                            currentEpisodeData.postValue(
-//                                Resource.Success(
-//                                    VodMovieResponse(
-//                                        authInfo = "",
-//                                        subtitleList = arrayListOf(),
-//                                        urlobj = it,
-//                                        header = mapOf()
-//
-//                                    )
-//                                )
-//                            )
-//
-//                        }
-//                    }
+                    )
                 }
 
             }

@@ -26,7 +26,7 @@ class HiAnime : BaseParser() {
     private val kitsuApi = KitsuApi()
     private val extractor = HiAnimeVideoExtractor()
 
-     override suspend fun search(query: String): List<ShowResponse> {
+    override suspend fun search(query: String): List<ShowResponse> {
         val map = source.searchAnime(query).map {
             ShowResponse(
                 name = it.title, link = it.id.toString(), coverUrl = it.imageUrl

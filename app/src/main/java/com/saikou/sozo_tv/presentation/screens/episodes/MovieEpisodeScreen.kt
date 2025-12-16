@@ -40,6 +40,7 @@ class MovieEpisodeScreen : Fragment() {
     private lateinit var categoriesAdapter: EpisodeTabAdapter
     private lateinit var currentMediaId: String
     private var selectedPosition = 0
+    private var currentSeason = 1
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -117,7 +118,7 @@ class MovieEpisodeScreen : Fragment() {
                         viewModel.loadMovieSeriesEpisodes(
                             currentMediaId,
                             tmdbId = args.tmdbId,
-                            1,
+                            currentSeason,
                             args.isMovie,
                             args.image
                         )
@@ -159,6 +160,8 @@ class MovieEpisodeScreen : Fragment() {
                                                 args.title,
                                                 args.image,
                                                 it.session ?: "",
+                                                currentSeason,
+                                                it.episode?.toInt() ?: -1
                                             )
                                         )
                                     }
@@ -188,6 +191,7 @@ class MovieEpisodeScreen : Fragment() {
                                         args.isMovie,
                                         args.image
                                     )
+                                    currentSeason = (item.part)
                                     selectedPosition = i
                                 }
                                 isFirst = true

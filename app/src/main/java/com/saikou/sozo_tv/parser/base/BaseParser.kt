@@ -46,15 +46,15 @@ abstract class BaseParser {
 
     open suspend fun getEpisodeVideo(id: String, epId: String): List<VideoOption> = emptyList()
 
-    abstract suspend fun loadEpisodes(
+    open suspend fun loadEpisodes(
         id: String,
         page: Int = 1,
         showResponse: ShowResponse
-    ): EpisodeData?
+    ): EpisodeData? = null
 
     open suspend fun extractVideo(url: String): String = ""
 
-    abstract suspend fun search(query: String): List<ShowResponse>
+    open suspend fun search(query: String): List<ShowResponse> = arrayListOf()
     fun encode(input: String): String = URLEncoder.encode(input, "utf-8").replace("+", "%20")
     fun decode(input: String): String = URLDecoder.decode(input, "utf-8")
 }
