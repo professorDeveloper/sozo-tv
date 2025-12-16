@@ -760,6 +760,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                     SubtitleChooserDialog.newInstance(subtitles, currentSelected, canUseSubtitle)
                 dialog.setSubtitleSelectionListener { selectedSubtitle, useSubtitle ->
                     if (view == null) return@setSubtitleSelectionListener
+                    if (model.currentSubEpIndex == subtitles.indexOf(selectedSubtitle)) return@setSubtitleSelectionListener
                     canUseSubtitle = useSubtitle
                     if (canUseSubtitle) {
                         model.currentSubEpIndex = subtitles.indexOf(selectedSubtitle)

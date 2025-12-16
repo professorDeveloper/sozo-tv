@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -71,8 +72,11 @@ class SubtitleChooserDialog : DialogFragment() {
             binding.channelSwitch.isChecked = useSubtitles
             rvSubtitles.visibility = if (useSubtitles) View.VISIBLE else View.GONE
             subtitleToggleContainer.setOnClickListener {
+                Log.d("GG", "onViewCreated:$useSubtitles ")
                 channelSwitch.isChecked = !channelSwitch.isChecked
+                Log.d("GG", "channelSwitch.isChecked:${channelSwitch.isChecked} ")
                 binding.rvSubtitles.isVisible = channelSwitch.isChecked
+                useSubtitles = channelSwitch.isChecked
             }
         }
 
