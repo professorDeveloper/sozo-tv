@@ -8,8 +8,6 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
-import androidx.core.content.ContextCompat
-import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.components.seasonal.SeasonalThemeRegistry
 import com.saikou.sozo_tv.components.seasonal.SnowRenderer
 import com.saikou.sozo_tv.data.model.SeasonalTheme
@@ -70,10 +68,9 @@ class SeasonalBackgroundLayout @JvmOverloads constructor(
             // keep existing background (or null)
         }
 
-        // If nothing set, keep Netflix black as default.
-        if (background == null) {
-            setBackgroundColor(ContextCompat.getColor(context, R.color.netflix_background_primary))
-        }
+//        if (background == null) {
+//            setBackgroundColor(ContextCompat.getColor(context, R.color.netflix_background_primary))
+//        }
 
         if (cfg.useSnow) {
             if (snowRenderer == null) snowRenderer = SnowRenderer(context)

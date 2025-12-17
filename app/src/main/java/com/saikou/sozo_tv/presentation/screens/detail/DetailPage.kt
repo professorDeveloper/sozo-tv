@@ -89,8 +89,6 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     @SuppressLint("UnsafeOptInUsageError")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val seasonalTheme = PreferenceManager().getSeasonalTheme()
-        binding.seasonalBackground.setTheme(seasonalTheme)
         initializeAdapter()
         initializePlayer()
 
