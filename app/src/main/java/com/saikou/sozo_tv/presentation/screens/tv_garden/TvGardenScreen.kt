@@ -7,17 +7,23 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.saikou.sozo_tv.adapters.ChannelsAdapter
 import com.saikou.sozo_tv.databinding.TvGardenScreenBinding
 import com.saikou.sozo_tv.data.model.Category
 import com.saikou.sozo_tv.data.model.Country
 import com.saikou.sozo_tv.presentation.activities.LiveTvActivity
 import com.saikou.sozo_tv.presentation.screens.category.CategoryTabAdapter
+import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.TvGardenViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.visible
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class TvGardenScreen : Fragment() {
@@ -29,6 +35,7 @@ class TvGardenScreen : Fragment() {
     private lateinit var channelsAdapter: ChannelsAdapter
     private lateinit var categoriesAdapter: CategoryTabAdapter
     private val model: TvGardenViewModel by viewModel()
+    private val settingsViewModel: SettingsViewModel by activityViewModels()
     private var currentSort: String? = null
     private val countryList = ArrayList<Country>()
     private var selectedPosCat = 1
@@ -45,6 +52,13 @@ class TvGardenScreen : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsViewModel.seasonalTheme.collect { theme ->
+                    binding.seasonalBackground.setTheme(theme)
+                }
+            }
+        }
         if (!model.isOpened) {
             categoriesAdapter = CategoryTabAdapter(isFiltered = true)
             channelsAdapter = ChannelsAdapter() {

@@ -343,6 +343,7 @@ class MovieDetailsAdapter(
 
         @SuppressLint("SetTextI18n")
         fun bind(item: DetailCategory, interfaceListener: DetailsInterface) {
+            val preferenceManager = PreferenceManager()
             binding.backBtn.setOnClickListener {
                 interfaceListener.onCancelButtonClicked()
             }

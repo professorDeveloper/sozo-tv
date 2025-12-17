@@ -14,14 +14,17 @@ import androidx.navigation.findNavController
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.ProfileAdapter
 import com.saikou.sozo_tv.databinding.ActivityProfileBinding
+import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isHistoryItemClicked
 import com.saikou.sozo_tv.utils.LocalData.sectionList
 import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ProfileActivity : AppCompatActivity() {
     private lateinit var viewBinding: ActivityProfileBinding
     private var backPressCount = 0
+    private val model: SettingsViewModel by viewModel()
 
     private lateinit var profileAdapter: ProfileAdapter
     private var isSettingsOpen = false
@@ -34,7 +37,15 @@ class ProfileActivity : AppCompatActivity() {
         }
         isSettingsOpen = intent.getBooleanExtra("isSettings", false)
         setUpRv()
-        isHistoryItemClicked=false
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                model.seasonalTheme.collect { theme ->
+                    viewBinding.seasonalBackground.setTheme(theme)
+                }
+            }
+        }
+
+        isHistoryItemClicked = false
         onBackPressedDispatcher.addCallback(this) {
             when (backPressCount) {
                 0 -> {

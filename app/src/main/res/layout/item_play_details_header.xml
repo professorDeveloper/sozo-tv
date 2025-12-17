@@ -1,311 +1,314 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/seasonalBackground"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <View
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@drawable/bg_home_fragment_tv"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
-        android:id="@+id/backBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="42dp"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/background_button"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:paddingHorizontal="12dp"
-        app:layout_constraintStart_toStartOf="@+id/guideline26"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <androidx.appcompat.widget.AppCompatImageView
-            android:layout_width="12dp"
-            android:layout_height="12dp"
-            android:duplicateParentState="true"
-            app:srcCompat="@drawable/ic_back"
-            app:tint="@color/login_button_text_color" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:duplicateParentState="true"
-            android:fontFamily="@font/days"
-            android:text="@string/back"
-            android:textColor="@color/login_button_text_color"
-            android:textSize="13sp" />
-    </LinearLayout>
-
-
-    <TextView
-        android:id="@+id/film_title_tv"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="36dp"
-        android:ellipsize="end"
-        android:fontFamily="@font/days"
-        android:maxLines="2"
-        android:text="Joker"
-        android:textColor="#fff"
-        android:textSize="50sp"
-        app:layout_constraintEnd_toStartOf="@+id/guideline27"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/guideline25"
-        app:layout_constraintTop_toBottomOf="@+id/backBtn" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:background="#373D3F"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/categoryContainer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toStartOf="@+id/guideline27"
-        app:layout_constraintHorizontal_bias="0"
-        app:layout_constraintStart_toStartOf="@+id/guideline25"
-        app:layout_constraintTop_toBottomOf="@id/barrier1" />
-
-
-    <TextView
-        android:id="@+id/film_description_tv"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:ellipsize="end"
-        android:fontFamily="@font/rubik_regular"
-        android:lines="4"
-        android:maxLines="4"
-        android:minLines="4"
-        android:text="Joker filmining davomi (2019). Film nomiga kiritilgan folie à deux atamasi psixiatrik sindromni bildiradi, unda ikki shaxsda bir xil mazmundagi delusional g'oyalar kuzatiladi. Film Arkham boshpanasida bo'lib o'tadi, u erda Xarli Joker laqabini olgan jinoyatchi Artur Flek bilan uchrashadi."
-        android:textColor="#fff"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toStartOf="@+id/guideline27"
-        app:layout_constraintStart_toStartOf="@+id/guideline25"
-        app:layout_constraintTop_toBottomOf="@id/categoryContainer" />
-
-
-    <LinearLayout
-
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/guideline27"
-        app:layout_constraintStart_toStartOf="@+id/guideline25"
-        app:layout_constraintTop_toBottomOf="@id/barrier2">
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/bg_home_fragment_tv"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
-            android:id="@+id/watch_button"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1"
+            android:id="@+id/backBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="42dp"
+            android:layout_marginTop="20dp"
             android:background="@drawable/background_button"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:gravity="center"
             android:orientation="horizontal"
-            android:paddingHorizontal="5dp"
+            android:paddingHorizontal="12dp"
+            app:layout_constraintStart_toStartOf="@+id/guideline26"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:duplicateParentState="true"
+                app:srcCompat="@drawable/ic_back"
+                app:tint="@color/login_button_text_color" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:duplicateParentState="true"
+                android:fontFamily="@font/days"
+                android:text="@string/back"
+                android:textColor="@color/login_button_text_color"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+
+        <TextView
+            android:id="@+id/film_title_tv"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="36dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/days"
+            android:maxLines="2"
+            android:text="Joker"
+            android:textColor="#fff"
+            android:textSize="50sp"
+            app:layout_constraintEnd_toStartOf="@+id/guideline27"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="@+id/guideline25"
+            app:layout_constraintTop_toBottomOf="@+id/backBtn" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:background="#373D3F"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/categoryContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toStartOf="@+id/guideline27"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toStartOf="@+id/guideline25"
+            app:layout_constraintTop_toBottomOf="@id/barrier1" />
+
+
+        <TextView
+            android:id="@+id/film_description_tv"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/rubik_regular"
+            android:lines="4"
+            android:maxLines="4"
+            android:minLines="4"
+            android:text="Joker filmining davomi (2019). Film nomiga kiritilgan folie à deux atamasi psixiatrik sindromni bildiradi, unda ikki shaxsda bir xil mazmundagi delusional g'oyalar kuzatiladi. Film Arkham boshpanasida bo'lib o'tadi, u erda Xarli Joker laqabini olgan jinoyatchi Artur Flek bilan uchrashadi."
+            android:textColor="#fff"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toStartOf="@+id/guideline27"
+            app:layout_constraintStart_toStartOf="@+id/guideline25"
+            app:layout_constraintTop_toBottomOf="@id/categoryContainer" />
+
+
+        <LinearLayout
+
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/guideline27"
             app:layout_constraintStart_toStartOf="@+id/guideline25"
             app:layout_constraintTop_toBottomOf="@id/barrier2">
 
-            <TextView
+            <LinearLayout
+                android:id="@+id/watch_button"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:background="@drawable/background_button"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingHorizontal="5dp"
+                app:layout_constraintStart_toStartOf="@+id/guideline25"
+                app:layout_constraintTop_toBottomOf="@id/barrier2">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:duplicateParentState="true"
+                    android:fontFamily="@font/days"
+                    android:text="@string/filmni_ko_rish"
+                    android:textColor="@color/login_button_text_color"
+                    android:textSize="13sp" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center_vertical"
+                    android:duplicateParentState="true"
+                    app:srcCompat="@drawable/ic_play_for_button"
+                    app:tint="@color/login_button_text_color" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/trailer_watch_button"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="7dp"
+                android:layout_weight="1"
+
+                android:background="@drawable/background_button"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingHorizontal="5dp"
+                android:visibility="visible"
+                app:layout_constraintStart_toEndOf="@+id/watch_button"
+                app:layout_constraintTop_toBottomOf="@id/barrier2">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:duplicateParentState="true"
+                    android:fontFamily="@font/days"
+                    android:text="@string/treyler"
+                    android:textColor="@color/login_button_text_color"
+                    android:textSize="13sp" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="4dp"
+                    android:duplicateParentState="true"
+                    app:srcCompat="@drawable/ic_clapper_open"
+                    app:tint="@color/login_button_text_color" />
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/bookmark"
                 android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="7dp"
+                android:background="@drawable/background_button"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingHorizontal="7dp"
+                app:layout_constraintStart_toEndOf="@+id/watch_button"
+                app:layout_constraintTop_toBottomOf="@id/barrier2">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/icBookmark"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_gravity="center"
+                    android:duplicateParentState="true"
+                    app:srcCompat="@drawable/ic_bookmark"
+                    app:tint="@color/login_button_text_color" />
+            </LinearLayout>
+
+
+            <Space
+                android:id="@+id/space"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:duplicateParentState="true"
-                android:fontFamily="@font/days"
-                android:text="@string/filmni_ko_rish"
-                android:textColor="@color/login_button_text_color"
-                android:textSize="13sp" />
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_gravity="center_vertical"
-                android:duplicateParentState="true"
-                app:srcCompat="@drawable/ic_play_for_button"
-                app:tint="@color/login_button_text_color" />
-
+                android:layout_weight="1"
+                android:visibility="gone" />
         </LinearLayout>
-        <LinearLayout
-            android:id="@+id/trailer_watch_button"
-            android:layout_width="0dp"
+
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/buttonSound"
+            android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_marginStart="7dp"
-            android:layout_weight="1"
-
-            android:background="@drawable/background_button"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:paddingHorizontal="5dp"
-            android:visibility="visible"
-            app:layout_constraintStart_toEndOf="@+id/watch_button"
-            app:layout_constraintTop_toBottomOf="@id/barrier2">
+            app:cardBackgroundColor="@color/color_cardview"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:duplicateParentState="true"
-                android:fontFamily="@font/days"
-                android:text="@string/treyler"
-                android:textColor="@color/login_button_text_color"
-                android:textSize="13sp" />
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="4dp"
-                android:duplicateParentState="true"
-                app:srcCompat="@drawable/ic_clapper_open"
-                app:tint="@color/login_button_text_color" />
-
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:id="@+id/bookmark"
-            android:layout_width="wrap_content"
-            android:layout_height="38dp"
-            android:layout_gravity="center_vertical"
-            android:layout_marginStart="7dp"
-            android:background="@drawable/background_button"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:paddingHorizontal="7dp"
-            app:layout_constraintStart_toEndOf="@+id/watch_button"
+            app:layout_constraintEnd_toStartOf="@+id/guideline28"
             app:layout_constraintTop_toBottomOf="@id/barrier2">
 
             <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/icBookmark"
-                android:layout_width="25dp"
-                android:layout_height="25dp"
+                android:id="@+id/icon_sound"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:layout_gravity="center"
                 android:duplicateParentState="true"
-                app:srcCompat="@drawable/ic_bookmark"
+                app:srcCompat="@drawable/ic_no_sound"
                 app:tint="@color/login_button_text_color" />
-        </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/buttonPlay"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+
+            android:layout_marginEnd="15dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+
+            app:cardBackgroundColor="@color/color_cardview"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:layout_constraintEnd_toStartOf="@+id/buttonSound"
+            app:layout_constraintTop_toBottomOf="@id/barrier2">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/icon_play"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:duplicateParentState="true"
+                app:srcCompat="@drawable/ic_play"
+                app:tint="@color/login_button_text_color" />
+        </androidx.cardview.widget.CardView>
 
 
-        <Space
-            android:id="@+id/space"
-            android:layout_width="0dp"
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline28"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:visibility="gone" />
-    </LinearLayout>
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent=".95" />
 
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrier2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:barrierMargin="40dp"
+            app:constraint_referenced_ids="film_description_tv" />
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/buttonSound"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        app:cardBackgroundColor="@color/color_cardview"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="0dp"
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrier1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="film_title_tv" />
 
-        app:layout_constraintEnd_toStartOf="@+id/guideline28"
-        app:layout_constraintTop_toBottomOf="@id/barrier2">
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline26"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent=".03" />
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/icon_sound"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:layout_gravity="center"
-            android:duplicateParentState="true"
-            app:srcCompat="@drawable/ic_no_sound"
-            app:tint="@color/login_button_text_color" />
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline25"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.03" />
 
-    </androidx.cardview.widget.CardView>
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline27"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent=".43" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/buttonPlay"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-
-        android:layout_marginEnd="15dp"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-
-        app:cardBackgroundColor="@color/color_cardview"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="0dp"
-        app:layout_constraintEnd_toStartOf="@+id/buttonSound"
-        app:layout_constraintTop_toBottomOf="@id/barrier2">
-
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/icon_play"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:layout_gravity="center"
-            android:duplicateParentState="true"
-            app:srcCompat="@drawable/ic_play"
-            app:tint="@color/login_button_text_color" />
-    </androidx.cardview.widget.CardView>
-
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline28"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent=".95" />
-
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/barrier2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:barrierDirection="bottom"
-        app:barrierMargin="40dp"
-        app:constraint_referenced_ids="film_description_tv" />
-
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/barrier1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:barrierDirection="bottom"
-        app:constraint_referenced_ids="film_title_tv" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline26"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent=".03" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline25"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.03" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline27"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent=".43" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>

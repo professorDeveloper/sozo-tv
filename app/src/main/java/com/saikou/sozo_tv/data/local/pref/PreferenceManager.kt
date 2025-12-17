@@ -4,10 +4,12 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
 import com.saikou.sozo_tv.app.MyApp
+import com.saikou.sozo_tv.data.model.SeasonalTheme
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 class PreferenceManager {
 
@@ -17,7 +19,6 @@ class PreferenceManager {
     companion object {
         private const val PREF_NAME = "app_preferences"
 
-        // existing
         private const val KEY_NSFW_ENABLED = "nsfw_enabled"
         private const val KEY_CHANNEL_ENABLED = "channel_enabled"
         private const val KEY_SKIP_INTRO_ENABLED = "skip_intro_enabled"
@@ -30,12 +31,14 @@ class PreferenceManager {
         private const val KEY_SUBTITLE_BG = "subtitle_bg"
         private const val KEY_SUBTITLE_OUTLINE = "subtitle_outline"
 
-        // dropdown states
         private const val KEY_APPEARANCE_EXPANDED = "appearance_expanded"
         private const val KEY_CONTENT_CONTROLS_EXPANDED = "content_controls_expanded"
 
-        // demo theme
-        private const val KEY_DEMO_THEME = "demo_theme"
+        // New: the only thing we store for surprise layer
+        private const val KEY_SEASONAL_THEME = "seasonal_theme"
+
+        // Legacy (old demo theme UI)
+        private const val KEY_DEMO_THEME_LEGACY = "demo_theme"
     }
 
     fun isModeAnimeEnabled() = prefs.getBoolean(KEY_MODE_ANIME_ENABLED, true)
@@ -54,7 +57,7 @@ class PreferenceManager {
     fun setChannelEnabled(enabled: Boolean) =
         prefs.edit().putBoolean(KEY_CHANNEL_ENABLED, enabled).apply()
 
-
+    // ===== Subtitle Style =====
     data class SubtitleStyle(
         val font: Font = Font.DEFAULT,
         val color: Int = Color.WHITE,
@@ -74,33 +77,13 @@ class PreferenceManager {
 
     fun getSubtitleStyle(): SubtitleStyle {
         return SubtitleStyle(
-            font = Font.valueOf(
-                prefs.getString(KEY_SUBTITLE_FONT, Font.DEFAULT.name)!!
-            ),
+            font = Font.valueOf(prefs.getString(KEY_SUBTITLE_FONT, Font.DEFAULT.name)!!),
             color = prefs.getInt(KEY_SUBTITLE_COLOR, Color.WHITE),
             sizeSp = prefs.getInt(KEY_SUBTITLE_SIZE, 16),
             background = prefs.getBoolean(KEY_SUBTITLE_BG, false),
             outline = prefs.getBoolean(KEY_SUBTITLE_OUTLINE, true)
         )
     }
-
-    fun observeModeAnimeEnabled(): Flow<Boolean> = callbackFlow {
-        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == KEY_MODE_ANIME_ENABLED) trySend(isModeAnimeEnabled())
-        }
-        trySend(isModeAnimeEnabled())
-        prefs.registerOnSharedPreferenceChangeListener(listener)
-        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
-    }.distinctUntilChanged()
-
-    fun observeDemoTheme(): Flow<DemoTheme> = callbackFlow {
-        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == KEY_DEMO_THEME) trySend(getDemoTheme())
-        }
-        trySend(getDemoTheme())
-        prefs.registerOnSharedPreferenceChangeListener(listener)
-        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
-    }.distinctUntilChanged()
 
     fun isSubtitleCustom(): Boolean =
         prefs.getBoolean(KEY_SUBTITLE_CUSTOM, false)
@@ -116,6 +99,56 @@ class PreferenceManager {
             .apply()
     }
 
+    // ===== Surprise (Winter) =====
+
+    fun getSeasonalTheme(): SeasonalTheme {
+        // new key first
+        val raw = prefs.getString(KEY_SEASONAL_THEME, null)
+        if (!raw.isNullOrBlank()) {
+            val parsed = runCatching { SeasonalTheme.valueOf(raw) }
+                .getOrDefault(SeasonalTheme.DEFAULT)
+
+            // Halloween removed from UI; treat it as DEFAULT.
+            return if (parsed.name.equals("HALLOWEEN", ignoreCase = true)) {
+                SeasonalTheme.DEFAULT
+            } else parsed
+        }
+
+        // legacy migration
+        val legacy = prefs.getString(KEY_DEMO_THEME_LEGACY, null)
+        val migrated = when (legacy) {
+            "WINTER" -> SeasonalTheme.WINTER
+            else -> SeasonalTheme.DEFAULT // DEFAULT + HALLOWEEN -> DEFAULT
+        }
+
+        prefs.edit()
+            .putString(KEY_SEASONAL_THEME, migrated.name)
+            .remove(KEY_DEMO_THEME_LEGACY)
+            .apply()
+
+        return migrated
+    }
+
+    fun setSeasonalTheme(theme: SeasonalTheme) {
+        val safeTheme = if (theme.name.equals("HALLOWEEN", ignoreCase = true)) {
+            SeasonalTheme.DEFAULT
+        } else theme
+
+        prefs.edit().putString(KEY_SEASONAL_THEME, safeTheme.name).apply()
+    }
+
+    fun observeSeasonalTheme(): Flow<SeasonalTheme> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == KEY_SEASONAL_THEME || key == KEY_DEMO_THEME_LEGACY) {
+                trySend(getSeasonalTheme())
+            }
+        }
+        trySend(getSeasonalTheme())
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.distinctUntilChanged()
+
+    // ===== Dropdown expanded states =====
     fun isAppearanceExpanded(): Boolean =
         prefs.getBoolean(KEY_APPEARANCE_EXPANDED, true)
 
@@ -130,15 +163,45 @@ class PreferenceManager {
         prefs.edit().putBoolean(KEY_CONTENT_CONTROLS_EXPANDED, expanded).apply()
     }
 
+    // ===== Backward compatibility (optional) =====
+    @Deprecated("Theme UI removed. Use getSeasonalTheme()/setSeasonalTheme() or observeSeasonalTheme().")
+    enum class DemoTheme { DEFAULT, WINTER, HALLOWEEN }
 
-    enum class DemoTheme { DEFAULT, HALLOWEEN, WINTER }
+    @Deprecated("Theme UI removed. Use observeSeasonalTheme().")
+    fun observeDemoTheme(): Flow<DemoTheme> =
+        observeSeasonalTheme()
+            .map { t ->
+                when (t.name) {
+                    "WINTER" -> DemoTheme.WINTER
+                    "HALLOWEEN" -> DemoTheme.DEFAULT
+                    else -> DemoTheme.DEFAULT
+                }
+            }
+            .distinctUntilChanged()
 
-    fun getDemoTheme(): DemoTheme {
-        val raw = prefs.getString(KEY_DEMO_THEME, DemoTheme.DEFAULT.name) ?: DemoTheme.DEFAULT.name
-        return runCatching { DemoTheme.valueOf(raw) }.getOrDefault(DemoTheme.DEFAULT)
-    }
+    @Deprecated("Theme UI removed. Use getSeasonalTheme().")
+    fun getDemoTheme(): DemoTheme =
+        when (getSeasonalTheme().name) {
+            "WINTER" -> DemoTheme.WINTER
+            else -> DemoTheme.DEFAULT
+        }
 
+    @Deprecated("Theme UI removed. Use setSeasonalTheme().")
     fun setDemoTheme(theme: DemoTheme) {
-        prefs.edit().putString(KEY_DEMO_THEME, theme.name).apply()
+        setSeasonalTheme(
+            when (theme) {
+                DemoTheme.WINTER -> SeasonalTheme.WINTER
+                else -> SeasonalTheme.DEFAULT
+            }
+        )
     }
+
+    fun observeModeAnimeEnabled(): Flow<Boolean> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == KEY_MODE_ANIME_ENABLED) trySend(isModeAnimeEnabled())
+        }
+        trySend(isModeAnimeEnabled())
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.distinctUntilChanged()
 }

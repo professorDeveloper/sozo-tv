@@ -5,7 +5,7 @@
     android:id="@+id/accountScroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/netflix_background_primary"
+    android:background="@android:color/transparent"
     android:descendantFocusability="afterDescendants"
     android:fillViewport="true"
     android:focusable="true"
@@ -14,192 +14,274 @@
     android:scrollbars="none"
     tools:context=".presentation.screens.profile.MyAccountPage">
 
-    <com.saikou.sozo_tv.components.SeasonalBackgroundLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:id="@+id/seasonalBackground"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="40dp"
+            android:paddingBottom="32dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:fontFamily="sans-serif-light"
+                android:letterSpacing="0.02"
+                android:text="My Account"
+                android:textColor="@color/netflix_white"
+                android:textSize="28sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:letterSpacing="0.01"
+                android:text="Manage your profile and preferences"
+                android:textColor="@color/netflix_gray"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginBottom="16dp"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="24dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingHorizontal="20dp"
-                android:paddingTop="40dp"
-                android:paddingBottom="32dp">
+                android:layout_marginBottom="20dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_marginEnd="16dp"
+                    android:background="@drawable/netflix_avatar_bg"
+                    android:gravity="center">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/g"
+                        android:textColor="@color/netflix_white"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="2dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/guest"
+                        android:textColor="@color/netflix_white"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif"
+                        android:text="Guest Account"
+                        android:textColor="@color/netflix_gray"
+                        android:textSize="14sp" />
+                </LinearLayout>
 
                 <TextView
+                    android:id="@+id/loginButton"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="6dp"
-                    android:fontFamily="sans-serif-light"
-                    android:letterSpacing="0.02"
-                    android:text="My Account"
+                    android:layout_height="44dp"
+                    android:background="@drawable/tv_theme_card_selector"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center"
+                    android:paddingHorizontal="18dp"
+                    android:text="Log In"
                     android:textColor="@color/netflix_white"
-                    android:textSize="28sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif"
-                    android:letterSpacing="0.01"
-                    android:text="Manage your profile and preferences"
-                    android:textColor="@color/netflix_gray"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginBottom="16dp"
-                android:orientation="vertical"
-                android:paddingHorizontal="20dp"
-                android:paddingVertical="24dp">
+                android:layout_marginBottom="20dp"
+                android:orientation="horizontal">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <LinearLayout
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        android:layout_marginEnd="16dp"
-                        android:background="@drawable/netflix_avatar_bg"
-                        android:gravity="center">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="@string/g"
-                            android:textColor="@color/netflix_white"
-                            android:textSize="24sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="2dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="@string/guest"
-                            android:textColor="@color/netflix_white"
-                            android:textSize="20sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif"
-                            android:text="Guest Account"
-                            android:textColor="@color/netflix_gray"
-                            android:textSize="14sp" />
-                    </LinearLayout>
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/loginButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="44dp"
-                        android:background="@drawable/tv_theme_card_selector"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:focusableInTouchMode="true"
-                        android:gravity="center"
-                        android:paddingHorizontal="18dp"
-                        android:text="Log In"
-                        android:textColor="@color/netflix_white"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
-                    android:orientation="horizontal">
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="6dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.1"
+                        android:text="STATUS"
+                        android:textColor="@color/netflix_gray"
+                        android:textSize="11sp" />
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="6dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:letterSpacing="0.1"
-                            android:text="STATUS"
-                            android:textColor="@color/netflix_gray"
-                            android:textSize="11sp" />
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <View
-                                android:layout_width="6dp"
-                                android:layout_height="6dp"
-                                android:layout_marginEnd="8dp"
-                                android:background="@drawable/netflix_status_dot" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif"
-                                android:text="Visitor"
-                                android:textColor="@color/netflix_white"
-                                android:textSize="14sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="end"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="6dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:letterSpacing="0.1"
-                            android:text="MESSAGES"
-                            android:textColor="@color/netflix_gray"
-                            android:textSize="11sp" />
+                        <View
+                            android:layout_width="6dp"
+                            android:layout_height="6dp"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/netflix_status_dot" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif"
-                            android:text="@string/_0_unread"
+                            android:text="Visitor"
                             android:textColor="@color/netflix_white"
                             android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
 
-                <View
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="6dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.1"
+                        android:text="MESSAGES"
+                        android:textColor="@color/netflix_gray"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif"
+                        android:text="@string/_0_unread"
+                        android:textColor="@color/netflix_white"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="16dp"
+                android:background="@color/netflix_divider" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginBottom="16dp"
-                    android:background="@color/netflix_divider" />
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="6dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Content Mode"
+                        android:textColor="@color/netflix_white"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:fontFamily="sans-serif"
+                        android:text="Choose your preferred content type"
+                        android:textColor="@color/netflix_gray"
+                        android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/anime_mode_button"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_marginEnd="4dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/switch_background"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:fontFamily="@font/days"
+                            android:gravity="center"
+                            android:stateListAnimator="@null"
+                            android:text="Anime Mode"
+                            android:textColor="@color/netflix_text_primary"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/movie_mode_button"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_marginStart="4dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/switch_selected_background"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:fontFamily="@font/poppins"
+                            android:gravity="center"
+                            android:text="Movie Mode"
+                            android:textColor="@color/netflix_text_primary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="16dp"
+                android:background="@color/netflix_divider" />
+
+            <com.saikou.sozo_tv.components.TvDropdownSectionView
+                android:id="@+id/subtitleStyleDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
+                app:expanded="false"
+                app:sectionSubtitle="Customize subtitle font, color and size (TV friendly)"
+                app:sectionTitle="Subtitle Style">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -207,622 +289,383 @@
                     android:orientation="vertical">
 
                     <LinearLayout
+                        android:id="@+id/subtitle_preview_container"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:paddingHorizontal="12dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="6dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="Content Mode"
-                            android:textColor="@color/netflix_white"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="16dp"
-                            android:fontFamily="sans-serif"
-                            android:text="Choose your preferred content type"
-                            android:textColor="@color/netflix_gray"
-                            android:textSize="13sp" />
+                        android:layout_marginBottom="18dp"
+                        android:background="@drawable/netflix_focusable_background"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:padding="14dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="16dp"
-                            android:gravity="center"
-                            android:orientation="horizontal">
+                            android:orientation="vertical">
 
                             <TextView
-                                android:id="@+id/anime_mode_button"
-                                android:layout_width="0dp"
-                                android:layout_height="56dp"
-                                android:layout_marginEnd="4dp"
-                                android:layout_weight="1"
-                                android:background="@drawable/switch_background"
-                                android:focusable="true"
-                                android:focusableInTouchMode="true"
-                                android:fontFamily="@font/days"
-                                android:gravity="center"
-                                android:stateListAnimator="@null"
-                                android:text="Anime Mode"
-                                android:textColor="@color/netflix_text_primary"
-                                android:textSize="14sp" />
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="8dp"
+                                android:fontFamily="sans-serif-medium"
+                                android:letterSpacing="0.08"
+                                android:text="Preview"
+                                android:textColor="@color/netflix_gray"
+                                android:textSize="12sp" />
 
                             <TextView
-                                android:id="@+id/movie_mode_button"
-                                android:layout_width="0dp"
-                                android:layout_height="56dp"
-                                android:layout_marginStart="4dp"
-                                android:layout_weight="1"
-                                android:background="@drawable/switch_selected_background"
-                                android:focusable="true"
-                                android:focusableInTouchMode="true"
-                                android:fontFamily="@font/poppins"
-                                android:gravity="center"
-                                android:text="Movie Mode"
-                                android:textColor="@color/netflix_text_primary"
-                                android:textSize="14sp" />
+                                android:id="@+id/subtitle_preview_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif"
+                                android:text="This is how subtitles will look on TV"
+                                android:textColor="@color/netflix_white"
+                                android:textSize="16sp" />
                         </LinearLayout>
+
                     </LinearLayout>
-                </LinearLayout>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginBottom="16dp"
-                    android:background="@color/netflix_divider" />
-
-                <com.saikou.sozo_tv.components.TvDropdownSectionView
-                    android:id="@+id/subtitleStyleDropdown"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
-                    app:expanded="false"
-                    app:sectionSubtitle="Customize subtitle font, color and size (TV friendly)"
-                    app:sectionTitle="Subtitle Style">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Font"
+                        android:textColor="@color/netflix_white"
+                        android:textSize="14sp" />
 
                     <LinearLayout
+                        android:id="@+id/subtitle_font_group"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:layout_marginBottom="18dp"
+                        android:orientation="horizontal">
 
-                        <LinearLayout
-                            android:id="@+id/subtitle_preview_container"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="18dp"
-                            android:background="@drawable/netflix_focusable_background"
+                        <com.saikou.sozo_tv.components.TvOptionChipView
+                            android:id="@+id/subtitle_font_default"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_marginEnd="6dp"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-medium"
+                            android:gravity="center"
+                            android:text="Default"
+                            android:textColor="@color/netflix_text_primary"
+                            android:textSize="14sp" />
+
+                        <com.saikou.sozo_tv.components.TvOptionChipView
+                            android:id="@+id/subtitle_font_poppins"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_marginEnd="6dp"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/poppins"
+                            android:gravity="center"
+                            android:text="Poppins"
+                            android:textColor="@color/netflix_text_primary"
+                            android:textSize="14sp" />
+
+                        <com.saikou.sozo_tv.components.TvOptionChipView
+                            android:id="@+id/subtitle_font_days"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_marginEnd="6dp"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/days"
+                            android:gravity="center"
+                            android:text="Days"
+                            android:textColor="@color/netflix_text_primary"
+                            android:textSize="14sp" />
+
+                        <com.saikou.sozo_tv.components.TvOptionChipView
+                            android:id="@+id/subtitle_font_mono"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_weight="1"
+                            android:fontFamily="monospace"
+                            android:gravity="center"
+                            android:text="Mono"
+                            android:textColor="@color/netflix_text_primary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <!-- Text Size -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Text Size"
+                        android:textColor="@color/netflix_white"
+                        android:textSize="14sp" />
+
+                    <com.saikou.sozo_tv.components.TvStepperView
+                        android:id="@+id/subtitle_size_stepper"
+                        android:layout_width="wrap_content"
+                        android:layout_height="56dp"
+                        android:layout_marginBottom="18dp"
+                        app:initialValue="16"
+                        app:maxValue="28"
+                        app:minValue="12"
+                        app:step="1"
+                        app:unit="sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Text Color"
+                        android:textColor="@color/netflix_white"
+                        android:textSize="14sp" />
+
+                    <LinearLayout
+                        android:id="@+id/subtitle_color_group"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="18dp"
+                        android:orientation="horizontal">
+
+                        <FrameLayout
+                            android:id="@+id/subtitle_color_white"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_marginEnd="12dp"
+                            android:background="@drawable/tv_swatch_ring_selector"
                             android:clickable="true"
                             android:focusable="true"
                             android:focusableInTouchMode="true"
-                            android:padding="14dp">
+                            android:padding="4dp">
 
-                            <LinearLayout
+                            <View
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical">
+                                android:layout_height="match_parent"
+                                android:background="@drawable/tv_swatch_fill"
+                                android:backgroundTint="@color/netflix_white" />
+                        </FrameLayout>
 
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginBottom="8dp"
-                                    android:fontFamily="sans-serif-medium"
-                                    android:letterSpacing="0.08"
-                                    android:text="Preview"
-                                    android:textColor="@color/netflix_gray"
-                                    android:textSize="12sp" />
+                        <FrameLayout
+                            android:id="@+id/subtitle_color_orange"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_marginEnd="12dp"
+                            android:background="@drawable/tv_swatch_ring_selector"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:padding="4dp">
 
-                                <TextView
-                                    android:id="@+id/subtitle_preview_text"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:fontFamily="sans-serif"
-                                    android:text="This is how subtitles will look on TV"
-                                    android:textColor="@color/netflix_white"
-                                    android:textSize="16sp" />
-                            </LinearLayout>
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/tv_swatch_fill"
+                                android:backgroundTint="@color/orange" />
+                        </FrameLayout>
 
-                        </LinearLayout>
+                        <FrameLayout
+                            android:id="@+id/subtitle_color_gray"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_marginEnd="12dp"
+                            android:background="@drawable/tv_swatch_ring_selector"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:padding="4dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="10dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="Font"
-                            android:textColor="@color/netflix_white"
-                            android:textSize="14sp" />
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/tv_swatch_fill"
+                                android:backgroundTint="@color/netflix_gray" />
+                        </FrameLayout>
 
-                        <LinearLayout
-                            android:id="@+id/subtitle_font_group"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="18dp"
-                            android:orientation="horizontal">
+                        <FrameLayout
+                            android:id="@+id/subtitle_color_green"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_marginEnd="12dp"
+                            android:background="@drawable/tv_swatch_ring_selector"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:padding="4dp">
 
-                            <com.saikou.sozo_tv.components.TvOptionChipView
-                                android:id="@+id/subtitle_font_default"
-                                android:layout_width="0dp"
-                                android:layout_height="56dp"
-                                android:layout_marginEnd="6dp"
-                                android:layout_weight="1"
-                                android:fontFamily="sans-serif-medium"
-                                android:gravity="center"
-                                android:text="Default"
-                                android:textColor="@color/netflix_text_primary"
-                                android:textSize="14sp" />
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/tv_swatch_fill"
+                                android:backgroundTint="@color/netflix_green" />
+                        </FrameLayout>
 
-                            <com.saikou.sozo_tv.components.TvOptionChipView
-                                android:id="@+id/subtitle_font_poppins"
-                                android:layout_width="0dp"
-                                android:layout_height="56dp"
-                                android:layout_marginEnd="6dp"
-                                android:layout_weight="1"
-                                android:fontFamily="@font/poppins"
-                                android:gravity="center"
-                                android:text="Poppins"
-                                android:textColor="@color/netflix_text_primary"
-                                android:textSize="14sp" />
+                        <FrameLayout
+                            android:id="@+id/subtitle_color_red"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_marginEnd="12dp"
+                            android:background="@drawable/tv_swatch_ring_selector"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:padding="4dp">
 
-                            <com.saikou.sozo_tv.components.TvOptionChipView
-                                android:id="@+id/subtitle_font_days"
-                                android:layout_width="0dp"
-                                android:layout_height="56dp"
-                                android:layout_marginEnd="6dp"
-                                android:layout_weight="1"
-                                android:fontFamily="@font/days"
-                                android:gravity="center"
-                                android:text="Days"
-                                android:textColor="@color/netflix_text_primary"
-                                android:textSize="14sp" />
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/tv_swatch_fill"
+                                android:backgroundTint="@color/netflix_red" />
+                        </FrameLayout>
 
-                            <com.saikou.sozo_tv.components.TvOptionChipView
-                                android:id="@+id/subtitle_font_mono"
-                                android:layout_width="0dp"
-                                android:layout_height="56dp"
-                                android:layout_weight="1"
-                                android:fontFamily="monospace"
-                                android:gravity="center"
-                                android:text="Mono"
-                                android:textColor="@color/netflix_text_primary"
-                                android:textSize="14sp" />
-                        </LinearLayout>
+                        <FrameLayout
+                            android:id="@+id/subtitle_color_blue"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:background="@drawable/tv_swatch_ring_selector"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:padding="4dp">
 
-                        <!-- Text Size -->
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="10dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="Text Size"
-                            android:textColor="@color/netflix_white"
-                            android:textSize="14sp" />
-
-                        <com.saikou.sozo_tv.components.TvStepperView
-                            android:id="@+id/subtitle_size_stepper"
-                            android:layout_width="wrap_content"
-                            android:layout_height="56dp"
-                            android:layout_marginBottom="18dp"
-                            app:initialValue="16"
-                            app:maxValue="28"
-                            app:minValue="12"
-                            app:step="1"
-                            app:unit="sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="10dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="Text Color"
-                            android:textColor="@color/netflix_white"
-                            android:textSize="14sp" />
-
-                        <LinearLayout
-                            android:id="@+id/subtitle_color_group"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="18dp"
-                            android:orientation="horizontal">
-
-                            <FrameLayout
-                                android:id="@+id/subtitle_color_white"
-                                android:layout_width="44dp"
-                                android:layout_height="44dp"
-                                android:layout_marginEnd="12dp"
-                                android:background="@drawable/tv_swatch_ring_selector"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:focusableInTouchMode="true"
-                                android:padding="4dp">
-
-                                <View
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:background="@drawable/tv_swatch_fill"
-                                    android:backgroundTint="@color/netflix_white" />
-                            </FrameLayout>
-
-                            <FrameLayout
-                                android:id="@+id/subtitle_color_orange"
-                                android:layout_width="44dp"
-                                android:layout_height="44dp"
-                                android:layout_marginEnd="12dp"
-                                android:background="@drawable/tv_swatch_ring_selector"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:focusableInTouchMode="true"
-                                android:padding="4dp">
-
-                                <View
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:background="@drawable/tv_swatch_fill"
-                                    android:backgroundTint="@color/orange" />
-                            </FrameLayout>
-
-                            <FrameLayout
-                                android:id="@+id/subtitle_color_gray"
-                                android:layout_width="44dp"
-                                android:layout_height="44dp"
-                                android:layout_marginEnd="12dp"
-                                android:background="@drawable/tv_swatch_ring_selector"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:focusableInTouchMode="true"
-                                android:padding="4dp">
-
-                                <View
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:background="@drawable/tv_swatch_fill"
-                                    android:backgroundTint="@color/netflix_gray" />
-                            </FrameLayout>
-
-                            <FrameLayout
-                                android:id="@+id/subtitle_color_green"
-                                android:layout_width="44dp"
-                                android:layout_height="44dp"
-                                android:layout_marginEnd="12dp"
-                                android:background="@drawable/tv_swatch_ring_selector"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:focusableInTouchMode="true"
-                                android:padding="4dp">
-
-                                <View
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:background="@drawable/tv_swatch_fill"
-                                    android:backgroundTint="@color/netflix_green" />
-                            </FrameLayout>
-
-                            <FrameLayout
-                                android:id="@+id/subtitle_color_red"
-                                android:layout_width="44dp"
-                                android:layout_height="44dp"
-                                android:layout_marginEnd="12dp"
-                                android:background="@drawable/tv_swatch_ring_selector"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:focusableInTouchMode="true"
-                                android:padding="4dp">
-
-                                <View
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:background="@drawable/tv_swatch_fill"
-                                    android:backgroundTint="@color/netflix_red" />
-                            </FrameLayout>
-
-                            <FrameLayout
-                                android:id="@+id/subtitle_color_blue"
-                                android:layout_width="44dp"
-                                android:layout_height="44dp"
-                                android:background="@drawable/tv_swatch_ring_selector"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:focusableInTouchMode="true"
-                                android:padding="4dp">
-
-                                <View
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:background="@drawable/tv_swatch_fill"
-                                    android:backgroundTint="@color/cta_button_normal" />
-                            </FrameLayout>
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="10dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="Subtitle Background"
-                            android:textColor="@color/netflix_white"
-                            android:textSize="14sp" />
-
-                        <LinearLayout
-                            android:id="@+id/subtitle_bg_group"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="18dp"
-                            android:orientation="horizontal">
-
-                            <com.saikou.sozo_tv.components.TvOptionChipView
-                                android:id="@+id/subtitle_bg_off"
-                                android:layout_width="0dp"
-                                android:layout_height="56dp"
-                                android:layout_marginEnd="6dp"
-                                android:layout_weight="1"
-                                android:fontFamily="sans-serif-medium"
-                                android:text="Off"
-                                android:textColor="@color/netflix_text_primary" />
-
-                            <com.saikou.sozo_tv.components.TvOptionChipView
-                                android:id="@+id/subtitle_bg_on"
-                                android:layout_width="0dp"
-                                android:layout_height="56dp"
-                                android:layout_weight="1"
-                                android:fontFamily="sans-serif-medium"
-                                android:text="On"
-                                android:textColor="@color/netflix_text_primary" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="10dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="Outline"
-                            android:textColor="@color/netflix_white"
-                            android:textSize="14sp" />
-
-                        <LinearLayout
-                            android:id="@+id/subtitle_outline_group"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                            <com.saikou.sozo_tv.components.TvOptionChipView
-                                android:id="@+id/subtitle_outline_off"
-                                android:layout_width="0dp"
-                                android:layout_height="56dp"
-                                android:layout_marginEnd="6dp"
-                                android:layout_weight="1"
-                                android:fontFamily="sans-serif-medium"
-                                android:text="Off"
-                                android:textColor="@color/netflix_text_primary" />
-
-                            <com.saikou.sozo_tv.components.TvOptionChipView
-                                android:id="@+id/subtitle_outline_on"
-                                android:layout_width="0dp"
-                                android:layout_height="56dp"
-                                android:layout_weight="1"
-                                android:fontFamily="sans-serif-medium"
-                                android:text="On"
-                                android:textColor="@color/netflix_text_primary" />
-                        </LinearLayout>
-
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/tv_swatch_fill"
+                                android:backgroundTint="@color/cta_button_normal" />
+                        </FrameLayout>
                     </LinearLayout>
-                </com.saikou.sozo_tv.components.TvDropdownSectionView>
 
-                <com.saikou.sozo_tv.components.TvDropdownSectionView
-                    android:id="@+id/themeDropdown"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:expanded="true"
-                    app:sectionSubtitle="Demo themes (no real color change)"
-                    app:sectionTitle="Theme">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Subtitle Background"
+                        android:textColor="@color/netflix_white"
+                        android:textSize="14sp" />
 
                     <LinearLayout
+                        android:id="@+id/subtitle_bg_group"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical">
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="18dp"
+                        android:orientation="horizontal">
 
-                        <LinearLayout
-                            android:id="@+id/themePreviewContainer"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="14dp"
-                            android:background="@drawable/netflix_focusable_background"
-                            android:padding="14dp">
+                        <com.saikou.sozo_tv.components.TvOptionChipView
+                            android:id="@+id/subtitle_bg_off"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_marginEnd="6dp"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="Off"
+                            android:textColor="@color/netflix_text_primary" />
 
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginBottom="8dp"
-                                    android:fontFamily="sans-serif-medium"
-                                    android:letterSpacing="0.08"
-                                    android:text="Preview"
-                                    android:textColor="@color/netflix_gray"
-                                    android:textSize="12sp" />
-
-                                <TextView
-                                    android:id="@+id/themePreviewText"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:fontFamily="sans-serif-medium"
-                                    android:text="Theme: Default"
-                                    android:textColor="@color/netflix_white"
-                                    android:textSize="18sp" />
-                            </LinearLayout>
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                            <LinearLayout
-                                android:id="@+id/themeCardDefault"
-                                android:layout_width="0dp"
-                                android:layout_height="112dp"
-                                android:layout_marginEnd="8dp"
-                                android:layout_weight="1"
-                                android:background="@drawable/tv_theme_card_selector"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:focusableInTouchMode="true"
-                                android:orientation="vertical"
-                                android:padding="10dp">
-
-                                <FrameLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="0dp"
-                                    android:layout_weight="1"
-                                    android:background="@drawable/bg_theme_preview_default">
-
-                                    <ImageView
-                                        android:layout_width="match_parent"
-                                        android:layout_height="match_parent"
-                                        android:gravity="center"
-                                        android:padding="14dp"
-                                        android:src="@drawable/ic_theme_default" />
-
-                                </FrameLayout>
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
-                                    android:fontFamily="sans-serif-medium"
-                                    android:text="Default"
-                                    android:textColor="@color/netflix_white"
-                                    android:textSize="13sp" />
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:id="@+id/themeCardHalloween"
-                                android:layout_width="0dp"
-                                android:layout_height="112dp"
-                                android:layout_marginEnd="8dp"
-                                android:layout_weight="1"
-                                android:background="@drawable/tv_theme_card_selector"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:focusableInTouchMode="true"
-                                android:orientation="vertical"
-                                android:padding="10dp">
-
-                                <FrameLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="0dp"
-                                    android:layout_weight="1"
-                                    android:background="@drawable/bg_theme_preview_halloween">
-
-                                    <ImageView
-                                        android:layout_width="match_parent"
-                                        android:layout_height="match_parent"
-                                        android:gravity="center"
-                                        android:padding="8dp"
-                                        android:src="@drawable/ic_theme_halloween" />
-                                </FrameLayout>
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
-                                    android:fontFamily="sans-serif-medium"
-                                    android:text="Halloween"
-                                    android:textColor="@color/netflix_white"
-                                    android:textSize="13sp" />
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:id="@+id/themeCardWinter"
-                                android:layout_width="0dp"
-                                android:layout_height="112dp"
-                                android:layout_weight="1"
-                                android:background="@drawable/tv_theme_card_selector"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:focusableInTouchMode="true"
-                                android:orientation="vertical"
-                                android:padding="10dp">
-
-                                <FrameLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="0dp"
-                                    android:layout_weight="1"
-                                    android:background="@drawable/bg_theme_preview_winter">
-
-                                    <ImageView
-                                        android:layout_width="match_parent"
-                                        android:layout_height="match_parent"
-                                        android:gravity="center"
-                                        android:padding="14dp"
-                                        android:src="@drawable/ic_theme_winter" />
-                                </FrameLayout>
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
-                                    android:fontFamily="sans-serif-medium"
-                                    android:text="Winter"
-                                    android:textColor="@color/netflix_white"
-                                    android:textSize="13sp" />
-                            </LinearLayout>
-
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:fontFamily="sans-serif"
-                            android:text="Demo only — real app colors are not changed yet."
-                            android:textColor="@color/netflix_gray"
-                            android:textSize="12sp" />
-
+                        <com.saikou.sozo_tv.components.TvOptionChipView
+                            android:id="@+id/subtitle_bg_on"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="On"
+                            android:textColor="@color/netflix_text_primary" />
                     </LinearLayout>
-                </com.saikou.sozo_tv.components.TvDropdownSectionView>
 
-                <View
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Outline"
+                        android:textColor="@color/netflix_white"
+                        android:textSize="14sp" />
+
+                    <LinearLayout
+                        android:id="@+id/subtitle_outline_group"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <com.saikou.sozo_tv.components.TvOptionChipView
+                            android:id="@+id/subtitle_outline_off"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_marginEnd="6dp"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="Off"
+                            android:textColor="@color/netflix_text_primary" />
+
+                        <com.saikou.sozo_tv.components.TvOptionChipView
+                            android:id="@+id/subtitle_outline_on"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="On"
+                            android:textColor="@color/netflix_text_primary" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.saikou.sozo_tv.components.TvDropdownSectionView>
+
+            <com.saikou.sozo_tv.components.TvDropdownSectionView
+                android:id="@+id/themeDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:expanded="true"
+                app:sectionSubtitle="Demo themes (no real color change)"
+                app:sectionTitle="Theme">
+
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
 
-                <com.saikou.sozo_tv.components.TvDropdownSectionView
-                    android:id="@+id/contentControlsDropdown"
+                    <com.saikou.sozo_tv.components.TvToggleRowView
+                        android:id="@+id/winterToggleRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="14dp"
+                        app:titleText="Winter mode"
+                        app:subtitleText="Enable / disable Winter theme preview" />
+
+
+                </LinearLayout>
+            </com.saikou.sozo_tv.components.TvDropdownSectionView>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="16dp" />
+
+            <com.saikou.sozo_tv.components.TvDropdownSectionView
+                android:id="@+id/contentControlsDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:expanded="false"
+                app:sectionSubtitle="Manage what shows on Home"
+                app:sectionTitle="Content &amp; Privacy">
+
+                <com.saikou.sozo_tv.components.TvToggleRowView
+                    android:id="@+id/channelToggleRow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="24dp"
-                    app:expanded="false"
-                    app:sectionSubtitle="Manage what shows on Home"
-                    app:sectionTitle="Content &amp; Privacy">
+                    android:layout_marginBottom="16dp"
+                    app:subtitleText="@string/enable_or_disable_channel_content_visibility"
+                    app:titleText="@string/channel_list" />
 
-                    <com.saikou.sozo_tv.components.TvToggleRowView
-                        android:id="@+id/channelToggleRow"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        app:subtitleText="@string/enable_or_disable_channel_content_visibility"
-                        app:titleText="@string/channel_list" />
+                <com.saikou.sozo_tv.components.TvToggleRowView
+                    android:id="@+id/nsfwToggleRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:subtitleText="@string/enable_or_disable_adult_content_visibility"
+                    app:titleText="@string/adult_content_nsfw" />
 
-                    <com.saikou.sozo_tv.components.TvToggleRowView
-                        android:id="@+id/nsfwToggleRow"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:subtitleText="@string/enable_or_disable_adult_content_visibility"
-                        app:titleText="@string/adult_content_nsfw" />
+            </com.saikou.sozo_tv.components.TvDropdownSectionView>
 
-                </com.saikou.sozo_tv.components.TvDropdownSectionView>
-
-            </LinearLayout>
         </LinearLayout>
+    </LinearLayout>
 
-    </com.saikou.sozo_tv.components.SeasonalBackgroundLayout>
 </ScrollView>

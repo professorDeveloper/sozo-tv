@@ -99,7 +99,7 @@ val koinModule = module {
     viewModel { LiveTvViewModel(dao = get()) }
     viewModel { AdultPlayerViewModel() }
     viewModel { SplashViewModel(firebaseService = get()) }
-    viewModel { PlayViewModel(repo = get(), bookmarkRepo = get(), watchHistoryRepository = get()) }
+    viewModel { PlayViewModel( watchHistoryRepository = get()) }
     viewModel { DetailViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
     viewModel { SearchViewModel(repo = get()) }

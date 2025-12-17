@@ -6,7 +6,6 @@ import android.graphics.Color
 import android.graphics.Paint
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.random.Random
 
 internal class SnowRenderer(context: Context) {
@@ -79,14 +78,14 @@ internal class SnowRenderer(context: Context) {
         val r = rnd.nextFloat() * (2.4f * density) + (0.9f * density)
         val speed = rnd.nextFloat() * (90f * density) + (35f * density)
         val drift = (rnd.nextFloat() - 0.5f) * (22f * density)
-
-        val alpha = (rnd.nextInt(45, 110)) // subtle
+        val alpha = rnd.nextInt(45, 110)
 
         val x = rnd.nextFloat() * max(1, widthPx)
-        val y = if (randomY) rnd.nextFloat() * max(
-            1,
-            heightPx
-        ) else -abs(rnd.nextFloat() * heightPx * 0.15f)
+        val y = if (randomY) {
+            rnd.nextFloat() * max(1, heightPx)
+        } else {
+            -abs(rnd.nextFloat() * heightPx * 0.15f)
+        }
 
         return Flake(x = x, y = y, r = r, speed = speed, drift = drift, alpha = alpha)
     }

@@ -2,7 +2,6 @@ package com.saikou.sozo_tv.presentation.screens.profile
 
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
-import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
@@ -36,19 +35,19 @@ class MyAccountPage : Fragment() {
 
     private var ignoreNsfwCallback = false
     private var themePreviewAnimator: ValueAnimator? = null
+
+    private var ignoreWinterToggleCallback = false
+    private var lastNonWinterTheme: SeasonalTheme = SeasonalTheme.DEFAULT
     private val settingsViewModel: SettingsViewModel by activityViewModel()
 
-    /**
-     * Implement this in the Activity if you want real navigation:
-     * class MainActivity : AppCompatActivity(), MyAccountPage.AuthNavigator { override fun openLogin() { ... } }
-     */
     interface AuthNavigator {
         fun openLogin()
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
     ): View {
         _binding = MyAccountPageBinding.inflate(inflater, container, false)
         return binding.root
@@ -65,13 +64,6 @@ class MyAccountPage : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         preferenceManager = PreferenceManager()
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                settingsViewModel.seasonalTheme.collect { theme ->
-                    binding.seasonalBackground.setTheme(theme)
-                }
-            }
-        }
 
         setupLoginButton()
 
@@ -88,11 +80,11 @@ class MyAccountPage : Fragment() {
             if (host is AuthNavigator) {
                 host.openLogin()
             } else {
-                Toast.makeText(requireContext(), "Login page not connected yet", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Login page not connected yet", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
-
 
     private fun setupModeButtons() {
         binding.apply {
@@ -132,12 +124,10 @@ class MyAccountPage : Fragment() {
         )
     }
 
-
     private fun setupAppearanceSection() {
         setupSubtitleStyle(binding, preferenceManager)
         setupThemeDemo(binding)
     }
-
 
     private fun setupContentControlsSection() {
         binding.contentControlsDropdown.setExpanded(
@@ -155,13 +145,12 @@ class MyAccountPage : Fragment() {
             updateContentControlsHeader()
         }
 
-        // NSFW toggle (with warning dialog once)
+        // NSFW toggle
         binding.nsfwToggleRow.setChecked(preferenceManager.isNsfwEnabled())
         binding.nsfwToggleRow.setOnCheckedChangedListener { isChecked ->
             if (ignoreNsfwCallback) return@setOnCheckedChangedListener
 
             if (isChecked && !preferenceManager.isNsfwEnabled()) {
-                // first time enabling -> show warning
                 ignoreNsfwCallback = true
                 binding.nsfwToggleRow.setChecked(false)
                 ignoreNsfwCallback = false
@@ -213,93 +202,46 @@ class MyAccountPage : Fragment() {
         dialog.show(parentFragmentManager, "NsfwWarningDialog")
     }
 
-
-    private fun PreferenceManager.DemoTheme.displayName(): String = when (this) {
-        PreferenceManager.DemoTheme.DEFAULT -> "Default"
-        PreferenceManager.DemoTheme.HALLOWEEN -> "Halloween"
-        PreferenceManager.DemoTheme.WINTER -> "Winter"
-    }
-
     private fun setupThemeDemo(
         binding: MyAccountPageBinding,
         onChanged: (() -> Unit)? = null
     ) {
-        fun apply(theme: SeasonalTheme) {
-            settingsViewModel.setSeasonalTheme(theme)
+        fun render(theme: SeasonalTheme) {
+            if (theme != SeasonalTheme.WINTER) lastNonWinterTheme = theme
 
-            binding.themeCardDefault.isSelected = theme == SeasonalTheme.DEFAULT
-            binding.themeCardHalloween.isSelected = theme == SeasonalTheme.HALLOWEEN
-            binding.themeCardWinter.isSelected = theme == SeasonalTheme.WINTER
 
             binding.themeDropdown.setSummary(
                 when (theme) {
                     SeasonalTheme.DEFAULT -> "Default"
-                    SeasonalTheme.HALLOWEEN -> "Halloween"
                     SeasonalTheme.WINTER -> "Winter"
                 }
             )
             binding.themeDropdown.setBadge("DEMO")
-            binding.seasonalBackground.setTheme(theme)
+            ignoreWinterToggleCallback = true
+            binding.winterToggleRow.setChecked(theme == SeasonalTheme.WINTER)
+            ignoreWinterToggleCallback = false
 
-            applyThemePreview(
-                when (theme) {
-                    SeasonalTheme.DEFAULT -> PreferenceManager.DemoTheme.DEFAULT
-                    SeasonalTheme.HALLOWEEN -> PreferenceManager.DemoTheme.HALLOWEEN
-                    SeasonalTheme.WINTER -> PreferenceManager.DemoTheme.WINTER
-                }
-            )
+            onChanged?.invoke()
         }
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                settingsViewModel.seasonalTheme.collect { apply(it) }
+                settingsViewModel.seasonalTheme.collect { theme ->
+                    render(theme)
+                }
             }
         }
 
-        binding.themeCardDefault.setOnClickListener { apply(SeasonalTheme.DEFAULT) }
-        binding.themeCardHalloween.setOnClickListener { apply(SeasonalTheme.HALLOWEEN) }
-        binding.themeCardWinter.setOnClickListener { apply(SeasonalTheme.WINTER) }
+        binding.winterToggleRow.setOnCheckedChangedListener { isChecked ->
+            if (ignoreWinterToggleCallback) return@setOnCheckedChangedListener
 
-//        apply(prefs.getDemoTheme())
-    }
-
-    private fun applyThemePreview(theme: PreferenceManager.DemoTheme) {
-        val ctx = requireContext()
-
-        themePreviewAnimator?.cancel()
-        themePreviewAnimator = null
-
-        val previewContainer = binding.themePreviewContainer
-        val previewText = binding.themePreviewText
-
-        when (theme) {
-            PreferenceManager.DemoTheme.DEFAULT -> {
-                previewContainer.setBackgroundResource(R.drawable.netflix_focusable_background)
-                previewText.text = "Theme: Default"
-                previewText.setTextColor(ContextCompat.getColor(ctx, R.color.netflix_white))
-            }
-
-            PreferenceManager.DemoTheme.HALLOWEEN -> {
-                previewContainer.setBackgroundResource(R.drawable.bg_theme_preview_halloween)
-                previewText.text = "Theme: Halloween 🎃"
-                startTextPulse(
-                    previewText,
-                    ContextCompat.getColor(ctx, R.color.orange),
-                    ContextCompat.getColor(ctx, R.color.netflix_red)
-                )
-            }
-
-            PreferenceManager.DemoTheme.WINTER -> {
-                previewContainer.setBackgroundResource(R.drawable.bg_theme_preview_winter)
-                previewText.text = "Theme: Winter ❄"
-                startTextPulse(
-                    previewText,
-                    ContextCompat.getColor(ctx, R.color.cta_button_normal),
-                    ContextCompat.getColor(ctx, R.color.netflix_white)
-                )
+            if (isChecked) {
+                settingsViewModel.setSeasonalTheme(SeasonalTheme.WINTER)
+            } else {
+                settingsViewModel.setSeasonalTheme(lastNonWinterTheme)
             }
         }
-    }
 
+    }
 
 
     private fun startTextPulse(tv: TextView, fromColor: Int, toColor: Int) {
@@ -315,7 +257,6 @@ class MyAccountPage : Fragment() {
             start()
         }
     }
-
 
     private fun setupSubtitleStyle(
         binding: MyAccountPageBinding,
@@ -362,13 +303,22 @@ class MyAccountPage : Fragment() {
 
             preview.typeface = when (state.font) {
                 PreferenceManager.Font.DEFAULT -> Typeface.SANS_SERIF
-                PreferenceManager.Font.POPPINS -> ResourcesCompat.getFont(preview.context, R.font.poppins)
+                PreferenceManager.Font.POPPINS -> ResourcesCompat.getFont(
+                    preview.context,
+                    R.font.poppins
+                )
+
                 PreferenceManager.Font.DAYS -> ResourcesCompat.getFont(preview.context, R.font.days)
                 PreferenceManager.Font.MONO -> Typeface.MONOSPACE
             }
 
             if (state.background) {
-                preview.setBackgroundColor(ContextCompat.getColor(preview.context, R.color.netflix_focus_overlay))
+                preview.setBackgroundColor(
+                    ContextCompat.getColor(
+                        preview.context,
+                        R.color.netflix_focus_overlay
+                    )
+                )
                 preview.setPadding(dp(12), dp(6), dp(12), dp(6))
             } else {
                 preview.background = null
@@ -386,11 +336,9 @@ class MyAccountPage : Fragment() {
             onChanged?.invoke()
         }
 
-        // init
         applyPreview()
         updateHeaderInfo()
 
-        // Fonts
         val fonts = mapOf(
             binding.subtitleFontDefault to PreferenceManager.Font.DEFAULT,
             binding.subtitleFontPoppins to PreferenceManager.Font.POPPINS,
@@ -408,14 +356,12 @@ class MyAccountPage : Fragment() {
             }
         }
 
-        // Size
         binding.subtitleSizeStepper.setValue(state.sizeSp)
         binding.subtitleSizeStepper.setOnValueChangedListener {
             state = state.copy(sizeSp = it)
             commit()
         }
 
-        // Colors
         val ctx = preview.context
         val colorMap = mapOf(
             binding.subtitleColorWhite to ContextCompat.getColor(ctx, R.color.netflix_white),
@@ -435,7 +381,6 @@ class MyAccountPage : Fragment() {
         }
         colorMap.forEach { (v, c) -> v.setOnClickListener { selectColor(v, c) } }
 
-        // BG
         binding.subtitleBgOn.isSelected = state.background
         binding.subtitleBgOff.isSelected = !state.background
 
@@ -452,7 +397,6 @@ class MyAccountPage : Fragment() {
             commit()
         }
 
-        // Outline
         binding.subtitleOutlineOn.isSelected = state.outline
         binding.subtitleOutlineOff.isSelected = !state.outline
 

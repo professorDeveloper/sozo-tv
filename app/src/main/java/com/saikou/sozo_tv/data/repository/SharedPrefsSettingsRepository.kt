@@ -18,14 +18,7 @@ class SharedPrefsSettingsRepository(
             .distinctUntilChanged()
 
     override val seasonalTheme: Flow<SeasonalTheme> =
-        prefs.observeDemoTheme()
-            .map { demo ->
-                when (demo) {
-                    PreferenceManager.DemoTheme.DEFAULT -> SeasonalTheme.DEFAULT
-                    PreferenceManager.DemoTheme.HALLOWEEN -> SeasonalTheme.HALLOWEEN
-                    PreferenceManager.DemoTheme.WINTER -> SeasonalTheme.WINTER
-                }
-            }
+        prefs.observeSeasonalTheme()
             .distinctUntilChanged()
 
     override fun setContentMode(mode: ContentMode) {
@@ -33,11 +26,6 @@ class SharedPrefsSettingsRepository(
     }
 
     override fun setSeasonalTheme(theme: SeasonalTheme) {
-        val demo = when (theme) {
-            SeasonalTheme.DEFAULT -> PreferenceManager.DemoTheme.DEFAULT
-            SeasonalTheme.HALLOWEEN -> PreferenceManager.DemoTheme.HALLOWEEN
-            SeasonalTheme.WINTER -> PreferenceManager.DemoTheme.WINTER
-        }
-        prefs.setDemoTheme(demo)
+        prefs.setSeasonalTheme(theme)
     }
 }

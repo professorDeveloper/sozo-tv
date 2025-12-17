@@ -44,6 +44,7 @@ import kotlinx.coroutines.launch
 import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.concurrent.TimeUnit
 
 
@@ -51,7 +52,6 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     private var _binding: DetailPageBinding? = null
     private val binding get() = _binding!!
     private val detailModel: DetailViewModel by activityViewModel()
-    private val settingsViewModel: SettingsViewModel by activityViewModel()
     private var player: ExoPlayer? = null
     private val preference by lazy { PreferenceManager() }
     private var trailerUrlPlayer: String? = null
@@ -89,13 +89,8 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     @SuppressLint("UnsafeOptInUsageError")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                settingsViewModel.seasonalTheme.collect { theme ->
-                    binding.seasonalBackground.setTheme(theme)
-                }
-            }
-        }
+        val seasonalTheme = PreferenceManager().getSeasonalTheme()
+        binding.seasonalBackground.setTheme(seasonalTheme)
         initializeAdapter()
         initializePlayer()
 
