@@ -626,9 +626,10 @@
                         android:id="@+id/winterToggleRow"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+
                         android:layout_marginBottom="14dp"
                         app:subtitleText="Enable / disable Winter theme preview"
-                        app:titleText="Winter mode" />
+                        app:titleText="Winter mode (Surprise Me)" />
 
 
                 </LinearLayout>
