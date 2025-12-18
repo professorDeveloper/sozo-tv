@@ -53,7 +53,9 @@ class TvGardenViewModel(
     fun loadChannelsByCountry(country: Country) {
         viewModelScope.launch {
             tvGarden.getChannelsByCountry(country).let {
-                channels.postValue(it)
+                it.onEach {
+                    channels.postValue(it)
+                }
             }
         }
     }
@@ -62,7 +64,9 @@ class TvGardenViewModel(
         countries.postValue(Resource.Loading)
         viewModelScope.launch {
             tvGarden.loadChannelCountries().let {
-                countries.postValue(Resource.Success(it))
+                it.onEach {
+                    countries.postValue(Resource.Success(it))
+                }
             }
         }
     }

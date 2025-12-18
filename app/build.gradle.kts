@@ -45,14 +45,14 @@ android {
     defaultConfig {
         applicationId = "com.saikou.sozo_tv"
         minSdk = 24
+        //noinspection OldTargetApi
         targetSdk = 35
         versionCode = 3
         versionName = "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
-            cmake {
-            }
+            cmake {}
         }
 
     }
@@ -63,9 +63,9 @@ android {
 
         }
         release {
+            //
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
             buildConfigField("String", "GITHUB_TOKEN", "\"\"")
 
@@ -80,6 +80,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
     externalNativeBuild {
         cmake {

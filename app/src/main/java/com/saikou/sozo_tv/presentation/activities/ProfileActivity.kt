@@ -14,6 +14,7 @@ import androidx.navigation.findNavController
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.ProfileAdapter
 import com.saikou.sozo_tv.databinding.ActivityProfileBinding
+import com.saikou.sozo_tv.presentation.screens.profile.MyAccountPage
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isHistoryItemClicked
@@ -21,7 +22,7 @@ import com.saikou.sozo_tv.utils.LocalData.sectionList
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class ProfileActivity : AppCompatActivity() {
+class ProfileActivity : AppCompatActivity(),MyAccountPage.AuthNavigator {
     private lateinit var viewBinding: ActivityProfileBinding
     private var backPressCount = 0
     private val model: SettingsViewModel by viewModel()
@@ -185,5 +186,9 @@ class ProfileActivity : AppCompatActivity() {
 
     companion object {
         const val HOME_BUTTON = -1
+    }
+
+    override fun openLogin() {
+
     }
 }
