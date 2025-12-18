@@ -195,4 +195,12 @@ class PreferenceManager {
         prefs.registerOnSharedPreferenceChangeListener(listener)
         awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
     }.distinctUntilChanged()
+
+    fun putString(source: String, sourceId: String) {
+        prefs.edit().putString(source, sourceId).apply()
+    }
+
+    fun getString(key: String): String {
+        return prefs.getString(key, "") ?: ""
+    }
 }

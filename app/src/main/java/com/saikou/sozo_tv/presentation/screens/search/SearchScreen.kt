@@ -16,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.SearchAdapter
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.databinding.SearchScreenBinding
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
@@ -53,6 +54,7 @@ class SearchScreen : Fragment() {
         showInitialState()
         preventSystemKeyboard()
         binding.searchEdt.requestFocus()
+        binding.seasonalBackground.setTheme(PreferenceManager().getSeasonalTheme())
     }
 
     private fun preventSystemKeyboard() {

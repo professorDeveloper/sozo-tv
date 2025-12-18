@@ -76,8 +76,7 @@ class SourceScreen : Fragment() {
                     )
                     val selected = list.find { it.sourceId == currentSelectedSource }
                     if (selected != null) {
-                        SourceManager.setCurrentSource(selected.sourceId)
-                        saveData(LocalData.SOURCE, selected.sourceId)
+                        PreferenceManager().putString(LocalData.SOURCE, selected.sourceId)
                         binding.textView6.text = "Current Selected Source: ${selected.title}"
                     } else {
                         binding.textView6.text = "Source"

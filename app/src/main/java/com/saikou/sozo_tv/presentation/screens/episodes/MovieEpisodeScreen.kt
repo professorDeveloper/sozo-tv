@@ -20,6 +20,7 @@ import androidx.navigation.fragment.navArgs
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.EpisodeTabAdapter
 import com.saikou.sozo_tv.adapters.SeriesPageAdapter
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.EpisodeScreenBinding
 import com.saikou.sozo_tv.parser.models.Part
 import com.saikou.sozo_tv.parser.movie.PlayImdb
@@ -55,7 +56,7 @@ class MovieEpisodeScreen : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         categoriesAdapter = EpisodeTabAdapter()
-
+        binding.seasonalBackground.setTheme(PreferenceManager().getSeasonalTheme())
         binding.backBtn.setOnClickListener {
             findNavController().popBackStack()
         }

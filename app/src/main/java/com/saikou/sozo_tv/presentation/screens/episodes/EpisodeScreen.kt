@@ -19,6 +19,7 @@ import androidx.navigation.fragment.navArgs
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.EpisodeTabAdapter
 import com.saikou.sozo_tv.adapters.SeriesPageAdapter
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.EpisodeScreenBinding
 import com.saikou.sozo_tv.parser.anime.HentaiMama
 import com.saikou.sozo_tv.parser.models.Part
@@ -54,7 +55,7 @@ class EpisodeScreen : Fragment() {
         binding.backBtn.setOnClickListener {
             findNavController().popBackStack()
         }
-
+        binding.seasonalBackground.setTheme(PreferenceManager().getSeasonalTheme())
         addAnimFocus()
         val currentSource = readData(LocalData.SOURCE) ?: ""
         if (currentSource == "" && !args.isAdult) {

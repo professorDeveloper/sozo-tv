@@ -72,7 +72,6 @@ class PlayViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             allEpisodeData.postValue(Resource.Loading)
             runCatching {
-                parser = AnimeSources.getCurrent()
                 parser.loadEpisodes(id = mediaId, page = page, showResponse)
             }.onSuccess { data ->
                 if (data != null) {

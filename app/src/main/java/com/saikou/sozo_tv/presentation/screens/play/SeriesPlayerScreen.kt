@@ -3,11 +3,13 @@ package com.saikou.sozo_tv.presentation.screens.play
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +17,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.OptIn
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -48,6 +51,7 @@ import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.EpisodePlayerAdapter
 import com.saikou.sozo_tv.components.SkipIntroView
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.ContentControllerTvSeriesBinding
 import com.saikou.sozo_tv.databinding.SeriesPlayerScreenBinding
 import com.saikou.sozo_tv.parser.models.Data
@@ -725,7 +729,7 @@ class SeriesPlayerScreen : Fragment() {
                 val finalSource = withContext(Dispatchers.IO) {
                     buildMediaSourceWithSubtitle(videoUrl, useSubtitles)
                 }
-                setupSubtitleStyle(binding.pvPlayer)
+                applySubtitleStyleToPlayer(binding.pvPlayer, PreferenceManager())
                 player.setMediaSource(finalSource)
                 player.prepare()
                 player.playWhenReady = true
@@ -802,17 +806,52 @@ class SeriesPlayerScreen : Fragment() {
     }
 
     @SuppressLint("UnsafeOptInUsageError")
-    private fun setupSubtitleStyle(playerView: PlayerView) {
+    fun applySubtitleStyleToPlayer(
+        playerView: PlayerView,
+        prefs: PreferenceManager
+    ) {
         val subtitleView = playerView.subtitleView ?: return
+
+        if (!prefs.isSubtitleCustom()) {
+            subtitleView.setStyle(
+                CaptionStyleCompat(
+                    Color.WHITE,
+                    Color.TRANSPARENT,
+                    Color.TRANSPARENT,
+                    CaptionStyleCompat.EDGE_TYPE_OUTLINE,
+                    Color.BLACK,
+                    null
+                )
+            )
+            return
+        }
+
+        val s = prefs.getSubtitleStyle()
+
         subtitleView.setStyle(
             CaptionStyleCompat(
-                Color.WHITE,
+                s.color,
+                if (s.background) Color.argb(180, 0, 0, 0) else Color.TRANSPARENT,
                 Color.TRANSPARENT,
-                Color.TRANSPARENT,
-                CaptionStyleCompat.EDGE_TYPE_OUTLINE,
+                if (s.outline) CaptionStyleCompat.EDGE_TYPE_OUTLINE
+                else CaptionStyleCompat.EDGE_TYPE_NONE,
                 Color.BLACK,
-                null
+                when (s.font) {
+                    PreferenceManager.Font.DEFAULT -> null
+                    PreferenceManager.Font.POPPINS ->
+                        ResourcesCompat.getFont(playerView.context, R.font.poppins)
+
+                    PreferenceManager.Font.DAYS ->
+                        ResourcesCompat.getFont(playerView.context, R.font.days)
+
+                    PreferenceManager.Font.MONO -> Typeface.MONOSPACE
+                }
             )
+        )
+
+        subtitleView.setFixedTextSize(
+            TypedValue.COMPLEX_UNIT_SP,
+            s.sizeSp.toFloat()
         )
     }
 
