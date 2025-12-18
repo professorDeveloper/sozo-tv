@@ -55,22 +55,13 @@ class SeasonalBackgroundLayout @JvmOverloads constructor(
     private fun applyTheme(theme: SeasonalTheme) {
         val cfg = SeasonalThemeRegistry.config(theme)
 
-        // Background:
-        // - If XML already set a background for this view (e.g., preview card), keep it.
-        // - If a theme background was applied before, reset to null when not needed.
         if (cfg.backgroundDrawable != null) {
             setBackgroundResource(cfg.backgroundDrawable)
             appliedThemeBackground = true
         } else if (appliedThemeBackground) {
             background = null
             appliedThemeBackground = false
-        } else {
-            // keep existing background (or null)
         }
-
-//        if (background == null) {
-//            setBackgroundColor(ContextCompat.getColor(context, R.color.netflix_background_primary))
-//        }
 
         if (cfg.useSnow) {
             if (snowRenderer == null) snowRenderer = SnowRenderer(context)
