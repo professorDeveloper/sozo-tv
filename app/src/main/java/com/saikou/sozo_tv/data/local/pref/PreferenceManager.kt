@@ -34,10 +34,8 @@ class PreferenceManager {
         private const val KEY_APPEARANCE_EXPANDED = "appearance_expanded"
         private const val KEY_CONTENT_CONTROLS_EXPANDED = "content_controls_expanded"
 
-        // New: the only thing we store for surprise layer
         private const val KEY_SEASONAL_THEME = "seasonal_theme"
 
-        // Legacy (old demo theme UI)
         private const val KEY_DEMO_THEME_LEGACY = "demo_theme"
     }
 
@@ -99,26 +97,21 @@ class PreferenceManager {
             .apply()
     }
 
-    // ===== Surprise (Winter) =====
-
     fun getSeasonalTheme(): SeasonalTheme {
-        // new key first
         val raw = prefs.getString(KEY_SEASONAL_THEME, null)
         if (!raw.isNullOrBlank()) {
             val parsed = runCatching { SeasonalTheme.valueOf(raw) }
                 .getOrDefault(SeasonalTheme.DEFAULT)
 
-            // Halloween removed from UI; treat it as DEFAULT.
             return if (parsed.name.equals("HALLOWEEN", ignoreCase = true)) {
                 SeasonalTheme.DEFAULT
             } else parsed
         }
 
-        // legacy migration
         val legacy = prefs.getString(KEY_DEMO_THEME_LEGACY, null)
         val migrated = when (legacy) {
             "WINTER" -> SeasonalTheme.WINTER
-            else -> SeasonalTheme.DEFAULT // DEFAULT + HALLOWEEN -> DEFAULT
+            else -> SeasonalTheme.DEFAULT
         }
 
         prefs.edit()
@@ -148,7 +141,6 @@ class PreferenceManager {
         awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
     }.distinctUntilChanged()
 
-    // ===== Dropdown expanded states =====
     fun isAppearanceExpanded(): Boolean =
         prefs.getBoolean(KEY_APPEARANCE_EXPANDED, true)
 
@@ -163,7 +155,6 @@ class PreferenceManager {
         prefs.edit().putBoolean(KEY_CONTENT_CONTROLS_EXPANDED, expanded).apply()
     }
 
-    // ===== Backward compatibility (optional) =====
     @Deprecated("Theme UI removed. Use getSeasonalTheme()/setSeasonalTheme() or observeSeasonalTheme().")
     enum class DemoTheme { DEFAULT, WINTER, HALLOWEEN }
 

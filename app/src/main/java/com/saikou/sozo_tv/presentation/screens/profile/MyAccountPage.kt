@@ -137,15 +137,12 @@ class MyAccountPage : Fragment() {
         binding.contentControlsDropdown.setOnExpandedChangeListener { expanded ->
             preferenceManager.setContentControlsExpanded(expanded)
         }
-
-        // Channel toggle
         binding.channelToggleRow.setChecked(preferenceManager.isChannelEnabled())
         binding.channelToggleRow.setOnCheckedChangedListener { isChecked ->
             preferenceManager.setChannelEnabled(isChecked)
             updateContentControlsHeader()
         }
 
-        // NSFW toggle
         binding.nsfwToggleRow.setChecked(preferenceManager.isNsfwEnabled())
         binding.nsfwToggleRow.setOnCheckedChangedListener { isChecked ->
             if (ignoreNsfwCallback) return@setOnCheckedChangedListener
