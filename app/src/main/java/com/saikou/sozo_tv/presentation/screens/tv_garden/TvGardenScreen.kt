@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.presentation.screens.tv_garden
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -127,6 +128,7 @@ class TvGardenScreen : Fragment() {
                     categoriesAdapter.submitList(data)
                     categoryList.clear()
                     categoryList.addAll(categories)
+                    Log.d("GGG", "onViewCreated:${categories} ")
                     if (selectedPosCat != -1) {
                         binding.tabRv.scrollToPosition(selectedPosCat)
                         categoriesAdapter.setSelectedPosition(selectedPosCat)

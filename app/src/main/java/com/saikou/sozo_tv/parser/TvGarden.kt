@@ -4,6 +4,8 @@ import com.saikou.sozo_tv.data.model.Category
 import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.data.model.Country
 import com.saikou.sozo_tv.manager.GardenDataManager
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 class TvGarden {
     suspend fun loadChannelCountries(): ArrayList<Country> {
@@ -16,14 +18,14 @@ class TvGarden {
         return ArrayList(dataManager)
     }
 
-    suspend fun getCategories(): ArrayList<Category> {
+    suspend fun getCategories() = flow {
         val dataManager = GardenDataManager.loadCategoriesFromApi()
-        return ArrayList(dataManager)
+        emit(dataManager as ArrayList<Category>)
     }
 
-    suspend fun getChannelsByCategory(category: Category): ArrayList<Channel> {
+    suspend fun getChannelsByCategory(category: Category) = flow<ArrayList<Channel>> {
         val dataManager = GardenDataManager.loadChannelsForCategory(category.key)
-        return ArrayList(dataManager)
+        emit(ArrayList(dataManager))
     }
 
 }

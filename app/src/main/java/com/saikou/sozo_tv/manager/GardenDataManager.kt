@@ -14,8 +14,27 @@ import java.io.IOException
 import java.util.Locale
 
 object GardenDataManager {
-    private val client = OkHttpClient()
+
     private val gson = Gson()
+
+    private val githubToken: String? = BuildConfig.GITHUB_TOKEN
+        .takeIf { it.isNotBlank() }
+
+    private val client: OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor { chain ->
+            val original = chain.request()
+
+            val builder = original.newBuilder()
+                .header("Accept", "application/vnd.github+json")
+                .header("X-GitHub-Api-Version", "2022-11-28")
+
+            githubToken?.let { token ->
+                builder.header("Authorization", "Bearer $token")
+            }
+
+            chain.proceed(builder.build())
+        }
+        .build()
 
     private val isoCountryNames = mapOf(
         "ad" to "Andorra",
@@ -193,26 +212,32 @@ object GardenDataManager {
     suspend fun loadCategoriesFromApi(): List<Category> = withContext(Dispatchers.IO) {
         val apiUrl =
             "https://api.github.com/repos/professorDeveloper/tv-garden-channel-list/contents/channels/raw/categories"
-        val request = Request.Builder().url(apiUrl).build()
 
-        return@withContext try {
+        val request = Request.Builder()
+            .url(apiUrl)
+            .get()
+            .build()
+
+        try {
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    throw IOException("Unexpected response code: ${response.code}")
+                    val body = response.body?.string().orEmpty()
+                    throw IOException("GitHub error ${response.code}: $body")
                 }
 
-                val json = response.body.string()
-
+                val json = response.body?.string().orEmpty()
                 val type = object : TypeToken<List<GitHubFile>>() {}.type
                 val files: List<GitHubFile> = gson.fromJson(json, type) ?: emptyList()
 
-                files.filter { it.type == "file" && it.name.endsWith(".json") && it.name != "countries_metadata.json" }
+                files
+                    .filter { it.type == "file" && it.name.endsWith(".json") && it.name != "countries_metadata.json" }
                     .map { file ->
                         val key = file.name.removeSuffix(".json")
                         val name = key.split("-")
-                            .joinToString(" ") { it.capitalize(Locale.ROOT) }
+                            .joinToString(" ") { it.replaceFirstChar { c -> c.titlecase(Locale.ROOT) } }
                         Category(key, name)
-                    }.sortedBy { it.name }
+                    }
+                    .sortedBy { it.name }
             }
         } catch (e: Exception) {
             println("Error loading categories from API: ${e.message}. Returning empty list.")
@@ -223,26 +248,31 @@ object GardenDataManager {
     suspend fun loadCountriesFromApi(): List<Country> = withContext(Dispatchers.IO) {
         val apiUrl =
             "https://api.github.com/repos/professorDeveloper/tv-garden-channel-list/contents/channels/raw/countries"
-        val request = Request.Builder().url(apiUrl).build()
 
-        return@withContext try {
+        val request = Request.Builder()
+            .url(apiUrl)
+            .get()
+            .build()
+
+        try {
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    throw IOException("Unexpected response code: ${response.code}")
+                    val body = response.body?.string().orEmpty()
+                    throw IOException("GitHub error ${response.code}: $body")
                 }
 
-                val json = response.body.string()
-
+                val json = response.body?.string().orEmpty()
                 val type = object : TypeToken<List<GitHubFile>>() {}.type
                 val files: List<GitHubFile> = gson.fromJson(json, type) ?: emptyList()
 
-                files.filter { it.type == "file" && it.name.endsWith(".json") }
+                files
+                    .filter { it.type == "file" && it.name.endsWith(".json") }
                     .map { file ->
                         val code = file.name.removeSuffix(".json").lowercase()
-                        val name = isoCountryNames[code]
-                            ?: code.uppercase()
+                        val name = isoCountryNames[code] ?: code.uppercase()
                         Country(code, name)
-                    }.sortedBy { it.name }
+                    }
+                    .sortedBy { it.name }
             }
         } catch (e: Exception) {
             println("Error loading countries from API: ${e.message}. Returning empty list.")
@@ -250,57 +280,44 @@ object GardenDataManager {
         }
     }
 
-    suspend fun loadChannelsForCountry(countryCode: String): List<Channel> =
-        withContext(Dispatchers.IO) {
-            val url =
-                "https://raw.githubusercontent.com/professorDeveloper/tv-garden-channel-list/main/channels/raw/countries/${countryCode.lowercase()}.json"
-            val request = Request.Builder().url(url).build()
+    // These already use raw.githubusercontent.com and do NOT require a token (public repo).
+    suspend fun loadChannelsForCountry(countryCode: String): List<Channel> = withContext(Dispatchers.IO) {
+        val url =
+            "https://raw.githubusercontent.com/professorDeveloper/tv-garden-channel-list/main/channels/raw/countries/${countryCode.lowercase()}.json"
 
-            return@withContext try {
-                client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) {
-                        throw IOException("Unexpected response code: ${response.code}")
-                    }
+        val request = Request.Builder().url(url).get().build()
 
-                    val json = response.body.string()
-
-                    if (json.trim().isEmpty()) {
-                        throw IOException("JSON content is empty")
-                    }
-
-                    val type = object : TypeToken<List<Channel>>() {}.type
-                    gson.fromJson(json, type) ?: emptyList()
-                }
-            } catch (e: Exception) {
-                println("Error loading channels for $countryCode: ${e.message}. Returning empty list.")
-                emptyList()
+        try {
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) throw IOException("Unexpected response code: ${response.code}")
+                val json = response.body?.string().orEmpty()
+                if (json.trim().isEmpty()) throw IOException("JSON content is empty")
+                val type = object : TypeToken<List<Channel>>() {}.type
+                gson.fromJson<List<Channel>>(json, type) ?: emptyList()
             }
+        } catch (e: Exception) {
+            println("Error loading channels for $countryCode: ${e.message}. Returning empty list.")
+            emptyList()
         }
+    }
 
-    suspend fun loadChannelsForCategory(categoryKey: String): List<Channel> =
-        withContext(Dispatchers.IO) {
-            val url =
-                "https://raw.githubusercontent.com/professorDeveloper/tv-garden-channel-list/main/channels/raw/categories/${categoryKey.lowercase()}.json"
-            val request = Request.Builder().url(url).build()
+    suspend fun loadChannelsForCategory(categoryKey: String): List<Channel> = withContext(Dispatchers.IO) {
+        val url =
+            "https://raw.githubusercontent.com/professorDeveloper/tv-garden-channel-list/main/channels/raw/categories/${categoryKey.lowercase()}.json"
 
-            return@withContext try {
-                client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) {
-                        throw IOException("Unexpected response code: ${response.code}")
-                    }
+        val request = Request.Builder().url(url).get().build()
 
-                    val json = response.body.string()
-
-                    if (json.trim().isEmpty()) {
-                        throw IOException("JSON content is empty")
-                    }
-
-                    val type = object : TypeToken<List<Channel>>() {}.type
-                    gson.fromJson(json, type) ?: emptyList()
-                }
-            } catch (e: Exception) {
-                println("Error loading channels for category $categoryKey: ${e.message}. Returning empty list.")
-                emptyList()
+        try {
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) throw IOException("Unexpected response code: ${response.code}")
+                val json = response.body?.string().orEmpty()
+                if (json.trim().isEmpty()) throw IOException("JSON content is empty")
+                val type = object : TypeToken<List<Channel>>() {}.type
+                gson.fromJson<List<Channel>>(json, type) ?: emptyList()
             }
+        } catch (e: Exception) {
+            println("Error loading channels for category $categoryKey: ${e.message}. Returning empty list.")
+            emptyList()
         }
+    }
 }

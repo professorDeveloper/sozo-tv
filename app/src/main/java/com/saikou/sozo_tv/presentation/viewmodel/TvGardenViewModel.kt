@@ -13,6 +13,9 @@ import com.saikou.sozo_tv.domain.repository.CharacterBookmarkRepository
 import com.saikou.sozo_tv.parser.TvGarden
 import com.saikou.sozo_tv.utils.Resource
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class TvGardenViewModel(
@@ -29,18 +32,21 @@ class TvGardenViewModel(
         categories.postValue(Resource.Loading)
         viewModelScope.launch {
             tvGarden.getCategories().let {
-                categories.postValue(Resource.Success(it))
+                it.onEach {
+                    categories.postValue(Resource.Success(it))
+                }.launchIn(viewModelScope)
             }
         }
     }
 
 
-
     fun loadChannelsByCategory(category: Category) {
         viewModelScope.launch {
             tvGarden.getChannelsByCategory(category).let {
-                channels.postValue(it)
-            }
+                it.onEach {
+                    channels.postValue(it)
+                }
+            }.launchIn(viewModelScope)
         }
     }
 

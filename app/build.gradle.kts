@@ -19,6 +19,16 @@ val localPropsFile = project.rootProject.file("local.properties")
 if (localPropsFile.exists()) {
     localProps.load(FileInputStream(localPropsFile))
 }
+
+fun readLocalProperty(name: String): String {
+    val props = Properties()
+    val localPropsFile = rootProject.file("local.properties")
+    if (localPropsFile.exists()) {
+        localPropsFile.inputStream().use { props.load(it) }
+    }
+    return props.getProperty(name, "")
+}
+
 android {
     namespace = "com.saikou.sozo_tv"
     compileSdk = 35
@@ -44,14 +54,21 @@ android {
             cmake {
             }
         }
-    }
 
+    }
     buildTypes {
+        debug {
+            val token = readLocalProperty("GITHUB_TOKEN")
+            buildConfigField("String", "GITHUB_TOKEN", "\"$token\"")
+
+        }
         release {
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "GITHUB_TOKEN", "\"\"")
+
         }
     }
     compileOptions {
