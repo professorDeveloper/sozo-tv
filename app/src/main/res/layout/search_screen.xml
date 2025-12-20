@@ -13,30 +13,45 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <androidx.leanback.widget.SearchEditText
-            android:id="@+id/search_edt"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="24dp"
             android:layout_marginTop="20dp"
-            android:background="@drawable/netflix_search_background_focused"
-            android:cursorVisible="true"
-            android:drawableStart="@drawable/ic_search"
-            android:drawablePadding="12dp"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:gravity="center_vertical"
-            android:hint="Search Anime..."
-            android:imeOptions="actionSearch"
-            android:inputType="text"
-            android:maxLines="1"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="10dp"
-            android:textColor="@color/netflix_white"
-            android:textColorHint="@color/netflix_gray"
-            android:textCursorDrawable="@null"
-            android:textSize="16sp" />
+            android:layout_marginHorizontal="24dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <ImageView
+                android:id="@+id/micBtn"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="10dp"
+                android:src="@drawable/ic_mic"
+                android:background="@drawable/netflix_focusable_background"
+                android:focusable="true"
+                android:focusableInTouchMode="true"/>
 
+            <androidx.leanback.widget.SearchEditText
+                android:id="@+id/search_edt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/netflix_search_background_focused"
+                android:cursorVisible="true"
+                android:drawableStart="@drawable/ic_search"
+                android:drawablePadding="12dp"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center_vertical"
+                android:hint="Search Anime..."
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLines="1"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="10dp"
+                android:textColor="@color/netflix_white"
+                android:textColorHint="@color/netflix_gray"
+                android:textCursorDrawable="@null"
+                android:textSize="16sp" />
+
+        </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -100,6 +115,13 @@
             </LinearLayout>
 
         </LinearLayout>
+
+        <include
+            android:id="@+id/voiceListeningOverlay"
+            layout="@layout/voice_listening_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
     </LinearLayout>
 
 </com.saikou.sozo_tv.components.SeasonalBackgroundLayout>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Mic body -->
+    <path
+        android:name="mic"
+        android:fillColor="#FFFFFFFF"
+        android:pathData="
+            M12,14
+            C13.66,14 15,12.66 15,11
+            V5
+            C15,3.34 13.66,2 12,2
+            C10.34,2 9,3.34 9,5
+            V11
+            C9,12.66 10.34,14 12,14
+            Z"/>
+
+    <!-- Mic stand -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="
+            M19,11
+            C19,14.31 16.31,17 13,17
+            V21
+            H11
+            V17
+            C7.69,17 5,14.31 5,11
+            H7
+            C7,13.21 8.79,15 11,15
+            H13
+            C15.21,15 17,13.21 17,11
+            Z"/>
+</vector>

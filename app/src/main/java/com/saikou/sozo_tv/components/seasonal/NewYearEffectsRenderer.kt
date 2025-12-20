@@ -29,10 +29,12 @@ internal class FestiveParticlesRenderer(context: Context) {
     private var particles: Array<Particle> = emptyArray()
 
     private val colors = intArrayOf(
-        0xFFFFD27F.toInt(), // gold
-        0xFF7FDFFF.toInt(), // blue
-        0xFFFF9FA3.toInt(), // red
-        0xFFB9FFB0.toInt()  // green
+        0xFFFFD27F.toInt(),
+        0xFF7FDFFF.toInt(),
+        0xFFFF9FA3.toInt(),
+        0xFFB9FFB0.toInt()  ,
+        0xFFFF7FFF.toInt(),
+        0xFFFFFF7F.toInt()
     )
 
     fun onSizeChanged(width: Int, height: Int) {

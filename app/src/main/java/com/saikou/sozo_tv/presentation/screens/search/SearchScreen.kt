@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.search
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -12,6 +13,8 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.content.Context
+import android.graphics.drawable.Animatable
+import android.speech.RecognizerIntent
 import androidx.lifecycle.lifecycleScope
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.SearchAdapter
@@ -26,6 +29,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.util.Locale
 
 class SearchScreen : Fragment() {
     private var _binding: SearchScreenBinding? = null
@@ -35,6 +39,7 @@ class SearchScreen : Fragment() {
     private var searchJob: Job? = null
     private var lastSearchQuery = ""
     val preference = PreferenceManager()
+    private val VOICE_REQUEST_CODE = 2001
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,6 +47,10 @@ class SearchScreen : Fragment() {
     ): View {
         _binding = SearchScreenBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    private fun showVoiceOverlay(show: Boolean) {
+        binding.voiceListeningOverlay.root.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -106,12 +115,68 @@ class SearchScreen : Fragment() {
                 }
             }
         }
+        binding.micBtn.setOnClickListener {
+            startVoiceSearch()
+        }
+
 
         binding.customKeyboard.setOnClearClickListener {
             binding.searchEdt.setText("")
             binding.searchEdt.setSelection(0)
             cancelPendingSearch()
             showInitialState()
+        }
+    }
+
+    private fun startVoiceSearch() {
+
+        val tvIntent = Intent(RecognizerIntent.ACTION_VOICE_SEARCH_HANDS_FREE).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        }
+
+        val phoneIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        }
+
+        val pm = requireContext().packageManager
+
+        when {
+            tvIntent.resolveActivity(pm) != null -> {
+                showVoiceOverlay(true)
+                startActivityForResult(tvIntent, VOICE_REQUEST_CODE)
+            }
+
+            phoneIntent.resolveActivity(pm) != null -> {
+                showVoiceOverlay(true)
+                startActivityForResult(phoneIntent, VOICE_REQUEST_CODE)
+            }
+
+            else -> {
+                Log.e("SearchScreen", "Voice search NOT supported on this TV")
+            }
+        }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        showVoiceOverlay(false)
+        if (requestCode == VOICE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            val spoken =
+                data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                    ?.firstOrNull().orEmpty()
+
+            if (spoken.isNotEmpty()) {
+                binding.searchEdt.setText(spoken)
+                binding.searchEdt.setSelection(spoken.length)
+                performSearchImmediate(spoken)
+            }
         }
     }
 
