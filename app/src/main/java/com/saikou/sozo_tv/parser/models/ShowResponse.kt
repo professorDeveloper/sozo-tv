@@ -17,12 +17,13 @@ data class ShowResponse(
 
 
 data class VideoOption(
-    val kwikUrl: String,
+    val videoUrl: String,
     val fansub: String,
     val resolution: String,
     val audioType: AudioType,
     val quality: String,
     val isActive: Boolean,
+    val isM3U8: Boolean = false,
     val fullText: String,
     var tracks: List<MegaTrack> = arrayListOf(),
     var headers: Map<String, String> = mapOf()

@@ -224,8 +224,7 @@ class SeriesPlayerScreen : Fragment() {
         }
 
 
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner,
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     navigateBack()
@@ -272,7 +271,7 @@ class SeriesPlayerScreen : Fragment() {
                                 binding.textView9.text = getString(
                                     R.string.part_episode, args.currentPage, episodeList.size
                                 )
-                                initializeVideo(headers = model.videoOptions.get(model.currentSelectedVideoOptionIndex).headers)
+                                initializeVideo(headers = it.data.header)
                                 displayVideo()
 
                                 binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
@@ -518,17 +517,16 @@ class SeriesPlayerScreen : Fragment() {
     @OptIn(UnstableApi::class)
     private fun initializeVideo(headers: Map<String, String> = mapOf()) {
         if (::player.isInitialized) return
+        Log.d("GGG", "initializeVideo: true :${headers}")
+
 
         val client = OkHttpClient.Builder().connectionSpecs(
             listOf(
-                ConnectionSpec.MODERN_TLS,
-                ConnectionSpec.COMPATIBLE_TLS,
-                ConnectionSpec.CLEARTEXT
+                ConnectionSpec.MODERN_TLS, ConnectionSpec.COMPATIBLE_TLS, ConnectionSpec.CLEARTEXT
             )
         ).addInterceptor { chain ->
             val originalRequest = chain.request()
-            val modifiedRequest =
-                originalRequest.newBuilder().headers(headers.toHeaders()).build()
+            val modifiedRequest = originalRequest.newBuilder().headers(headers.toHeaders()).build()
             chain.proceed(modifiedRequest)
         }.connectTimeout(60, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS).callTimeout(120, TimeUnit.SECONDS)
@@ -670,10 +668,12 @@ class SeriesPlayerScreen : Fragment() {
 
         Log.d("GGG", "playNewEpisode:${model.currentSelectedVideoOptionIndex} ")
         Log.d("GGG", "playNewEpisode:${model.videoOptions} ")
-        val mediaItem = MediaItem.Builder().setUri(videoUrl)
-            .setMimeType(if (model.videoOptions.get(model.currentSelectedVideoOptionIndex).resolution == "HLS") MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4)
-            .setTag(args.name).build()
-        val mediaSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
+        val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(
+                if (model.videoOptions.get(model.currentSelectedVideoOptionIndex).isM3U8) MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4
+            ).setTag(args.name).build()
+        val mediaSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(
+            mediaItem
+        )
 
 
         player.setMediaSource(mediaSource)
@@ -807,8 +807,7 @@ class SeriesPlayerScreen : Fragment() {
 
     @SuppressLint("UnsafeOptInUsageError")
     fun applySubtitleStyleToPlayer(
-        playerView: PlayerView,
-        prefs: PreferenceManager
+        playerView: PlayerView, prefs: PreferenceManager
     ) {
         val subtitleView = playerView.subtitleView ?: return
 
@@ -838,11 +837,15 @@ class SeriesPlayerScreen : Fragment() {
                 Color.BLACK,
                 when (s.font) {
                     PreferenceManager.Font.DEFAULT -> null
-                    PreferenceManager.Font.POPPINS ->
-                        ResourcesCompat.getFont(playerView.context, R.font.poppins)
+                    PreferenceManager.Font.POPPINS -> ResourcesCompat.getFont(
+                        playerView.context,
+                        R.font.poppins
+                    )
 
-                    PreferenceManager.Font.DAYS ->
-                        ResourcesCompat.getFont(playerView.context, R.font.days)
+                    PreferenceManager.Font.DAYS -> ResourcesCompat.getFont(
+                        playerView.context,
+                        R.font.days
+                    )
 
                     PreferenceManager.Font.MONO -> Typeface.MONOSPACE
                 }
@@ -850,26 +853,18 @@ class SeriesPlayerScreen : Fragment() {
         )
 
         subtitleView.setFixedTextSize(
-            TypedValue.COMPLEX_UNIT_SP,
-            s.sizeSp.toFloat()
+            TypedValue.COMPLEX_UNIT_SP, s.sizeSp.toFloat()
         )
     }
 
     @SuppressLint("UnsafeOptInUsageError")
     private fun buildMediaSourceWithSubtitle(
-        videoUrl: String,
-        useSubtitles: Boolean
+        videoUrl: String, useSubtitles: Boolean
     ): androidx.media3.exoplayer.source.MediaSource {
-        val mediaItem = MediaItem.Builder()
-            .setUri(videoUrl)
-            .setMimeType(
-                if (model.videoOptions[model.currentSelectedVideoOptionIndex].resolution == "HLS")
-                    MimeTypes.APPLICATION_M3U8
-                else
-                    MimeTypes.VIDEO_MP4
-            )
-            .setTag(args.name)
-            .build()
+        val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(
+                if (model.videoOptions[model.currentSelectedVideoOptionIndex].resolution == "HLS") MimeTypes.APPLICATION_M3U8
+                else MimeTypes.VIDEO_MP4
+            ).setTag(args.name).build()
 
         val videoSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
 
@@ -880,8 +875,7 @@ class SeriesPlayerScreen : Fragment() {
 
             val request = Request.Builder()
                 .url(model.seriesResponse!!.subtitleList[model.currentSubEpIndex].file)
-                .header("User-Agent", "Mozilla/5.0")
-                .build()
+                .header("User-Agent", "Mozilla/5.0").build()
 
             OkHttpClient().newCall(request).execute().use { response ->
                 if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
@@ -898,13 +892,10 @@ class SeriesPlayerScreen : Fragment() {
             }
 
             val subtitleSource =
-                SingleSampleMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(
+                SingleSampleMediaSource.Factory(dataSourceFactory).createMediaSource(
                         MediaItem.SubtitleConfiguration.Builder(Uri.fromFile(localFile))
                             .setMimeType(MimeTypes.TEXT_VTT)
-                            .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-                            .build(),
-                        C.TIME_UNSET
+                            .setSelectionFlags(C.SELECTION_FLAG_DEFAULT).build(), C.TIME_UNSET
                     )
 
             MergingMediaSource(videoSource, subtitleSource)

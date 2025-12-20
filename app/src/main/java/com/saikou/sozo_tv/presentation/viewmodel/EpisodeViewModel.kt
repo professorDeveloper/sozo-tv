@@ -9,6 +9,7 @@ import com.saikou.sozo_tv.data.model.SubSource
 import com.saikou.sozo_tv.domain.repository.EpisodeRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.anime.HentaiMama
+import com.saikou.sozo_tv.parser.base.BaseParser
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.Episode
 import com.saikou.sozo_tv.parser.models.EpisodeData
@@ -30,10 +31,9 @@ class EpisodeViewModel(
     val episodeData: MutableLiveData<Resource<EpisodeData>> =
         MutableLiveData<Resource<EpisodeData>>(Resource.Idle)
     val dataFound: MutableLiveData<Resource<ShowResponse>> = MutableLiveData()
-    val sources = readData("sources") as? List<SubSource> ?: emptyList()
 
+    var parser: BaseParser = AnimeSources.getCurrent()
 
-    val parser = AnimeSources.getCurrent()
     private val adultSource = HentaiMama()
     var seasons = mapOf<Int, Int>()
     private val movieSource = PlayImdb()
@@ -130,8 +130,7 @@ class EpisodeViewModel(
                     episodeData.postValue(Resource.Error(e))
                 }
             }
-        }
-        else {
+        } else {
             viewModelScope.launch {
                 episodeData.value = Resource.Loading
                 val listData = ArrayList<Data>()
@@ -227,7 +226,6 @@ class EpisodeViewModel(
     fun findEpisodes(title: String, isAdult: Boolean = false) {
         if (!isAdult) {
             viewModelScope.launch {
-
                 dataFound.value = Resource.Loading
                 val medias = parser.search(title)
                 if (medias.isNotEmpty()) {

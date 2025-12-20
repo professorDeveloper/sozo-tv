@@ -95,17 +95,6 @@ class PlayViewModel(
         else playImdb.getSubTitleList(tmdbId, season, ep)
     }
 
-    suspend fun getEngSubtitleById(
-        tmdbId: Int,
-        season: Int,
-        ep: Int,
-        isMovie: Boolean,
-    ): SubtitleItem? = withContext(Dispatchers.IO) {
-        val list =
-            if (isMovie) playImdb.getSubtitleListForMovie(tmdbId)
-            else playImdb.getSubTitleList(tmdbId, season, ep)
-        list.firstOrNull { it.lang == "English" }
-    }
 
     fun getAllEpisodeByImdb(
         imdbId: String,
@@ -204,15 +193,11 @@ class PlayViewModel(
         }
     }
 
-    suspend fun isWatched(session: String): Boolean = watchHistoryRepository.isWatched(session)
 
     suspend fun addHistory(history: WatchHistoryEntity) {
         watchHistoryRepository.addHistory(history)
     }
 
-    suspend fun getWatchedEntity(id: String): WatchHistoryEntity? {
-        return watchHistoryRepository.getWatchHistoryByVideoUrl(id)
-    }
 
     suspend fun removeHistory(videoUrl: String) {
         watchHistoryRepository.removeHistory(videoUrl)
@@ -238,7 +223,7 @@ class PlayViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             currentQualityEpisode.postValue(Resource.Loading)
             runCatching {
-                val sourceKey = activeAnimeSourceKey ?: SourceManager.getCurrentSourceKey()
+                val sourceKey = activeAnimeSourceKey ?: SourceManager().getCurrentSourceKey()
                 val idx = currentSelectedVideoOptionIndex.coerceIn(0, videoOptions.lastIndex)
                 buildVodFromOption(videoOptions[idx], sourceKey)
             }.onSuccess { vod ->
@@ -265,16 +250,17 @@ class PlayViewModel(
             runCatching {
                 isWatched = watchHistoryRepository.isWatched(iframe)
                 if (isWatched) {
-                    getWatchedHistoryEntity = watchHistoryRepository.getWatchHistoryByVideoUrl(episodeId)
-                    currentSelectedVideoOptionIndex = getWatchedHistoryEntity?.currentQualityIndex ?: 0
+                    getWatchedHistoryEntity =
+                        watchHistoryRepository.getWatchHistoryByVideoUrl(episodeId)
+                    currentSelectedVideoOptionIndex =
+                        getWatchedHistoryEntity?.currentQualityIndex ?: 0
                 } else {
                     currentSelectedVideoOptionIndex = 0
                     getWatchedHistoryEntity = null
                 }
 
-                val m3u8Link =
-                    if (isMovie) playImdb.invokeVidSrcXyz(imdbId)
-                    else playImdb.invokeVidSrcXyz(imdbId, season, episode)
+                val m3u8Link = if (isMovie) playImdb.invokeVidSrcXyz(imdbId)
+                else playImdb.invokeVidSrcXyz(imdbId, season, episode)
 
                 val subtitles = getAllSubtitleList(isMovie, tmdbId, season, episode)
                 val vodSubs = subtitles.map { it.toDomain() }
@@ -305,22 +291,23 @@ class PlayViewModel(
             runCatching {
                 isWatched = watchHistoryRepository.isWatched(episodeId)
                 if (isWatched) {
-                    getWatchedHistoryEntity = watchHistoryRepository.getWatchHistoryByVideoUrl(episodeId)
-                    currentSelectedVideoOptionIndex = getWatchedHistoryEntity?.currentQualityIndex ?: 0
+                    getWatchedHistoryEntity =
+                        watchHistoryRepository.getWatchHistoryByVideoUrl(episodeId)
+                    currentSelectedVideoOptionIndex =
+                        getWatchedHistoryEntity?.currentQualityIndex ?: 0
                 } else {
                     currentSelectedVideoOptionIndex = 0
                     getWatchedHistoryEntity = null
                 }
 
-                val sourceKey =
-                    if (!isHistory) SourceManager.getCurrentSourceKey()
-                    else getWatchedHistoryEntity?.source ?: SourceManager.getCurrentSourceKey()
+                val sourceKey = if (!isHistory) SourceManager().getCurrentSourceKey()
+                else getWatchedHistoryEntity?.source ?: SourceManager().getCurrentSourceKey()
 
                 activeAnimeSourceKey = sourceKey
                 parser = AnimeSources.getSourceById(sourceKey)
 
                 val options = parser.getEpisodeVideo(epId = episodeId, id = mediaId)
-                if (options.isNullOrEmpty()) throw IllegalStateException("No video options found")
+                if (options.isEmpty()) throw IllegalStateException("No video options found")
 
                 videoOptionsData.postValue(options)
                 videoOptions.clear()
@@ -340,21 +327,24 @@ class PlayViewModel(
         }
     }
 
-    private suspend fun buildVodFromOption(option: VideoOption, sourceKey: String): VodMovieResponse {
+    private suspend fun buildVodFromOption(
+        option: VideoOption, sourceKey: String
+    ): VodMovieResponse {
         return if (sourceKey == SOURCE_HIANIME) {
             VodMovieResponse(
                 authInfo = "",
                 subtitleList = option.tracks.map { SubTitle(it.file, it.label ?: "") },
-                urlobj = option.kwikUrl,
+                urlobj = option.videoUrl,
                 header = option.headers
             )
         } else {
-            val extractedUrl = parser.extractVideo(option.kwikUrl)
+            val extractedUrl = parser.extractVideo(option.videoUrl)
+            Log.d(TAG, "buildVodFromOption: $extractedUrl | ${option.videoUrl}")
             VodMovieResponse(
                 authInfo = "",
                 subtitleList = arrayListOf(),
                 urlobj = extractedUrl,
-                header = mapOf("User-Agent" to AnimePahe.USER_AGENT)
+                header = mapOf("User-Agent" to AnimePahe.USER_AGENT, "Referer" to option.videoUrl)
             )
         }
     }

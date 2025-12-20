@@ -93,14 +93,6 @@ class AnimePahe : BaseParser() {
         }
     }
 
-    private fun m3u8ToMp4(m3u8Url: String, fileName: String): String {
-        val uri = java.net.URI(m3u8Url)
-        val cleanPath = uri.path.replaceFirst("/stream", "/mp4").substringBeforeLast("/")
-
-        return java.net.URI(
-            uri.scheme, uri.authority, cleanPath, "file=$fileName.mp4", null
-        ).toString()
-    }
 
     private fun getVideoOptions(doc: Document): List<VideoOption> {
         val videoOptions = mutableListOf<VideoOption>()
@@ -124,10 +116,11 @@ class AnimePahe : BaseParser() {
 
             videoOptions.add(
                 VideoOption(
-                    kwikUrl = kwikUrl,
+                    videoUrl = kwikUrl,
                     fansub = fansub,
-                    resolution = "${resolution}p",
+                    resolution = resolution,
                     audioType = audioType,
+                    isM3U8 = true,
                     quality = quality,
                     isActive = isActive,
                     fullText = button.text()
@@ -159,7 +152,7 @@ class AnimePahe : BaseParser() {
             }
         }
 
-        return m3u8ToMp4(extractFileUrl(getAndUnpack(evalContent ?: "")) ?: "", fileName = "file")
+        return extractFileUrl(getAndUnpack(evalContent ?: "")) ?: ""
     }
 
     private val packedRegex = Regex("""eval\(function\(p,a,c,k,e,.*\)\)""")

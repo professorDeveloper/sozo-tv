@@ -6,13 +6,8 @@ import com.saikou.sozo_tv.utils.LocalData.SOURCE
 import com.saikou.sozo_tv.utils.readData
 import com.saikou.sozo_tv.utils.saveData
 
-object SourceManager {
+class SourceManager {
 
-    private var currentSourceKey: String = PreferenceManager().getString(SOURCE)
+    fun getCurrentSourceKey(): String = PreferenceManager().getString(SOURCE)
 
-    fun setCurrentSource(key: String) {
-        currentSourceKey = key
-    }
-
-    fun getCurrentSourceKey(): String = currentSourceKey
 }

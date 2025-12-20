@@ -27,6 +27,7 @@ import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.screens.wrong_title.WrongTitleDialog
 import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.LocalData.SOURCE
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.readData
@@ -57,7 +58,7 @@ class EpisodeScreen : Fragment() {
         }
         binding.seasonalBackground.setTheme(PreferenceManager().getSeasonalTheme())
         addAnimFocus()
-        val currentSource = readData(LocalData.SOURCE) ?: ""
+        val currentSource = PreferenceManager().getString(SOURCE) ?: ""
         if (currentSource == "" && !args.isAdult) {
             binding.topContainer.gone()
             binding.loadingLayout.gone()

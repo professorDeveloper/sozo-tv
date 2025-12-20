@@ -12,13 +12,9 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.saikou.sozo_tv.adapters.SourceAdapter
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.SubSource
 import com.saikou.sozo_tv.databinding.SourceScreenBinding
-import androidx.leanback.widget.VerticalGridView
-import com.saikou.sozo_tv.R
-import com.saikou.sozo_tv.data.local.pref.PreferenceManager
-import com.saikou.sozo_tv.parser.sources.SourceManager
-import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.SOURCE
 import com.saikou.sozo_tv.utils.readData
 import com.saikou.sozo_tv.utils.saveData
@@ -28,7 +24,7 @@ class SourceScreen : Fragment() {
     private val binding get() = _binding!!
     private lateinit var dbRef: DatabaseReference
     private lateinit var adapter: SourceAdapter
-    private var currentSelectedSource = readData(LocalData.SOURCE) ?: ""
+    private var currentSelectedSource = readData(SOURCE) ?: ""
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -76,7 +72,7 @@ class SourceScreen : Fragment() {
                     )
                     val selected = list.find { it.sourceId == currentSelectedSource }
                     if (selected != null) {
-                        PreferenceManager().putString(LocalData.SOURCE, selected.sourceId)
+                        PreferenceManager().putString(SOURCE, selected.sourceId)
                         binding.textView6.text = "Current Selected Source: ${selected.title}"
                     } else {
                         binding.textView6.text = "Source"

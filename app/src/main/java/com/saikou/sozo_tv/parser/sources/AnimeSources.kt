@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.parser.sources
 
+import android.util.Log
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.parser.base.BaseParser
 import com.saikou.sozo_tv.parser.anime.AnimePahe
@@ -11,6 +12,7 @@ object AnimeSources {
 
     fun getCurrent(): BaseParser {
         val readData = PreferenceManager().getString(SOURCE)
+        Log.d("GGG", "getCurrent:${readData} ")
         return when (readData) {
             "hianime" -> HiAnime()
             else -> AnimePahe()

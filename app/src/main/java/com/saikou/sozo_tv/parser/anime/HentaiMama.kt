@@ -18,9 +18,6 @@ data class ResponseElement(
     val file: String
 )
 
-data class VideoContainer(
-    val videos: List<Video>
-)
 
 data class Video(
     val id: String?,
@@ -28,12 +25,6 @@ data class Video(
     val url: String,
     val size: Long?
 )
-
-data class VideoServer(
-    val url: String,
-    val index: String,
-)
-
 enum class VideoType {
     M3U8,
     CONTAINER

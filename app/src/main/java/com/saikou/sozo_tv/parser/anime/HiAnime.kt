@@ -160,9 +160,10 @@ class HiAnime : BaseParser() {
                     val (m3u8, tracks) = mega.extractVideoUrl(embedUrl)
 
                     VideoOption(
-                        kwikUrl = m3u8,
+                        videoUrl = m3u8,
                         fansub = "HiAnime",
                         resolution = "HLS",
+                        isM3U8 = true,
                         audioType = if (server.type == "dub") AudioType.DUB else AudioType.SUB,
                         quality = "Adaptive",
                         isActive = true,
