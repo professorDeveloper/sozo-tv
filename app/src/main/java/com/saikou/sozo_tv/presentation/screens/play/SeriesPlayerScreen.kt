@@ -518,7 +518,6 @@ class SeriesPlayerScreen : Fragment() {
         if (::player.isInitialized) return
         Log.d("GGG", "initializeVideo: true :${headers}")
 
-
         val client = OkHttpClient.Builder().connectionSpecs(
             listOf(
                 ConnectionSpec.MODERN_TLS, ConnectionSpec.COMPATIBLE_TLS, ConnectionSpec.CLEARTEXT
@@ -596,6 +595,7 @@ class SeriesPlayerScreen : Fragment() {
                     }
 
                     Player.STATE_ENDED -> {
+                        Log.d("GG", "onPlaybackStateChanged:WHY ENDED ")
                         if (!LocalData.isHistoryItemClicked) {
                             stopProgressTracking()
                             if (!isCountdownActive) {
