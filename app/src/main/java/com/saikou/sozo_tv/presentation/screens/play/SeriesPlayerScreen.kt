@@ -596,7 +596,7 @@ class SeriesPlayerScreen : Fragment() {
 
                     Player.STATE_ENDED -> {
                         Log.d("GG", "onPlaybackStateChanged:WHY ENDED ")
-                        if (!LocalData.isHistoryItemClicked) {
+                        if (!LocalData.isHistoryItemClicked && player.duration > 0) {
                             stopProgressTracking()
                             if (!isCountdownActive) {
                                 playNextEpisodeAutomatically()
