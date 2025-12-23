@@ -35,9 +35,11 @@ import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MergingMediaSource
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.exoplayer.source.SingleSampleMediaSource
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.CaptionStyleCompat
@@ -150,7 +152,7 @@ class SeriesPlayerScreen : Fragment() {
                     model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
                         if (resource is Resource.Success) {
                             val newUrl = resource.data.urlobj
-                            playNewEpisode(newUrl, args.name, headers = resource.data.header)
+                            playNewEpisode(newUrl, headers = resource.data.header)
 
                             binding.pvPlayer.controller.binding.filmTitle.text =
                                 getString(R.string.episode, args.name, model.currentEpIndex + 1)
@@ -224,7 +226,8 @@ class SeriesPlayerScreen : Fragment() {
         }
 
 
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     navigateBack()
@@ -311,7 +314,6 @@ class SeriesPlayerScreen : Fragment() {
                                                     resource.data.urlobj ?: return@observeOnce
                                                 playNewEpisode(
                                                     newUrl,
-                                                    args.name,
                                                     headers = resource.data.header
                                                 )
                                                 binding.pvPlayer.controller.binding.filmTitle.text =
@@ -324,8 +326,6 @@ class SeriesPlayerScreen : Fragment() {
                                         }
                                     }
                                 }
-
-
                                 binding.pvPlayer.controller.binding.exoNextContainer.setOnClickListener {
                                     if (model.currentEpIndex < episodeList.size - 1) {
                                         lifecycleScope.launch {
@@ -344,7 +344,6 @@ class SeriesPlayerScreen : Fragment() {
                                                 val newUrl = resource.data.urlobj
                                                 playNewEpisode(
                                                     newUrl,
-                                                    args.name,
                                                     headers = resource.data.header
                                                 )
                                                 binding.pvPlayer.controller.binding.filmTitle.text =
@@ -387,7 +386,6 @@ class SeriesPlayerScreen : Fragment() {
 
                                                         playNewEpisode(
                                                             newUrl,
-                                                            args.name,
                                                             headers = resource.data.header
                                                         )
                                                         binding.pvPlayer.controller.binding.filmTitle.text =
@@ -408,6 +406,7 @@ class SeriesPlayerScreen : Fragment() {
                                         ).show()
                                     }
                                 }
+
                             }
 
                             else -> {
@@ -559,6 +558,8 @@ class SeriesPlayerScreen : Fragment() {
             mediaSession = MediaSession.Builder(requireContext(), player).build()
         }
 
+
+
         player.addListener(object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
                 Bugsnag.notify(error)
@@ -641,7 +642,7 @@ class SeriesPlayerScreen : Fragment() {
             model.currentQualityEpisode.observe(viewLifecycleOwner) { resource ->
                 if (resource is Resource.Success) {
                     val newUrl = resource.data.urlobj
-                    playQualityVideo(newUrl, args.name)
+                    playQualityVideo(newUrl)
                 }
 
             }
@@ -652,7 +653,7 @@ class SeriesPlayerScreen : Fragment() {
     }
 
     @OptIn(UnstableApi::class)
-    private fun playNewEpisode(videoUrl: String, title: String, headers: Map<String, String>) {
+    private fun playNewEpisode(videoUrl: String, headers: Map<String, String>) {
         if (!::player.isInitialized) initializeVideo(headers)
 
         if (::skipIntroView.isInitialized) {
@@ -665,26 +666,29 @@ class SeriesPlayerScreen : Fragment() {
 
         player.stop()
         player.clearMediaItems()
-
-        Log.d("GGG", "playNewEpisode:${model.currentSelectedVideoOptionIndex} ")
-        Log.d("GGG", "playNewEpisode:${model.videoOptions} ")
-        val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(
-                if (model.videoOptions.get(model.currentSelectedVideoOptionIndex).isM3U8) MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4
-            ).setTag(args.name).build()
-        val mediaSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(
-            mediaItem
+        Log.d("GGG", "playNewEpisode curIndex:${model.currentSelectedVideoOptionIndex} ")
+        Log.d(
+            "GGG",
+            "playNewEpisode:${model.videoOptions.get(model.currentSelectedVideoOptionIndex)} "
         )
+        val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(
+            if (model.videoOptions.get(model.currentSelectedVideoOptionIndex).isM3U8) MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4
+        ).setTag(args.name).build()
+        val mediaSource =
+            if (model.videoOptions[model.currentSelectedVideoOptionIndex].isM3U8) HlsMediaSource.Factory(
+                dataSourceFactory
+            ).createMediaSource(mediaItem)
+            else ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
 
 
         player.setMediaSource(mediaSource)
-        player.setMediaItem(mediaItem)
         player.prepare()
         player.play()
     }
 
 
     @OptIn(UnstableApi::class)
-    private fun playQualityVideo(videoUrl: String, title: String) {
+    private fun playQualityVideo(videoUrl: String) {
         if (!::player.isInitialized) initializeVideo()
 
         resetCountdownState()
@@ -695,13 +699,10 @@ class SeriesPlayerScreen : Fragment() {
         player.clearMediaItems()
         Log.d("GGG", "playQualityVideo:${model.videoOptions} ")
         val mediaItem = MediaItem.Builder().setUri(videoUrl)
-            .setMimeType(if (model.videoOptions.get(model.currentSelectedVideoOptionIndex).resolution == "HLS") MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4)
+            .setMimeType(if (model.videoOptions.get(model.currentSelectedVideoOptionIndex).isM3U8) MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4)
             .setTag(args.name).build()
-        val mediaSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
-
 
         player.setMediaItem(mediaItem)
-        player.setMediaSource(mediaSource)
         player.prepare()
         player.play()
         player.seekTo(model.qualityProgress)
@@ -725,6 +726,7 @@ class SeriesPlayerScreen : Fragment() {
                 binding.pvPlayer.controller.binding.exoPrevContainer.visible()
                 binding.pvPlayer.controller.binding.epListContainer.visible()
             }
+
             lifecycleScope.launch {
                 val finalSource = withContext(Dispatchers.IO) {
                     buildMediaSourceWithSubtitle(videoUrl, useSubtitles)
@@ -838,13 +840,11 @@ class SeriesPlayerScreen : Fragment() {
                 when (s.font) {
                     PreferenceManager.Font.DEFAULT -> null
                     PreferenceManager.Font.POPPINS -> ResourcesCompat.getFont(
-                        playerView.context,
-                        R.font.poppins
+                        playerView.context, R.font.poppins
                     )
 
                     PreferenceManager.Font.DAYS -> ResourcesCompat.getFont(
-                        playerView.context,
-                        R.font.days
+                        playerView.context, R.font.days
                     )
 
                     PreferenceManager.Font.MONO -> Typeface.MONOSPACE
@@ -862,13 +862,16 @@ class SeriesPlayerScreen : Fragment() {
         videoUrl: String, useSubtitles: Boolean
     ): androidx.media3.exoplayer.source.MediaSource {
         val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(
-                if (model.videoOptions[model.currentSelectedVideoOptionIndex].resolution == "HLS") MimeTypes.APPLICATION_M3U8
-                else MimeTypes.VIDEO_MP4
-            ).setTag(args.name).build()
+            if (model.videoOptions[model.currentSelectedVideoOptionIndex].isM3U8) MimeTypes.APPLICATION_M3U8
+            else MimeTypes.VIDEO_MP4
+        ).setTag(args.name).build()
+        val mediaSource =
+            if (model.videoOptions[model.currentSelectedVideoOptionIndex].isM3U8) HlsMediaSource.Factory(
+                dataSourceFactory
+            ).createMediaSource(mediaItem) else ProgressiveMediaSource.Factory(dataSourceFactory)
+                .createMediaSource(mediaItem)
 
-        val videoSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
-
-        if (!useSubtitles) return videoSource
+        if (!useSubtitles) return mediaSource
 
         return try {
             val localFile = File(requireContext().cacheDir, "sub.vtt")
@@ -893,15 +896,15 @@ class SeriesPlayerScreen : Fragment() {
 
             val subtitleSource =
                 SingleSampleMediaSource.Factory(dataSourceFactory).createMediaSource(
-                        MediaItem.SubtitleConfiguration.Builder(Uri.fromFile(localFile))
-                            .setMimeType(MimeTypes.TEXT_VTT)
-                            .setSelectionFlags(C.SELECTION_FLAG_DEFAULT).build(), C.TIME_UNSET
-                    )
+                    MediaItem.SubtitleConfiguration.Builder(Uri.fromFile(localFile))
+                        .setMimeType(MimeTypes.TEXT_VTT).setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+                        .build(), C.TIME_UNSET
+                )
 
-            MergingMediaSource(videoSource, subtitleSource)
+            MergingMediaSource(mediaSource, subtitleSource)
         } catch (e: Exception) {
             Log.e("Subtitle", "Subtitle load failed", e)
-            videoSource
+            mediaSource
         }
     }
 

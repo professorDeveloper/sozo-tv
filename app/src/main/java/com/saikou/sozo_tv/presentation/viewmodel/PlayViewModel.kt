@@ -320,7 +320,6 @@ class PlayViewModel(
             }.onSuccess { vod ->
                 seriesResponse = vod
                 currentEpisodeData.postValue(Resource.Success(vod))
-                currentQualityEpisode.postValue(Resource.Success(vod))
             }.onFailure { e ->
                 currentEpisodeData.postValue(Resource.Error(asException(e)))
             }

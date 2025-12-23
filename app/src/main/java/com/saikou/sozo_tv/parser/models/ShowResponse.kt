@@ -23,7 +23,7 @@ data class VideoOption(
     val audioType: AudioType,
     val quality: String,
     val isActive: Boolean,
-    val isM3U8: Boolean = false,
+    val isM3U8: Boolean = true,
     val fullText: String,
     var tracks: List<MegaTrack> = arrayListOf(),
     var headers: Map<String, String> = mapOf()
