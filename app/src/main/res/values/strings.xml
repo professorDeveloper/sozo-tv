@@ -124,5 +124,23 @@
     <string name="waiting_for_mobile">Waiting for mobile...</string>
     <string name="sign_in_with_qr_code">Sign in with QR code</string>
     <string name="open_the_mobile_app_login_then_scan_this_qr_to_connect_your_account">Open the mobile app, login, then scan this QR to connect your account.</string>
+    <string name="anilist_id">Anilist ID: %1$s</string>
+    <string name="notifications">Notifications</string>
+    <string name="my_account">My Account</string>
+    <string name="manage_your_profile_and_preferences">Manage your profile and preferences</string>
+    <string name="guest_account">Guest Account</string>
+    <string name="login">Login</string>
+    <string name="status">STATUS</string>
+    <string name="visitor">Visitor</string>
+    <string name="content_mode">Content Mode</string>
+    <string name="choose_your_preferred_content_type">Choose your preferred content type</string>
+    <string name="anime_mode">Anime Mode</string>
+    <string name="movie_mode">Movie Mode</string>
+    <string name="customize_subtitle_font_color_and_size_tv_friendly">Customize subtitle font, color and size (TV friendly)</string>
+    <string name="preview">Preview</string>
+    <string name="this_is_how_subtitles_will_look_on_tv">This is how subtitles will look on TV</string>
+    <string name="font">Font</string>
+    <string name="poppins">Poppins</string>
+    <string name="days">Days</string>
 
 </resources>

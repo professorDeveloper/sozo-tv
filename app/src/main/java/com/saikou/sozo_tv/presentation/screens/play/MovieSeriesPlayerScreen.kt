@@ -1,7 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.play
 
 import android.annotation.SuppressLint
-import android.app.Dialog
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
@@ -24,7 +23,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
-import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
@@ -39,7 +37,6 @@ import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.MergingMediaSource
@@ -51,17 +48,14 @@ import androidx.media3.ui.PlayerControlView
 import androidx.media3.ui.PlayerView
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.bugsnag.android.Bugsnag
 import com.lagradost.nicehttp.ignoreAllSSLErrors
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.EpisodePlayerAdapter
-import com.saikou.sozo_tv.adapters.QualityAdapter
 import com.saikou.sozo_tv.components.SkipIntroView
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.ContentControllerTvSeriesBinding
-import com.saikou.sozo_tv.databinding.DialogQualitySelectionBinding
 import com.saikou.sozo_tv.databinding.ImdbSeriesPlayerScreenBinding
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
@@ -69,7 +63,6 @@ import com.saikou.sozo_tv.presentation.screens.play.dialog.SubtitleChooserDialog
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
-import com.saikou.sozo_tv.utils.SubtitleManager
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.observeOnce
 import com.saikou.sozo_tv.utils.visible
@@ -83,7 +76,6 @@ import okhttp3.Request
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.io.IOException
-import java.net.URL
 
 
 class MovieSeriesPlayerScreen : Fragment() {
@@ -96,7 +88,6 @@ class MovieSeriesPlayerScreen : Fragment() {
     private lateinit var mediaSession: MediaSession
     private val args by navArgs<MovieSeriesPlayerScreenArgs>()
     private val episodeList = arrayListOf<Data>()
-    private lateinit var subtitleManager: SubtitleManager
     private var countdownShown = false
     private var isCountdownActive = false
     private var progressHandler: Handler? = null
@@ -562,7 +553,6 @@ class MovieSeriesPlayerScreen : Fragment() {
         if (!::mediaSession.isInitialized) {
             mediaSession = MediaSession.Builder(requireContext(), player).build()
         }
-        subtitleManager = SubtitleManager(requireContext(), dataSourceFactory)
         player.addListener(object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
                 Bugsnag.notify(error)

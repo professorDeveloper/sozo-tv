@@ -1,9 +1,11 @@
-query GetViewer {
+query GetMyInfo {
     Viewer {
         id
         name
         avatar {
             large
         }
+        unreadNotificationCount
+        bannerImage
     }
 }

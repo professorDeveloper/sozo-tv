@@ -12,6 +12,7 @@ import com.saikou.sozo_tv.data.repository.EpisodeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.HomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.ImdbHomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.MovieBookmarkRepositoryImpl
+import com.saikou.sozo_tv.data.repository.ProfileRepositoryImpl
 import com.saikou.sozo_tv.data.repository.SearchRepositoryImpl
 import com.saikou.sozo_tv.data.repository.SharedPrefsSettingsRepository
 import com.saikou.sozo_tv.data.repository.TvPairingRepository
@@ -23,6 +24,7 @@ import com.saikou.sozo_tv.domain.repository.DetailRepository
 import com.saikou.sozo_tv.domain.repository.EpisodeRepository
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
+import com.saikou.sozo_tv.domain.repository.ProfileRepository
 import com.saikou.sozo_tv.domain.repository.SearchRepository
 import com.saikou.sozo_tv.domain.repository.SettingsRepository
 import com.saikou.sozo_tv.domain.repository.TMDBHomeRepository
@@ -68,7 +70,7 @@ val koinModule = module {
         EpisodeRepositoryImpl(api = get())
     }
     single { AuthRepository(prefs = get(), apolloClient = get(), db = get()) }
-    single { TvPairingRepository( db = get()) }
+    single { TvPairingRepository(db = get()) }
 
     single<SettingsRepository> {
         SharedPrefsSettingsRepository(PreferenceManager())
@@ -90,6 +92,7 @@ val koinModule = module {
     single<SearchRepository> {
         SearchRepositoryImpl(apolloClient = get(), api = get())
     }
+    single<ProfileRepository> { ProfileRepositoryImpl(get()) }
     single<CategoriesRepository> {
         CategoriesRepositoryImpl(apolloClient = get(), api = get())
     }
@@ -101,7 +104,7 @@ val koinModule = module {
     viewModel { EpisodeViewModel(watchHistoryRepository = get(), repo = get()) }
     viewModel { WrongTitleViewModel(get()) }
     viewModel { UpdateViewModel() }
-    viewModel { SettingsViewModel(get()) }
+    viewModel { SettingsViewModel(get(), profileRepo = get()) }
     viewModel { LiveTvViewModel(dao = get()) }
     viewModel { AdultPlayerViewModel() }
     viewModel { SplashViewModel(firebaseService = get()) }

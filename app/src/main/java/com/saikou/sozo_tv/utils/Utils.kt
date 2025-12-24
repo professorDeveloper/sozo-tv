@@ -9,7 +9,6 @@ object Utils {
 
     var httpClient = UnsafeOkHttpClient.getUnsafeOkHttpClient()
 
-
     fun get(
         url: String,
         mapOfHeaders: Map<String, String>? = null

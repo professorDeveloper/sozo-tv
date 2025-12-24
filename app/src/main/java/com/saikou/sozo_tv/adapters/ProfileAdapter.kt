@@ -34,9 +34,6 @@ class ProfileAdapter(
         onSectionClick = listener
     }
 
-    fun onAddAccountClick(listener: () -> Unit) {
-        itemListener = listener
-    }
 
     companion object {
         private const val VIEW_TYPE_BACK_BUTTON = 0

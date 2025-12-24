@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.presentation.screens.profile
 
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
@@ -18,11 +19,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.databinding.MyAccountPageBinding
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.gone
+import com.saikou.sozo_tv.utils.loadImage
+import com.saikou.sozo_tv.utils.visible
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
@@ -60,11 +65,24 @@ class MyAccountPage : Fragment() {
         super.onDestroyView()
     }
 
+    @SuppressLint("SetTextI18n", "StringFormatMatches")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         preferenceManager = PreferenceManager()
-
+        if (preferenceManager.getString(AuthPrefKeys.ANILIST_TOKEN)
+                .isBlank()
+        ) binding.loginButton.visibility = View.VISIBLE else binding.loginButton.visibility =
+            View.GONE
+        settingsViewModel.profileData.observe(viewLifecycleOwner) {
+            binding.profileNameTextView.text = it.name
+            binding.accountType.text = getString(R.string.anilist_id, it.id)
+            binding.realAvatar.background = null
+            binding.avatarInitials.gone()
+            binding.avatarImageView.visible()
+            binding.bannerImageView.loadImage(it.bannerImg)
+            binding.avatarImageView.loadImage(it.avatarUrl)
+            binding.unreadCount.text = it.unreadNotificationCount.toString()
+        }
         setupLoginButton()
 
         loadModePreference()
@@ -131,8 +149,7 @@ class MyAccountPage : Fragment() {
 
     private fun setupContentControlsSection() {
         binding.contentControlsDropdown.setExpanded(
-            preferenceManager.isContentControlsExpanded(),
-            animate = false
+            preferenceManager.isContentControlsExpanded(), animate = false
         )
         binding.contentControlsDropdown.setOnExpandedChangeListener { expanded ->
             preferenceManager.setContentControlsExpanded(expanded)
@@ -200,8 +217,7 @@ class MyAccountPage : Fragment() {
     }
 
     private fun setupThemeDemo(
-        binding: MyAccountPageBinding,
-        onChanged: (() -> Unit)? = null
+        binding: MyAccountPageBinding, onChanged: (() -> Unit)? = null
     ) {
         fun render(theme: SeasonalTheme) {
             if (theme != SeasonalTheme.WINTER) lastNonWinterTheme = theme
@@ -256,9 +272,7 @@ class MyAccountPage : Fragment() {
     }
 
     private fun setupSubtitleStyle(
-        binding: MyAccountPageBinding,
-        prefs: PreferenceManager,
-        onChanged: (() -> Unit)? = null
+        binding: MyAccountPageBinding, prefs: PreferenceManager, onChanged: (() -> Unit)? = null
     ) {
         var state = prefs.getSubtitleStyle()
         val preview = binding.subtitlePreviewText
@@ -287,8 +301,7 @@ class MyAccountPage : Fragment() {
 
         fun updateHeaderInfo() {
             val summary =
-                "${fontName(state.font)} • ${state.sizeSp}sp • ${colorName(state.color)} • " +
-                        "BG ${if (state.background) "On" else "Off"} • Outline ${if (state.outline) "On" else "Off"}"
+                "${fontName(state.font)} • ${state.sizeSp}sp • ${colorName(state.color)} • " + "BG ${if (state.background) "On" else "Off"} • Outline ${if (state.outline) "On" else "Off"}"
 
             binding.subtitleStyleDropdown.setSummary(summary)
             binding.subtitleStyleDropdown.setBadge(if (state.isDefault()) null else "CUSTOM")
@@ -301,8 +314,7 @@ class MyAccountPage : Fragment() {
             preview.typeface = when (state.font) {
                 PreferenceManager.Font.DEFAULT -> Typeface.SANS_SERIF
                 PreferenceManager.Font.POPPINS -> ResourcesCompat.getFont(
-                    preview.context,
-                    R.font.poppins
+                    preview.context, R.font.poppins
                 )
 
                 PreferenceManager.Font.DAYS -> ResourcesCompat.getFont(preview.context, R.font.days)
@@ -312,8 +324,7 @@ class MyAccountPage : Fragment() {
             if (state.background) {
                 preview.setBackgroundColor(
                     ContextCompat.getColor(
-                        preview.context,
-                        R.color.netflix_focus_overlay
+                        preview.context, R.color.netflix_focus_overlay
                     )
                 )
                 preview.setPadding(dp(12), dp(6), dp(12), dp(6))

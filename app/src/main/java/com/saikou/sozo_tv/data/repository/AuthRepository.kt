@@ -1,7 +1,7 @@
 package com.saikou.sozo_tv.data.repository
 
 import android.util.Log
-import com.animestudios.animeapp.GetViewerQuery
+import com.animestudios.animeapp.GetMyInfoQuery
 import com.apollographql.apollo3.ApolloClient
 import com.google.firebase.database.FirebaseDatabase
 import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
@@ -46,8 +46,8 @@ class AuthRepository(
         }
     }
 
-    private suspend fun fetchViewer(): GetViewerQuery.Viewer? {
-        val res = apolloClient.query(GetViewerQuery()).execute()
+    private suspend fun fetchViewer(): GetMyInfoQuery.Viewer? {
+        val res = apolloClient.query(GetMyInfoQuery()).execute()
         return res.data?.Viewer
     }
 

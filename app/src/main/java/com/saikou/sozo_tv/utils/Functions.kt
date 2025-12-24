@@ -23,12 +23,16 @@ import com.google.gson.Gson
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.CharactersPageAdapter
 import com.saikou.sozo_tv.app.MyApp
+import com.saikou.sozo_tv.domain.exceptions.ApiException
+import com.saikou.sozo_tv.domain.exceptions.NotFoundException
+import com.saikou.sozo_tv.domain.exceptions.ServerException
 import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import org.kamranzafar.jtar.TarEntry
 import org.kamranzafar.jtar.TarInputStream
+import retrofit2.Response
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
@@ -52,24 +56,31 @@ import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
-fun String.cleanImdbUrl(): String {
-    return this.replace("\\u0026", "&")
-}
-fun String.extractImdbVideoId(): String? {
-    val regex = Regex("/(vi\\d+)/")
-    return regex.find(this)?.groupValues?.get(1)
-}
+fun <T> Response<T>.toResult(): Result<T> {
+    return when {
+        this.isSuccessful && this.body() != null -> {
+            Result.success(this.body()!!)
+        }
 
-fun String.toDateFromIso8601(): Date? {
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-    dateFormat.timeZone = TimeZone.getTimeZone("UTC") // UTC vaqt zonasini sozlash
-    return try {
-        dateFormat.parse(this)
-    } catch (e: Exception) {
-        null
+        this.code() == 404 -> {
+            Result.failure(NotFoundException("Resource not found: ${this.message()}"))
+        }
+
+        this.code() in 500..599 -> {
+            Result.failure(ServerException("Server error (${this.code()}): ${this.message()}"))
+        }
+
+        else -> {
+            Result.failure(
+                ApiException(
+                    "API error (${this.code()}): ${
+                        this.errorBody()?.string()
+                    }"
+                )
+            )
+        }
     }
 }
-
 @SuppressLint("NewApi")
 fun snackString(s: String?, activity: Activity? = null, clipboard: String? = null) {
     if (s != null) {
@@ -122,16 +133,6 @@ fun VerticalGridView.setupGridLayoutForCategories(pageAdapter: CategoriesPageAda
     }
 }
 
-fun VerticalGridView.setupGridLayoutForBookmarks() {
-    this.apply {
-        isFocusable = true
-        isFocusableInTouchMode = true
-        descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
-        isFocusDrawingOrderEnabled = true
-        val columnCount = calculateDynamicColumns(200)
-        setNumColumns(columnCount)
-    }
-}
 
 /**
  * Calculates number of columns based on screen width and item width in dp.
@@ -148,25 +149,6 @@ private fun VerticalGridView.calculateDynamicColumns(itemWidthDp: Int): Int {
 
 
 
-fun String.toDateFromIso8601ForTxt(): String? {
-    return try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val instant = LocalDateTime.parse(this, DateTimeFormatter.ISO_DATE_TIME)
-            val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.getDefault())
-            instant.format(formatter)
-        } else {
-            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-            val outputFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-
-            val date: Date? = inputFormat.parse(this)
-            date?.let { outputFormat.format(it) } ?: "Wrong format"
-        }
-    } catch (e: Exception) {
-        "Wrong format"
-    }
-}
-
-
 fun View.visible() {
     this.visibility = View.VISIBLE
 }
@@ -176,88 +158,6 @@ fun View.gone() {
     this.visibility = View.GONE
 }
 
-fun makeCustomHttpClient(sslContext: SSLContext): OkHttpClient {
-    return OkHttpClient.Builder()
-        .sslSocketFactory(sslContext.socketFactory, @SuppressLint("CustomX509TrustManager")
-        object : X509TrustManager {
-            override fun checkClientTrusted(
-                chain: Array<out X509Certificate>?,
-                authType: String?
-            ) {
-            }
-
-            override fun checkServerTrusted(
-                chain: Array<out X509Certificate>?,
-                authType: String?
-            ) {
-            }
-
-            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-        })
-        .hostnameVerifier { _, _ -> true }
-        .build()
-}
-
-
-suspend fun extractTarFile(tarUrl: String, outputDir: File) {
-    withContext(Dispatchers.IO) {
-        try {
-            val url = URL(tarUrl)
-            val connection = url.openConnection()
-            if (connection is HttpsURLConnection) {
-                disableSSLCertificateChecking(connection)
-            }
-
-            connection.getInputStream().use { inputStream ->
-                TarInputStream(BufferedInputStream(inputStream)).use { tarInputStream ->
-                    var entry: TarEntry?
-                    while (tarInputStream.nextEntry.also { entry = it } != null) {
-                        val outputFile = File(outputDir, entry!!.name)
-                        if (entry!!.isDirectory) {
-                            outputFile.mkdirs()
-                        } else {
-                            outputFile.parentFile?.mkdirs()
-                            BufferedOutputStream(FileOutputStream(outputFile)).use { outputStream ->
-                                tarInputStream.copyTo(outputStream)
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-            println("Failed to extract TAR file: ${e.message}")
-        }
-    }
-}
-
-
-fun disableSSLCertificateChecking(connection: HttpsURLConnection) {
-    try {
-        val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-            override fun checkClientTrusted(
-                chain: Array<out X509Certificate>?,
-                authType: String?
-            ) {
-            }
-
-            override fun checkServerTrusted(
-                chain: Array<out X509Certificate>?,
-                authType: String?
-            ) {
-            }
-
-            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-        })
-
-        val sslContext = SSLContext.getInstance("TLS")
-        sslContext.init(null, trustAllCerts, SecureRandom())
-        connection.sslSocketFactory = sslContext.socketFactory
-        connection.hostnameVerifier = HostnameVerifier { _, _ -> true }
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
-}
 fun <T> tryWith(post: Boolean = false, snackbar: Boolean = true, call: () -> T): T? {
     return try {
         call.invoke()
@@ -313,18 +213,7 @@ fun <T : java.io.Serializable> saveData(
         null
     }
 }
-@SuppressLint("HardwareIds")
-fun getAndroidId(context: Context): String {
-    return Settings.Secure.getString(
-        context.contentResolver,
-        Settings.Secure.ANDROID_ID
-    )
-}
 
-inline fun <reified T> String.toDataClass(): T {
-    val gson = Gson()
-    return gson.fromJson(this, T::class.java)
-}
 
 fun String.toYear(): String {
     return this.substring(0, 4)

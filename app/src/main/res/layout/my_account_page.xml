@@ -19,33 +19,217 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <LinearLayout
+        <FrameLayout
+            android:id="@+id/accountBannerSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingHorizontal="20dp"
-            android:paddingTop="40dp"
-            android:paddingBottom="32dp">
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/banner_round_bg"
+            android:clipToOutline="true"
+            android:outlineProvider="background"
+            android:paddingHorizontal="20dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
-                android:fontFamily="sans-serif-light"
-                android:letterSpacing="0.02"
-                android:text="My Account"
-                android:textColor="@color/netflix_white"
-                android:textSize="28sp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
-                android:letterSpacing="0.01"
-                android:text="Manage your profile and preferences"
-                android:textColor="@color/netflix_gray"
-                android:textSize="14sp" />
-        </LinearLayout>
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/bannerImageView"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:clickable="false"
+                android:contentDescription="@null"
+                android:focusable="false"
+                android:importantForAccessibility="no"
+                android:padding="10dp"
+                android:scaleType="centerCrop"
+                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/banner_scrim" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="26dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:fontFamily="sans-serif-light"
+                    android:letterSpacing="0.02"
+                    android:text="@string/my_account"
+                    android:textColor="@color/netflix_white"
+                    android:textSize="28sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:letterSpacing="0.01"
+                    android:text="@string/manage_your_profile_and_preferences"
+                    android:textColor="@color/netflix_gray"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:layout_marginBottom="14dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:id="@+id/realAvatar"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="@drawable/netflix_avatar_bg"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/avatarImageView"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:visibility="gone"
+                            app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
+                            app:srcCompat="@color/ic_launcher_background" />
+
+                        <TextView
+                            android:id="@+id/avatarInitials"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/g"
+                            android:textColor="@color/netflix_white"
+                            android:textSize="24sp"
+                            android:textStyle="bold"
+                            android:visibility="visible" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/profileNameTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="2dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/guest"
+                            android:textColor="@color/netflix_white"
+                            android:textSize="20sp" />
+
+                        <TextView
+                            android:id="@+id/accountType"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif"
+                            android:text="@string/guest_account"
+                            android:textColor="@color/netflix_gray"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/loginButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="44dp"
+                        android:background="@drawable/tv_theme_card_selector"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:gravity="center"
+                        android:paddingHorizontal="18dp"
+                        android:text="@string/login"
+                        android:textColor="@color/netflix_white"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="16dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="6dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:letterSpacing="0.1"
+                            android:text="@string/status"
+                            android:textColor="@color/netflix_gray"
+                            android:textSize="11sp" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:layout_width="6dp"
+                                android:layout_height="6dp"
+                                android:layout_marginEnd="8dp"
+                                android:background="@drawable/netflix_status_dot" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif"
+                                android:text="@string/visitor"
+                                android:textColor="@color/netflix_white"
+                                android:textSize="14sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="6dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:letterSpacing="0.1"
+                            android:text="@string/notifications"
+                            android:textColor="@color/netflix_gray"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/unreadCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif"
+                            android:text="@string/_0_unread"
+                            android:textColor="@color/netflix_white"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -55,141 +239,6 @@
             android:orientation="vertical"
             android:paddingHorizontal="20dp"
             android:paddingVertical="24dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_marginEnd="16dp"
-                    android:background="@drawable/netflix_avatar_bg"
-                    android:gravity="center">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="@string/g"
-                        android:textColor="@color/netflix_white"
-                        android:textSize="24sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="2dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="@string/guest"
-                        android:textColor="@color/netflix_white"
-                        android:textSize="20sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif"
-                        android:text="Guest Account"
-                        android:textColor="@color/netflix_gray"
-                        android:textSize="14sp" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/loginButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="44dp"
-                    android:background="@drawable/tv_theme_card_selector"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:gravity="center"
-                    android:paddingHorizontal="18dp"
-                    android:text="Log In"
-                    android:textColor="@color/netflix_white"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="6dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:letterSpacing="0.1"
-                        android:text="STATUS"
-                        android:textColor="@color/netflix_gray"
-                        android:textSize="11sp" />
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <View
-                            android:layout_width="6dp"
-                            android:layout_height="6dp"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/netflix_status_dot" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif"
-                            android:text="Visitor"
-                            android:textColor="@color/netflix_white"
-                            android:textSize="14sp" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="6dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:letterSpacing="0.1"
-                        android:text="MESSAGES"
-                        android:textColor="@color/netflix_gray"
-                        android:textSize="11sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif"
-                        android:text="@string/_0_unread"
-                        android:textColor="@color/netflix_white"
-                        android:textSize="14sp" />
-                </LinearLayout>
-            </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
@@ -213,7 +262,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="6dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Content Mode"
+                        android:text="@string/content_mode"
                         android:textColor="@color/netflix_white"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -223,7 +272,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
                         android:fontFamily="sans-serif"
-                        android:text="Choose your preferred content type"
+                        android:text="@string/choose_your_preferred_content_type"
                         android:textColor="@color/netflix_gray"
                         android:textSize="13sp" />
 
@@ -246,7 +295,7 @@
                             android:fontFamily="@font/days"
                             android:gravity="center"
                             android:stateListAnimator="@null"
-                            android:text="Anime Mode"
+                            android:text="@string/anime_mode"
                             android:textColor="@color/netflix_text_primary"
                             android:textSize="14sp" />
 
@@ -261,7 +310,7 @@
                             android:focusableInTouchMode="true"
                             android:fontFamily="@font/poppins"
                             android:gravity="center"
-                            android:text="Movie Mode"
+                            android:text="@string/movie_mode"
                             android:textColor="@color/netflix_text_primary"
                             android:textSize="14sp" />
                     </LinearLayout>
@@ -280,7 +329,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="14dp"
                 app:expanded="false"
-                app:sectionSubtitle="Customize subtitle font, color and size (TV friendly)"
+                app:sectionSubtitle="@string/customize_subtitle_font_color_and_size_tv_friendly"
                 app:sectionTitle="Subtitle Style">
 
                 <LinearLayout
@@ -310,7 +359,7 @@
                                 android:layout_marginBottom="8dp"
                                 android:fontFamily="sans-serif-medium"
                                 android:letterSpacing="0.08"
-                                android:text="Preview"
+                                android:text="@string/preview"
                                 android:textColor="@color/netflix_gray"
                                 android:textSize="12sp" />
 
@@ -319,7 +368,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="sans-serif"
-                                android:text="This is how subtitles will look on TV"
+                                android:text="@string/this_is_how_subtitles_will_look_on_tv"
                                 android:textColor="@color/netflix_white"
                                 android:textSize="16sp" />
                         </LinearLayout>
@@ -331,7 +380,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Font"
+                        android:text="@string/font"
                         android:textColor="@color/netflix_white"
                         android:textSize="14sp" />
 
@@ -362,7 +411,7 @@
                             android:layout_weight="1"
                             android:fontFamily="@font/poppins"
                             android:gravity="center"
-                            android:text="Poppins"
+                            android:text="@string/poppins"
                             android:textColor="@color/netflix_text_primary"
                             android:textSize="14sp" />
 
@@ -374,7 +423,7 @@
                             android:layout_weight="1"
                             android:fontFamily="@font/days"
                             android:gravity="center"
-                            android:text="Days"
+                            android:text="@string/days"
                             android:textColor="@color/netflix_text_primary"
                             android:textSize="14sp" />
 
@@ -390,7 +439,6 @@
                             android:textSize="14sp" />
                     </LinearLayout>
 
-                    <!-- Text Size -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

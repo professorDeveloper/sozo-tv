@@ -81,7 +81,8 @@ class QrLoginActivity : AppCompatActivity() {
             when (val res = authRepo.handleTokenFromPairing(token)) {
                 is AuthRepository.Result.Success -> {
                     pairingRepo.markPaired(sid)
-                    setLoading(false, "Connected ✅")
+                    setLoading(false, "Connected ")
+                    finish()
                 }
                 is AuthRepository.Result.Error -> {
                     setLoading(false, "Failed: ${res.message}")

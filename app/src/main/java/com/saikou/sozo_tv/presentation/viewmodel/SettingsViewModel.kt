@@ -1,9 +1,14 @@
 package com.saikou.sozo_tv.presentation.viewmodel
 
+import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bugsnag.android.Bugsnag
 import com.saikou.sozo_tv.data.model.ContentMode
 import com.saikou.sozo_tv.data.model.SeasonalTheme
+import com.saikou.sozo_tv.data.model.anilist.Profile
+import com.saikou.sozo_tv.domain.repository.ProfileRepository
 import com.saikou.sozo_tv.domain.repository.SettingsRepository
 import com.saikou.sozo_tv.utils.LocalData
 import kotlinx.coroutines.flow.SharingStarted
@@ -12,7 +17,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val profileRepo: ProfileRepository
 ) : ViewModel() {
 
     val contentMode: StateFlow<ContentMode> =
@@ -23,10 +29,24 @@ class SettingsViewModel(
         settingsRepository.seasonalTheme
             .stateIn(viewModelScope, SharingStarted.Eagerly, SeasonalTheme.DEFAULT)
 
+
+    val profileData = MutableLiveData<Profile>()
+
     init {
         viewModelScope.launch {
             contentMode.collect { mode ->
                 LocalData.isAnimeEnabled = (mode == ContentMode.ANIME)
+            }
+        }
+    }
+
+    fun loadProfile() {
+        viewModelScope.launch {
+            val result = profileRepo.getCurrentProfileId()
+            result.onSuccess { profile ->
+                profileData.postValue(profile)
+            }.onFailure {
+                Bugsnag.notify(it)
             }
         }
     }

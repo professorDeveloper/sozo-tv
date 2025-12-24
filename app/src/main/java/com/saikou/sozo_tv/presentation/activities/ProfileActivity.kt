@@ -13,6 +13,8 @@ import androidx.navigation.NavOptions
 import androidx.navigation.findNavController
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.ProfileAdapter
+import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.ActivityProfileBinding
 import com.saikou.sozo_tv.presentation.screens.profile.MyAccountPage
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
@@ -33,6 +35,8 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityProfileBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
+        model.loadProfile()
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             viewBinding.navProfile.isFocusedByDefault = true
         }
@@ -82,6 +86,14 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
     }
 
     private fun setUpRv() {
+        model.profileData.observe(this) {
+            profileAdapter.addAccount(it.name)
+        }
+        val preference = PreferenceManager()
+        val token = preference.getString(AuthPrefKeys.ANILIST_TOKEN)
+        if (token.isEmpty()) {
+            profileAdapter.addAccount("Guest")
+        }
         val accountList = arrayListOf<String>()
         profileAdapter = ProfileAdapter(
             accounts = accountList,
@@ -98,8 +110,6 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
                     profileRv.requestFocusFromTouch()
                 }
             }
-            profileAdapter.addAccount("Guest")
-
             focusRecyclerViewToPosition(accountList.size + 2)
         } else {
             focusRecyclerViewToPosition(accountList.size + 4)
@@ -111,7 +121,6 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
                     profileRv.requestFocusFromTouch()
                 }
             }
-            profileAdapter.addAccount("Guest")
 
         }
 

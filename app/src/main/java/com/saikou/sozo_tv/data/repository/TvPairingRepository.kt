@@ -9,14 +9,11 @@ class TvPairingRepository(
     private val root = db.reference.child("tv_pair_sessions")
 
     data class Session(
-        val sid: String,
-        val qrPayload: String
+        val sid: String, val qrPayload: String
     )
 
     fun createSession(
-        tvDeviceId: String,
-        ttlMs: Long = 2 * 60_000L,
-        onResult: (Result<Session>) -> Unit
+        tvDeviceId: String, ttlMs: Long = 2 * 60_000L, onResult: (Result<Session>) -> Unit
     ) {
         val sid = UUID.randomUUID().toString().replace("-", "").take(10).uppercase()
         val now = System.currentTimeMillis()
@@ -28,20 +25,16 @@ class TvPairingRepository(
             "tvDeviceId" to tvDeviceId
         )
 
-        root.child(sid).setValue(data)
-            .addOnSuccessListener {
+        root.child(sid).setValue(data).addOnSuccessListener {
                 val payload = """{"t":"tv_pair","sid":"$sid","v":1}"""
                 onResult(Result.success(Session(sid, payload)))
-            }
-            .addOnFailureListener { e ->
+            }.addOnFailureListener { e ->
                 onResult(Result.failure(e))
             }
     }
 
     fun listenToken(
-        sid: String,
-        onToken: (String) -> Unit,
-        onError: (String) -> Unit
+        sid: String, onToken: (String) -> Unit, onError: (String) -> Unit
     ): ValueEventListener {
         val ref = root.child(sid).child("token")
 
@@ -59,6 +52,7 @@ class TvPairingRepository(
         ref.addValueEventListener(listener)
         return listener
     }
+
     fun deleteSession(sid: String) {
         root.child(sid).removeValue()
     }
@@ -68,7 +62,6 @@ class TvPairingRepository(
     }
 
     fun markPaired(sid: String) {
-        root.child(sid).child("status").setValue("paired")
-        root.child(sid).child("token").removeValue()
+        root.child(sid).removeValue()
     }
 }
