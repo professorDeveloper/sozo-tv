@@ -22,7 +22,7 @@ import com.saikou.sozo_tv.utils.LocalData.sectionList
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class ProfileActivity : AppCompatActivity(),MyAccountPage.AuthNavigator {
+class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
     private lateinit var viewBinding: ActivityProfileBinding
     private var backPressCount = 0
     private val model: SettingsViewModel by viewModel()
@@ -189,6 +189,7 @@ class ProfileActivity : AppCompatActivity(),MyAccountPage.AuthNavigator {
     }
 
     override fun openLogin() {
-
+        val intent = Intent(this, QrLoginActivity::class.java)
+        startActivity(intent)
     }
 }

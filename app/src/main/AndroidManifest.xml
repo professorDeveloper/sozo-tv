@@ -62,6 +62,10 @@
             android:name=".presentation.activities.ProfileActivity"
             android:exported="false" />
         <activity
+            android:name=".presentation.activities.QrLoginActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".presentation.activities.NoInternetActivity"
             android:exported="false" /> <!-- <activity -->
         <!-- android:name=".presentation.activities.UpdateActivity" -->
@@ -95,6 +99,7 @@
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
             android:value="4b29bbcd3db7f7125f312efde4e3dd2a" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

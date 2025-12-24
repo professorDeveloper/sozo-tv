@@ -120,5 +120,9 @@
     <string name="this_is_the_first_episode">This is the first episode</string>
     <string name="choose_subtitle">Choose Subtitle</string>
     <string name="enable_or_disable_subtitles">Enable or disable subtitles</string>
+    <string name="refresh_qr_code">Refresh QR Code</string>
+    <string name="waiting_for_mobile">Waiting for mobile...</string>
+    <string name="sign_in_with_qr_code">Sign in with QR code</string>
+    <string name="open_the_mobile_app_login_then_scan_this_qr_to_connect_your_account">Open the mobile app, login, then scan this QR to connect your account.</string>
 
 </resources>

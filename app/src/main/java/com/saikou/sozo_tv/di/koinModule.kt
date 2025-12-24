@@ -4,6 +4,7 @@ import androidx.room.Room
 import com.google.firebase.database.FirebaseDatabase
 import com.saikou.sozo_tv.data.local.database.AppDatabase
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.data.repository.AuthRepository
 import com.saikou.sozo_tv.data.repository.CategoriesRepositoryImpl
 import com.saikou.sozo_tv.data.repository.CharacterBookmarkRepositoryImpl
 import com.saikou.sozo_tv.data.repository.DetailRepositoryImpl
@@ -13,6 +14,7 @@ import com.saikou.sozo_tv.data.repository.ImdbHomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.MovieBookmarkRepositoryImpl
 import com.saikou.sozo_tv.data.repository.SearchRepositoryImpl
 import com.saikou.sozo_tv.data.repository.SharedPrefsSettingsRepository
+import com.saikou.sozo_tv.data.repository.TvPairingRepository
 import com.saikou.sozo_tv.data.repository.WatchHistoryRepositoryImpl
 import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import com.saikou.sozo_tv.domain.repository.CategoriesRepository
@@ -57,6 +59,7 @@ val koinModule = module {
     single { get<AppDatabase>().tvDao() }
     single { get<AppDatabase>().watchHistoryDao() }
     single { get<AppDatabase>().characterDao() }
+    single { PreferenceManager() }
     factory { UserPreferenceManager(androidContext()) }
     single<HomeRepository> {
         HomeRepositoryImpl(jikanApiService = get(), apolloClient = get())
@@ -64,6 +67,9 @@ val koinModule = module {
     single<EpisodeRepository> {
         EpisodeRepositoryImpl(api = get())
     }
+    single { AuthRepository(prefs = get(), apolloClient = get(), db = get()) }
+    single { TvPairingRepository( db = get()) }
+
     single<SettingsRepository> {
         SharedPrefsSettingsRepository(PreferenceManager())
     }

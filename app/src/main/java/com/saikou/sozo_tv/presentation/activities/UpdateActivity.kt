@@ -45,7 +45,6 @@ class UpdateActivity : AppCompatActivity() {
     private val appLink: String? by lazy { intent.getStringExtra(EXTRA_APP_LINK) }
     private val changeLog: String? by lazy { intent.getStringExtra(EXTRA_CHANGE_LOG) }
 
-    // Android 13+ Notification permission (if you need it)
     private val askNotif = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -56,11 +55,9 @@ class UpdateActivity : AppCompatActivity() {
         }
     }
 
-    // Unknown sources settings screen (we resume install after user returns)
     private val askUnknownSources = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        // When user comes back from Settings, try install again if now allowed
         if (canInstallUnknownApps()) {
             vm.installApk(this)
         } else {
@@ -68,12 +65,9 @@ class UpdateActivity : AppCompatActivity() {
         }
     }
 
-    // Installer UI
     private val askInstall =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
-            // RESULT_OK is not reliable on many TV installers, so don't treat as failure.
             Toast.makeText(this, "Returned from installer", Toast.LENGTH_SHORT).show()
-            // If update installed, app may restart itself. If not, user can try again.
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,7 +75,6 @@ class UpdateActivity : AppCompatActivity() {
         binding = ActivityUpdateBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Basic UI init
         binding.progressView1.gone()
         binding.progressView1.progress = 0f
         binding.progressView1.labelText = "0%"
@@ -89,23 +82,19 @@ class UpdateActivity : AppCompatActivity() {
         binding.updateTxt.text = "Update Now"
         binding.updateBtn.isEnabled = true
 
-        // Render changelog safely
         renderMarkdown(changeLog)
 
-        // Observe VM states/events
         observeVm()
 
-        // Single click handler (state-based)
         binding.updateBtn.setOnClickListener {
             when (vm.uiState.value) {
                 is UpdateViewModel.UiState.DownloadComplete -> {
                     vm.installApk(this)
                 }
-                is UpdateViewModel.UiState.Downloading -> {
-                    // ignore clicks while downloading
-                }
+
+                is UpdateViewModel.UiState.Downloading -> {}
+
                 else -> {
-                    // Start download
                     if (appLink.isNullOrBlank()) {
                         snackString("Update link is missing")
                         return@setOnClickListener
