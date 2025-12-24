@@ -74,22 +74,22 @@ class QrLoginActivity : AppCompatActivity() {
 
 
     private fun onTokenReceived(sid: String, token: String) {
+        cleanupListener()
         setLoading(true, "Connecting...")
 
         scope.launch {
             when (val res = authRepo.handleTokenFromPairing(token)) {
                 is AuthRepository.Result.Success -> {
                     pairingRepo.markPaired(sid)
-                    setLoading(false, "Connected ")
-
+                    setLoading(false, "Connected ✅")
                 }
-
                 is AuthRepository.Result.Error -> {
                     setLoading(false, "Failed: ${res.message}")
                 }
             }
         }
     }
+
 
     private fun setLoading(loading: Boolean, status: String) {
         binding.progress.visibility = if (loading) View.VISIBLE else View.GONE
