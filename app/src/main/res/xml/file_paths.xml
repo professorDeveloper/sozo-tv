@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Added external-path for Downloads directory access -->
-    <external-path name="downloads" path="Download/Sozo_updates/" />
-    <external-files-path name="external_files" path="." />
-    <cache-path name="cache" path="." />
+<paths>
+    <external-path
+        name="sozo_tv_updates"
+        path="Download/SozoTV/" />
 </paths>

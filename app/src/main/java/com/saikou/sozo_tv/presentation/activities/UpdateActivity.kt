@@ -22,39 +22,58 @@ import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.snackString
 import com.saikou.sozo_tv.utils.visible
 import io.noties.markwon.Markwon
+import io.noties.markwon.html.HtmlPlugin
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class UpdateActivity : AppCompatActivity() {
-    companion object {
-        const val REQUEST_WRITE_STORAGE = 1001
 
-        var _update: AppUpdate? = null
+    companion object {
+        private const val EXTRA_APP_LINK = "extra_app_link"
+        private const val EXTRA_CHANGE_LOG = "extra_change_log"
+
         fun newIntent(context: Context, update: AppUpdate): Intent {
-            _update = update
-            return Intent(context, UpdateActivity::class.java)
+            return Intent(context, UpdateActivity::class.java).apply {
+                putExtra(EXTRA_APP_LINK, update.appLink)
+                putExtra(EXTRA_CHANGE_LOG, update.changeLog)
+            }
         }
     }
-
-    private val update get() = _update!!
 
     private lateinit var binding: ActivityUpdateBinding
     private val vm: UpdateViewModel by viewModel()
 
+    private val appLink: String? by lazy { intent.getStringExtra(EXTRA_APP_LINK) }
+    private val changeLog: String? by lazy { intent.getStringExtra(EXTRA_CHANGE_LOG) }
+
+    // Android 13+ Notification permission (if you need it)
     private val askNotif = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) vm.startDownload(this, update.appLink ?: "")
-        else snackString("Notification permission denied")
+        if (granted) {
+            startDownload()
+        } else {
+            snackString("Notification permission denied")
+        }
     }
 
+    // Unknown sources settings screen (we resume install after user returns)
+    private val askUnknownSources = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        // When user comes back from Settings, try install again if now allowed
+        if (canInstallUnknownApps()) {
+            vm.installApk(this)
+        } else {
+            snackString("Permission still not granted to install unknown apps")
+        }
+    }
+
+    // Installer UI
     private val askInstall =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                Toast.makeText(this, "Installation completed!", Toast.LENGTH_LONG).show()
-                finish()
-            } else {
-                snackString("Installation cancelled")
-            }
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
+            // RESULT_OK is not reliable on many TV installers, so don't treat as failure.
+            Toast.makeText(this, "Returned from installer", Toast.LENGTH_SHORT).show()
+            // If update installed, app may restart itself. If not, user can try again.
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,29 +81,37 @@ class UpdateActivity : AppCompatActivity() {
         binding = ActivityUpdateBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Basic UI init
         binding.progressView1.gone()
         binding.progressView1.progress = 0f
         binding.progressView1.labelText = "0%"
         binding.bottomSheerCustomTitle.text = "Update Available"
         binding.updateTxt.text = "Update Now"
         binding.updateBtn.isEnabled = true
-        renderMarkdown(update.changeLog)
+
+        // Render changelog safely
+        renderMarkdown(changeLog)
+
+        // Observe VM states/events
         observeVm()
+
+        // Single click handler (state-based)
         binding.updateBtn.setOnClickListener {
-            val link = update.appLink ?: return@setOnClickListener
-            if (vm.uiState.value is UpdateViewModel.UiState.DownloadComplete) {
-                vm.installApk(this)
-                return@setOnClickListener
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(
-                    this, Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                askNotif.launch(Manifest.permission.POST_NOTIFICATIONS)
-            } else {
-                binding.progressView1.visible()
-                binding.updateBtn.gone()
-                vm.startDownload(this, link)
+            when (vm.uiState.value) {
+                is UpdateViewModel.UiState.DownloadComplete -> {
+                    vm.installApk(this)
+                }
+                is UpdateViewModel.UiState.Downloading -> {
+                    // ignore clicks while downloading
+                }
+                else -> {
+                    // Start download
+                    if (appLink.isNullOrBlank()) {
+                        snackString("Update link is missing")
+                        return@setOnClickListener
+                    }
+                    requestNotifPermissionIfNeededAndDownload()
+                }
             }
         }
     }
@@ -99,10 +126,54 @@ class UpdateActivity : AppCompatActivity() {
         super.onStop()
     }
 
+    private fun requestNotifPermissionIfNeededAndDownload() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val granted = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (!granted) {
+                askNotif.launch(Manifest.permission.POST_NOTIFICATIONS)
+                return
+            }
+        }
+        startDownload()
+    }
+
+    private fun startDownload() {
+        val link = appLink ?: return
+        binding.progressView1.visible()
+        binding.updateBtn.gone()
+        vm.startDownload(this, link)
+    }
+
+    private fun canInstallUnknownApps(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            packageManager.canRequestPackageInstalls()
+        } else {
+            true
+        }
+    }
+
+    private fun openUnknownSourcesSettings() {
+        val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(
+                Uri.parse("package:$packageName")
+            )
+        } else {
+            Intent(Settings.ACTION_SECURITY_SETTINGS)
+        }
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        askUnknownSources.launch(intent)
+    }
+
     private fun renderMarkdown(md: String?) {
         val markwon = Markwon.builder(this)
-            .usePlugin(io.noties.markwon.html.HtmlPlugin.create { it.excludeDefaults(true) })
-            .usePlugin(SpoilerPlugin()).build()
+            .usePlugin(HtmlPlugin.create { it.excludeDefaults(true) })
+            .usePlugin(SpoilerPlugin())
+            .build()
+
         markwon.setMarkdown(binding.markdownText, md ?: "No update information available.")
     }
 
@@ -138,12 +209,6 @@ class UpdateActivity : AppCompatActivity() {
                         visible()
                     }
                     binding.updateTxt.text = "Install Now"
-
-                    // Install tugmasini qayta o'rnatish
-                    binding.updateBtn.setOnClickListener {
-                        vm.installApk(this@UpdateActivity)
-                    }
-
                     snackString("Download completed successfully!")
                 }
 
@@ -155,12 +220,6 @@ class UpdateActivity : AppCompatActivity() {
                         visible()
                     }
                     binding.updateTxt.text = "Try Again"
-
-                    // Try Again tugmasini qayta o'rnatish
-                    binding.updateBtn.setOnClickListener {
-                        vm.startDownload(this@UpdateActivity, update.appLink ?: "")
-                    }
-
                     snackString("Download failed: ${st.error}")
                 }
             }
@@ -170,15 +229,7 @@ class UpdateActivity : AppCompatActivity() {
             when (ev) {
                 is UpdateViewModel.InstallEvent.RequestUnknownSources -> {
                     snackString("Please allow 'Install unknown apps' for Sozo TV")
-
-                    val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(Uri.parse("package:$packageName"))
-                    } else {
-                        Intent(Settings.ACTION_SECURITY_SETTINGS)
-                    }
-
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    startActivity(intent)
+                    openUnknownSourcesSettings()
                 }
 
                 is UpdateViewModel.InstallEvent.StartInstall -> {

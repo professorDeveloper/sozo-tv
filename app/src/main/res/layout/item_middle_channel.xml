@@ -62,7 +62,8 @@
         android:layout_marginTop="4dp"
         android:ellipsize="end"
         android:fontFamily="@font/rubik_regular"
-        android:maxLines="2"
+        android:maxLines="1"
+
         android:textColor="#ffffff"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="@+id/cardView"
