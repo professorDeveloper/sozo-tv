@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <uses-feature
         android:name="android.hardware.touchscreen"
@@ -92,15 +94,15 @@
 
         <meta-data
             android:name="com.bugsnag.android.API_KEY"
-            android:value="4b29bbcd3db7f7125f312efde4e3dd2a" /> <!-- Added FileProvider for APK installation -->
+            android:value="4b29bbcd3db7f7125f312efde4e3dd2a" />
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.cache.provider"
+            android:authorities="${applicationId}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/cache_file_paths" />
+                android:resource="@xml/file_paths" />
         </provider>
     </application>
 

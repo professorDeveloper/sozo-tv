@@ -1,7 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Added external-path for Downloads directory access -->
-    <external-path name="downloads" path="Download/Sozo_updates/" />
-    <external-files-path name="external_files" path="." />
-    <cache-path name="cache" path="." />
+    <!-- Downloads/IPSAT_Updates katalogiga ruxsat berish -->
+    <external-path
+        name="external_downloads"
+        path="Download/Sozo" />
+
+    <!-- External storage ildiziga ruxsat -->
+    <external-path
+        name="external_root"
+        path="." />
+
+    <!-- External files katalogi -->
+    <external-files-path
+        name="external_files"
+        path="." />
+
+    <!-- Cache katalogi -->
+    <cache-path
+        name="cache"
+        path="." />
+
+    <!-- External cache katalogi -->
+    <external-cache-path
+        name="external_cache"
+        path="." />
+
+    <!-- Internal files katalogi -->
+    <files-path
+        name="files"
+        path="." />
 </paths>

@@ -1,48 +1,28 @@
 package com.saikou.sozo_tv.presentation.activities
 
-import androidx.activity.enableEdgeToEdge
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.saikou.sozo_tv.R
-
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.DownloadManager
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.provider.Settings
-import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.components.spoiler.SpoilerPlugin
 import com.saikou.sozo_tv.databinding.ActivityUpdateBinding
 import com.saikou.sozo_tv.domain.model.AppUpdate
+import com.saikou.sozo_tv.presentation.viewmodel.UpdateViewModel
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.snackString
 import com.saikou.sozo_tv.utils.visible
 import io.noties.markwon.Markwon
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.io.File
 
 class UpdateActivity : AppCompatActivity() {
     companion object {
@@ -67,36 +47,45 @@ class UpdateActivity : AppCompatActivity() {
         else snackString("Notification permission denied")
     }
 
-    private val askUnknown =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                packageManager.canRequestPackageInstalls()
-            ) vm.installApk(this)
-            else snackString("Cannot install from unknown sources. Please enable 'Install unknown apps' in Settings.")
-        }
-
     private val askInstall =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) finish()
-            else snackString("Installation cancelled")
+            if (result.resultCode == Activity.RESULT_OK) {
+                Toast.makeText(this, "Installation completed!", Toast.LENGTH_LONG).show()
+                finish()
+            } else {
+                snackString("Installation cancelled")
+            }
         }
 
-    override fun onCreate(saved: Bundle?) {
-        super.onCreate(saved)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         binding = ActivityUpdateBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.progressView1.gone()
+        binding.progressView1.progress = 0f
+        binding.progressView1.labelText = "0%"
+        binding.bottomSheerCustomTitle.text = "Update Available"
+        binding.updateTxt.text = "Update Now"
+        binding.updateBtn.isEnabled = true
         renderMarkdown(update.changeLog)
         observeVm()
-
         binding.updateBtn.setOnClickListener {
             val link = update.appLink ?: return@setOnClickListener
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ContextCompat.checkSelfPermission(
+            if (vm.uiState.value is UpdateViewModel.UiState.DownloadComplete) {
+                vm.installApk(this)
+                return@setOnClickListener
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(
                     this, Manifest.permission.POST_NOTIFICATIONS
                 ) != PackageManager.PERMISSION_GRANTED
-            ) askNotif.launch(Manifest.permission.POST_NOTIFICATIONS)
-            else vm.startDownload(this, link)
+            ) {
+                askNotif.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                binding.progressView1.visible()
+                binding.updateBtn.gone()
+                vm.startDownload(this, link)
+            }
         }
     }
 
@@ -113,54 +102,66 @@ class UpdateActivity : AppCompatActivity() {
     private fun renderMarkdown(md: String?) {
         val markwon = Markwon.builder(this)
             .usePlugin(io.noties.markwon.html.HtmlPlugin.create { it.excludeDefaults(true) })
-            .usePlugin(SpoilerPlugin())
-            .build()
-        markwon.setMarkdown(binding.markdownText, md ?: "")
+            .usePlugin(SpoilerPlugin()).build()
+        markwon.setMarkdown(binding.markdownText, md ?: "No update information available.")
     }
 
+    @SuppressLint("SetTextI18n")
     private fun observeVm() {
         vm.uiState.observe(this) { st ->
             when (st) {
                 is UpdateViewModel.UiState.Idle -> {
                     binding.progressView1.gone()
                     binding.bottomSheerCustomTitle.text = "Update Available"
-                    binding.updateBtn.apply {
-                        binding.updateTxt.text = "Update Now"
-                        visible()
-                    }
+                    binding.updateBtn.isEnabled = true
+                    binding.updateTxt.text = "Update Now"
+                    binding.updateBtn.visible()
                 }
 
                 is UpdateViewModel.UiState.Downloading -> {
                     binding.progressView1.visible()
-                    binding.bottomSheerCustomTitle.text = "Downloading…"
+                    binding.bottomSheerCustomTitle.text = "Downloading..."
                     binding.updateBtn.gone()
-                    binding.progressView1.apply {
-                        progress = st.progress.toFloat()
-                        labelText = "${st.progress}%"
+                    binding.progressView1.progress = st.progress.toFloat()
+                    binding.progressView1.labelText = "${st.progress}%"
+
+                    if (st.progress in 94..99) {
+                        binding.bottomSheerCustomTitle.text = "Finishing download..."
                     }
                 }
 
                 is UpdateViewModel.UiState.DownloadComplete -> {
                     binding.progressView1.gone()
-                    binding.bottomSheerCustomTitle.text = "Downloaded!"
+                    binding.bottomSheerCustomTitle.text = "Download Complete!"
                     binding.updateBtn.apply {
-                        binding.updateTxt.text = "Install Now"
+                        isEnabled = true
                         visible()
-                        setOnClickListener { vm.installApk(this@UpdateActivity) }
                     }
+                    binding.updateTxt.text = "Install Now"
+
+                    // Install tugmasini qayta o'rnatish
+                    binding.updateBtn.setOnClickListener {
+                        vm.installApk(this@UpdateActivity)
+                    }
+
+                    snackString("Download completed successfully!")
                 }
 
                 is UpdateViewModel.UiState.DownloadFailed -> {
                     binding.progressView1.gone()
-                    binding.bottomSheerCustomTitle.text = "Failed"
+                    binding.bottomSheerCustomTitle.text = "Download Failed"
                     binding.updateBtn.apply {
-                        binding.updateTxt.text = "Try Again"
+                        isEnabled = true
                         visible()
-                        setOnClickListener {
-                            vm.startDownload(this@UpdateActivity, update.appLink ?: "")
-                        }
                     }
-                    snackString(st.error)
+                    binding.updateTxt.text = "Try Again"
+
+                    // Try Again tugmasini qayta o'rnatish
+                    binding.updateBtn.setOnClickListener {
+                        vm.startDownload(this@UpdateActivity, update.appLink ?: "")
+                    }
+
+                    snackString("Download failed: ${st.error}")
                 }
             }
         }
@@ -168,185 +169,30 @@ class UpdateActivity : AppCompatActivity() {
         vm.installEvent.observe(this) { ev ->
             when (ev) {
                 is UpdateViewModel.InstallEvent.RequestUnknownSources -> {
-                    snackString("To install updates, please allow 'Install unknown apps' for this app in the next screen.")
-                    val i = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES)
-                        .setData(Uri.parse("package:$packageName"))
-                    askUnknown.launch(i)
+                    snackString("Please allow 'Install unknown apps' for Sozo TV")
+
+                    val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(Uri.parse("package:$packageName"))
+                    } else {
+                        Intent(Settings.ACTION_SECURITY_SETTINGS)
+                    }
+
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(intent)
                 }
 
-                is UpdateViewModel.InstallEvent.StartInstall -> askInstall.launch(ev.intent)
-                is UpdateViewModel.InstallEvent.Error -> snackString(ev.message)
-            }
-        }
-    }
-}
-
-class UpdateViewModel : ViewModel() {
-    sealed class UiState {
-        object Idle : UiState()
-        data class Downloading(val progress: Int) : UiState()
-        object DownloadComplete : UiState()
-        data class DownloadFailed(val error: String) : UiState()
-    }
-
-    sealed class InstallEvent {
-        object RequestUnknownSources : InstallEvent()
-        data class StartInstall(val intent: Intent) : InstallEvent()
-        data class Error(val message: String) : InstallEvent()
-    }
-
-    private val _uiState = MutableLiveData<UiState>(UiState.Idle)
-    val uiState: LiveData<UiState> = _uiState
-
-    private val _installEvent = MutableLiveData<InstallEvent>()
-    val installEvent: LiveData<InstallEvent> = _installEvent
-
-    private var downloadId = -1L
-    private var downloadManager: DownloadManager? = null
-    private var progressJob: Job? = null
-
-    private val onDownloadComplete = object : BroadcastReceiver() {
-        override fun onReceive(ctx: Context, intent: Intent) {
-            val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
-            if (id == downloadId) checkDownloadStatus()
-        }
-    }
-
-    @SuppressLint("UnspecifiedRegisterReceiverFlag")
-    fun registerReceiver(ctx: Context) {
-        ctx.registerReceiver(
-            onDownloadComplete,
-            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-        )
-    }
-
-    fun unregisterReceiver(ctx: Context) {
-        runCatching { ctx.unregisterReceiver(onDownloadComplete) }
-    }
-
-    fun startDownload(context: Context, apkUrl: String) {
-        _uiState.value = UiState.Downloading(0)
-        downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-
-        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val updatesDir = File(downloadsDir, "IPSAT_Updates").apply {
-            if (!exists()) mkdirs()
-        }
-
-        val apkFile = File(updatesDir, "app_update_${System.currentTimeMillis()}.apk")
-
-        val req = DownloadManager.Request(Uri.parse(apkUrl)).apply {
-            setTitle("Sozo Update")
-            setDescription("Downloading new version…")
-            setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-            setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "IPSAT_Updates/app_update_${System.currentTimeMillis()}.apk")
-            setAllowedNetworkTypes(
-                DownloadManager.Request.NETWORK_WIFI or
-                        DownloadManager.Request.NETWORK_MOBILE
-            )
-            setAllowedOverRoaming(false)
-            setVisibleInDownloadsUi(true)
-        }
-
-        downloadId = downloadManager!!.enqueue(req)
-        trackProgress()
-    }
-
-    private fun trackProgress() {
-        progressJob?.cancel()
-        progressJob = viewModelScope.launch(Dispatchers.Main) {
-            while (isActive) {
-                val cursor = downloadManager
-                    ?.query(DownloadManager.Query().setFilterById(downloadId))
-                cursor?.use {
-                    if (it.moveToFirst()) {
-                        when (it.getInt(it.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))) {
-                            DownloadManager.STATUS_RUNNING -> {
-                                val done = it.getLong(
-                                    it.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-                                )
-                                val total = it.getLong(
-                                    it.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-                                )
-                                if (total > 0) {
-                                    val p = ((done * 100) / total).toInt()
-                                    _uiState.postValue(UiState.Downloading(p))
-                                }
-                            }
-
-                            DownloadManager.STATUS_PENDING -> {
-                                _uiState.postValue(UiState.Downloading(0))
-                            }
-                        }
+                is UpdateViewModel.InstallEvent.StartInstall -> {
+                    try {
+                        askInstall.launch(ev.intent)
+                    } catch (e: Exception) {
+                        snackString("Cannot open installer: ${e.message}")
                     }
                 }
-                delay(500)
-            }
-        }
-    }
 
-    private fun checkDownloadStatus() {
-        progressJob?.cancel()
-        downloadManager
-            ?.query(DownloadManager.Query().setFilterById(downloadId))
-            ?.use { c ->
-                if (c.moveToFirst()) {
-                    when (c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))) {
-                        DownloadManager.STATUS_SUCCESSFUL -> {
-                            _uiState.postValue(UiState.DownloadComplete)
-                        }
-
-                        DownloadManager.STATUS_FAILED -> {
-                            val reason =
-                                c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))
-                            _uiState.postValue(
-                                UiState.DownloadFailed("Download failed. Code: $reason")
-                            )
-                        }
-                    }
+                is UpdateViewModel.InstallEvent.Error -> {
+                    snackString(ev.message)
                 }
             }
-    }
-
-    fun installApk(context: Context) {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                !context.packageManager.canRequestPackageInstalls()
-            ) {
-                _installEvent.postValue(InstallEvent.RequestUnknownSources)
-                return
-            }
-
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val updatesDir = File(downloadsDir, "IPSAT_Updates")
-            val apkFile = updatesDir
-                .listFiles { _, name -> name.startsWith("app_update") && name.endsWith(".apk") }
-                ?.maxByOrNull { it.lastModified() }
-
-            if (apkFile == null || !apkFile.exists()) {
-                _installEvent.postValue(InstallEvent.Error("APK file not found. Please download again."))
-                return
-            }
-
-            val uri = FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.fileprovider",
-                apkFile
-            )
-
-            val intent = Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
-                data = uri
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                putExtra(Intent.EXTRA_RETURN_RESULT, true)
-            }
-
-            _installEvent.postValue(InstallEvent.StartInstall(intent))
-        } catch (e: Exception) {
-            Log.e("UpdateVM", "installApk error", e)
-            _installEvent.postValue(
-                InstallEvent.Error("Installation failed: ${e.localizedMessage ?: "Unknown error"}")
-            )
         }
     }
 }

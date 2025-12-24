@@ -20,12 +20,11 @@ import com.saikou.sozo_tv.domain.repository.CharacterBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.DetailRepository
 import com.saikou.sozo_tv.domain.repository.EpisodeRepository
 import com.saikou.sozo_tv.domain.repository.HomeRepository
-import com.saikou.sozo_tv.domain.repository.TMDBHomeRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.SearchRepository
 import com.saikou.sozo_tv.domain.repository.SettingsRepository
+import com.saikou.sozo_tv.domain.repository.TMDBHomeRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
-import com.saikou.sozo_tv.presentation.activities.UpdateViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.AdultPlayerViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
@@ -40,6 +39,7 @@ import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SplashViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.TvGardenViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.UpdateViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.WrongTitleViewModel
 import com.saikou.sozo_tv.services.FirebaseService
 import org.koin.android.ext.koin.androidApplication
@@ -99,7 +99,7 @@ val koinModule = module {
     viewModel { LiveTvViewModel(dao = get()) }
     viewModel { AdultPlayerViewModel() }
     viewModel { SplashViewModel(firebaseService = get()) }
-    viewModel { PlayViewModel( watchHistoryRepository = get()) }
+    viewModel { PlayViewModel(watchHistoryRepository = get()) }
     viewModel { DetailViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
     viewModel { SearchViewModel(repo = get()) }
