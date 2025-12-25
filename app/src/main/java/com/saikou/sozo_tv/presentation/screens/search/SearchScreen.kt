@@ -2,8 +2,11 @@ package com.saikou.sozo_tv.presentation.screens.search
 
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.speech.RecognitionListener
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -13,9 +16,6 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.content.Context
-import android.speech.SpeechRecognizer
-import android.speech.RecognitionListener
-import android.os.Build
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.saikou.sozo_tv.R
@@ -42,7 +42,6 @@ class SearchScreen : Fragment() {
     private val preference = PreferenceManager()
     private val VOICE_REQUEST_CODE = 2001
 
-    // Speech Recognizer for Android TV
     private var speechRecognizer: SpeechRecognizer? = null
     private var isListening = false
 
@@ -73,113 +72,22 @@ class SearchScreen : Fragment() {
     }
 
     private fun setupSpeechRecognizer() {
-        // Check if speech recognition is available
+        val isTV = requireContext().packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+
         if (SpeechRecognizer.isRecognitionAvailable(requireContext())) {
             speechRecognizer = SpeechRecognizer.createSpeechRecognizer(requireContext())
-            speechRecognizer?.setRecognitionListener(object : RecognitionListener {
-                override fun onReadyForSpeech(params: Bundle?) {
-                    Log.d("SearchScreen", "Ready for speech")
-                    isListening = true
-                    requireActivity().runOnUiThread {
-                        showVoiceOverlay(true)
-                        binding.voiceListeningOverlay.listeningTxt.text = "Listening..."
-                        binding.micBtn.setImageResource(R.drawable.ic_mic)
-                    }
-                }
-
-                override fun onBeginningOfSpeech() {
-                    Log.d("SearchScreen", "Beginning of speech")
-                    requireActivity().runOnUiThread {
-                        binding.voiceListeningOverlay.listeningTxt.text = "Listening..."
-                    }
-                }
-
-                override fun onRmsChanged(rmsdB: Float) {
-                }
-
-                override fun onBufferReceived(buffer: ByteArray?) {
-                }
-
-                override fun onEndOfSpeech() {
-                    Log.d("SearchScreen", "End of speech")
-                    isListening = false
-                    requireActivity().runOnUiThread {
-                        binding.micBtn.setImageResource(R.drawable.ic_mic)
-                    }
-                }
-
-                override fun onError(error: Int) {
-                    isListening = false
-                    val errorMessage = when (error) {
-                        SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
-                        SpeechRecognizer.ERROR_CLIENT -> "Client side error"
-                        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Insufficient permissions"
-                        SpeechRecognizer.ERROR_NETWORK -> "Network error"
-                        SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network timeout"
-                        SpeechRecognizer.ERROR_NO_MATCH -> "No match found"
-                        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "RecognitionService busy"
-                        SpeechRecognizer.ERROR_SERVER -> "Server error"
-                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech input"
-                        else -> "Unknown error"
-                    }
-
-                    Log.e("SearchScreen", "Speech recognition error: $errorMessage")
-
-                    requireActivity().runOnUiThread {
-                        showVoiceOverlay(false)
-                        binding.micBtn.setImageResource(R.drawable.ic_mic)
-                        if (error != SpeechRecognizer.ERROR_NO_MATCH &&
-                            error != SpeechRecognizer.ERROR_SPEECH_TIMEOUT
-                        ) {
-                            binding.voiceListeningOverlay.listeningTxt.text =
-                                "Error: $errorMessage"
-                            binding.voiceListeningOverlay.root.postDelayed({
-                                showVoiceOverlay(false)
-                            }, 2000)
-                        } else {
-                            showVoiceOverlay(false)
-                        }
-                    }
-                }
-
-                override fun onResults(results: Bundle?) {
-                    isListening = false
-                    val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                    val spokenText = matches?.firstOrNull() ?: ""
-
-                    Log.d("SearchScreen", "Speech results: $spokenText")
-
-                    requireActivity().runOnUiThread {
-                        showVoiceOverlay(false)
-                        binding.micBtn.setImageResource(R.drawable.ic_mic)
-
-                        if (spokenText.isNotEmpty()) {
-                            binding.searchEdt.setText(spokenText)
-                            binding.searchEdt.setSelection(spokenText.length)
-                            performSearchImmediate(spokenText)
-                        } else {
-                            binding.voiceListeningOverlay.listeningTxt.text =
-                                getString(R.string.no_speech_detected)
-                            binding.voiceListeningOverlay.root.postDelayed({
-                                showVoiceOverlay(false)
-                            }, 1000)
-                        }
-                    }
-                }
-
-                override fun onPartialResults(partialResults: Bundle?) {
-                }
-
-                override fun onEvent(eventType: Int, params: Bundle?) {
-                }
-            })
+            speechRecognizer?.setRecognitionListener(createRecognitionListener(isTV))
 
             binding.micBtn.setImageResource(R.drawable.ic_mic)
             binding.micBtn.setOnClickListener {
                 if (isListening) {
                     stopVoiceRecognition()
                 } else {
-                    startVoiceRecognition()
+                    if (isTV) {
+                        startVoiceRecognition()
+                    } else {
+                        checkAndStartVoiceRecognition()
+                    }
                 }
             }
 
@@ -188,12 +96,177 @@ class SearchScreen : Fragment() {
                 true
             }
         } else {
-            binding.micBtn.visibility = View.GONE
-            Log.e("SearchScreen", "Speech recognition is not available on this device")
+            binding.micBtn.setImageResource(R.drawable.ic_mic)
+            binding.micBtn.setOnClickListener {
+                startAlternativeVoiceSearch()
+            }
+
+            binding.micBtn.setOnLongClickListener {
+                startAlternativeVoiceSearch()
+                true
+            }
+
+            Log.w("SearchScreen", "SpeechRecognizer API not available, using activity intent")
+        }
+    }
+
+    private fun createRecognitionListener(isTV: Boolean): RecognitionListener {
+        return object : RecognitionListener {
+            override fun onReadyForSpeech(params: Bundle?) {
+                Log.d("SearchScreen", "Ready for speech")
+                isListening = true
+                requireActivity().runOnUiThread {
+                    showVoiceOverlay(true)
+                    binding.voiceListeningOverlay.listeningTxt.text = "Listening..."
+                    binding.micBtn.setImageResource(R.drawable.ic_mic)
+                }
+            }
+
+            override fun onBeginningOfSpeech() {
+                Log.d("SearchScreen", "Beginning of speech")
+                requireActivity().runOnUiThread {
+                    binding.voiceListeningOverlay.listeningTxt.text = "Listening... Speak now"
+                }
+            }
+
+            override fun onRmsChanged(rmsdB: Float) {
+            }
+
+            override fun onBufferReceived(buffer: ByteArray?) {}
+
+            override fun onEndOfSpeech() {
+                Log.d("SearchScreen", "End of speech")
+                isListening = false
+                requireActivity().runOnUiThread {
+                    binding.micBtn.setImageResource(R.drawable.ic_mic)
+                }
+            }
+
+            override fun onError(error: Int) {
+                isListening = false
+                val errorMessage = when (error) {
+                    SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
+                    SpeechRecognizer.ERROR_CLIENT -> "Client side error"
+                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Insufficient permissions"
+                    SpeechRecognizer.ERROR_NETWORK -> "Network error"
+                    SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network timeout"
+                    SpeechRecognizer.ERROR_NO_MATCH -> "No match found"
+                    SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "RecognitionService busy"
+                    SpeechRecognizer.ERROR_SERVER -> "Server error"
+                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech input"
+                    else -> "Unknown error"
+                }
+
+                Log.e("SearchScreen", "Speech recognition error: $errorMessage")
+
+                requireActivity().runOnUiThread {
+                    showVoiceOverlay(false)
+                    binding.micBtn.setImageResource(R.drawable.ic_mic)
+
+                    if (error == SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS) {
+                        if (isTV) {
+                            binding.voiceListeningOverlay.listeningTxt.text = "Microphone not available"
+                            showVoiceOverlay(true)
+                            binding.voiceListeningOverlay.root.postDelayed({
+                                showVoiceOverlay(false)
+                            }, 2000)
+                        } else {
+                            startAlternativeVoiceSearch()
+                        }
+                    } else if (error != SpeechRecognizer.ERROR_NO_MATCH &&
+                        error != SpeechRecognizer.ERROR_SPEECH_TIMEOUT
+                    ) {
+                        binding.voiceListeningOverlay.listeningTxt.text = "Error: $errorMessage"
+                        showVoiceOverlay(true)
+                        binding.voiceListeningOverlay.root.postDelayed({
+                            showVoiceOverlay(false)
+                        }, 2000)
+                    } else {
+                        showVoiceOverlay(false)
+                    }
+                }
+            }
+
+            override fun onResults(results: Bundle?) {
+                isListening = false
+                val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                val spokenText = matches?.firstOrNull() ?: ""
+
+                Log.d("SearchScreen", "Speech results: $spokenText")
+
+                requireActivity().runOnUiThread {
+                    showVoiceOverlay(false)
+                    binding.micBtn.setImageResource(R.drawable.ic_mic)
+
+                    if (spokenText.isNotEmpty()) {
+                        binding.searchEdt.setText(spokenText)
+                        binding.searchEdt.setSelection(spokenText.length)
+                        performSearchImmediate(spokenText)
+
+                        binding.voiceListeningOverlay.listeningTxt.text = "Searching for: $spokenText"
+                        showVoiceOverlay(true)
+                        binding.voiceListeningOverlay.root.postDelayed({
+                            showVoiceOverlay(false)
+                        }, 1500)
+                    } else {
+                        binding.voiceListeningOverlay.listeningTxt.text = "No speech detected"
+                        showVoiceOverlay(true)
+                        binding.voiceListeningOverlay.root.postDelayed({
+                            showVoiceOverlay(false)
+                        }, 1000)
+                    }
+                }
+            }
+
+            override fun onPartialResults(partialResults: Bundle?) {
+            }
+
+            override fun onEvent(eventType: Int, params: Bundle?) {
+            }
+        }
+    }
+
+    private fun checkAndStartVoiceRecognition() {
+        try {
+            startVoiceRecognition()
+        } catch (e: SecurityException) {
+            Log.e("SearchScreen", "SecurityException: ${e.message}")
+            startAlternativeVoiceSearch()
         }
     }
 
     private fun startVoiceRecognition() {
+        try {
+            val isTV = requireContext().packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(
+                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                )
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+                putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something to search...")
+                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+                putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
+
+                if (isTV) {
+                    putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 2000)
+                    putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1500)
+                }
+            }
+
+            speechRecognizer?.startListening(intent)
+
+        } catch (e: Exception) {
+            Log.e("SearchScreen", "Failed to start speech recognition: ${e.message}")
+            binding.micBtn.setImageResource(R.drawable.ic_mic)
+            showVoiceOverlay(false)
+
+            startAlternativeVoiceSearch()
+        }
+    }
+
+    private fun startAlternativeVoiceSearch() {
         try {
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                 putExtra(
@@ -203,46 +276,24 @@ class SearchScreen : Fragment() {
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
                 putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something to search...")
                 putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
-                putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-
-                // For better results on TV
-                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 3000)
-                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 2000)
-                putExtra(
-                    RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,
-                    1500
-                )
             }
 
-            speechRecognizer?.startListening(intent)
-
+            if (intent.resolveActivity(requireContext().packageManager) != null) {
+                showVoiceOverlay(true)
+                binding.voiceListeningOverlay.listeningTxt.text = "Starting voice search..."
+                startActivityForResult(intent, VOICE_REQUEST_CODE)
+            } else {
+                Log.e("SearchScreen", "No speech recognition activity found")
+                binding.voiceListeningOverlay.listeningTxt.text = "Voice search not available"
+                showVoiceOverlay(true)
+                binding.voiceListeningOverlay.root.postDelayed({
+                    showVoiceOverlay(false)
+                }, 2000)
+            }
         } catch (e: Exception) {
-            Log.e("SearchScreen", "Failed to start speech recognition: ${e.message}")
-            binding.micBtn.setImageResource(R.drawable.ic_mic)
-            showVoiceOverlay(false)
-            startAlternativeVoiceSearch()
-        }
-    }
-
-    private fun startAlternativeVoiceSearch() {
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(
-                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-            )
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
-            putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something to search...")
-        }
-
-        if (intent.resolveActivity(requireContext().packageManager) != null) {
+            Log.e("SearchScreen", "Alternative voice search error: ${e.message}")
+            binding.voiceListeningOverlay.listeningTxt.text = "Voice search error"
             showVoiceOverlay(true)
-            binding.voiceListeningOverlay.listeningTxt.text =
-                getString(R.string.starting_voice_search)
-            startActivityForResult(intent, VOICE_REQUEST_CODE)
-        } else {
-            Log.e("SearchScreen", "No speech recognition activity found")
-            binding.voiceListeningOverlay.listeningTxt.text =
-                getString(R.string.voice_search_not_available)
             binding.voiceListeningOverlay.root.postDelayed({
                 showVoiceOverlay(false)
             }, 2000)
@@ -251,6 +302,7 @@ class SearchScreen : Fragment() {
 
     private fun stopVoiceRecognition() {
         speechRecognizer?.stopListening()
+        speechRecognizer?.cancel()
         isListening = false
         showVoiceOverlay(false)
         binding.micBtn.setImageResource(R.drawable.ic_mic)
@@ -271,9 +323,21 @@ class SearchScreen : Fragment() {
                     binding.searchEdt.setText(spokenText)
                     binding.searchEdt.setSelection(spokenText.length)
                     performSearchImmediate(spokenText)
+                    binding.voiceListeningOverlay.listeningTxt.text = "Searching for: $spokenText"
+                    showVoiceOverlay(true)
+                    binding.voiceListeningOverlay.root.postDelayed({
+                        showVoiceOverlay(false)
+                    }, 1500)
                 }
             } else {
                 binding.micBtn.setImageResource(R.drawable.ic_mic)
+                if (resultCode == Activity.RESULT_CANCELED) {
+                    binding.voiceListeningOverlay.listeningTxt.text = "Voice search cancelled"
+                    showVoiceOverlay(true)
+                    binding.voiceListeningOverlay.root.postDelayed({
+                        showVoiceOverlay(false)
+                    }, 1500)
+                }
             }
         }
     }
