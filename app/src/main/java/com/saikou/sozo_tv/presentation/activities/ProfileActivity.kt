@@ -89,11 +89,7 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
         model.profileData.observe(this) {
             profileAdapter.addAccount(it.name)
         }
-        val preference = PreferenceManager()
-        val token = preference.getString(AuthPrefKeys.ANILIST_TOKEN)
-        if (token.isEmpty()) {
-            profileAdapter.addAccount("Guest")
-        }
+
         val accountList = arrayListOf<String>()
         profileAdapter = ProfileAdapter(
             accounts = accountList,
@@ -122,6 +118,11 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
                 }
             }
 
+        }
+        val preference = PreferenceManager()
+        val token = preference.getString(AuthPrefKeys.ANILIST_TOKEN)
+        if (token.isEmpty()) {
+            profileAdapter.addAccount("Guest")
         }
 
         profileAdapter.setSectionSelected(if (isSettingsOpen) 3 else 0)

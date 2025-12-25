@@ -7,19 +7,20 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.core.widget.ImageViewCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.fragment.NavHostFragment
 import com.saikou.sozo_tv.components.navigation.setupWithNavController
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ActivityMainBinding
 import com.saikou.sozo_tv.databinding.ContentHeaderMenuMainTvBinding
-import com.saikou.sozo_tv.domain.preference.EncryptedPreferencesManager
+import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.utils.LocalData
-import org.koin.android.ext.android.inject
+import com.saikou.sozo_tv.utils.loadImage
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : FragmentActivity() {
-
-
+    private val model: SettingsViewModel by viewModel()
     private var _binding: ActivityMainBinding? = null
     private var headerBinding: ContentHeaderMenuMainTvBinding? = null
     private val binding get() = _binding!!
@@ -27,12 +28,16 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        model.loadProfile()
         setupNavigation()
-
-
     }
 
-    private fun handleUserDataState() {
+    private fun handleUserDataState(header: ContentHeaderMenuMainTvBinding) {
+        model.profileData.observe(this) {
+            header.tvNavigationHeaderTitle.text = it.name
+            ImageViewCompat.setImageTintList(header.ivNavigationHeaderIcon, null)
+            header.ivNavigationHeaderIcon.loadImage(it.avatarUrl)
+        }
     }
 
 
@@ -47,15 +52,17 @@ class MainActivity : FragmentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             binding.navMainFragment.isFocusedByDefault = true
         }
+
         navController.addOnDestinationChangedListener { _, destination, _ ->
             Log.d("AAAA", "setupNavigation: state ")
             binding.navMain.headerView?.apply {
                 val header = ContentHeaderMenuMainTvBinding.bind(this)
                 headerBinding = header
-                handleUserDataState()
+                handleUserDataState(header)
                 header.root.setOnClickListener {
                     navigateProfile()
                 }
+                header.ivNavigationHeaderIcon
 
                 setOnOpenListener {
                     header.headerContainer.visibility = View.VISIBLE
@@ -64,11 +71,10 @@ class MainActivity : FragmentActivity() {
                     header.headerContainer.visibility = View.GONE
                 }
 
-
             }
 
             when (destination.id) {
-                R.id.search, R.id.home, R.id.categories, R.id.contact ,R.id.tvgarden-> binding.navMain.visibility =
+                R.id.search, R.id.home, R.id.categories, R.id.contact, R.id.tvgarden -> binding.navMain.visibility =
                     View.VISIBLE
 
                 else -> binding.navMain.visibility = View.GONE

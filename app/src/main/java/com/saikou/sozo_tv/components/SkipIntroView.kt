@@ -67,10 +67,18 @@ class SkipIntroView(
         skipIntroOverlay = skipView.findViewById(R.id.skip_intro_overlay)
         preferenceManager = PreferenceManager()
 
-        Log.d("SkipIntroView", "[v0] Initializing skip intro for episode $episodeNumber, malId: $malId")
+        Log.d(
+            "SkipIntroView",
+            "[v0] Initializing skip intro for episode $episodeNumber, malId: $malId"
+        )
 
         CoroutineScope(Dispatchers.IO).launch {
-            viewModel.loadTimeStamps(malId, episodeNumber, episodeLength, useProxyForTimeStamps = true)
+            viewModel.loadTimeStamps(
+                malId,
+                episodeNumber,
+                episodeLength,
+                useProxyForTimeStamps = true
+            )
         }
 
         skipTimeButton.setOnClickListener {
@@ -175,17 +183,18 @@ class SkipIntroView(
             return
         }
 
-        manualButtonAnimator = ObjectAnimator.ofFloat(manualSkipButton, "alpha", manualSkipButton.alpha, 0f).apply {
-            duration = 200L
-            interpolator = AccelerateDecelerateInterpolator()
-            addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator) {
-                    manualSkipButton.visibility = View.GONE
-                    isManualButtonVisible = false
-                }
-            })
-            start()
-        }
+        manualButtonAnimator =
+            ObjectAnimator.ofFloat(manualSkipButton, "alpha", manualSkipButton.alpha, 0f).apply {
+                duration = 200L
+                interpolator = AccelerateDecelerateInterpolator()
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        manualSkipButton.visibility = View.GONE
+                        isManualButtonVisible = false
+                    }
+                })
+                start()
+            }
     }
 
     private fun showSkipButton() {
@@ -229,17 +238,18 @@ class SkipIntroView(
             return
         }
 
-        fadeOutAnimator = ObjectAnimator.ofFloat(skipTimeButton, "alpha", skipTimeButton.alpha, 0f).apply {
-            duration = 200L
-            interpolator = AccelerateDecelerateInterpolator()
-            addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator) {
-                    skipTimeButton.visibility = View.GONE
-                    isButtonVisible = false
-                }
-            })
-            start()
-        }
+        fadeOutAnimator =
+            ObjectAnimator.ofFloat(skipTimeButton, "alpha", skipTimeButton.alpha, 0f).apply {
+                duration = 200L
+                interpolator = AccelerateDecelerateInterpolator()
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        skipTimeButton.visibility = View.GONE
+                        isButtonVisible = false
+                    }
+                })
+                start()
+            }
     }
 
     private fun showOverlay(skipTypeText: String, timestamp: AniSkip.Stamp) {
@@ -279,7 +289,10 @@ class SkipIntroView(
             val newTimestampId = getTimestampId(new)
 
             if (currentTimestampId != newTimestampId) {
-                Log.d("SkipIntroView", "[v0] New timestamp detected: ${new.skipType} at ${new.interval.startTime}-${new.interval.endTime}")
+                Log.d(
+                    "SkipIntroView",
+                    "[v0] New timestamp detected: ${new.skipType} at ${new.interval.startTime}-${new.interval.endTime}"
+                )
 
                 currentTimestampId = newTimestampId
 
@@ -298,15 +311,16 @@ class SkipIntroView(
                 Log.d("SkipIntroView", "[v0] Auto-skip enabled: $autoSkipEnabled")
 
                 if (autoSkipEnabled) {
-                    // Auto-skip mode: Show overlay + button, auto-skip after 2 seconds
                     showOverlay(skipTypeText, new)
                     showSkipButton()
 
-                    // Only auto-skip for intro and outro
                     if (new.skipType == "op" || new.skipType == "ed") {
                         autoSkipRunnable?.let { handler.removeCallbacks(it) }
                         autoSkipRunnable = Runnable {
-                            if (currentTimestampId == newTimestampId && !skippedTimeStamps.contains(newTimestampId)) {
+                            if (currentTimestampId == newTimestampId && !skippedTimeStamps.contains(
+                                    newTimestampId
+                                )
+                            ) {
                                 Log.d("SkipIntroView", "[v0] Auto-skipping timestamp")
                                 player.seekTo((new.interval.endTime * 1000).toLong())
                                 skippedTimeStamps.add(newTimestampId)
@@ -317,7 +331,6 @@ class SkipIntroView(
                         handler.postDelayed(autoSkipRunnable!!, 2000)
                     }
                 } else {
-                    // Manual mode: Show only manual button, no overlay, no auto-skip
                     showManualButton()
                 }
             }

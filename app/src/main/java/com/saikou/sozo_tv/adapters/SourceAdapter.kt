@@ -6,8 +6,10 @@ import android.view.animation.AnimationUtils
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.SubSource
 import com.saikou.sozo_tv.databinding.ItemSourceBinding
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.saveData
 import com.saikou.sozo_tv.utils.snackString
 
@@ -63,6 +65,8 @@ class SourceAdapter(
 
     fun setSelectedIndex(item: String) {
         selectedIndex = items.indexOfFirst { it.sourceId == item }
+        val selected = items.getOrNull(selectedIndex) ?: return
+        PreferenceManager().putString(LocalData.SOURCE, selected.sourceId)
         if (selectedIndex != -1) {
             snackString(selectedIndex.toString())
             notifyDataSetChanged()

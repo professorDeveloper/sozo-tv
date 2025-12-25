@@ -696,6 +696,14 @@
                 app:expanded="false"
                 app:sectionSubtitle="Manage what shows on Home"
                 app:sectionTitle="Content &amp; Privacy">
+                <com.saikou.sozo_tv.components.TvToggleRowView
+                    android:id="@+id/mainHistoryToggleRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:subtitleText="@string/enable_or_disable_viewing_history_on_home_screen"
+                    app:titleText="@string/history_manager" />
+
 
                 <com.saikou.sozo_tv.components.TvToggleRowView
                     android:id="@+id/channelToggleRow"

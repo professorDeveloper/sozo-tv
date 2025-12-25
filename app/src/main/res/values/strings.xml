@@ -142,5 +142,9 @@
     <string name="font">Font</string>
     <string name="poppins">Poppins</string>
     <string name="days">Days</string>
+    <string name="enable_or_disable_viewing_history_on_home_screen">Enable or disable viewing history on home screen</string>
+    <string name="history_manager">History manager</string>
+    <string name="current_selected_source">Current Selected Source: %1$s</string>
+    <string name="source">Source</string>
 
 </resources>

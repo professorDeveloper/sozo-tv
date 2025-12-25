@@ -154,6 +154,12 @@ class MyAccountPage : Fragment() {
         binding.contentControlsDropdown.setOnExpandedChangeListener { expanded ->
             preferenceManager.setContentControlsExpanded(expanded)
         }
+
+        binding.mainHistoryToggleRow.setChecked(preferenceManager.isHistoryEnabled())
+        binding.mainHistoryToggleRow.setOnCheckedChangedListener { isChecked ->
+            preferenceManager.setHistoryEnabled(isChecked)
+        }
+
         binding.channelToggleRow.setChecked(preferenceManager.isChannelEnabled())
         binding.channelToggleRow.setOnCheckedChangedListener { isChecked ->
             preferenceManager.setChannelEnabled(isChecked)

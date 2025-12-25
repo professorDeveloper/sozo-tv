@@ -11,10 +11,10 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
-class PreferenceManager {
+class PreferenceManager(context: Context= MyApp.context) {
 
     private val prefs: SharedPreferences =
-        MyApp.context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
     companion object {
         private const val PREF_NAME = "app_preferences"
@@ -50,6 +50,10 @@ class PreferenceManager {
     fun isNsfwEnabled() = prefs.getBoolean(KEY_NSFW_ENABLED, false)
     fun setNsfwEnabled(enabled: Boolean) =
         prefs.edit().putBoolean(KEY_NSFW_ENABLED, enabled).apply()
+
+    fun isHistoryEnabled() = prefs.getBoolean("history_enabled", true)
+    fun setHistoryEnabled(enabled: Boolean) =
+        prefs.edit().putBoolean("history_enabled", enabled).apply()
 
     fun isChannelEnabled() = prefs.getBoolean(KEY_CHANNEL_ENABLED, false)
     fun setChannelEnabled(enabled: Boolean) =

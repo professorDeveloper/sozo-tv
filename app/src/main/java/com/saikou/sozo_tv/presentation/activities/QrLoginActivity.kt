@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -82,8 +83,11 @@ class QrLoginActivity : AppCompatActivity() {
                 is AuthRepository.Result.Success -> {
                     pairingRepo.markPaired(sid)
                     setLoading(false, "Connected ")
+                    val intent = Intent(this@QrLoginActivity, ProfileActivity::class.java)
+                    startActivity(intent)
                     finish()
                 }
+
                 is AuthRepository.Result.Error -> {
                     setLoading(false, "Failed: ${res.message}")
                 }

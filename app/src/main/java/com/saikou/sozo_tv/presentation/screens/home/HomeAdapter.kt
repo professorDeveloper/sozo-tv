@@ -7,7 +7,6 @@ import android.os.Handler
 import android.os.Looper
 import android.text.TextUtils
 import android.view.KeyEvent
-import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
@@ -22,8 +21,8 @@ import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.databinding.BannerItemBinding
 import com.saikou.sozo_tv.databinding.ContentBannerBinding
+import com.saikou.sozo_tv.databinding.EpisodeItemBinding
 import com.saikou.sozo_tv.databinding.ItemCategoryBinding
-import com.saikou.sozo_tv.databinding.ItemChannelCategoryBinding
 import com.saikou.sozo_tv.databinding.ItemGenreBinding
 import com.saikou.sozo_tv.databinding.ItemMiddleChannelBinding
 import com.saikou.sozo_tv.databinding.ItemMovieBinding
@@ -35,9 +34,12 @@ import com.saikou.sozo_tv.domain.model.CategoryChannelItem
 import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.CategoryGenre
 import com.saikou.sozo_tv.domain.model.CategoryGenreItem
+import com.saikou.sozo_tv.domain.model.HistoryHome
+import com.saikou.sozo_tv.domain.model.HistoryHomeItem
 import com.saikou.sozo_tv.presentation.screens.home.vh.ViewHolderFactory
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.loadImage
+import com.saikou.sozo_tv.utils.visible
 
 class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf()) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -46,7 +48,6 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
     interface HomeData {
         val viewType: Int
     }
-
 
     companion object {
         const val VIEW_BANNER = 0
@@ -57,7 +58,8 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
         const val VIEW_GENRE_ITEM = 6
         const val VIEW_CHANNEL = 7
         const val VIEW_CHANNEL_ITEM = 8
-
+        const val VIEW_HISTORY = 9
+        const val VIEW_HISTORY_ITEM = 10
     }
 
     /**
@@ -115,6 +117,18 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             is ChannelItemViewHolder -> {
                 if (item is CategoryChannelItem) {
                     holder.bind(item)
+                }
+            }
+
+            is HistoryViewHolder -> {
+                if (item is HistoryHome) {
+                    holder.bind(item)
+                }
+            }
+
+            is HistoryItemViewHolder -> {
+                if (item is HistoryHomeItem) {
+                    holder.onBind(item)
                 }
             }
 
@@ -322,7 +336,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
     }
 
 
-    class ChannelViewHolder(private val binding: ItemChannelCategoryBinding) :
+    class ChannelViewHolder(private val binding: ItemCategoryBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: CategoryChannel) {
             binding.tvCategoryTitle.text = item.name
@@ -334,6 +348,53 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 }
 
                 setItemSpacing(10)
+            }
+        }
+    }
+
+
+    class HistoryViewHolder(private val binding: ItemCategoryBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: HistoryHome) {
+            binding.tvCategoryTitle.text = item.name
+            binding.hgvCategory.apply {
+                setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+                adapter = HomeAdapter().apply {
+                    submitList(item.list)
+                }
+
+                setItemSpacing(10)
+            }
+        }
+    }
+
+    class HistoryItemViewHolder(private val binding: EpisodeItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        @SuppressLint("SetTextI18n")
+        fun onBind(item: HistoryHomeItem) {
+            binding.apply {
+                val getLocalEp = item.content
+                progressBar.visible()
+                binding.topContainer.text = getLocalEp.title
+                progressBar.max = getLocalEp.totalDuration.toInt()
+                progressBar.progress = getLocalEp.lastPosition.toInt()
+                binding.country.text = (getLocalEp.epIndex + 1).toString()
+                binding.root.setOnFocusChangeListener { _, hasFocus ->
+                    val animation = when {
+                        hasFocus -> AnimationUtils.loadAnimation(
+                            binding.root.context, R.anim.zoom_in
+                        )
+
+                        else -> AnimationUtils.loadAnimation(
+                            binding.root.context, R.anim.zoom_out
+                        )
+                    }
+                    binding.root.startAnimation(animation)
+                    animation.fillAfter = true
+                }
+
+                itemImg.loadImage(getLocalEp.image)
+
             }
         }
     }

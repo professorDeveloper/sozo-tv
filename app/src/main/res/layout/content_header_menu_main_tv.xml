@@ -18,7 +18,7 @@
         app:cardCornerRadius="10dp">
 
 
-        <androidx.appcompat.widget.AppCompatImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/iv_navigation_header_icon"
             android:layout_width="30dp"
             android:layout_height="30dp"
@@ -29,8 +29,9 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
             app:srcCompat="@drawable/ic_no_register_profile"
-            app:tint="@color/color_item_tv_section_profile" />
+            app:tint="@color/color_item_tv_category_tv" />
 
 
         <LinearLayout
@@ -63,7 +64,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:visibility="gone"
                 android:alpha=".8"
                 android:duplicateParentState="true"
                 android:ellipsize="end"
@@ -71,6 +71,7 @@
                 android:paddingHorizontal="3dp"
                 android:textColor="@color/color_black_white_text"
                 android:textSize="8sp"
+                android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="@+id/iv_navigation_header_icon"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/iv_navigation_header_icon"

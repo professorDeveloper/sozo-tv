@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bugsnag.android.Bugsnag
+import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.ContentMode
 import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.data.model.anilist.Profile
@@ -41,12 +43,16 @@ class SettingsViewModel(
     }
 
     fun loadProfile() {
+        val preference =PreferenceManager()
         viewModelScope.launch {
-            val result = profileRepo.getCurrentProfileId()
-            result.onSuccess { profile ->
-                profileData.postValue(profile)
-            }.onFailure {
-                Bugsnag.notify(it)
+            val token = preference.getString(AuthPrefKeys.ANILIST_TOKEN)
+            if (token.isNotEmpty()) {
+                val result = profileRepo.getCurrentProfileId()
+                result.onSuccess { profile ->
+                    profileData.postValue(profile)
+                }.onFailure {
+                    Bugsnag.notify(it)
+                }
             }
         }
     }

@@ -16,6 +16,7 @@ import com.jakewharton.threetenabp.AndroidThreeTen
 import com.saikou.sozo_tv.di.NetworkModule
 import com.saikou.sozo_tv.di.firebaseModule
 import com.saikou.sozo_tv.di.koinModule
+
 /**
  * Main activity for SozoTv app.
  * @author Azamov
@@ -23,16 +24,10 @@ import com.saikou.sozo_tv.di.koinModule
  */
 
 class MyApp : Application() {
-    @SuppressLint("StaticFieldLeak")
-    companion object {
-        @SuppressLint("StaticFieldLeak")
-        lateinit var context: Context
-
-    }
 
     override fun onCreate() {
         super.onCreate()
-        context = this@MyApp
+        instance = this
         Bugsnag.start(this)
         AndroidThreeTen.init(this)
         FirebaseApp.initializeApp(this)
@@ -43,5 +38,15 @@ class MyApp : Application() {
             modules(NetworkModule, koinModule, firebaseModule)
         }
 
+    }
+
+    companion object {
+        @JvmStatic
+        lateinit var instance: MyApp
+            private set
+
+        @JvmStatic
+        val context: Context
+            get() = instance
     }
 }

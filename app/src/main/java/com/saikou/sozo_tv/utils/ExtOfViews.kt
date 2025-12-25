@@ -60,16 +60,34 @@ fun String.readableAmount(): String {
     return list.joinToString("")
 }
 
-
 fun ImageView.loadImage(url: String?) {
-    Glide.with(this.context)
-        .load(url)
+    val rm = Glide.with(this)
+    if (url.isNullOrBlank()) {
+        rm.load(LocalData.anime404)
+            .apply(
+                RequestOptions()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .error(R.drawable.planet)
+            )
+            .into(this)
+        return
+    }
+
+    val fallbackRequest = rm.load(LocalData.anime404)
         .apply(
             RequestOptions()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .error(R.drawable.planet)
         )
+
+    rm.load(url)
+        .apply(
+            RequestOptions()
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+        )
+        .error(fallbackRequest)
         .into(this)
+
 }
 
 

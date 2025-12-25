@@ -5,10 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.databinding.BannerItemBinding
 import com.saikou.sozo_tv.databinding.ContentBannerBinding
+import com.saikou.sozo_tv.databinding.EpisodeItemBinding
 import com.saikou.sozo_tv.databinding.ItemCastRecommendedBinding
 import com.saikou.sozo_tv.databinding.ItemCategoryBinding
 import com.saikou.sozo_tv.databinding.ItemCategoryDetailsHeaderBinding
-import com.saikou.sozo_tv.databinding.ItemChannelCategoryBinding
 import com.saikou.sozo_tv.databinding.ItemGenreBinding
 import com.saikou.sozo_tv.databinding.ItemMiddleChannelBinding
 import com.saikou.sozo_tv.databinding.ItemMovieBinding
@@ -94,10 +94,22 @@ object ViewHolderFactory {
                     )
                 )
             }
+
+            HomeAdapter.VIEW_HISTORY -> {
+                val binding = ItemCategoryBinding.inflate(inflater, parent, false)
+                HomeAdapter.HistoryViewHolder(binding)
+            }
+
+            HomeAdapter.VIEW_HISTORY_ITEM -> {
+                val binding = EpisodeItemBinding.inflate(inflater, parent, false)
+                HomeAdapter.HistoryItemViewHolder(binding)
+            }
+
             HomeAdapter.VIEW_CHANNEL -> {
-                val binding = ItemChannelCategoryBinding.inflate(inflater, parent, false)
+                val binding = ItemCategoryBinding.inflate(inflater, parent, false)
                 HomeAdapter.ChannelViewHolder(binding)
             }
+
             HomeAdapter.VIEW_CHANNEL_ITEM -> {
                 val binding = ItemMiddleChannelBinding.inflate(inflater, parent, false)
                 HomeAdapter.ChannelItemViewHolder(binding)

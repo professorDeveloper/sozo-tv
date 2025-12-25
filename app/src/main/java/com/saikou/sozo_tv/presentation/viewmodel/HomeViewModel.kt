@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Category
@@ -11,8 +12,11 @@ import com.saikou.sozo_tv.domain.model.CategoryChannel
 import com.saikou.sozo_tv.domain.model.CategoryGenre
 import com.saikou.sozo_tv.domain.model.CategoryGenreItem
 import com.saikou.sozo_tv.domain.model.GenreModel
+import com.saikou.sozo_tv.domain.model.HistoryHome
+import com.saikou.sozo_tv.domain.model.HistoryHomeItem
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.domain.repository.TMDBHomeRepository
+import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.manager.FirebaseChannelsManager
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 import com.saikou.sozo_tv.utils.LocalData
@@ -24,13 +28,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 
-class HomeViewModel(private val repo: HomeRepository, private val imdbRepo: TMDBHomeRepository) :
-    ViewModel() {
+class HomeViewModel(
+    private val repo: HomeRepository,
+    private val imdbRepo: TMDBHomeRepository,
+    private val historyRepository: WatchHistoryRepository
+) : ViewModel() {
     val preferenceManager = PreferenceManager()
 
     private val _bannersState = MutableStateFlow<UiState<BannerModel>>(UiState.Idle)
@@ -39,16 +47,25 @@ class HomeViewModel(private val repo: HomeRepository, private val imdbRepo: TMDB
     val categoriesState: StateFlow<UiState<List<Category>>> get() = _categoriesState
 
     val genresState = MutableStateFlow<UiState<CategoryGenre>>(UiState.Idle)
-    private val channelsFlow: Flow<CategoryChannel?> =
-        if (preferenceManager.isChannelEnabled()) {
-            FirebaseChannelsManager.getChannelsFlow()
-        } else {
-            flowOf(null)
-        }
+    private val channelsFlow: Flow<CategoryChannel?> = if (preferenceManager.isChannelEnabled()) {
+        FirebaseChannelsManager.getChannelsFlow()
+    } else {
+        flowOf(null)
+    }
+
+    private val historyFlow: Flow<HistoryHome?> = flow {
+        val enabled = preferenceManager.isHistoryEnabled()
+        emit(if (enabled) HistoryHome(list = historyRepository.getAllHistory()
+            .map { HistoryHomeItem(content = it) }.filter {
+                if (preferenceManager.isModeAnimeEnabled()) it.content.isAnime else !it.content.isAnime
+
+            }) else null
+        )
+    }
 
     val homeDataState: StateFlow<UiState<List<HomeAdapter.HomeData>>> = combine(
-        bannersState, categoriesState, genresState, channelsFlow
-    ) { bannerState, categoryState, genresState, channelsData ->
+        bannersState, categoriesState, genresState, channelsFlow, historyFlow
+    ) { bannerState, categoryState, genresState, channelsData, historyData ->
         when {
             bannerState is UiState.Loading || categoryState is UiState.Loading || genresState is UiState.Loading -> {
                 UiState.Loading
@@ -76,6 +93,11 @@ class HomeViewModel(private val repo: HomeRepository, private val imdbRepo: TMDB
                 homeDataList.add(genresState.data)
                 if (preferenceManager.isChannelEnabled() && channelsData != null) {
                     homeDataList.add(channelsData)
+                }
+                if (preferenceManager.isHistoryEnabled() && historyData != null && historyData.list.isNotEmpty()) {
+                    homeDataList.add(
+                        historyData
+                    )
                 }
                 homeDataList.addAll(categoryState.data)
                 UiState.Success(homeDataList)
@@ -149,16 +171,13 @@ class HomeViewModel(private val repo: HomeRepository, private val imdbRepo: TMDB
                 val result = repo.loadGenres()
                 genresState.value = when {
                     result.isSuccess -> UiState.Success(
-                        CategoryGenre(
-                            "Genres",
-                            result.getOrNull()!!.map {
-                                CategoryGenreItem(
-                                    content = GenreModel(
-                                        it.title,
-                                        it.image
-                                    )
+                        CategoryGenre("Genres", result.getOrNull()!!.map {
+                            CategoryGenreItem(
+                                content = GenreModel(
+                                    it.title, it.image
                                 )
-                            })
+                            )
+                        })
                     )
 
                     result.isFailure -> {
@@ -176,16 +195,13 @@ class HomeViewModel(private val repo: HomeRepository, private val imdbRepo: TMDB
                 val result = imdbRepo.loadGenres()
                 genresState.value = when {
                     result.isSuccess -> UiState.Success(
-                        CategoryGenre(
-                            "Genres",
-                            result.getOrNull()!!.map {
-                                CategoryGenreItem(
-                                    content = GenreModel(
-                                        it.title,
-                                        it.image
-                                    )
+                        CategoryGenre("Genres", result.getOrNull()!!.map {
+                            CategoryGenreItem(
+                                content = GenreModel(
+                                    it.title, it.image
                                 )
-                            })
+                            )
+                        })
                     )
 
                     result.isFailure -> {
