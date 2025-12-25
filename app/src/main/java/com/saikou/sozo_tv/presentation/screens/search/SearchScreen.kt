@@ -3,23 +3,24 @@ package com.saikou.sozo_tv.presentation.screens.search
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.speech.RecognizerIntent
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.content.Context
-import android.graphics.drawable.Animatable
-import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.speech.RecognitionListener
+import android.os.Build
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.SearchAdapter
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
-import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.databinding.SearchScreenBinding
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
@@ -38,8 +39,12 @@ class SearchScreen : Fragment() {
     private val model: SearchViewModel by viewModel()
     private var searchJob: Job? = null
     private var lastSearchQuery = ""
-    val preference = PreferenceManager()
+    private val preference = PreferenceManager()
     private val VOICE_REQUEST_CODE = 2001
+
+    // Speech Recognizer for Android TV
+    private var speechRecognizer: SpeechRecognizer? = null
+    private var isListening = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,120 +67,213 @@ class SearchScreen : Fragment() {
         setupTVFocusHandling()
         showInitialState()
         preventSystemKeyboard()
+        setupSpeechRecognizer()
         binding.searchEdt.requestFocus()
         binding.seasonalBackground.setTheme(PreferenceManager().getSeasonalTheme())
     }
 
-    private fun preventSystemKeyboard() {
-        binding.searchEdt.apply {
-            showSoftInputOnFocus = false
-            setOnFocusChangeListener { view, hasFocus ->
-                if (hasFocus) {
-                    val imm =
-                        requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                    imm.hideSoftInputFromWindow(view.windowToken, 0)
-                    view.applyFocusedStyle()
+    private fun setupSpeechRecognizer() {
+        // Check if speech recognition is available
+        if (SpeechRecognizer.isRecognitionAvailable(requireContext())) {
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(requireContext())
+            speechRecognizer?.setRecognitionListener(object : RecognitionListener {
+                override fun onReadyForSpeech(params: Bundle?) {
+                    Log.d("SearchScreen", "Ready for speech")
+                    isListening = true
+                    requireActivity().runOnUiThread {
+                        showVoiceOverlay(true)
+                        binding.voiceListeningOverlay.listeningTxt.text = "Listening..."
+                        binding.micBtn.setImageResource(R.drawable.ic_mic)
+                    }
+                }
+
+                override fun onBeginningOfSpeech() {
+                    Log.d("SearchScreen", "Beginning of speech")
+                    requireActivity().runOnUiThread {
+                        binding.voiceListeningOverlay.listeningTxt.text = "Listening..."
+                    }
+                }
+
+                override fun onRmsChanged(rmsdB: Float) {
+                }
+
+                override fun onBufferReceived(buffer: ByteArray?) {
+                }
+
+                override fun onEndOfSpeech() {
+                    Log.d("SearchScreen", "End of speech")
+                    isListening = false
+                    requireActivity().runOnUiThread {
+                        binding.micBtn.setImageResource(R.drawable.ic_mic)
+                    }
+                }
+
+                override fun onError(error: Int) {
+                    isListening = false
+                    val errorMessage = when (error) {
+                        SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
+                        SpeechRecognizer.ERROR_CLIENT -> "Client side error"
+                        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Insufficient permissions"
+                        SpeechRecognizer.ERROR_NETWORK -> "Network error"
+                        SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network timeout"
+                        SpeechRecognizer.ERROR_NO_MATCH -> "No match found"
+                        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "RecognitionService busy"
+                        SpeechRecognizer.ERROR_SERVER -> "Server error"
+                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech input"
+                        else -> "Unknown error"
+                    }
+
+                    Log.e("SearchScreen", "Speech recognition error: $errorMessage")
+
+                    requireActivity().runOnUiThread {
+                        showVoiceOverlay(false)
+                        binding.micBtn.setImageResource(R.drawable.ic_mic)
+                        if (error != SpeechRecognizer.ERROR_NO_MATCH &&
+                            error != SpeechRecognizer.ERROR_SPEECH_TIMEOUT
+                        ) {
+                            binding.voiceListeningOverlay.listeningTxt.text =
+                                "Error: $errorMessage"
+                            binding.voiceListeningOverlay.root.postDelayed({
+                                showVoiceOverlay(false)
+                            }, 2000)
+                        } else {
+                            showVoiceOverlay(false)
+                        }
+                    }
+                }
+
+                override fun onResults(results: Bundle?) {
+                    isListening = false
+                    val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    val spokenText = matches?.firstOrNull() ?: ""
+
+                    Log.d("SearchScreen", "Speech results: $spokenText")
+
+                    requireActivity().runOnUiThread {
+                        showVoiceOverlay(false)
+                        binding.micBtn.setImageResource(R.drawable.ic_mic)
+
+                        if (spokenText.isNotEmpty()) {
+                            binding.searchEdt.setText(spokenText)
+                            binding.searchEdt.setSelection(spokenText.length)
+                            performSearchImmediate(spokenText)
+                        } else {
+                            binding.voiceListeningOverlay.listeningTxt.text =
+                                getString(R.string.no_speech_detected)
+                            binding.voiceListeningOverlay.root.postDelayed({
+                                showVoiceOverlay(false)
+                            }, 1000)
+                        }
+                    }
+                }
+
+                override fun onPartialResults(partialResults: Bundle?) {
+                }
+
+                override fun onEvent(eventType: Int, params: Bundle?) {
+                }
+            })
+
+            binding.micBtn.setImageResource(R.drawable.ic_mic)
+            binding.micBtn.setOnClickListener {
+                if (isListening) {
+                    stopVoiceRecognition()
                 } else {
-                    view.resetStyle()
+                    startVoiceRecognition()
                 }
             }
-            setOnClickListener {
-                val imm =
-                    requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.hideSoftInputFromWindow(it.windowToken, 0)
-                it.requestFocus()
+
+            binding.micBtn.setOnLongClickListener {
+                startAlternativeVoiceSearch()
+                true
             }
+        } else {
+            binding.micBtn.visibility = View.GONE
+            Log.e("SearchScreen", "Speech recognition is not available on this device")
         }
     }
 
-    private fun setupCustomKeyboard() {
-        binding.customKeyboard.setOnKeyClickListener { key ->
-            val currentText = binding.searchEdt.text.toString()
-            val cursorPosition = binding.searchEdt.selectionStart
-            val newText = StringBuilder(currentText).insert(cursorPosition, key).toString()
-            binding.searchEdt.setText(newText)
-            binding.searchEdt.setSelection(cursorPosition + 1)
-            if (newText.trim().isNotEmpty()) {
-                scheduleSearch(newText.trim())
+    private fun startVoiceRecognition() {
+        try {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(
+                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                )
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+                putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something to search...")
+                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+                putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+
+                // For better results on TV
+                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 3000)
+                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 2000)
+                putExtra(
+                    RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,
+                    1500
+                )
             }
-        }
 
-        binding.customKeyboard.setOnBackspaceClickListener {
-            val currentText = binding.searchEdt.text.toString()
-            val cursorPosition = binding.searchEdt.selectionStart
-            if (cursorPosition > 0) {
-                val newText = StringBuilder(currentText).deleteCharAt(cursorPosition - 1).toString()
-                binding.searchEdt.setText(newText)
-                binding.searchEdt.setSelection(cursorPosition - 1)
-                if (newText.trim().isEmpty()) {
-                    cancelPendingSearch()
-                    showInitialState()
-                } else {
-                    scheduleSearch(newText.trim())
-                }
-            }
-        }
-        binding.micBtn.setOnClickListener {
-            startVoiceSearch()
-        }
+            speechRecognizer?.startListening(intent)
 
-
-        binding.customKeyboard.setOnClearClickListener {
-            binding.searchEdt.setText("")
-            binding.searchEdt.setSelection(0)
-            cancelPendingSearch()
-            showInitialState()
+        } catch (e: Exception) {
+            Log.e("SearchScreen", "Failed to start speech recognition: ${e.message}")
+            binding.micBtn.setImageResource(R.drawable.ic_mic)
+            showVoiceOverlay(false)
+            startAlternativeVoiceSearch()
         }
     }
 
-    private fun startVoiceSearch() {
-
-        val tvIntent = Intent(RecognizerIntent.ACTION_VOICE_SEARCH_HANDS_FREE).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+    private fun startAlternativeVoiceSearch() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
-            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something to search...")
         }
 
-        val phoneIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
-            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        if (intent.resolveActivity(requireContext().packageManager) != null) {
+            showVoiceOverlay(true)
+            binding.voiceListeningOverlay.listeningTxt.text =
+                getString(R.string.starting_voice_search)
+            startActivityForResult(intent, VOICE_REQUEST_CODE)
+        } else {
+            Log.e("SearchScreen", "No speech recognition activity found")
+            binding.voiceListeningOverlay.listeningTxt.text =
+                getString(R.string.voice_search_not_available)
+            binding.voiceListeningOverlay.root.postDelayed({
+                showVoiceOverlay(false)
+            }, 2000)
         }
+    }
 
-        val pm = requireContext().packageManager
-
-        when {
-            tvIntent.resolveActivity(pm) != null -> {
-                showVoiceOverlay(true)
-                startActivityForResult(tvIntent, VOICE_REQUEST_CODE)
-            }
-
-            phoneIntent.resolveActivity(pm) != null -> {
-                showVoiceOverlay(true)
-                startActivityForResult(phoneIntent, VOICE_REQUEST_CODE)
-            }
-
-            else -> {
-                Log.e("SearchScreen", "Voice search NOT supported on this TV")
-            }
-        }
+    private fun stopVoiceRecognition() {
+        speechRecognizer?.stopListening()
+        isListening = false
+        showVoiceOverlay(false)
+        binding.micBtn.setImageResource(R.drawable.ic_mic)
     }
 
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        showVoiceOverlay(false)
-        if (requestCode == VOICE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            val spoken =
-                data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-                    ?.firstOrNull().orEmpty()
 
-            if (spoken.isNotEmpty()) {
-                binding.searchEdt.setText(spoken)
-                binding.searchEdt.setSelection(spoken.length)
-                performSearchImmediate(spoken)
+        if (requestCode == VOICE_REQUEST_CODE) {
+            showVoiceOverlay(false)
+
+            if (resultCode == Activity.RESULT_OK) {
+                val results = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                val spokenText = results?.firstOrNull() ?: ""
+
+                if (spokenText.isNotEmpty()) {
+                    binding.searchEdt.setText(spokenText)
+                    binding.searchEdt.setSelection(spokenText.length)
+                    performSearchImmediate(spokenText)
+                }
+            } else {
+                binding.micBtn.setImageResource(R.drawable.ic_mic)
             }
         }
     }
@@ -188,7 +286,7 @@ class SearchScreen : Fragment() {
     private fun showInitialState() {
         if (binding.searchEdt.text.toString().trim().isEmpty()) {
             clearSearchResults()
-            binding.recommendationsTitle.text = "Your Search Recommendations"
+            binding.recommendationsTitle.text = getString(R.string.your_search_recommendations)
             binding.recommendationsTitle.visibility = View.VISIBLE
         }
     }
@@ -209,7 +307,7 @@ class SearchScreen : Fragment() {
                 binding.placeHolder.root.visibility = View.GONE
                 binding.recommendationsTitle.visibility = View.VISIBLE
                 binding.recommendationsTitle.text =
-                    "Search Results for \"${binding.searchEdt.text.toString().trim()}\""
+                    getString(R.string.search_results_for, binding.searchEdt.text.toString().trim())
             } else {
                 binding.vgvSearch.visibility = View.GONE
                 binding.placeHolder.root.visibility = View.VISIBLE
@@ -319,8 +417,74 @@ class SearchScreen : Fragment() {
         }
     }
 
+    private fun preventSystemKeyboard() {
+        binding.searchEdt.apply {
+            showSoftInputOnFocus = false
+            setOnFocusChangeListener { view, hasFocus ->
+                if (hasFocus) {
+                    val imm =
+                        requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.hideSoftInputFromWindow(view.windowToken, 0)
+                    view.applyFocusedStyle()
+                } else {
+                    view.resetStyle()
+                }
+            }
+            setOnClickListener {
+                val imm =
+                    requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(it.windowToken, 0)
+                it.requestFocus()
+            }
+        }
+    }
+
+    private fun setupCustomKeyboard() {
+        binding.customKeyboard.setOnKeyClickListener { key ->
+            val currentText = binding.searchEdt.text.toString()
+            val cursorPosition = binding.searchEdt.selectionStart
+            val newText = StringBuilder(currentText).insert(cursorPosition, key).toString()
+            binding.searchEdt.setText(newText)
+            binding.searchEdt.setSelection(cursorPosition + 1)
+            if (newText.trim().isNotEmpty()) {
+                scheduleSearch(newText.trim())
+            }
+        }
+
+        binding.customKeyboard.setOnBackspaceClickListener {
+            val currentText = binding.searchEdt.text.toString()
+            val cursorPosition = binding.searchEdt.selectionStart
+            if (cursorPosition > 0) {
+                val newText = StringBuilder(currentText).deleteCharAt(cursorPosition - 1).toString()
+                binding.searchEdt.setText(newText)
+                binding.searchEdt.setSelection(cursorPosition - 1)
+                if (newText.trim().isEmpty()) {
+                    cancelPendingSearch()
+                    showInitialState()
+                } else {
+                    scheduleSearch(newText.trim())
+                }
+            }
+        }
+
+        binding.customKeyboard.setOnClearClickListener {
+            binding.searchEdt.setText("")
+            binding.searchEdt.setSelection(0)
+            cancelPendingSearch()
+            showInitialState()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopVoiceRecognition()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        stopVoiceRecognition()
+        speechRecognizer?.destroy()
+        speechRecognizer = null
         cancelPendingSearch()
         _binding = null
     }

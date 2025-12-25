@@ -696,6 +696,7 @@
                 app:expanded="false"
                 app:sectionSubtitle="Manage what shows on Home"
                 app:sectionTitle="Content &amp; Privacy">
+
                 <com.saikou.sozo_tv.components.TvToggleRowView
                     android:id="@+id/mainHistoryToggleRow"
                     android:layout_width="match_parent"

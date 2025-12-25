@@ -146,5 +146,12 @@
     <string name="history_manager">History manager</string>
     <string name="current_selected_source">Current Selected Source: %1$s</string>
     <string name="source">Source</string>
+    <string name="no_speech_detected">No speech detected</string>
+    <string name="starting_voice_search">Starting voice search...</string>
+    <string name="voice_search_not_available">Voice search not available</string>
+    <string name="your_search_recommendations">Your Search Recommendations</string>
+    <string name="search_results_for">Search Results for \"%1$s\"</string>
+    <string name="app_icon_banner_style"><![CDATA[App Icon & Banner Style]]></string>
+    <string name="choose_your_preferred_banner_appearance">Choose your preferred banner appearance</string>
 
 </resources>
