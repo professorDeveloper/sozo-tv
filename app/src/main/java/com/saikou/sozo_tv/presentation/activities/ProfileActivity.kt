@@ -88,6 +88,7 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
     private fun setUpRv() {
         model.profileData.observe(this) {
             profileAdapter.addAccount(it.name)
+            profileAdapter.updateAccountType("Basic")
         }
 
         val accountList = arrayListOf<String>()
@@ -122,6 +123,7 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
         val preference = PreferenceManager()
         val token = preference.getString(AuthPrefKeys.ANILIST_TOKEN)
         if (token.isEmpty()) {
+            profileAdapter.updateAccountType("Guest")
             profileAdapter.addAccount("Guest")
         }
 
@@ -179,8 +181,6 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
         profileAdapter.setOnExitClickListener {
 
         }
-        profileAdapter
-        profileAdapter.updateAccountType("Guest")
 
     }
 
