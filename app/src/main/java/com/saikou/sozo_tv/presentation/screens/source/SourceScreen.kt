@@ -105,8 +105,4 @@ class SourceScreen : Fragment() {
         binding.sourceRv.visibility = View.GONE
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
 }

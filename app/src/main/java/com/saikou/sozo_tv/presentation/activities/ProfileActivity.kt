@@ -13,8 +13,10 @@ import androidx.navigation.NavOptions
 import androidx.navigation.findNavController
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.ProfileAdapter
+import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.data.model.SectionItem
 import com.saikou.sozo_tv.databinding.ActivityProfileBinding
 import com.saikou.sozo_tv.presentation.screens.profile.MyAccountPage
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
@@ -92,9 +94,13 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
         }
 
         val accountList = arrayListOf<String>()
+        val newSectionList = sectionList
+        if (PreferenceManager().getString(AuthPrefKeys.ANILIST_TOKEN).isNotEmpty()) newSectionList.add(
+            SectionItem(MyApp.context.getString(R.string.exit), R.drawable.ic_exit)
+        )
         profileAdapter = ProfileAdapter(
             accounts = accountList,
-            sectionList = sectionList,
+            sectionList = newSectionList,
             recyclerView = viewBinding.profileRv
         ).also { viewBinding.profileRv.adapter = it }
 

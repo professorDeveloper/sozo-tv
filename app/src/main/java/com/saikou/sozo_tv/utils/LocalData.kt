@@ -229,10 +229,8 @@ object LocalData {
         SectionItem(MyApp.context.getString(R.string.bookmark), R.drawable.ic_bookmark),
         SectionItem(MyApp.context.getString(R.string.message_page), R.drawable.ic_chat),
 
-        ).apply {
-        if (PreferenceManager().getString(AuthPrefKeys.ANILIST_TOKEN).isNotEmpty()) this.add(
-            SectionItem(MyApp.context.getString(R.string.exit), R.drawable.ic_exit)
-        )
+        ).also {
+
     }
     lateinit var listenerItemCategory: (isAbout: CategoryDetails) -> Unit
     fun setonClickedListenerItemCategory(listener: (isAbout: CategoryDetails) -> Unit) {
