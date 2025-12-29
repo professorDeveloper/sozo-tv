@@ -17,7 +17,9 @@ import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.SectionItem
+import com.saikou.sozo_tv.data.model.anilist.Profile
 import com.saikou.sozo_tv.databinding.ActivityProfileBinding
+import com.saikou.sozo_tv.presentation.screens.profile.ExitDialog
 import com.saikou.sozo_tv.presentation.screens.profile.MyAccountPage
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.utils.LocalData
@@ -89,13 +91,32 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
 
     private fun setUpRv() {
         model.profileData.observe(this) {
-            profileAdapter.addAccount(it.name)
+            profileAdapter.addAccount(it)
             profileAdapter.updateAccountType("Basic")
+            profileAdapter.setOnExitClickListener {
+                val dialog = ExitDialog(
+                    data = it
+                )
+                dialog.setNoClearListener {
+                    dialog.dismiss()
+                }
+                dialog.setYesContinueListener {
+                    model.exitUser()
+                    val mainActivity = Intent(this, MainActivity::class.java)
+                    mainActivity.flags =
+                        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(mainActivity)
+                    dialog.dismiss()
+                }
+                dialog.show(supportFragmentManager, "ExitDialog")
+            }
         }
 
-        val accountList = arrayListOf<String>()
+        val accountList = arrayListOf<Profile>()
         val newSectionList = sectionList
-        if (PreferenceManager().getString(AuthPrefKeys.ANILIST_TOKEN).isNotEmpty()) newSectionList.add(
+        if (PreferenceManager().getString(AuthPrefKeys.ANILIST_TOKEN)
+                .isNotEmpty()
+        ) newSectionList.add(
             SectionItem(MyApp.context.getString(R.string.exit), R.drawable.ic_exit)
         )
         profileAdapter = ProfileAdapter(
@@ -130,7 +151,7 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
         val token = preference.getString(AuthPrefKeys.ANILIST_TOKEN)
         if (token.isEmpty()) {
             profileAdapter.updateAccountType("Guest")
-            profileAdapter.addAccount("Guest")
+            profileAdapter.addAccount()
         }
 
         profileAdapter.setSectionSelected(if (isSettingsOpen) 3 else 0)
@@ -184,9 +205,7 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
                 }
             }
         }
-        profileAdapter.setOnExitClickListener {
-            model.exitUser()
-        }
+
 
     }
 

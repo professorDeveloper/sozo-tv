@@ -74,13 +74,12 @@ class EpisodeViewModel(
                         cachedEpisodes = it
                         cachedSeasons = it.groupingBy { it.season }.eachCount()
                     }
-
                     if (cachedSeasons.isEmpty()) {
                         cachedSeasons = allEpisodes.groupingBy { it.season }.eachCount()
                         if (seasons.isEmpty()) seasons = cachedSeasons
                     }
                     val backdrops = movieSource.getDetails(season, tmdbId)
-
+                    Log.d("GGG", "loadMovieSeriesEpisodes:${backdrops} ")
                     Log.d("GGG", "loadMovieSeriesEpisodes: season=$season")
 
                     val episodes = if (allEpisodes.filter { it.season == season }

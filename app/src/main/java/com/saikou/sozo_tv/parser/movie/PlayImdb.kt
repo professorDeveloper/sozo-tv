@@ -243,24 +243,34 @@ class PlayImdb : BaseParser() {
 
 
     suspend fun getDetails(season: Int, tmdbId: Int): ArrayList<Backdrop> {
-        val niceHttp = Requests(baseClient = httpClient, responseParser = parser)
-        val request = niceHttp.get(
-            "https://jumpfreedom.com/3/tv/${tmdbId}/season/${season}?language=en-US",
-            headers = mapOf(
-                "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:101.0) Gecko/20100101 Firefox/101.0",
-            )
-        )
-        if (request.isSuccessful) {
+        return withContext(Dispatchers.IO) {
+            val niceHttp = Requests(baseClient = httpClient, responseParser = parser)
 
-            val body = request.body.string()
-            val data = Gson().fromJson(body, SeasonResponse::class.java)
+            val url = "https://jumpfreedom.com/3/tv/$tmdbId/season/$season?language=en-US"
+            Log.d("GGG", "URL: $url")
+
+            val response = niceHttp.get(
+                url,
+                headers = mapOf(
+                    "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+                    "Content-Type" to "application/json;charset=UTF-8",
+                    "Accept" to "application/json"
+                )
+            )
+
+            // Body ni faqat 1 marta o'qing
+            val bodyString = response.body?.string().orEmpty()
+            Log.d("GGG", "isSuccessful=${response.isSuccessful}")
+            Log.d("GGG", "BODY: $bodyString")
+
+            if (!response.isSuccessful || bodyString.isBlank()) {
+                return@withContext arrayListOf<Backdrop>()
+            }
+
+            val data = Gson().fromJson(bodyString, SeasonResponse::class.java)
             val stillPaths = data.episodes.mapNotNull { it.stillPath }
 
-
-            return stillPaths.map { Backdrop("https://image.tmdb.org/t/p/w500/$it") } as ArrayList<Backdrop>
-        } else {
-            Log.d("GGG", "getDetails:fuck  life ")
-            return arrayListOf()
+            ArrayList(stillPaths.map { Backdrop("https://image.tmdb.org/t/p/w500/$it") })
         }
     }
 

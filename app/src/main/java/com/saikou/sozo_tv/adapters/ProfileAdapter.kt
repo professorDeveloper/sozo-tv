@@ -4,19 +4,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.SectionItem
+import com.saikou.sozo_tv.data.model.anilist.Profile
 import com.saikou.sozo_tv.databinding.AccountItemBinding
 import com.saikou.sozo_tv.databinding.AccountTypeItemBinding
 import com.saikou.sozo_tv.databinding.ProfileSectionItemBinding
 import com.saikou.sozo_tv.databinding.ProfileTopItemBinding
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
+import com.saikou.sozo_tv.utils.loadImage
 
 class ProfileAdapter(
-    private val accounts: MutableList<String>,
+    private val accounts: MutableList<Profile>,
     private val sectionList: List<SectionItem>,
     private val recyclerView: RecyclerView
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -58,10 +61,16 @@ class ProfileAdapter(
 
     inner class AccountViewHolder(private val binding: AccountItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(account: String) {
+        fun bind(account: Profile) {
             binding.userNameTxt.isSelected = true
             binding.userNameTxt.visibility = View.VISIBLE
-            binding.phoneTxt.text = account
+            binding.phoneTxt.text = account.name
+            if (account.id != -1) {
+
+                ImageViewCompat.setImageTintList(binding.accountImg, null)
+                binding.accountImg.loadImage(account.avatarUrl)
+            }
+
             binding.phoneTxt.textSize = 10f
             binding.phoneTxt.alpha = 0.7f
             binding.root.isFocusable = true
@@ -217,7 +226,7 @@ class ProfileAdapter(
     }
 
 
-    fun addAccount(account: String) {
+    fun addAccount(account: Profile = Profile(-1, "Guest", null, "")) {
         accounts.add(account)
         notifyItemInserted(accounts.size)
     }

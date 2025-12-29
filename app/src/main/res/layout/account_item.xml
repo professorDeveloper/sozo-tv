@@ -13,10 +13,12 @@
     android:paddingHorizontal="8dp"
     android:paddingVertical="4dp">
 
-    <androidx.appcompat.widget.AppCompatImageView
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/account_img"
         android:layout_width="40dp"
         android:layout_height="40dp"
+        app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+        android:scaleType="fitCenter"
         android:layout_gravity="center_vertical"
         android:duplicateParentState="true"
         app:srcCompat="@drawable/ic_no_register_profile"
@@ -40,13 +42,13 @@
             android:duplicateParentState="true"
             android:ellipsize="marquee"
             android:focusable="true"
-            android:text="Account"
             android:focusableInTouchMode="true"
             android:fontFamily="@font/days"
             android:marqueeRepeatLimit="marquee_forever"
             android:maxLines="1"
             android:scrollHorizontally="true"
             android:singleLine="true"
+            android:text="Account"
             android:textColor="@color/color_black_white_text"
             android:textSize="11sp"
             tools:text="@string/eshonov_fakhriyor" />
