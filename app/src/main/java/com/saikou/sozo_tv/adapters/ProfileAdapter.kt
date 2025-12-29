@@ -6,6 +6,8 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.SectionItem
 import com.saikou.sozo_tv.databinding.AccountItemBinding
 import com.saikou.sozo_tv.databinding.AccountTypeItemBinding
@@ -111,27 +113,33 @@ class ProfileAdapter(
                 binding.root.startAnimation(animation)
                 animation.fillAfter = true
             }
-            if (sectionList[sectionList.size - 1] != section) {
-                binding.spaceVw1.visibility = View.GONE
-                binding.spaceVw2.visibility = View.GONE
-                binding.root.setBackgroundResource(R.drawable.background_button)
-            } else {
-                binding.spaceVw1.visibility = View.VISIBLE
-                binding.spaceVw2.visibility = View.VISIBLE
-                binding.root.setBackgroundResource(R.drawable.background_button_exit)
-                val context = binding.root.context
-                val layoutParams = binding.root.layoutParams as ViewGroup.MarginLayoutParams
-                layoutParams.topMargin =
-                    context.resources.getDimensionPixelSize(R.dimen.exit_margin_top)
-                layoutParams.bottomMargin =
-                    context.resources.getDimensionPixelSize(R.dimen.exit_margin_bottom)
-                binding.root.layoutParams = layoutParams
-                binding.root.setOnClickListener {
-                    if (section.sectionTitle.equals("Exit Account", ignoreCase = true)) {
-                        exitItemListener.invoke()
-                    }
-                }
 
+            val token = PreferenceManager().getString(
+                AuthPrefKeys.ANILIST_TOKEN
+            )
+            if (token.isNotEmpty()) {
+                if (sectionList[sectionList.size - 1] != section) {
+                    binding.spaceVw1.visibility = View.GONE
+                    binding.spaceVw2.visibility = View.GONE
+                    binding.root.setBackgroundResource(R.drawable.background_button)
+                } else {
+                    binding.spaceVw1.visibility = View.VISIBLE
+                    binding.spaceVw2.visibility = View.VISIBLE
+                    binding.root.setBackgroundResource(R.drawable.background_button_exit)
+                    val context = binding.root.context
+                    val layoutParams = binding.root.layoutParams as ViewGroup.MarginLayoutParams
+                    layoutParams.topMargin =
+                        context.resources.getDimensionPixelSize(R.dimen.exit_margin_top)
+                    layoutParams.bottomMargin =
+                        context.resources.getDimensionPixelSize(R.dimen.exit_margin_bottom)
+                    binding.root.layoutParams = layoutParams
+                    binding.root.setOnClickListener {
+                        if (section.sectionTitle.equals("Exit Account", ignoreCase = true)) {
+                            exitItemListener.invoke()
+                        }
+                    }
+
+                }
             }
 
         }
@@ -208,11 +216,6 @@ class ProfileAdapter(
         notifyItemChanged(accounts.size + 1)
     }
 
-    fun removeAAllAccounts() {
-        val size = accounts.size
-        accounts.clear()
-        notifyItemRangeRemoved(1, size)
-    }
 
     fun addAccount(account: String) {
         accounts.add(account)
