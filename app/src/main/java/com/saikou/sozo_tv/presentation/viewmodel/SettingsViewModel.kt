@@ -65,6 +65,5 @@ class SettingsViewModel(
         viewModelScope.launch {
             preference.putString(AuthPrefKeys.ANILIST_TOKEN, "")
         }
-        profileData.postValue(null)
     }
 }

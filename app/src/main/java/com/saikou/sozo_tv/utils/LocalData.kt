@@ -3,6 +3,7 @@ package com.saikou.sozo_tv.utils
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
+import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.data.model.SectionItem
@@ -11,15 +12,14 @@ import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.ChannelResponseItem
 import com.saikou.sozo_tv.domain.model.GenreTmdbModel
-import com.saikou.sozo_tv.domain.model.HistoryHomeItem
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.MySpinnerItem
 
 
 object LocalData {
-    lateinit var historyItemClickListener: (WatchHistoryEntity) -> Unit
+    lateinit var historyItemClickListenerr: (WatchHistoryEntity) -> Unit
     fun setHistoryItemClickListener(listener: (WatchHistoryEntity) -> Unit) {
-        historyItemClickListener = listener
+        historyItemClickListenerr = listener
     }
 
     var trailer: String = ""
@@ -228,8 +228,12 @@ object LocalData {
         SectionItem(MyApp.context.getString(R.string.my_history), R.drawable.ic_time_history),
         SectionItem(MyApp.context.getString(R.string.bookmark), R.drawable.ic_bookmark),
         SectionItem(MyApp.context.getString(R.string.message_page), R.drawable.ic_chat),
-        SectionItem(MyApp.context.getString(R.string.exit), R.drawable.ic_exit),
-    )
+
+        ).apply {
+        if (PreferenceManager().getString(AuthPrefKeys.ANILIST_TOKEN).isNotEmpty()) this.add(
+            SectionItem(MyApp.context.getString(R.string.exit), R.drawable.ic_exit)
+        )
+    }
     lateinit var listenerItemCategory: (isAbout: CategoryDetails) -> Unit
     fun setonClickedListenerItemCategory(listener: (isAbout: CategoryDetails) -> Unit) {
         listenerItemCategory = listener
