@@ -43,7 +43,7 @@ class SettingsViewModel(
     }
 
     fun loadProfile() {
-        val preference =PreferenceManager()
+        val preference = PreferenceManager()
         viewModelScope.launch {
             val token = preference.getString(AuthPrefKeys.ANILIST_TOKEN)
             if (token.isNotEmpty()) {
@@ -60,4 +60,11 @@ class SettingsViewModel(
     fun setContentMode(mode: ContentMode) = settingsRepository.setContentMode(mode)
 
     fun setSeasonalTheme(theme: SeasonalTheme) = settingsRepository.setSeasonalTheme(theme)
+    fun exitUser() {
+        val preference = PreferenceManager()
+        viewModelScope.launch {
+            preference.putString(AuthPrefKeys.ANILIST_TOKEN, "")
+        }
+        profileData.postValue(null)
+    }
 }

@@ -87,8 +87,14 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
 
     private fun setUpRv() {
         model.profileData.observe(this) {
-            profileAdapter.addAccount(it.name)
-            profileAdapter.updateAccountType("Basic")
+            if (it == null) {
+                profileAdapter.removeAAllAccounts()
+                profileAdapter.updateAccountType("Guest")
+                profileAdapter.addAccount("Guest")
+            } else {
+                profileAdapter.addAccount(it.name)
+                profileAdapter.updateAccountType("Basic")
+            }
         }
 
         val accountList = arrayListOf<String>()
@@ -179,7 +185,7 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
             }
         }
         profileAdapter.setOnExitClickListener {
-
+            model.exitUser()
         }
 
     }
