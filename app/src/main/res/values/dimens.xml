@@ -8,7 +8,7 @@
         <dimen name="pv_pin_view_cursor_width">2dp</dimen>
     <dimen name="home_spacing">10dp</dimen>
     <dimen name="exit_margin_top">105dp</dimen>
-    <dimen name="exit_margin_bottom">25dp</dimen>
+    <dimen name="exit_margin_bottom">55dp</dimen>
     <dimen name="normal_margin_top">3dp</dimen>
     <dimen name="normal_margin_bottom">3dp</dimen>
         <dimen name="item_height">110dp</dimen> <!-- Itemning taxminiy balandligi -->
