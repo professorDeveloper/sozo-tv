@@ -22,6 +22,7 @@ import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.UiState
 import kotlinx.coroutines.launch
@@ -90,6 +91,37 @@ class HomeScreen : Fragment() {
                     )
                 )
             }
+            LocalData.setHistoryItemClickListener {
+                if (it.isEpisode) {
+                    if (isAnimeEnabled) {
+                        val intent = Intent(binding.root.context, PlayerActivity::class.java)
+                        intent.putExtra("session", it.session)
+                        intent.putExtra("page", it.page)
+                        intent.putExtra("epIndex", it.epIndex)
+                        intent.putExtra("mediaId", it.categoryid)
+                        intent.putExtra("image", it.image)
+                        intent.putExtra("animeTitle", it.mediaName)
+                        intent.putExtra("isHistory", true)
+                        intent.putExtra("isSeries", it.isSeries)
+                        intent.putExtra("isAnime", it.isAnime)
+                        requireContext().startActivity(intent)
+                        binding.root.context.startActivity(intent)
+                    } else {
+                        val intent = Intent(binding.root.context, PlayerActivity::class.java)
+                        intent.putExtra("session", it.session)
+                        intent.putExtra("page", it.page)
+                        intent.putExtra("epIndex", it.epIndex)
+                        intent.putExtra("mediaId", it.categoryid)
+                        intent.putExtra("imdb", it.imdbID)
+                        intent.putExtra("image", it.image)
+                        intent.putExtra("animeTitle", it.mediaName)
+                        intent.putExtra("isHistory", true)
+                        intent.putExtra("isSeries", it.isSeries)
+                        requireContext().startActivity(intent)
+                        binding.root.context.startActivity(intent)
+                    }
+                }
+            }
             homeViewModel.aniId.observe(viewLifecycleOwner) {
                 when (it) {
                     is Resource.Success -> {
@@ -105,10 +137,10 @@ class HomeScreen : Fragment() {
             }
             LocalData.setonClickedListenerItemCategory {
 
-                    val intent = Intent(binding.root.context, PlayerActivity::class.java)
-                    intent.putExtra("model", it.content.id)
-                    intent.putExtra("isMovie", !it.content.isSeries)
-                    binding.root.context.startActivity(intent)
+                val intent = Intent(binding.root.context, PlayerActivity::class.java)
+                intent.putExtra("model", it.content.id)
+                intent.putExtra("isMovie", !it.content.isSeries)
+                binding.root.context.startActivity(intent)
             }
         }
 

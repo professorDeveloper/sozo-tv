@@ -392,7 +392,9 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                     binding.root.startAnimation(animation)
                     animation.fillAfter = true
                 }
-
+                binding.root.setOnClickListener {
+                    LocalData.historyItemClickListener.invoke(getLocalEp)
+                }
                 itemImg.loadImage(getLocalEp.image)
 
             }

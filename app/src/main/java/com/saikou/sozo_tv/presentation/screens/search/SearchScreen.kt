@@ -416,11 +416,7 @@ class SearchScreen : Fragment() {
         }
     }
 
-    private fun performSearch(query: String) {
-        if (query.trim().length >= 2) {
-            scheduleSearch(query.trim())
-        }
-    }
+
 
     private fun scheduleSearch(query: String) {
         searchJob?.cancel()

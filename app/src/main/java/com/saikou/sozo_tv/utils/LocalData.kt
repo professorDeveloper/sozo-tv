@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.utils
 
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.app.MyApp
+import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.data.model.SectionItem
@@ -10,13 +11,19 @@ import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.ChannelResponseItem
 import com.saikou.sozo_tv.domain.model.GenreTmdbModel
+import com.saikou.sozo_tv.domain.model.HistoryHomeItem
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.MySpinnerItem
 
 
 object LocalData {
+    lateinit var historyItemClickListener: (WatchHistoryEntity) -> Unit
+    fun setHistoryItemClickListener(listener: (WatchHistoryEntity) -> Unit) {
+        historyItemClickListener = listener
+    }
+
     var trailer: String = ""
-    const val SOURCE ="subSource"
+    const val SOURCE = "subSource"
     var isHistoryItemClicked = false
     const val IMDB_IMAGE_PATH = "https://image.tmdb.org/t/p/w500/"
     const val IMDB_BACKDROP_PATH = "https://image.tmdb.org/t/p/w1280/"
