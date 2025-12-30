@@ -1,19 +1,15 @@
 package com.saikou.sozo_tv.presentation.viewmodel
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
-import android.provider.Settings
 import android.util.Log
-import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -27,16 +23,22 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 class UpdateViewModel : ViewModel() {
+
     sealed class UiState {
         object Idle : UiState()
-        data class Downloading(val progress: Int) : UiState()
+
+        /**
+         * progress = 0..1000 (ya'ni 0.0%..100.0%)
+         */
+        data class Downloading(val progress1000: Int) : UiState()
+
         object DownloadComplete : UiState()
         data class DownloadFailed(val error: String) : UiState()
     }
 
     sealed class InstallEvent {
         object RequestUnknownSources : InstallEvent()
-        data class StartInstall(val intent: Intent) : InstallEvent()
+        data class StartInstall(val primary: Intent, val fallback: Intent) : InstallEvent()
         data class Error(val message: String) : InstallEvent()
     }
 
@@ -46,6 +48,9 @@ class UpdateViewModel : ViewModel() {
     private val _installEvent = MutableLiveData<InstallEvent>()
     val installEvent: LiveData<InstallEvent> = _installEvent
 
+    /**
+     * progress = 0..1000
+     */
     private val _downloadProgress = MutableLiveData<Int>()
     val downloadProgress: LiveData<Int> = _downloadProgress
 
@@ -54,7 +59,6 @@ class UpdateViewModel : ViewModel() {
     private var progressJob: Job? = null
     private var lastApkFile: File? = null
     private var isDownloadCompleted = false
-    private var lastKnownProgress = 0
 
     private val onDownloadComplete = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context, intent: Intent) {
@@ -73,7 +77,7 @@ class UpdateViewModel : ViewModel() {
                 ctx.registerReceiver(
                     onDownloadComplete,
                     IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
-                    Context.RECEIVER_EXPORTED
+                    Context.RECEIVER_NOT_EXPORTED
                 )
             } else {
                 ctx.registerReceiver(
@@ -88,92 +92,73 @@ class UpdateViewModel : ViewModel() {
     }
 
     fun unregisterReceiver(ctx: Context) {
-        runCatching {
-            ctx.unregisterReceiver(onDownloadComplete)
-            Log.d("UpdateVM", "Broadcast receiver unregistered")
-        }.onFailure { e ->
-            Log.e("UpdateVM", "Failed to unregister receiver", e)
-        }
+        runCatching { ctx.unregisterReceiver(onDownloadComplete) }
+            .onSuccess { Log.d("UpdateVM", "Broadcast receiver unregistered") }
+            .onFailure { Log.e("UpdateVM", "Failed to unregister receiver", it) }
     }
 
-    @SuppressLint("Range")
+    /**
+     * ✅ SAFE destination for TV + Phone:
+     * context.getExternalFilesDir(DOWNLOADS)/SozoTV/<file>.apk
+     */
     fun startDownload(context: Context, apkUrl: String) {
         Log.d("UpdateVM", "Starting download from: $apkUrl")
+
         _uiState.value = UiState.Downloading(0)
         _downloadProgress.value = 0
         isDownloadCompleted = false
-        lastKnownProgress = 0
 
         try {
-            downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            downloadManager =
+                context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 
-            // Fayl nomini yaratish
             val timestamp = System.currentTimeMillis()
             val apkFileName = "sozo_tv_update_$timestamp.apk"
 
-            // TV uchun fayl manzilini belgilash
-            val destinationDir = if (isTvDevice(context)) {
-                // TV uchun cache directory ishlatamiz
-                File(context.cacheDir, "downloads").apply {
-                    if (!exists()) mkdirs()
-                }
-            } else {
-                // Telefon uchun Downloads papkasini ishlatamiz
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            }
+            val baseDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+                ?: throw IllegalStateException("External files dir is null")
 
-            val sozoDir = File(destinationDir, "SozoTV").apply {
-                if (!exists()) mkdirs()
-            }
+            val sozoDir = File(baseDir, "SozoTV").apply { if (!exists()) mkdirs() }
 
-            // Eski fayllarni tozalash
+            // eski apk larni tozalash
             sozoDir.listFiles()?.forEach { file ->
                 if (file.name.startsWith("sozo_tv_update_") && file.name.endsWith(".apk")) {
-                    file.delete()
+                    runCatching { file.delete() }
                 }
             }
 
+            // bizda file path aniq bo‘lishi uchun
             val apkFile = File(sozoDir, apkFileName)
             lastApkFile = apkFile
-
-            Log.d("UpdateVM", "Destination file: ${apkFile.absolutePath}")
 
             val req = DownloadManager.Request(Uri.parse(apkUrl)).apply {
                 setTitle("Sozo TV Update")
                 setDescription("Downloading new version...")
                 setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
 
-                // TV va Android versiyasiga qarab destination belgilash
-                if (isTvDevice(context)) {
-                    // TV uchun cache directory ishlatamiz
-                    setDestinationUri(Uri.fromFile(apkFile))
-                } else {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        // Android 10+ uchun
-                        setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "SozoTV/$apkFileName")
-                    } else {
-                        setDestinationUri(Uri.fromFile(apkFile))
-                    }
-                }
-
-                setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
+                setAllowedNetworkTypes(
+                    DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE
+                )
                 setAllowedOverRoaming(false)
-                setVisibleInDownloadsUi(true)
+                setVisibleInDownloadsUi(false)
+
+                setMimeType("application/vnd.android.package-archive")
+                setRequiresDeviceIdle(false)
+
+                // ✅ MUHIM FIX
+                setDestinationInExternalFilesDir(
+                    context,
+                    Environment.DIRECTORY_DOWNLOADS,
+                    "SozoTV/$apkFileName"
+                )
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     setRequiresCharging(false)
                 }
-
-                // MIME turi
-                setMimeType("application/vnd.android.package-archive")
-
-                // DownloadManager'ni sozlamalari
-                setRequiresDeviceIdle(false)
             }
 
             downloadId = downloadManager!!.enqueue(req)
             Log.d("UpdateVM", "Download started with ID: $downloadId")
-
             trackProgress()
 
         } catch (e: Exception) {
@@ -182,131 +167,61 @@ class UpdateViewModel : ViewModel() {
         }
     }
 
-    private fun isTvDevice(context: Context): Boolean {
-        return context.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK) ||
-                context.packageManager.hasSystemFeature(PackageManager.FEATURE_TELEVISION)
-    }
-
     @SuppressLint("Range")
     private fun trackProgress() {
         progressJob?.cancel()
         progressJob = viewModelScope.launch(Dispatchers.IO) {
-            var lastProgress = -1
-            var stuckCount = 0
-            val maxStuckCount = 30 // 30 soniya (30 * 1000ms) kutamiz
             var shouldContinue = true
 
             while (isActive && shouldContinue) {
-                val cursor = downloadManager?.query(DownloadManager.Query().setFilterById(downloadId))
-                cursor?.use {
-                    if (it.moveToFirst()) {
-                        val status = it.getInt(it.getColumnIndex(DownloadManager.COLUMN_STATUS))
+                val cursor = downloadManager?.query(
+                    DownloadManager.Query().setFilterById(downloadId)
+                )
 
-                        when (status) {
-                            DownloadManager.STATUS_RUNNING -> {
-                                val done = it.getLong(it.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
-                                val total = it.getLong(it.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
-
-                                if (total > 0) {
-                                    val progress = ((done * 100) / total).toInt()
-                                    lastKnownProgress = progress
-
-                                    // Progressni yangilash
-                                    _downloadProgress.postValue(progress)
-                                    _uiState.postValue(UiState.Downloading(progress))
-
-                                    // Progress qancha vaqt bir xil bo'lib qolganligini tekshirish
-                                    if (progress == lastProgress) {
-                                        stuckCount++
-                                        Log.d("UpdateVM", "Progress stuck at $progress%, count: $stuckCount")
-
-                                        // Agar 94% dan yuqorida va uzoq vaqt qolib ketsa
-                                        if (progress >= 94 && stuckCount >= maxStuckCount) {
-                                            Log.w("UpdateVM", "Download stuck at $progress% for too long, checking file")
-
-                                            // Fayl mavjudligini tekshirish
-                                            lastApkFile?.let { file ->
-                                                if (file.exists() && file.length() > 0) {
-                                                    // Fayl mavjud va bo'sh emas, download bajarilgan deb hisoblash
-                                                    Log.w("UpdateVM", "File exists with size: ${file.length()} bytes")
-                                                    _downloadProgress.postValue(100)
-                                                    _uiState.postValue(UiState.DownloadComplete)
-                                                    isDownloadCompleted = true
-                                                    shouldContinue = false
-                                                    return@launch
-                                                }
-                                            }
-                                        }
-                                    } else {
-                                        stuckCount = 0
-                                        lastProgress = progress
-                                    }
-
-                                    Log.d("UpdateVM", "Download progress: $progress% ($done/$total)")
-
-                                    // 94% dan yuqorida bo'lsa, tekshirish chastotasini oshiramiz
-                                    if (progress >= 94 && progress < 100) {
-                                        delay(500) // 0.5 soniya
-                                    } else {
-                                        delay(1000) // 1 soniya
-                                    }
-                                } else {
-                                    // Total size noma'lum
-                                    _downloadProgress.postValue(0)
-                                    delay(1000)
-                                }
-                            }
-
-                            DownloadManager.STATUS_SUCCESSFUL -> {
-                                Log.d("UpdateVM", "Download status: SUCCESSFUL")
-                                _downloadProgress.postValue(100)
-                                _uiState.postValue(UiState.DownloadComplete)
-                                isDownloadCompleted = true
-                                shouldContinue = false
-                            }
-
-                            DownloadManager.STATUS_FAILED -> {
-                                val reason = it.getInt(it.getColumnIndex(DownloadManager.COLUMN_REASON))
-                                val errorMsg = when (reason) {
-                                    DownloadManager.ERROR_CANNOT_RESUME -> "Download cannot resume"
-                                    DownloadManager.ERROR_DEVICE_NOT_FOUND -> "Storage not found"
-                                    DownloadManager.ERROR_FILE_ALREADY_EXISTS -> "File already exists"
-                                    DownloadManager.ERROR_FILE_ERROR -> "File error"
-                                    DownloadManager.ERROR_HTTP_DATA_ERROR -> "HTTP error"
-                                    DownloadManager.ERROR_INSUFFICIENT_SPACE -> "Insufficient space"
-                                    DownloadManager.ERROR_TOO_MANY_REDIRECTS -> "Too many redirects"
-                                    DownloadManager.ERROR_UNHANDLED_HTTP_CODE -> "HTTP code error"
-                                    else -> "Error code: $reason"
-                                }
-                                Log.e("UpdateVM", "Download failed: $errorMsg")
-                                _uiState.postValue(UiState.DownloadFailed(errorMsg))
-                                shouldContinue = false
-                            }
-
-                            DownloadManager.STATUS_PAUSED -> {
-                                Log.d("UpdateVM", "Download paused")
-                                delay(2000)
-                            }
-
-                            DownloadManager.STATUS_PENDING -> {
-                                _downloadProgress.postValue(0)
-                                _uiState.postValue(UiState.Downloading(0))
-                                delay(1000)
-                            }
-                        }
-                    } else {
-                        // Cursor bo'sh
-                        Log.d("UpdateVM", "Cursor is empty")
-                        delay(2000)
+                cursor?.use { c ->
+                    if (!c.moveToFirst()) {
+                        delay(800)
+                        return@use
                     }
-                } ?: run {
-                    // Cursor null
-                    Log.d("UpdateVM", "Cursor is null")
-                    delay(2000)
-                }
-            }
 
-            Log.d("UpdateVM", "Progress tracking stopped")
+                    val status = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS))
+
+                    when (status) {
+                        DownloadManager.STATUS_RUNNING -> {
+                            val done =
+                                c.getLong(c.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
+                            val total =
+                                c.getLong(c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
+
+                            val progress1000 =
+                                if (total > 0) ((done * 1000L) / total).toInt() else 0
+
+                            _downloadProgress.postValue(progress1000.coerceIn(0, 1000))
+                            _uiState.postValue(UiState.Downloading(progress1000.coerceIn(0, 1000)))
+
+                            delay(if (progress1000 >= 940) 300 else 600)
+                        }
+
+                        DownloadManager.STATUS_SUCCESSFUL -> {
+                            _downloadProgress.postValue(1000)
+                            _uiState.postValue(UiState.DownloadComplete)
+                            isDownloadCompleted = true
+                            shouldContinue = false
+                        }
+
+                        DownloadManager.STATUS_FAILED -> {
+                            val reason = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON))
+                            val msg = dmReasonToText(reason)
+                            Log.e("UpdateVM", "Download failed: $msg")
+                            _uiState.postValue(UiState.DownloadFailed(msg))
+                            shouldContinue = false
+                        }
+
+                        DownloadManager.STATUS_PENDING -> delay(800)
+                        DownloadManager.STATUS_PAUSED -> delay(1200)
+                    }
+                } ?: delay(800)
+            }
         }
     }
 
@@ -317,27 +232,15 @@ class UpdateViewModel : ViewModel() {
             if (c.moveToFirst()) {
                 when (c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS))) {
                     DownloadManager.STATUS_SUCCESSFUL -> {
-                        Log.d("UpdateVM", "Download completed successfully (from broadcast)")
-                        _downloadProgress.postValue(100)
+                        _downloadProgress.postValue(1000)
                         _uiState.postValue(UiState.DownloadComplete)
                         isDownloadCompleted = true
                     }
 
                     DownloadManager.STATUS_FAILED -> {
                         val reason = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON))
-                        val errorMsg = when (reason) {
-                            DownloadManager.ERROR_CANNOT_RESUME -> "Download cannot resume"
-                            DownloadManager.ERROR_DEVICE_NOT_FOUND -> "Storage not found"
-                            DownloadManager.ERROR_FILE_ALREADY_EXISTS -> "File already exists"
-                            DownloadManager.ERROR_FILE_ERROR -> "File error"
-                            DownloadManager.ERROR_HTTP_DATA_ERROR -> "HTTP error"
-                            DownloadManager.ERROR_INSUFFICIENT_SPACE -> "Insufficient space"
-                            DownloadManager.ERROR_TOO_MANY_REDIRECTS -> "Too many redirects"
-                            DownloadManager.ERROR_UNHANDLED_HTTP_CODE -> "HTTP code error"
-                            else -> "Error code: $reason"
-                        }
-                        Log.e("UpdateVM", "Download failed in broadcast: $errorMsg")
-                        _uiState.postValue(UiState.DownloadFailed(errorMsg))
+                        val msg = dmReasonToText(reason)
+                        _uiState.postValue(UiState.DownloadFailed(msg))
                         isDownloadCompleted = true
                     }
                 }
@@ -345,59 +248,59 @@ class UpdateViewModel : ViewModel() {
         }
     }
 
+    private fun dmReasonToText(reason: Int): String {
+        return when (reason) {
+            DownloadManager.ERROR_CANNOT_RESUME -> "Download cannot resume"
+            DownloadManager.ERROR_DEVICE_NOT_FOUND -> "Storage not found"
+            DownloadManager.ERROR_FILE_ALREADY_EXISTS -> "File already exists"
+            DownloadManager.ERROR_FILE_ERROR -> "File error"
+            DownloadManager.ERROR_HTTP_DATA_ERROR -> "HTTP error"
+            DownloadManager.ERROR_INSUFFICIENT_SPACE -> "Insufficient space"
+            DownloadManager.ERROR_TOO_MANY_REDIRECTS -> "Too many redirects"
+            DownloadManager.ERROR_UNHANDLED_HTTP_CODE -> "HTTP code error"
+            else -> "Error code: $reason"
+        }
+    }
+
+    fun getDownloadedFile(): File? {
+        return lastApkFile?.takeIf { it.exists() && it.length() > 0 }
+    }
+
+    /**
+     * ✅ install - primary + fallback intent
+     */
     fun installApk(context: Context) {
         try {
-            Log.d("UpdateVM", "Starting APK installation...")
-
-            // Unknown sources ruxsatini tekshirish
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val canInstall = context.packageManager.canRequestPackageInstalls()
-                Log.d("UpdateVM", "Can request package installs: $canInstall")
-
-                if (!canInstall) {
+                if (!context.packageManager.canRequestPackageInstalls()) {
                     triggerInstallEvent(InstallEvent.RequestUnknownSources)
                     return
                 }
             }
 
-            // APK faylini topish
             val apkFile = getDownloadedFile()
-            if (apkFile == null || !apkFile.exists()) {
-                Log.e("UpdateVM", "APK file not found")
-                triggerInstallEvent(InstallEvent.Error("APK file not found. Please download again."))
+            if (apkFile == null) {
+                triggerInstallEvent(InstallEvent.Error("Downloaded APK not found. Download again."))
                 return
             }
 
-            Log.d("UpdateVM", "APK file found: ${apkFile.absolutePath}, size: ${apkFile.length()} bytes")
-
-            // URI yaratish
             val authority = "${context.packageName}.provider"
-            val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                FileProvider.getUriForFile(context, authority, apkFile)
-            } else {
-                Uri.fromFile(apkFile)
-            }
+            val uri = FileProvider.getUriForFile(context, authority, apkFile)
 
-            Log.d("UpdateVM", "APK URI: $uri")
-
-            // O'rnatish uchun Intent yaratish
-            val installIntent = Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
+            val primary = Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
                 setDataAndType(uri, "application/vnd.android.package-archive")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-                // TV uchun qo'shimcha flag'lar
-                if (isTvDevice(context)) {
-                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                }
-
-                // Qayta o'rnatishga ruxsat berish
-                putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
                 putExtra(Intent.EXTRA_RETURN_RESULT, true)
-                putExtra(Intent.EXTRA_INSTALLER_PACKAGE_NAME, context.packageName)
             }
 
-            triggerInstallEvent(InstallEvent.StartInstall(installIntent))
+            val fallback = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            triggerInstallEvent(InstallEvent.StartInstall(primary, fallback))
 
         } catch (e: Exception) {
             Log.e("UpdateVM", "installApk error", e)
@@ -405,10 +308,6 @@ class UpdateViewModel : ViewModel() {
                 InstallEvent.Error("Installation failed: ${e.localizedMessage ?: "Unknown error"}")
             )
         }
-    }
-
-    fun getDownloadedFile(): File? {
-        return lastApkFile?.takeIf { it.exists() && it.length() > 0 }
     }
 
     fun triggerInstallEvent(event: InstallEvent) {
@@ -420,7 +319,6 @@ class UpdateViewModel : ViewModel() {
         downloadManager = null
         lastApkFile = null
         isDownloadCompleted = false
-        lastKnownProgress = 0
         _uiState.value = UiState.Idle
         _downloadProgress.value = 0
     }

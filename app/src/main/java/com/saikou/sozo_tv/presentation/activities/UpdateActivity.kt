@@ -10,12 +10,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import com.saikou.sozo_tv.BuildConfig
 import com.saikou.sozo_tv.components.spoiler.SpoilerPlugin
 import com.saikou.sozo_tv.databinding.ActivityUpdateBinding
 import com.saikou.sozo_tv.domain.model.AppUpdate
@@ -26,7 +23,6 @@ import com.saikou.sozo_tv.utils.visible
 import io.noties.markwon.Markwon
 import io.noties.markwon.html.HtmlPlugin
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.io.File
 
 class UpdateActivity : AppCompatActivity() {
 
@@ -51,18 +47,14 @@ class UpdateActivity : AppCompatActivity() {
     private val askNotif = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) {
-            startDownload()
-        } else {
-            snackString("Notification permission denied")
-        }
+        if (granted) startDownload() else snackString("Notification permission denied")
     }
 
     private val askUnknownSources = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
         if (canInstallUnknownApps()) {
-            installApkFromFile()
+            vm.installApk(this)
         } else {
             snackString("Permission still not granted to install unknown apps")
         }
@@ -70,9 +62,7 @@ class UpdateActivity : AppCompatActivity() {
 
     private val askInstall =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                finish()
-            }
+            if (result.resultCode == Activity.RESULT_OK) finish()
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,24 +70,33 @@ class UpdateActivity : AppCompatActivity() {
         binding = ActivityUpdateBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // ✅ progressView1 bu library’da odatda 0..1 kutadi
         binding.progressView1.gone()
         binding.progressView1.progress = 0f
-        binding.progressView1.labelText = "0%"
+        binding.progressView1.labelText = "0.0%"
+
         binding.bottomSheerCustomTitle.text = "Update Available"
         binding.updateTxt.text = "Update Now"
         binding.updateBtn.isEnabled = true
+        binding.updateBtn.visible()
 
         renderMarkdown(changeLog)
-
         observeVm()
 
         binding.updateBtn.setOnClickListener {
             when (vm.uiState.value) {
                 is UpdateViewModel.UiState.DownloadComplete -> {
-                    installApkFromFile()
+                    if (!canInstallUnknownApps()) {
+                        snackString("Please allow 'Install unknown apps' for Sozo TV")
+                        openUnknownSourcesSettings()
+                    } else {
+                        vm.installApk(this)
+                    }
                 }
 
-                is UpdateViewModel.UiState.Downloading -> {}
+                is UpdateViewModel.UiState.Downloading -> {
+                    // ignore clicks while downloading
+                }
 
                 else -> {
                     if (appLink.isNullOrBlank()) {
@@ -150,9 +149,7 @@ class UpdateActivity : AppCompatActivity() {
     private fun canInstallUnknownApps(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             packageManager.canRequestPackageInstalls()
-        } else {
-            true
-        }
+        } else true
     }
 
     private fun openUnknownSourcesSettings() {
@@ -168,11 +165,9 @@ class UpdateActivity : AppCompatActivity() {
                 addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
             }
         }
-        try {
-            askUnknownSources.launch(intent)
-        } catch (e: Exception) {
-            snackString("Cannot open settings: ${e.message}")
-        }
+
+        runCatching { askUnknownSources.launch(intent) }
+            .onFailure { snackString("Cannot open settings: ${it.message}") }
     }
 
     private fun renderMarkdown(md: String?) {
@@ -184,60 +179,29 @@ class UpdateActivity : AppCompatActivity() {
         markwon.setMarkdown(binding.markdownText, md ?: "No update information available.")
     }
 
-    private fun installApkFromFile() {
-        val downloadedFile = vm.getDownloadedFile()
-        if (downloadedFile == null || !downloadedFile.exists()) {
-            snackString("Downloaded file not found. Please download again.")
-            binding.updateBtn.visible()
-            binding.updateTxt.text = "Update Now"
-            return
-        }
+    /**
+     * progress1000: 0..1000
+     * label: 80.2%
+     */
+    private fun percentText(progress1000: Int): String {
+        val p = progress1000.coerceIn(0, 1000) / 10.0
+        return String.format("%.1f%%", p)
+    }
 
-        if (!canInstallUnknownApps()) {
-            vm.triggerInstallEvent(UpdateViewModel.InstallEvent.RequestUnknownSources)
-            return
-        }
+    /**
+     * ✅ MUHIM FIX:
+     * progressView1.progress ko‘p custom view’larda 0..1 bo‘ladi.
+     * Shuning uchun 80.2% -> 0.802 beramiz.
+     */
+    private fun setProgressUi(progress1000: Int) {
+        val clamped = progress1000.coerceIn(0, 1000)
 
-        try {
-            val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                FileProvider.getUriForFile(
-                    this,
-                    "${BuildConfig.APPLICATION_ID}.provider",
-                    downloadedFile
-                )
-            } else {
-                Uri.fromFile(downloadedFile)
-            }
+        val normalized01 = clamped / 1000f // 0..1 ✅
+        binding.progressView1.progress = normalized01
+        binding.progressView1.labelText = percentText(clamped)
 
-            val installIntent = Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
-                setDataAndType(uri, "application/vnd.android.package-archive")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
-                }
-
-                putExtra(Intent.EXTRA_INSTALLER_PACKAGE_NAME, packageName)
-
-                putExtra(Intent.EXTRA_RETURN_RESULT, true)
-            }
-
-            try {
-                askInstall.launch(installIntent)
-            } catch (e: Exception) {
-                val fallbackIntent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, "application/vnd.android.package-archive")
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                askInstall.launch(fallbackIntent)
-            }
-        } catch (e: Exception) {
-            snackString("Installation failed: ${e.message}")
-            binding.updateBtn.visible()
-            binding.updateTxt.text = "Update Now"
-        }
+        binding.bottomSheerCustomTitle.text =
+            if (clamped in 900..999) "Finishing download..." else "Downloading..."
     }
 
     @SuppressLint("SetTextI18n")
@@ -254,43 +218,31 @@ class UpdateActivity : AppCompatActivity() {
 
                 is UpdateViewModel.UiState.Downloading -> {
                     binding.progressView1.visible()
-                    binding.bottomSheerCustomTitle.text = "Downloading..."
                     binding.updateBtn.gone()
-
-                    val progress = st.progress
-                    binding.progressView1.progress = progress.toFloat()
-                    binding.progressView1.labelText = "$progress%"
-
-                    if (progress >= 90 && progress < 100) {
-                        binding.bottomSheerCustomTitle.text = "Finishing download..."
-                    }
+                    setProgressUi(st.progress1000)
                 }
 
                 is UpdateViewModel.UiState.DownloadComplete -> {
                     binding.progressView1.gone()
                     binding.bottomSheerCustomTitle.text = "Download Complete!"
-                    binding.updateBtn.apply {
-                        isEnabled = true
-                        visible()
-                    }
+                    binding.updateBtn.visible()
+                    binding.updateBtn.isEnabled = true
                     binding.updateTxt.text = "Install Now"
-                    snackString("Download completed successfully!")
 
                     if (!canInstallUnknownApps()) {
                         snackString("Please allow 'Install unknown apps' for Sozo TV")
                         openUnknownSourcesSettings()
                     } else {
-                        installApkFromFile()
+                        vm.installApk(this)
                     }
+
                 }
 
                 is UpdateViewModel.UiState.DownloadFailed -> {
                     binding.progressView1.gone()
                     binding.bottomSheerCustomTitle.text = "Download Failed"
-                    binding.updateBtn.apply {
-                        isEnabled = true
-                        visible()
-                    }
+                    binding.updateBtn.visible()
+                    binding.updateBtn.isEnabled = true
                     binding.updateTxt.text = "Try Again"
                     snackString("Download failed: ${st.error}")
                 }
@@ -305,28 +257,22 @@ class UpdateActivity : AppCompatActivity() {
                 }
 
                 is UpdateViewModel.InstallEvent.StartInstall -> {
-                    try {
-                        askInstall.launch(ev.intent)
-                    } catch (e: Exception) {
-                        snackString("Cannot open installer: ${e.message}")
-                        installApkFromFile()
-                    }
+                    runCatching { askInstall.launch(ev.primary) }
+                        .onFailure {
+                            runCatching { askInstall.launch(ev.fallback) }
+                                .onFailure { e2 ->
+                                    snackString("Installer cannot be opened: ${e2.message}")
+                                }
+                        }
                 }
 
-                is UpdateViewModel.InstallEvent.Error -> {
-                    snackString(ev.message)
-                }
+                is UpdateViewModel.InstallEvent.Error -> snackString(ev.message)
             }
         }
 
-        vm.downloadProgress.observe(this) { progress ->
-            if (progress in 0..100) {
-                binding.progressView1.progress = progress.toFloat()
-                binding.progressView1.labelText = "$progress%"
-
-                if (progress >= 90 && progress < 100) {
-                    binding.bottomSheerCustomTitle.text = "Finishing download..."
-                }
+        vm.downloadProgress.observe(this) { p1000 ->
+            if (p1000 in 0..1000) {
+                setProgressUi(p1000)
             }
         }
     }

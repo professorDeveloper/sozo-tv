@@ -44,7 +44,7 @@
     <application
         android:name=".app.MyApp"
         android:allowBackup="true"
-        android:banner="@drawable/banner_img3"
+        android:banner="@drawable/banner_img2"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -90,7 +90,7 @@
         </activity>
         <activity
             android:name=".presentation.activities.LoginActivity"
-            android:banner="@drawable/banner_img3"
+            android:banner="@drawable/banner_img2"
             android:exported="true"
             android:screenOrientation="landscape">
             <intent-filter>
@@ -106,13 +106,14 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
+            android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
     </application>
 
 </manifest>
