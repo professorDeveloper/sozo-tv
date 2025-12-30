@@ -14,6 +14,8 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import com.saikou.sozo_tv.BuildConfig
 import com.saikou.sozo_tv.components.spoiler.SpoilerPlugin
 import com.saikou.sozo_tv.databinding.ActivityUpdateBinding
 import com.saikou.sozo_tv.domain.model.AppUpdate
@@ -24,6 +26,7 @@ import com.saikou.sozo_tv.utils.visible
 import io.noties.markwon.Markwon
 import io.noties.markwon.html.HtmlPlugin
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.io.File
 
 class UpdateActivity : AppCompatActivity() {
 
@@ -59,15 +62,17 @@ class UpdateActivity : AppCompatActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) {
         if (canInstallUnknownApps()) {
-            vm.installApk(this)
+            installApkFromFile()
         } else {
             snackString("Permission still not granted to install unknown apps")
         }
     }
 
     private val askInstall =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
-            Toast.makeText(this, "Returned from installer", Toast.LENGTH_SHORT).show()
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                finish()
+            }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -89,7 +94,7 @@ class UpdateActivity : AppCompatActivity() {
         binding.updateBtn.setOnClickListener {
             when (vm.uiState.value) {
                 is UpdateViewModel.UiState.DownloadComplete -> {
-                    vm.installApk(this)
+                    installApkFromFile()
                 }
 
                 is UpdateViewModel.UiState.Downloading -> {}
@@ -113,6 +118,11 @@ class UpdateActivity : AppCompatActivity() {
     override fun onStop() {
         vm.unregisterReceiver(this)
         super.onStop()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        vm.cleanup()
     }
 
     private fun requestNotifPermissionIfNeededAndDownload() {
@@ -147,14 +157,22 @@ class UpdateActivity : AppCompatActivity() {
 
     private fun openUnknownSourcesSettings() {
         val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(
-                Uri.parse("package:$packageName")
-            )
+            Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                data = Uri.parse("package:$packageName")
+                addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+                addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+            }
         } else {
-            Intent(Settings.ACTION_SECURITY_SETTINGS)
+            Intent(Settings.ACTION_SECURITY_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+                addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+            }
         }
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        askUnknownSources.launch(intent)
+        try {
+            askUnknownSources.launch(intent)
+        } catch (e: Exception) {
+            snackString("Cannot open settings: ${e.message}")
+        }
     }
 
     private fun renderMarkdown(md: String?) {
@@ -164,6 +182,62 @@ class UpdateActivity : AppCompatActivity() {
             .build()
 
         markwon.setMarkdown(binding.markdownText, md ?: "No update information available.")
+    }
+
+    private fun installApkFromFile() {
+        val downloadedFile = vm.getDownloadedFile()
+        if (downloadedFile == null || !downloadedFile.exists()) {
+            snackString("Downloaded file not found. Please download again.")
+            binding.updateBtn.visible()
+            binding.updateTxt.text = "Update Now"
+            return
+        }
+
+        if (!canInstallUnknownApps()) {
+            vm.triggerInstallEvent(UpdateViewModel.InstallEvent.RequestUnknownSources)
+            return
+        }
+
+        try {
+            val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                FileProvider.getUriForFile(
+                    this,
+                    "${BuildConfig.APPLICATION_ID}.provider",
+                    downloadedFile
+                )
+            } else {
+                Uri.fromFile(downloadedFile)
+            }
+
+            val installIntent = Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+                }
+
+                putExtra(Intent.EXTRA_INSTALLER_PACKAGE_NAME, packageName)
+
+                putExtra(Intent.EXTRA_RETURN_RESULT, true)
+            }
+
+            try {
+                askInstall.launch(installIntent)
+            } catch (e: Exception) {
+                val fallbackIntent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, "application/vnd.android.package-archive")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                askInstall.launch(fallbackIntent)
+            }
+        } catch (e: Exception) {
+            snackString("Installation failed: ${e.message}")
+            binding.updateBtn.visible()
+            binding.updateTxt.text = "Update Now"
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -182,10 +256,12 @@ class UpdateActivity : AppCompatActivity() {
                     binding.progressView1.visible()
                     binding.bottomSheerCustomTitle.text = "Downloading..."
                     binding.updateBtn.gone()
-                    binding.progressView1.progress = st.progress.toFloat()
-                    binding.progressView1.labelText = "${st.progress}%"
 
-                    if (st.progress in 94..99) {
+                    val progress = st.progress
+                    binding.progressView1.progress = progress.toFloat()
+                    binding.progressView1.labelText = "$progress%"
+
+                    if (progress >= 90 && progress < 100) {
                         binding.bottomSheerCustomTitle.text = "Finishing download..."
                     }
                 }
@@ -199,6 +275,13 @@ class UpdateActivity : AppCompatActivity() {
                     }
                     binding.updateTxt.text = "Install Now"
                     snackString("Download completed successfully!")
+
+                    if (!canInstallUnknownApps()) {
+                        snackString("Please allow 'Install unknown apps' for Sozo TV")
+                        openUnknownSourcesSettings()
+                    } else {
+                        installApkFromFile()
+                    }
                 }
 
                 is UpdateViewModel.UiState.DownloadFailed -> {
@@ -226,11 +309,23 @@ class UpdateActivity : AppCompatActivity() {
                         askInstall.launch(ev.intent)
                     } catch (e: Exception) {
                         snackString("Cannot open installer: ${e.message}")
+                        installApkFromFile()
                     }
                 }
 
                 is UpdateViewModel.InstallEvent.Error -> {
                     snackString(ev.message)
+                }
+            }
+        }
+
+        vm.downloadProgress.observe(this) { progress ->
+            if (progress in 0..100) {
+                binding.progressView1.progress = progress.toFloat()
+                binding.progressView1.labelText = "$progress%"
+
+                if (progress >= 90 && progress < 100) {
+                    binding.bottomSheerCustomTitle.text = "Finishing download..."
                 }
             }
         }

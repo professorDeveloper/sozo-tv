@@ -46,11 +46,15 @@ class UpdateViewModel : ViewModel() {
     private val _installEvent = MutableLiveData<InstallEvent>()
     val installEvent: LiveData<InstallEvent> = _installEvent
 
+    private val _downloadProgress = MutableLiveData<Int>()
+    val downloadProgress: LiveData<Int> = _downloadProgress
+
     private var downloadId = -1L
     private var downloadManager: DownloadManager? = null
     private var progressJob: Job? = null
     private var lastApkFile: File? = null
     private var isDownloadCompleted = false
+    private var lastKnownProgress = 0
 
     private val onDownloadComplete = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context, intent: Intent) {
@@ -96,7 +100,9 @@ class UpdateViewModel : ViewModel() {
     fun startDownload(context: Context, apkUrl: String) {
         Log.d("UpdateVM", "Starting download from: $apkUrl")
         _uiState.value = UiState.Downloading(0)
+        _downloadProgress.value = 0
         isDownloadCompleted = false
+        lastKnownProgress = 0
 
         try {
             downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
@@ -105,20 +111,51 @@ class UpdateViewModel : ViewModel() {
             val timestamp = System.currentTimeMillis()
             val apkFileName = "sozo_tv_update_$timestamp.apk"
 
-            // Fayl manzilini belgilash
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val sozoDir = File(downloadsDir, "SozoTV").apply {
+            // TV uchun fayl manzilini belgilash
+            val destinationDir = if (isTvDevice(context)) {
+                // TV uchun cache directory ishlatamiz
+                File(context.cacheDir, "downloads").apply {
+                    if (!exists()) mkdirs()
+                }
+            } else {
+                // Telefon uchun Downloads papkasini ishlatamiz
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            }
+
+            val sozoDir = File(destinationDir, "SozoTV").apply {
                 if (!exists()) mkdirs()
+            }
+
+            // Eski fayllarni tozalash
+            sozoDir.listFiles()?.forEach { file ->
+                if (file.name.startsWith("sozo_tv_update_") && file.name.endsWith(".apk")) {
+                    file.delete()
+                }
             }
 
             val apkFile = File(sozoDir, apkFileName)
             lastApkFile = apkFile
 
+            Log.d("UpdateVM", "Destination file: ${apkFile.absolutePath}")
+
             val req = DownloadManager.Request(Uri.parse(apkUrl)).apply {
                 setTitle("Sozo TV Update")
                 setDescription("Downloading new version...")
                 setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                setDestinationUri(Uri.fromFile(apkFile))
+
+                // TV va Android versiyasiga qarab destination belgilash
+                if (isTvDevice(context)) {
+                    // TV uchun cache directory ishlatamiz
+                    setDestinationUri(Uri.fromFile(apkFile))
+                } else {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        // Android 10+ uchun
+                        setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "SozoTV/$apkFileName")
+                    } else {
+                        setDestinationUri(Uri.fromFile(apkFile))
+                    }
+                }
+
                 setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
                 setAllowedOverRoaming(false)
                 setVisibleInDownloadsUi(true)
@@ -129,11 +166,13 @@ class UpdateViewModel : ViewModel() {
 
                 // MIME turi
                 setMimeType("application/vnd.android.package-archive")
+
+                // DownloadManager'ni sozlamalari
+                setRequiresDeviceIdle(false)
             }
 
             downloadId = downloadManager!!.enqueue(req)
             Log.d("UpdateVM", "Download started with ID: $downloadId")
-            Log.d("UpdateVM", "APK will be saved to: ${apkFile.absolutePath}")
 
             trackProgress()
 
@@ -143,13 +182,18 @@ class UpdateViewModel : ViewModel() {
         }
     }
 
+    private fun isTvDevice(context: Context): Boolean {
+        return context.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK) ||
+                context.packageManager.hasSystemFeature(PackageManager.FEATURE_TELEVISION)
+    }
+
     @SuppressLint("Range")
     private fun trackProgress() {
         progressJob?.cancel()
         progressJob = viewModelScope.launch(Dispatchers.IO) {
             var lastProgress = -1
             var stuckCount = 0
-            val maxStuckCount = 10
+            val maxStuckCount = 30 // 30 soniya (30 * 1000ms) kutamiz
             var shouldContinue = true
 
             while (isActive && shouldContinue) {
@@ -165,34 +209,57 @@ class UpdateViewModel : ViewModel() {
 
                                 if (total > 0) {
                                     val progress = ((done * 100) / total).toInt()
+                                    lastKnownProgress = progress
+
+                                    // Progressni yangilash
+                                    _downloadProgress.postValue(progress)
+                                    _uiState.postValue(UiState.Downloading(progress))
 
                                     // Progress qancha vaqt bir xil bo'lib qolganligini tekshirish
                                     if (progress == lastProgress) {
                                         stuckCount++
-                                        if (stuckCount >= maxStuckCount && progress >= 94) {
-                                            // 94% da 10 soniya qolib ketsa, muvaffaqiyatli deb hisoblash
-                                            Log.w("UpdateVM", "Download stuck at $progress% for too long, marking as complete")
-                                            _uiState.postValue(UiState.DownloadComplete)
-                                            isDownloadCompleted = true
-                                            shouldContinue = false
+                                        Log.d("UpdateVM", "Progress stuck at $progress%, count: $stuckCount")
+
+                                        // Agar 94% dan yuqorida va uzoq vaqt qolib ketsa
+                                        if (progress >= 94 && stuckCount >= maxStuckCount) {
+                                            Log.w("UpdateVM", "Download stuck at $progress% for too long, checking file")
+
+                                            // Fayl mavjudligini tekshirish
+                                            lastApkFile?.let { file ->
+                                                if (file.exists() && file.length() > 0) {
+                                                    // Fayl mavjud va bo'sh emas, download bajarilgan deb hisoblash
+                                                    Log.w("UpdateVM", "File exists with size: ${file.length()} bytes")
+                                                    _downloadProgress.postValue(100)
+                                                    _uiState.postValue(UiState.DownloadComplete)
+                                                    isDownloadCompleted = true
+                                                    shouldContinue = false
+                                                    return@launch
+                                                }
+                                            }
                                         }
                                     } else {
                                         stuckCount = 0
                                         lastProgress = progress
                                     }
 
-                                    _uiState.postValue(UiState.Downloading(progress))
                                     Log.d("UpdateVM", "Download progress: $progress% ($done/$total)")
 
-                                    // 94% da qolib ketishni oldini olish
+                                    // 94% dan yuqorida bo'lsa, tekshirish chastotasini oshiramiz
                                     if (progress >= 94 && progress < 100) {
-                                        delay(2000)
+                                        delay(500) // 0.5 soniya
+                                    } else {
+                                        delay(1000) // 1 soniya
                                     }
+                                } else {
+                                    // Total size noma'lum
+                                    _downloadProgress.postValue(0)
+                                    delay(1000)
                                 }
                             }
 
                             DownloadManager.STATUS_SUCCESSFUL -> {
                                 Log.d("UpdateVM", "Download status: SUCCESSFUL")
+                                _downloadProgress.postValue(100)
                                 _uiState.postValue(UiState.DownloadComplete)
                                 isDownloadCompleted = true
                                 shouldContinue = false
@@ -216,32 +283,42 @@ class UpdateViewModel : ViewModel() {
                                 shouldContinue = false
                             }
 
+                            DownloadManager.STATUS_PAUSED -> {
+                                Log.d("UpdateVM", "Download paused")
+                                delay(2000)
+                            }
+
                             DownloadManager.STATUS_PENDING -> {
+                                _downloadProgress.postValue(0)
                                 _uiState.postValue(UiState.Downloading(0))
+                                delay(1000)
                             }
                         }
+                    } else {
+                        // Cursor bo'sh
+                        Log.d("UpdateVM", "Cursor is empty")
+                        delay(2000)
                     }
-                }
-
-                if (shouldContinue) {
-                    delay(1000)
+                } ?: run {
+                    // Cursor null
+                    Log.d("UpdateVM", "Cursor is null")
+                    delay(2000)
                 }
             }
 
-            // Coroutine tugaganda
             Log.d("UpdateVM", "Progress tracking stopped")
         }
     }
 
     @SuppressLint("Range")
     private fun checkDownloadStatus() {
-        progressJob?.cancel()
         val cursor = downloadManager?.query(DownloadManager.Query().setFilterById(downloadId))
         cursor?.use { c ->
             if (c.moveToFirst()) {
                 when (c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS))) {
                     DownloadManager.STATUS_SUCCESSFUL -> {
                         Log.d("UpdateVM", "Download completed successfully (from broadcast)")
+                        _downloadProgress.postValue(100)
                         _uiState.postValue(UiState.DownloadComplete)
                         isDownloadCompleted = true
                     }
@@ -272,86 +349,84 @@ class UpdateViewModel : ViewModel() {
         try {
             Log.d("UpdateVM", "Starting APK installation...")
 
-            // 1. Avval ruxsatlarni tekshirish
-            val isTv = context.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
-            Log.d("UpdateVM", "Is TV device: $isTv")
-
+            // Unknown sources ruxsatini tekshirish
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val canInstall = context.packageManager.canRequestPackageInstalls()
                 Log.d("UpdateVM", "Can request package installs: $canInstall")
 
                 if (!canInstall) {
-                    _installEvent.postValue(InstallEvent.RequestUnknownSources)
+                    triggerInstallEvent(InstallEvent.RequestUnknownSources)
                     return
                 }
             }
 
-            // 2. APK faylini topish
-            val apkFile = lastApkFile ?: run {
-                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                val sozoDir = File(downloadsDir, "SozoTV")
-
-                if (!sozoDir.exists() || !sozoDir.isDirectory) {
-                    null
-                } else {
-                    sozoDir.listFiles { _, name ->
-                        name.startsWith("sozo_tv_update") && name.endsWith(".apk")
-                    }?.maxByOrNull { it.lastModified() }
-                }
-            }
-
+            // APK faylini topish
+            val apkFile = getDownloadedFile()
             if (apkFile == null || !apkFile.exists()) {
                 Log.e("UpdateVM", "APK file not found")
-                _installEvent.postValue(InstallEvent.Error("APK file not found. Please download again."))
+                triggerInstallEvent(InstallEvent.Error("APK file not found. Please download again."))
                 return
             }
 
-            Log.d("UpdateVM", "APK file found: ${apkFile.absolutePath}")
-            Log.d("UpdateVM", "APK file size: ${apkFile.length()} bytes")
-            Log.d("UpdateVM", "APK file last modified: ${apkFile.lastModified()}")
+            Log.d("UpdateVM", "APK file found: ${apkFile.absolutePath}, size: ${apkFile.length()} bytes")
 
-            // 3. FileProvider orqali URI olish
-            val authority = "${context.packageName}.fileprovider"
-            Log.d("UpdateVM", "Using FileProvider authority: $authority")
-
-            val uri = try {
+            // URI yaratish
+            val authority = "${context.packageName}.provider"
+            val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 FileProvider.getUriForFile(context, authority, apkFile)
-            } catch (e: Exception) {
-                Log.e("UpdateVM", "FileProvider error: ${e.message}", e)
-                // FileProvider ishlamasa, fallback
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    // Android 7+ da file:// ishlatib bo'lmaydi
-                    throw e
-                } else {
-                    Uri.fromFile(apkFile)
-                }
+            } else {
+                Uri.fromFile(apkFile)
             }
 
             Log.d("UpdateVM", "APK URI: $uri")
 
-            // 4. O'rnatish uchun Intent yaratish
+            // O'rnatish uchun Intent yaratish
             val installIntent = Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
-                data = uri
+                setDataAndType(uri, "application/vnd.android.package-archive")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
                 // TV uchun qo'shimcha flag'lar
-                if (isTv) {
+                if (isTvDevice(context)) {
                     addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 }
 
                 // Qayta o'rnatishga ruxsat berish
                 putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
                 putExtra(Intent.EXTRA_RETURN_RESULT, true)
+                putExtra(Intent.EXTRA_INSTALLER_PACKAGE_NAME, context.packageName)
             }
 
-            _installEvent.postValue(InstallEvent.StartInstall(installIntent))
+            triggerInstallEvent(InstallEvent.StartInstall(installIntent))
 
         } catch (e: Exception) {
             Log.e("UpdateVM", "installApk error", e)
-            _installEvent.postValue(
+            triggerInstallEvent(
                 InstallEvent.Error("Installation failed: ${e.localizedMessage ?: "Unknown error"}")
             )
         }
+    }
+
+    fun getDownloadedFile(): File? {
+        return lastApkFile?.takeIf { it.exists() && it.length() > 0 }
+    }
+
+    fun triggerInstallEvent(event: InstallEvent) {
+        _installEvent.postValue(event)
+    }
+
+    fun cleanup() {
+        progressJob?.cancel()
+        downloadManager = null
+        lastApkFile = null
+        isDownloadCompleted = false
+        lastKnownProgress = 0
+        _uiState.value = UiState.Idle
+        _downloadProgress.value = 0
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        cleanup()
     }
 }
