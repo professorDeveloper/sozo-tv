@@ -2,23 +2,23 @@ package com.saikou.sozo_tv.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.view.animation.AnimationUtils
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
-import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.SubSource
 import com.saikou.sozo_tv.databinding.ItemSourceBinding
-import com.saikou.sozo_tv.utils.LocalData
-import com.saikou.sozo_tv.utils.saveData
-import com.saikou.sozo_tv.utils.snackString
 
 class SourceAdapter(
     private val onClick: (SubSource) -> Unit,
+    private val currentSelectedId: String? = null
 ) : RecyclerView.Adapter<SourceAdapter.SourceViewHolder>() {
 
     private val items = mutableListOf<SubSource>()
     private var selectedIndex = -1
+
+    init {
+        selectedIndex = items.indexOfFirst { it.sourceId == currentSelectedId }
+    }
 
     inner class SourceViewHolder(val binding: ItemSourceBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -35,11 +35,10 @@ class SourceAdapter(
             binding.rootItem.setOnClickListener {
                 val oldIndex = selectedIndex
                 selectedIndex = bindingAdapterPosition
-                notifyItemChanged(oldIndex)
+                if (oldIndex != -1) notifyItemChanged(oldIndex)
                 notifyItemChanged(selectedIndex)
                 onClick(item)
             }
-
         }
     }
 
@@ -55,22 +54,14 @@ class SourceAdapter(
     override fun getItemCount(): Int = items.size
 
     fun updateList(newList: List<SubSource>) {
-        saveData("sources", arrayListOf(newList))
         items.clear()
         items.addAll(newList)
-        selectedIndex = -1
+        selectedIndex = items.indexOfFirst { it.sourceId == currentSelectedId }
         notifyDataSetChanged()
     }
 
-
-    fun setSelectedIndex(item: String) {
-        selectedIndex = items.indexOfFirst { it.sourceId == item }
-        val selected = items.getOrNull(selectedIndex) ?: return
-        PreferenceManager().putString(LocalData.SOURCE, selected.sourceId)
-        if (selectedIndex != -1) {
-            snackString(selectedIndex.toString())
-            notifyDataSetChanged()
-        }
+    fun setSelectedIndex(sourceId: String?) {
+        selectedIndex = items.indexOfFirst { it.sourceId == sourceId }
+        if (selectedIndex != -1) notifyDataSetChanged()
     }
-
 }

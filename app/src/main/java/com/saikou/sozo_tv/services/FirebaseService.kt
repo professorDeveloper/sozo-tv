@@ -18,7 +18,7 @@ class FirebaseService(firebaseDatabase: FirebaseDatabase) {
         appUpdateRef.get()
             .addOnSuccessListener { snapshot ->
                 val appUpdate = snapshot.getValue(AppUpdate::class.java)
-                Log.d("FirebaseService", "compareVersions: ${appUpdate?.version}")
+                Log.d("FirebaseService", "compareVersions: ${appUpdate?.versionCode}")
                 appUpdateLiveData.postValue(appUpdate)
             }
             .addOnFailureListener {

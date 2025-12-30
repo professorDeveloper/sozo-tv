@@ -5,15 +5,17 @@ import android.content.pm.PackageManager
 
 object AppUtils {
 
-    // Function to get the current app version
-    fun getAppVersion(context: Context): String? {
+    fun getAppVersionCode(context: Context): Long {
         return try {
-            // Retrieve the version name from the package manager
-            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            packageInfo.versionName // This will return the version name e.g., "1.0.0"
-        } catch (e: PackageManager.NameNotFoundException) {
-            e.printStackTrace()
-            null
+            val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                pInfo.longVersionCode
+            } else {
+                pInfo.versionCode.toLong()
+            }
+        } catch (e: Exception) {
+            0L
         }
     }
+
 }

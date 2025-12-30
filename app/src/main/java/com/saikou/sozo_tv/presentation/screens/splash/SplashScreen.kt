@@ -117,7 +117,6 @@ class SplashScreen : Fragment() {
 
         viewModel.isUpdateAvailableLiveData.observe(viewLifecycleOwner) { isUpdate ->
             if (isUpdate) {
-                viewModel.getAppUpdateInfo()
                 viewModel.getAppUpdateInfo.observe(viewLifecycleOwner) { update ->
                     showUpdateDialog(update)
                 }

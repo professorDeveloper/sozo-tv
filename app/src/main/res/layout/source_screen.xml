@@ -7,18 +7,18 @@
     android:orientation="vertical"
     tools:background="@color/main_background">
 
-        <TextView
-            android:id="@+id/textView6"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:fontFamily="@font/days"
-            android:paddingVertical="4dp"
-            android:text="@string/sources"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp" />
+    <TextView
+        android:id="@+id/textView6"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:fontFamily="@font/days"
+        android:paddingVertical="4dp"
+        android:text="@string/sources"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -38,7 +38,7 @@
         app:focusOutEnd="false"
         app:focusOutFront="true"
         tools:ignore="InefficientWeight,RtlSymmetry"
-        tools:listitem="@layout/item_source" />
+        tools:listitem="@layout/item_groupped_source" />
 
     <include
         android:id="@+id/sourcePlaceHolder"

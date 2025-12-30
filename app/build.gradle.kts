@@ -43,6 +43,7 @@ android {
         excludes.add("**/schema.json.graphql")
     }
     defaultConfig {
+
         applicationId = "com.saikou.sozo_tv"
         minSdk = 24
         //noinspection OldTargetApi

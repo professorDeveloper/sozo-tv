@@ -116,6 +116,7 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
         val newSectionList = sectionList
         if (PreferenceManager().getString(AuthPrefKeys.ANILIST_TOKEN)
                 .isNotEmpty()
+            && sectionList.find { it.sectionImg == R.drawable.ic_exit } == null
         ) newSectionList.add(
             SectionItem(MyApp.context.getString(R.string.exit), R.drawable.ic_exit)
         )
