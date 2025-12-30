@@ -30,6 +30,9 @@ class UpdateActivity : AppCompatActivity() {
         private const val EXTRA_APP_LINK = "extra_app_link"
         private const val EXTRA_CHANGE_LOG = "extra_change_log"
 
+        private const val PV_MIN = 0f
+        private const val PV_MAX = 1000f
+
         fun newIntent(context: Context, update: AppUpdate): Intent {
             return Intent(context, UpdateActivity::class.java).apply {
                 putExtra(EXTRA_APP_LINK, update.appLink)
@@ -69,11 +72,15 @@ class UpdateActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityUpdateBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.progressView1.apply {
+            min = PV_MIN
+            max = PV_MAX
+            progressFromPrevious = true
+            autoAnimate = true
+        }
 
-        // ✅ progressView1 bu library’da odatda 0..1 kutadi
         binding.progressView1.gone()
-        binding.progressView1.progress = 0f
-        binding.progressView1.labelText = "0.0%"
+        setProgressUi(0)
 
         binding.bottomSheerCustomTitle.text = "Update Available"
         binding.updateTxt.text = "Update Now"
@@ -95,7 +102,6 @@ class UpdateActivity : AppCompatActivity() {
                 }
 
                 is UpdateViewModel.UiState.Downloading -> {
-                    // ignore clicks while downloading
                 }
 
                 else -> {
@@ -181,7 +187,7 @@ class UpdateActivity : AppCompatActivity() {
 
     /**
      * progress1000: 0..1000
-     * label: 80.2%
+     * label: 84.4%
      */
     private fun percentText(progress1000: Int): String {
         val p = progress1000.coerceIn(0, 1000) / 10.0
@@ -189,15 +195,14 @@ class UpdateActivity : AppCompatActivity() {
     }
 
     /**
-     * ✅ MUHIM FIX:
-     * progressView1.progress ko‘p custom view’larda 0..1 bo‘ladi.
-     * Shuning uchun 80.2% -> 0.802 beramiz.
+     * Skydoves ProgressView to'g'ri ishlashi uchun:
+     * - progressView.max = 1000
+     * - progressView.progress = 0..1000
      */
     private fun setProgressUi(progress1000: Int) {
         val clamped = progress1000.coerceIn(0, 1000)
 
-        val normalized01 = clamped / 1000f // 0..1 ✅
-        binding.progressView1.progress = normalized01
+        binding.progressView1.progress = clamped.toFloat()
         binding.progressView1.labelText = percentText(clamped)
 
         binding.bottomSheerCustomTitle.text =
@@ -235,7 +240,6 @@ class UpdateActivity : AppCompatActivity() {
                     } else {
                         vm.installApk(this)
                     }
-
                 }
 
                 is UpdateViewModel.UiState.DownloadFailed -> {
@@ -271,9 +275,7 @@ class UpdateActivity : AppCompatActivity() {
         }
 
         vm.downloadProgress.observe(this) { p1000 ->
-            if (p1000 in 0..1000) {
-                setProgressUi(p1000)
-            }
+            if (p1000 in 0..1000) setProgressUi(p1000)
         }
     }
 }

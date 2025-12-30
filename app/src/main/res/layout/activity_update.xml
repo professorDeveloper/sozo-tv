@@ -74,11 +74,12 @@
                 app:progressView_labelColorOuter="@color/login_button_text_color"
                 app:progressView_labelSize="13sp"
                 app:progressView_labelSpace="10dp"
-                app:progressView_labelText="Downloading"
+                app:progressView_labelText="0.0%"
                 app:progressView_labelTypeface="bold"
-                app:progressView_max="50"
+                app:progressView_min="0"
+                app:progressView_max="1000"
                 app:progressView_padding="1dp"
-                app:progressView_progress="20"
+                app:progressView_progress="0"
                 app:progressView_progressFromPrevious="true"
                 app:progressView_radius="12dp" />
 
