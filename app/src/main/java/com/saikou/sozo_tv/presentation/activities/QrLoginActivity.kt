@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import com.saikou.sozo_tv.databinding.ActivityLoginWebBinding
 
 import com.google.firebase.database.ValueEventListener
@@ -31,6 +32,7 @@ class QrLoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         _binding = ActivityLoginWebBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
         binding.btnRefresh.setOnClickListener { startPairing() }
 
