@@ -49,7 +49,7 @@ android {
         //noinspection OldTargetApi
         targetSdk = 35
         versionCode = 5
-        versionName = "4.0"
+        versionName = "5.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {

@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.saikou.sozo_tv.app.MyApp
@@ -24,19 +25,14 @@ class SplashViewModel(
     }
 
     private fun checkForAppUpdate() {
-        if (BuildConfig.DEBUG) {
-            isUpdateAvailableLiveData.postValue(false)
-            return
-        }
-
         firebaseService.getAppUpdateInfo().observeForever { appUpdate ->
+            Log.d("GGG", "checkForAppUpdate:${appUpdate} ")
             if (appUpdate == null) {
                 isUpdateAvailableLiveData.postValue(false)
                 return@observeForever
             }
 
-            val currentVersionCode =
-                AppUtils.getAppVersionCode(MyApp.context)
+            val currentVersionCode = AppUtils.getAppVersionCode(MyApp.context)
 
             val remoteVersionCode = appUpdate.versionCode
 
