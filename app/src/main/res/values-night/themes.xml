@@ -2,9 +2,8 @@
 
     <style name="Theme.Tv" parent="@style/Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:textColor">@color/lb_tv_white</item>
-        <item name="android:background">@color/netflix_background_primary</item>
-    </style>
 
+    </style>
 
 
 </resources>

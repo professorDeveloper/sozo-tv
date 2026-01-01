@@ -7,6 +7,8 @@ import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
+import androidx.core.content.ContextCompat
+import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.components.seasonal.FestiveParticlesRenderer
 import com.saikou.sozo_tv.components.seasonal.SnowRenderer
 import com.saikou.sozo_tv.data.model.SeasonalTheme
@@ -22,6 +24,10 @@ class SeasonalBackgroundLayout @JvmOverloads constructor(
     private var animator: ValueAnimator? = null
     private var lastFrame = 0L
 
+    private val bgColor: Int by lazy {
+        ContextCompat.getColor(context, R.color.netflix_background_primary)
+    }
+
     init {
         clipChildren = false
         clipToPadding = false
@@ -30,7 +36,6 @@ class SeasonalBackgroundLayout @JvmOverloads constructor(
     fun setTheme(theme: SeasonalTheme) {
         if (theme == SeasonalTheme.WINTER) {
             if (snow == null) snow = SnowRenderer(context)
-            if (festive == null) festive = FestiveParticlesRenderer(context)
         } else {
             snow = null
             festive = null
@@ -45,8 +50,10 @@ class SeasonalBackgroundLayout @JvmOverloads constructor(
     }
 
     override fun dispatchDraw(canvas: Canvas) {
+        canvas.drawColor(bgColor)
         festive?.draw(canvas)
         snow?.draw(canvas)
+
         super.dispatchDraw(canvas)
     }
 
