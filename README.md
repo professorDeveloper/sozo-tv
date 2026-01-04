@@ -1,5 +1,6 @@
+
 # Sozo Tv  
-<img width="2560" height="1024" alt="image" src="https://github.com/user-attachments/assets/638382a5-fb16-4528-aa61-706b68ecf7bb" />
+<img width="2542" height="1154" alt="image" src="https://github.com/user-attachments/assets/57f0e94b-fcde-4394-9f32-0014e5e60528" />
 <br> </br>
 <p align="center">
    <a href="https://discord.gg/n22URhYvMR"><img src="https://img.shields.io/badge/Discord-7289DA?style=for-the-badge&logo=discord&logoColor=white"></a>
@@ -32,15 +33,17 @@ Stay updated with the newest versions, announcements, and fixes by following our
 <br>
 <br>
 
+<img width="1576" height="958" alt="image" src="https://github.com/user-attachments/assets/561b8e29-cf0e-431c-932b-6818fac7b592" />
+<br>
+<br>
+
+<img width="1694" height="1086" alt="image" src="https://github.com/user-attachments/assets/3a7eb659-f5eb-4e7d-98c4-babfd34eb1fe" />
+<br>
+<br>
+
 <img width="2880" height="377" alt="image" src="https://github.com/user-attachments/assets/c531f8c9-9806-4d69-8d0b-a57c8cc7e1b8" />
 <br>
 <br>
-
-
-## Viewer 
-
-<img src="https://count.getloli.com/@professorDeveloper?name=Sozo-tv&theme=rule34&padding=8&offset=0&align=top&scale=1&pixelated=1&darkmode=auto" />
-
 
 ## License
 
