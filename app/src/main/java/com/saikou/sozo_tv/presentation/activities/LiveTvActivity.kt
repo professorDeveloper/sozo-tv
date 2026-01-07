@@ -77,12 +77,8 @@ class LiveTvActivity : AppCompatActivity() {
                     .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
                 true,
             )
-
-
             val hlsMediaSource = HlsMediaSource.Factory(dataSourceFactory)
                 .createMediaSource(MediaItem.fromUri(liveStreamUrl ?: ""))
-
-            // Prepare and start playback
             player.setMediaSource(hlsMediaSource)
             player.playWhenReady = true
             player.prepare()
