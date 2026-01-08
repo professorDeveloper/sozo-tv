@@ -63,22 +63,4 @@
         </FrameLayout>
     </androidx.cardview.widget.CardView>
 
-    <TextView
-        android:id="@+id/imdbRating"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/movieDetails"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/subscribeButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone" />
-
 </LinearLayout>

@@ -60,24 +60,6 @@ class SearchAdapter :
                         .centerCrop()
                 )
                 .into(binding.moviePoster)
-
-
-
-            binding.imdbRating.text = "★ ${movie.averageScore ?: "N/A"}"
-            binding.movieDetails.text = buildString {
-                if (!movie.genres.isNullOrEmpty()) {
-                    append(movie.genres.first())
-                }
-                if (!movie.studios.isNullOrEmpty()) {
-                    if (isNotEmpty()) append(" • ")
-                    append(movie.studios.first())
-                }
-            }
-            binding.subscribeButton.text = if (!movie.studios.isNullOrEmpty()) {
-                movie.studios.first()
-            } else {
-                "Premium"
-            }
         }
     }
 
