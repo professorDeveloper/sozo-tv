@@ -8,7 +8,6 @@ import com.google.gson.GsonBuilder
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.remote.ApolloAuthInterceptor
 import com.saikou.sozo_tv.data.remote.ImdbService
-import com.saikou.sozo_tv.data.remote.JikanApiService
 import com.saikou.sozo_tv.domain.preference.EncryptedPreferencesManager
 import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import okhttp3.ConnectionPool
@@ -127,6 +126,3 @@ fun createRetrofit(okHttpClient: OkHttpClient, url: String): Retrofit {
         .build()
 }
 
-fun createService(retrofit: Retrofit): JikanApiService {
-    return retrofit.create(JikanApiService::class.java)
-}

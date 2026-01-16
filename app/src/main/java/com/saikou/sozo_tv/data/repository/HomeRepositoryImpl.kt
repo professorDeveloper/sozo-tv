@@ -13,9 +13,6 @@ import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.anilist.HomeModel
 import com.saikou.sozo_tv.data.model.anilist.Title
 import com.saikou.sozo_tv.data.model.jikan.BannerHomeData
-import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
-import com.saikou.sozo_tv.data.remote.JikanApiService
-import com.saikou.sozo_tv.data.remote.safeApiCall
 import com.saikou.sozo_tv.data.remote.safeExecute
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
@@ -23,7 +20,6 @@ import com.saikou.sozo_tv.domain.model.Category
 import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.GenreModel
 import com.saikou.sozo_tv.domain.repository.HomeRepository
-import com.saikou.sozo_tv.domain.repository.TMDBHomeRepository
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.FILE_NAME_GENRES
 import com.saikou.sozo_tv.utils.readData
@@ -31,7 +27,7 @@ import com.saikou.sozo_tv.utils.saveData
 import kotlin.random.Random
 
 class HomeRepositoryImpl(
-    private val jikanApiService: JikanApiService, private val apolloClient: ApolloClient
+    private val apolloClient: ApolloClient
 ) : HomeRepository {
     override suspend fun getTopBannerAnime(): Result<BannerModel> {
         return try {
