@@ -44,9 +44,7 @@ class WrongTitleSearchAdapter() :
             binding.root.setOnClickListener {
                 itemClickeddListener.invoke(movie)
             }
-            binding.imdbRating.gone()
-            binding.movieDetails.gone()
-            binding.subscribeButton.gone()
+
             binding.movieTitle.text = spannableString
             Glide.with(binding.root.context).load(movie.coverUrl).into(binding.moviePoster)
         }

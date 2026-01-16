@@ -133,7 +133,7 @@ class HomeViewModel(
             if (preferenceManager.isModeAnimeEnabled()) {
                 val result = repo.getTopBannerAnime()
                 _bannersState.value = if (result.isSuccess) {
-                    UiState.Success(result.getOrNull()!!.toDomain())
+                    UiState.Success(result.getOrNull()!!)
                 } else {
                     UiState.Error(result.exceptionOrNull()?.message ?: "Unknown error")
                 }

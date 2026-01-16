@@ -19,17 +19,18 @@ query getRecommendations($page: Int) {
 
 query getBanner{
     Page(page: 1,perPage: 9){
-        mediaTrends {
-            media {
-                id
-                idMal
-                description
-                genres
-                seasonYear
-                format
-                source
-                bannerImage
+        media(sort: SCORE_DESC, isAdult: false, type: ANIME, countryOfOrigin: "JP") {
+            title {
+                userPreferred
             }
+            id
+            idMal
+            description
+            genres
+            seasonYear
+            format
+            source
+            bannerImage
         }
     }
 }

@@ -44,6 +44,7 @@ data class BannerHomeData(
     val title: String,
     val description: String,
     val mal_id: Int = -1,
+    val anilistId: Int = -1,
     val imdb_id: Int = -1,
     val genre_ids: List<Int>? = null,
     val isMovie: Boolean = false,

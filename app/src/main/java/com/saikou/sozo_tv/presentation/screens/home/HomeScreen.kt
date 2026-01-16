@@ -74,8 +74,16 @@ class HomeScreen : Fragment() {
             }
             LocalData.setonClickedlistenerItemBanner {
                 if (homeViewModel.preferenceManager.isModeAnimeEnabled()) {
-                    WaitDialog.show(requireActivity(), "Loading...")
-                    homeViewModel.getMalId(it.contentItem.mal_id)
+                    if (it.contentItem.mal_id!=-1){
+                        WaitDialog.show(requireActivity(), "Loading...")
+                        homeViewModel.getMalId(it.contentItem.mal_id)
+                    }else {
+                        WaitDialog.dismiss(requireActivity())
+                        homeViewModel.aniId.postValue(Resource.Idle)
+                        val intent = Intent(binding.root.context, PlayerActivity::class.java)
+                        intent.putExtra("model", it.contentItem.anilistId)
+                        binding.root.context.startActivity(intent)
+                    }
                 } else {
                     Log.d("GGG", "handleHomeDataState:${it.contentItem.isSeries} ")
                     val intent = Intent(binding.root.context, PlayerActivity::class.java)

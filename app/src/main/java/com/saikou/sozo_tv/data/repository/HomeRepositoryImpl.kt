@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.data.repository
 
 import android.util.Log
 import com.animestudios.animeapp.ConvertMalToIdQuery
+import com.animestudios.animeapp.GetBannerQuery
 import com.animestudios.animeapp.GetPopularQuery
 import com.animestudios.animeapp.GetRecommendationsQuery
 import com.animestudios.animeapp.GetTrendingQuery
@@ -11,10 +12,13 @@ import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.anilist.HomeModel
 import com.saikou.sozo_tv.data.model.anilist.Title
+import com.saikou.sozo_tv.data.model.jikan.BannerHomeData
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.data.remote.JikanApiService
 import com.saikou.sozo_tv.data.remote.safeApiCall
 import com.saikou.sozo_tv.data.remote.safeExecute
+import com.saikou.sozo_tv.domain.model.BannerItem
+import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Category
 import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.GenreModel
@@ -29,11 +33,26 @@ import kotlin.random.Random
 class HomeRepositoryImpl(
     private val jikanApiService: JikanApiService, private val apolloClient: ApolloClient
 ) : HomeRepository {
-    override suspend fun getTopBannerAnime(): Result<JikanBannerResponse> {
-        return safeApiCall {
-            jikanApiService.getTopAnime()
-        }.map {
-            it
+    override suspend fun getTopBannerAnime(): Result<BannerModel> {
+        return try {
+            val response = apolloClient.safeExecute(GetBannerQuery())
+            val data = response?.Page?.media ?: arrayListOf()
+            val newData = BannerModel(data =
+            data.map {
+                val media = it
+                BannerItem(
+                    contentItem = BannerHomeData(
+                        media?.bannerImage ?: LocalData.anime404,
+                        media?.title?.userPreferred ?: "",
+                        media?.description ?: "",
+                        mal_id = media?.idMal ?: -1,
+                        anilistId = media?.id ?: -1,
+                    )
+                )
+            })
+            Result.success(newData)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

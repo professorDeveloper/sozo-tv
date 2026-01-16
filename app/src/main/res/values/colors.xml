@@ -26,8 +26,8 @@
     <color name="white_and_black_hint">#99000000</color>
     <color name="settings_background">#F2F2F7</color>
     <color name="backward_color">#40181E17</color>
-    <color name="selected_item_background">#FF4081</color> <!-- Color when focused -->
-    <color name="default_item_background">#333333</color> <!-- Default background -->
+    <color name="selected_item_background">#FF4081</color>
+    <color name="default_item_background">#333333</color>
     <color name="favorite_color">#FF6B6B</color>
     <color name="button_stations">#ffe9cc</color>
     <color name="button_leaderboard">#C8A6C7EC</color>
@@ -43,40 +43,30 @@
     <color name="red80">#80FE4545</color>
     <color name="yellow">#FE4545</color>
 
-    <!-- TV Specific Colors -->
     <color name="tv_card_background">#16213E</color>
     <color name="tv_badge_text">#FFFFFF</color>
     <color name="tv_focus_border">@color/red</color>
-    <!-- Updated to Telegram-style colors with provided color scheme -->
     <color name="netflix_green">#46D369</color>
     <color name="netflix_focus_overlay">#191212</color>
-    <!-- Telegram Ad Colors -->
     <color name="telegram_ad_background">#2B2E33</color>
     <color name="telegram_title_color">#FFFFFF</color>
     <color name="telegram_description_color">#AAAAAA</color>
     <color name="telegram_sponsored_color">#888888</color>
 
-    <!-- CTA Button Colors -->
     <color name="telegram_cta_background">@color/navigation_background</color>
     <color name="telegram_cta_text">#FFFFFF</color>
 
-    <!-- Close Button -->
     <color name="telegram_close_background">#40FFFFFF</color>
-    <!-- CTA Button Colors -->
     <color name="cta_button_normal">#2196F3</color>
     <color name="cta_button_pressed">#1976D2</color>
     <color name="cta_text_color">#FFFFFF</color>
 
-    <!-- Sponsored Label Colors -->
     <color name="sponsored_background_color">#FFC107</color>
     <color name="sponsored_text_color">#212121</color>
 
-     <!--Netflix Gray dark -->
     <color name="netflix_gray_dark">#404040</color>
 
-    <!-- Close Button -->
     <color name="close_button_background">#80000000</color>
-    <!-- Notification Style Colors -->
     <color name="notification_background">#2A2A2A</color>
     <color name="notification_title_color">#FFFFFF</color>
     <color name="notification_description_color">#B3B3B3</color>
