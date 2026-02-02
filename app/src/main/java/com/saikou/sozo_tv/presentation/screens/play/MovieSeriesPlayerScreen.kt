@@ -728,7 +728,7 @@ class MovieSeriesPlayerScreen : Fragment() {
             val finalSource = withContext(Dispatchers.IO) {
                 buildMediaSourceWithSubtitle(videoUrl, canUseSubtitle)
             }
-            applySubtitleStyleToPlayer(binding.pvPlayer,PreferenceManager())
+            applySubtitleStyleToPlayer(binding.pvPlayer, PreferenceManager())
             player.setMediaSource(finalSource)
             player.prepare()
             player.playWhenReady = true
@@ -857,7 +857,7 @@ class MovieSeriesPlayerScreen : Fragment() {
         videoUrl: String, useSubtitles: Boolean
     ): MediaSource {
         val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(
-            MimeTypes.APPLICATION_M3U8
+            MimeTypes.APPLICATION_MP4
         ).setTag(args.name).build()
         val videoSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
         if (!useSubtitles) return videoSource

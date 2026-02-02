@@ -7,7 +7,8 @@ data class VodMovieResponse(
     var header: Map<String, String>,
     @Transient
     val subtitleList: List<SubTitle> = arrayListOf(),  // Ignored during serialization
-    val urlobj: String
+    val urlobj: String,
+    val type: String = ""
 ) : Serializable
 
 

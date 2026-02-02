@@ -15,7 +15,9 @@ data class Video(
     data class Server(
         val id: String,
         val name: String,
-        val src: String
+        val src: String,
+        val fileName: String = "",
+        val fileSize: String = ""
     ) : Serializable
 
     sealed class Type : Serializable {
