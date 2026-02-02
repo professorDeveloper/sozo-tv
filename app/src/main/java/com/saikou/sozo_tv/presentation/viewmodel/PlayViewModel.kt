@@ -11,7 +11,6 @@ import com.saikou.sozo_tv.data.model.SubtitleItem
 import com.saikou.sozo_tv.data.model.VodMovieResponse
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.anime.AnimePahe
-import com.saikou.sozo_tv.parser.extractor.PrimeSrcExtractor
 import com.saikou.sozo_tv.parser.extractor.VixSrcExtractor
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.EpisodeData
@@ -58,7 +57,7 @@ class PlayViewModel(
 
     var parser = AnimeSources.getCurrent()
     val playImdb = PlayImdb()
-    val primeSrc = PrimeSrcExtractor()
+    val vixsrc = VixSrcExtractor()
     val currentEpisodeData = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     val currentQualityEpisode = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     var seriesResponse: VodMovieResponse? = null
@@ -266,13 +265,13 @@ class PlayViewModel(
                     season = Video.Type.Season(season),
                     number = episode
                 )
-                val server = if (isMovie) primeSrc.server(movie)
-                else primeSrc.server(series)
+                val server = if (isMovie) vixsrc.server(movie)
+                else vixsrc.server(series)
 
                 val subtitles = getAllSubtitleList(isMovie, tmdbId, season, episode)
                 val vodSubs = subtitles.map { it.toDomain() }
 
-                primeSrc.extract(server.src).let { video ->
+                vixsrc.extract(server.src).let { video ->
                     VodMovieResponse(
                         authInfo = "",
                         subtitleList = vodSubs,
