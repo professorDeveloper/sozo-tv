@@ -11,9 +11,12 @@ import com.saikou.sozo_tv.data.model.SubtitleItem
 import com.saikou.sozo_tv.data.model.VodMovieResponse
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.anime.AnimePahe
+import com.saikou.sozo_tv.parser.extractor.PrimeSrcExtractor
+import com.saikou.sozo_tv.parser.extractor.VixSrcExtractor
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
+import com.saikou.sozo_tv.parser.models.Video
 import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.parser.movie.PlayImdb
 import com.saikou.sozo_tv.parser.sources.AnimeSources
@@ -55,7 +58,7 @@ class PlayViewModel(
 
     var parser = AnimeSources.getCurrent()
     val playImdb = PlayImdb()
-
+    val primeSrc = PrimeSrcExtractor()
     val currentEpisodeData = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     val currentQualityEpisode = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     var seriesResponse: VodMovieResponse? = null
@@ -107,7 +110,6 @@ class PlayViewModel(
             allEpisodeData.postValue(Resource.Loading)
             runCatching {
                 val list = playImdb.getEpisodes(imdbId)
-
                 if (!isMovie) {
                     val seasonCounts = list.groupingBy { it.season }.eachCount()
                     if (seasons.isEmpty()) seasons = seasonCounts
@@ -128,7 +130,6 @@ class PlayViewModel(
                             )
                         )
                     }
-
                     EpisodeData(1, listData, 1, 1, "", -1, null, -1, 1)
                 } else {
                     val listData = ArrayList<Data>(list.size)
@@ -258,19 +259,28 @@ class PlayViewModel(
                     currentSelectedVideoOptionIndex = 0
                     getWatchedHistoryEntity = null
                 }
-
-                val m3u8Link = if (isMovie) playImdb.invokeVidSrcXyz(imdbId)
-                else playImdb.invokeVidSrcXyz(imdbId, season, episode)
+                Log.d(TAG, "getCurrentEpisodeVodByImdb: ep:${episode} season:${season}")
+                val movie = Video.Type.Movie(tmdbId.toString())
+                val series = Video.Type.Episode(
+                    tvShow = Video.Type.TvShow(tmdbId.toString()),
+                    season = Video.Type.Season(season),
+                    number = episode
+                )
+                val server = if (isMovie) primeSrc.server(movie)
+                else primeSrc.server(series)
 
                 val subtitles = getAllSubtitleList(isMovie, tmdbId, season, episode)
                 val vodSubs = subtitles.map { it.toDomain() }
 
-                VodMovieResponse(
-                    authInfo = "",
-                    subtitleList = vodSubs,
-                    urlobj = m3u8Link,
-                    header = mapOf(),
-                )
+                primeSrc.extract(server.src).let { video ->
+                    VodMovieResponse(
+                        authInfo = "",
+                        subtitleList = vodSubs,
+                        urlobj = video.source,
+                        header = video.headers
+                    )
+                }
+
             }.onSuccess { data ->
                 seriesResponse = data
                 currentEpisodeData.postValue(Resource.Success(data))

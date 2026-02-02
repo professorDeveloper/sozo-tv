@@ -64,7 +64,7 @@ val koinModule = module {
     single { PreferenceManager() }
     factory { UserPreferenceManager(androidContext()) }
     single<HomeRepository> {
-        HomeRepositoryImpl(jikanApiService = get(), apolloClient = get())
+        HomeRepositoryImpl(apolloClient = get())
     }
     single<EpisodeRepository> {
         EpisodeRepositoryImpl(api = get())

@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.parser.extractor
 
 import android.annotation.SuppressLint
+import android.util.Log
 import com.google.gson.Gson
 import com.saikou.sozo_tv.parser.anime.AnimePahe.Companion.USER_AGENT
 import com.saikou.sozo_tv.parser.models.Video
@@ -64,9 +65,9 @@ class PrimeSrcExtractor : Extractor() {
             "Referer" to mainUrl
         )
 
-        println(link)
+        Log.d("ggg",link)
         val response = Utils.get(link, headers)
-        println(response)
+        Log.d("ggg",response)
         val linkResponse = gson.fromJson(response, LinkResponse::class.java)
 
         val videoLink = linkResponse.link

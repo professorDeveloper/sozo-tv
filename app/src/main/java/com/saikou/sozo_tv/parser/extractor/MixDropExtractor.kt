@@ -66,16 +66,4 @@ class MixDropExtractor : Extractor() {
         )
     }
 
-    private fun unpackJavaScript(packed: String): String {
-        return try {
-            val context = Context.enter()
-            context.optimizationLevel = -1
-            val scope = context.initStandardObjects()
-            val result = context.evaluateString(scope, packed, "unpack", 1, null)
-            Context.exit()
-            Context.toString(result)
-        } catch (e: Exception) {
-            packed
-        }
-    }
 }

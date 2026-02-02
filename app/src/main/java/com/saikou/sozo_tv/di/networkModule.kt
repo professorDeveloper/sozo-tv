@@ -47,7 +47,6 @@ val NetworkModule = module {
     }
 
     single { createRetrofit(get(named("baseOkHttp")), JIKAN_BASE_URL) }
-    single { createService(get()) }
 
     single(named("tmdbRetrofit")) { createTmdbClient(get(named("baseOkHttp"))) }
 
