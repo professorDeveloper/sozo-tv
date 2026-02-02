@@ -668,7 +668,8 @@ class MovieSeriesPlayerScreen : Fragment() {
         player.clearMediaItems()
 
         val mediaItem =
-            MediaItem.Builder().setUri(videoUrl).setMimeType(MimeTypes.VIDEO_MP4).setTag(title)
+            MediaItem.Builder().setUri(videoUrl).setMimeType(MimeTypes.APPLICATION_M3U8)
+                .setTag(title)
                 .build()
 
         val mediaSource =
@@ -692,7 +693,8 @@ class MovieSeriesPlayerScreen : Fragment() {
         player.clearMediaItems()
 
         val mediaItem =
-            MediaItem.Builder().setUri(videoUrl).setMimeType(MimeTypes.VIDEO_MP4).setTag(title)
+            MediaItem.Builder().setUri(videoUrl).setMimeType(MimeTypes.APPLICATION_M3U8)
+                .setTag(title)
                 .build()
 
         val mediaSource =
@@ -857,7 +859,7 @@ class MovieSeriesPlayerScreen : Fragment() {
         videoUrl: String, useSubtitles: Boolean
     ): MediaSource {
         val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(
-            MimeTypes.APPLICATION_MP4
+            MimeTypes.APPLICATION_M3U8
         ).setTag(args.name).build()
         val videoSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
         if (!useSubtitles) return videoSource
