@@ -10,16 +10,22 @@ abstract class Extractor {
 
     abstract suspend fun extract(link: String): Video
 
+    open fun server(videoType: Video.Type): Video.Server {
+        throw NotImplementedError("server() method is not implemented for ${this.name} extractor")
+    }
+
+
     companion object {
         private val extractors = listOf(
-//            VidsrcToExtractor(),
-            VidplayExtractor(),
+            VixSrcExtractor(),
             FilemoonExtractor(),
-            PrimeSrcExtractor(),
-            MixDropExtractor(),
-//            VoeExtractor(),
-            StreamtapeExtractorAlt(),
+            VidzeeExtractor(),
+            PrimeSrcExtractor()
         )
+
+        fun getCurrentExtractor(name: String): Extractor? {
+            return extractors.find { it.name.equals(name, ignoreCase = true) }
+        }
 
         suspend fun extract(link: String): Video {
             val urlRegex = Regex("^(https?://)?(www\\.)?")

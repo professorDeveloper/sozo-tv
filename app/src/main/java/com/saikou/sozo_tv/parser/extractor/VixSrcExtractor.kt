@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.parser.extractor
 
+import androidx.media3.common.MimeTypes
 import com.saikou.sozo_tv.parser.models.Video
 import com.saikou.sozo_tv.utils.Utils
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -10,14 +11,13 @@ class VixSrcExtractor : Extractor() {
     override val name = "VixSrc"
     override val mainUrl = "https://vixsrc.to"
 
-    fun server(videoType: Video.Type): Video.Server {
+    override fun server(videoType: Video.Type): Video.Server {
         return Video.Server(
             id = name,
             name = name,
             src = when (videoType) {
                 is Video.Type.Episode -> "$mainUrl/tv/${videoType.tvShow.id}/${videoType.season.number}/${videoType.number}"
                 is Video.Type.Movie -> "$mainUrl/movie/${videoType.id}"
-                else -> throw IllegalArgumentException("Unknown video type")
             },
         )
     }
@@ -110,7 +110,8 @@ class VixSrcExtractor : Extractor() {
             source = finalUrl, headers = mapOf(
                 "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
                 "Referer" to mainUrl
-            ), subtitles = emptyList()
+            ), subtitles = emptyList(),
+            type =MimeTypes.APPLICATION_M3U8
         )
     }
 }

@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.parser.anime
 
 import android.util.Log
+import androidx.media3.common.MimeTypes
 import com.saikou.sozo_tv.data.remote.KitsuApi
 import com.saikou.sozo_tv.parser.base.BaseParser
 import com.saikou.sozo_tv.parser.extractor.HiAnimeVideoExtractor
@@ -163,7 +164,7 @@ class HiAnime : BaseParser() {
                         videoUrl = m3u8,
                         fansub = "HiAnime",
                         resolution = "HLS",
-                        isM3U8 = true,
+                        mimeTypes = MimeTypes.APPLICATION_M3U8,
                         audioType = if (server.type == "dub") AudioType.DUB else AudioType.SUB,
                         quality = "Adaptive",
                         isActive = true,

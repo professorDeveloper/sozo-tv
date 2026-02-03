@@ -60,6 +60,7 @@ import com.saikou.sozo_tv.databinding.ImdbSeriesPlayerScreenBinding
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.screens.play.dialog.SubtitleChooserDialog
+import com.saikou.sozo_tv.presentation.viewmodel.PlayMovieViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
@@ -84,7 +85,7 @@ class MovieSeriesPlayerScreen : Fragment() {
     private lateinit var player: ExoPlayer
     private lateinit var httpDataSource: HttpDataSource.Factory
     private lateinit var dataSourceFactory: DataSource.Factory
-    private val model by viewModel<PlayViewModel>()
+    private val model by viewModel<PlayMovieViewModel>()
     private lateinit var mediaSession: MediaSession
     private val args by navArgs<MovieSeriesPlayerScreenArgs>()
     private val episodeList = arrayListOf<Data>()
@@ -129,7 +130,6 @@ class MovieSeriesPlayerScreen : Fragment() {
         }
     }
 
-    private val handler = Handler()
     private lateinit var skipIntroView: SkipIntroView
 
     private fun playNextEpisodeAutomatically() {
@@ -578,20 +578,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                                 startProgressTracking()
 
                             }
-                            val dur = player.duration
-                            if (::skipIntroView.isInitialized) {
-                                skipIntroView.cleanup()
-                            }
-                            skipIntroView = SkipIntroView(
-                                binding.pvPlayer.controller.binding.root,
-                                player,
-                                model,
-                                handler,
-                                0,
-                                episodeList[model.currentEpIndex].episode ?: 0,
-                                dur / 1000
-                            )
-                            skipIntroView.initialize()
+
                         }
 
                         Player.STATE_ENDED -> {
@@ -668,7 +655,8 @@ class MovieSeriesPlayerScreen : Fragment() {
         player.clearMediaItems()
 
         val mediaItem =
-            MediaItem.Builder().setUri(videoUrl).setMimeType(MimeTypes.APPLICATION_M3U8)
+            MediaItem.Builder().setUri(videoUrl)
+                .setMimeType(model.seriesResponse?.type ?: MimeTypes.APPLICATION_M3U8)
                 .setTag(title)
                 .build()
 
@@ -693,7 +681,8 @@ class MovieSeriesPlayerScreen : Fragment() {
         player.clearMediaItems()
 
         val mediaItem =
-            MediaItem.Builder().setUri(videoUrl).setMimeType(MimeTypes.APPLICATION_M3U8)
+            MediaItem.Builder().setUri(videoUrl)
+                .setMimeType(model.seriesResponse?.type ?: MimeTypes.APPLICATION_M3U8)
                 .setTag(title)
                 .build()
 
@@ -859,7 +848,7 @@ class MovieSeriesPlayerScreen : Fragment() {
         videoUrl: String, useSubtitles: Boolean
     ): MediaSource {
         val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(
-            MimeTypes.APPLICATION_M3U8
+            model.seriesResponse?.type ?: MimeTypes.APPLICATION_M3U8
         ).setTag(args.name).build()
         val videoSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
         if (!useSubtitles) return videoSource

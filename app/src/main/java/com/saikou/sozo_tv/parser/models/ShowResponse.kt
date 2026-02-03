@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.parser.models
 
+import androidx.media3.common.MimeTypes
 import com.saikou.sozo_tv.data.model.hianime.MegaTrack
 import java.io.Serializable
 
@@ -23,7 +24,7 @@ data class VideoOption(
     val audioType: AudioType,
     val quality: String,
     val isActive: Boolean,
-    val isM3U8: Boolean = true,
+    val mimeTypes: String = "",
     val fullText: String,
     var tracks: List<MegaTrack> = arrayListOf(),
     var headers: Map<String, String> = mapOf()

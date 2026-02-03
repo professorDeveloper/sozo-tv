@@ -3,11 +3,9 @@ package com.saikou.sozo_tv.parser.extractor
 import android.annotation.SuppressLint
 import android.util.Log
 import com.google.gson.Gson
-import com.google.gson.annotations.SerializedName
 import com.saikou.sozo_tv.parser.anime.AnimePahe.Companion.USER_AGENT
 import com.saikou.sozo_tv.parser.models.Video
 import com.saikou.sozo_tv.utils.Utils
-import kotlin.math.log
 
 class PrimeSrcExtractor : Extractor() {
 
@@ -16,11 +14,10 @@ class PrimeSrcExtractor : Extractor() {
     private val gson = Gson()
 
     @SuppressLint("NewApi")
-    suspend fun servers(videoType: Video.Type): List<Video.Server> {
+    fun servers(videoType: Video.Type): List<Video.Server> {
         val apiUrl = when (videoType) {
             is Video.Type.Episode -> "$mainUrl/api/v1/s?tmdb=${videoType.tvShow.id}&season=${videoType.season.number}&episode=${videoType.number}&type=tv"
             is Video.Type.Movie -> "$mainUrl/api/v1/s?tmdb=${videoType.id}&type=movie"
-            else -> throw IllegalArgumentException("Unknown video type")
         }
 
         return try {
@@ -45,9 +42,7 @@ class PrimeSrcExtractor : Extractor() {
                 Video.Server(
                     id = "${server.name}-${server.key} (PrimeSrc)",
                     name = displayName,
-                    src = "$mainUrl/api/v1/l?key=${server.key}",
-                    fileName = server.file_name ?: "",
-                    fileSize = server.file_size ?: ""
+                    src = "$mainUrl/api/v1/l?key=${server.key}"
                 )
             }
         } catch (e: Exception) {
@@ -56,54 +51,15 @@ class PrimeSrcExtractor : Extractor() {
         }
     }
 
-    suspend fun server(videoType: Video.Type): Video.Server {
+
+    override fun server(videoType: Video.Type): Video.Server {
         val servers = servers(videoType)
-        Log.d("GGG", "PRIMESRC servers:$servers ")
-        val pickBestServer = pickBestServer(servers)
-        Log.d("GGG", "pickBestServer: ${pickBestServer}")
-        return pickBestServer ?: throw Exception("No servers found")
-    }
-
-    private fun pickBestServer(servers: List<Video.Server>): Video.Server? {
-        val preferredOrder = listOf(
-            "Streamtape",
-            "Voe",
-            "Mixdrop",
-            "Filemoon",
-            "VidNest",
-            "Filelions",
-            "PrimeVid",
-            "Luluvdoo",
-            "UpZur",
-            "Streamwish",
-            "Streamplay",
-            "Savefiles"
+        Log.d("GGG", "servers:${servers} ")
+        val firstOrNull = servers.filter { it.name.contains("Filemoon") }.lastOrNull(   )
+        Log.d("GGG", "server:${firstOrNull} ")
+        return firstOrNull ?: throw Exception(
+            "No servers found"
         )
-        val mp4Servers = servers.filter { isMp4(it.fileName) }
-        if (mp4Servers.isNotEmpty()) {
-            for (host in preferredOrder) {
-                mp4Servers.firstOrNull { it.id.startsWith("$host-") }?.let { return it }
-            }
-            return mp4Servers.firstOrNull()
-        }
-        val sizedServers = servers.filter { hasValidSize(it.fileSize) }
-        if (sizedServers.isNotEmpty()) {
-            for (host in preferredOrder) {
-                sizedServers.firstOrNull { it.id.startsWith("$host-") }?.let { return it }
-            }
-            return sizedServers.firstOrNull()
-        }
-        return null
-    }
-
-    private fun isMp4(name: String?): Boolean {
-        if (name.isNullOrBlank()) return false
-        val n = name.trim().lowercase()
-        return n.endsWith(".mp4") || n.endsWith("mp4")
-    }
-
-    private fun hasValidSize(size: String?): Boolean {
-        return !size.isNullOrBlank()
     }
 
     override suspend fun extract(link: String): Video {
@@ -111,8 +67,9 @@ class PrimeSrcExtractor : Extractor() {
             "User-Agent" to USER_AGENT, "Accept" to "application/json", "Referer" to mainUrl
         )
 
-        Log.d("ggg", link)
+        println(link)
         val response = Utils.get(link, headers)
+        println(response)
         val linkResponse = gson.fromJson(response, LinkResponse::class.java)
 
         val videoLink = linkResponse.link ?: throw Exception("No video link found in response")
@@ -124,10 +81,7 @@ class PrimeSrcExtractor : Extractor() {
     )
 
     data class Server(
-        val name: String,
-        val key: String,
-        @SerializedName("file_name") val file_name: String?,
-        @SerializedName("file_size") val file_size: String?
+        val name: String, val key: String
     )
 
     data class LinkResponse(

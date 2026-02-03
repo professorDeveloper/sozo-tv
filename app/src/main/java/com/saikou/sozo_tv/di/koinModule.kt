@@ -38,6 +38,8 @@ import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.LiveTvViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.NewsViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.PlayAnimeViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.PlayMovieViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
@@ -109,6 +111,8 @@ val koinModule = module {
     viewModel { AdultPlayerViewModel() }
     viewModel { SplashViewModel(firebaseService = get()) }
     viewModel { PlayViewModel(watchHistoryRepository = get()) }
+    viewModel { PlayMovieViewModel(watchHistoryRepository = get()) }
+    viewModel { PlayAnimeViewModel(watchHistoryRepository = get()) }
     viewModel { DetailViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
     viewModel { SearchViewModel(repo = get()) }

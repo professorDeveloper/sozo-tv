@@ -30,7 +30,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
-import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -60,7 +59,7 @@ import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.screens.play.dialog.SubtitleChooserDialog
-import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.PlayAnimeViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
@@ -87,7 +86,7 @@ class SeriesPlayerScreen : Fragment() {
     private lateinit var player: ExoPlayer
     private lateinit var httpDataSource: HttpDataSource.Factory
     private lateinit var dataSourceFactory: DataSource.Factory
-    private val model by viewModel<PlayViewModel>()
+    private val model by viewModel<PlayAnimeViewModel>()
     private lateinit var mediaSession: MediaSession
     private val args by navArgs<SeriesPlayerScreenArgs>()
     private val episodeList = arrayListOf<Data>()
@@ -603,10 +602,10 @@ class SeriesPlayerScreen : Fragment() {
             "playNewEpisode:${model.videoOptions.get(model.currentSelectedVideoOptionIndex)} "
         )
         val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(
-            if (model.videoOptions.get(model.currentSelectedVideoOptionIndex).isM3U8) MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4
+            model.videoOptions[model.currentSelectedVideoOptionIndex].mimeTypes
         ).setTag(args.name).build()
         val mediaSource =
-            if (model.videoOptions[model.currentSelectedVideoOptionIndex].isM3U8) HlsMediaSource.Factory(
+            if (model.videoOptions[model.currentSelectedVideoOptionIndex].mimeTypes == MimeTypes.APPLICATION_M3U8) HlsMediaSource.Factory(
                 dataSourceFactory
             ).createMediaSource(mediaItem)
             else ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
@@ -630,7 +629,7 @@ class SeriesPlayerScreen : Fragment() {
         player.clearMediaItems()
         Log.d("GGG", "playQualityVideo:${model.videoOptions} ")
         val mediaItem = MediaItem.Builder().setUri(videoUrl)
-            .setMimeType(if (model.videoOptions.get(model.currentSelectedVideoOptionIndex).isM3U8) MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4)
+            .setMimeType(model.videoOptions[model.currentSelectedVideoOptionIndex].mimeTypes)
             .setTag(args.name).build()
 
         player.setMediaItem(mediaItem)
@@ -793,11 +792,10 @@ class SeriesPlayerScreen : Fragment() {
         videoUrl: String, useSubtitles: Boolean
     ): androidx.media3.exoplayer.source.MediaSource {
         val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(
-            if (model.videoOptions[model.currentSelectedVideoOptionIndex].isM3U8) MimeTypes.APPLICATION_M3U8
-            else MimeTypes.VIDEO_MP4
+            model.videoOptions[model.currentSelectedVideoOptionIndex].mimeTypes
         ).setTag(args.name).build()
         val mediaSource =
-            if (model.videoOptions[model.currentSelectedVideoOptionIndex].isM3U8) HlsMediaSource.Factory(
+            if (model.videoOptions[model.currentSelectedVideoOptionIndex].mimeTypes == MimeTypes.APPLICATION_M3U8) HlsMediaSource.Factory(
                 dataSourceFactory
             ).createMediaSource(mediaItem) else ProgressiveMediaSource.Factory(dataSourceFactory)
                 .createMediaSource(mediaItem)

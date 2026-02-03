@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.data.model
 
+import androidx.media3.common.MimeTypes
 import java.io.Serializable
 
 data class VodMovieResponse(
@@ -8,7 +9,7 @@ data class VodMovieResponse(
     @Transient
     val subtitleList: List<SubTitle> = arrayListOf(),  // Ignored during serialization
     val urlobj: String,
-    val type: String = ""
+    val type: String = MimeTypes.APPLICATION_M3U8
 ) : Serializable
 
 

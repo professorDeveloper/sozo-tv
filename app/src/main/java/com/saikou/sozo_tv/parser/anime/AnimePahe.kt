@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.parser.anime
 
 import android.util.Log
+import androidx.media3.common.MimeTypes
 import com.bugsnag.android.Bugsnag
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -120,7 +121,7 @@ class AnimePahe : BaseParser() {
                     fansub = fansub,
                     resolution = resolution,
                     audioType = audioType,
-                    isM3U8 = true,
+                    mimeTypes = MimeTypes.APPLICATION_M3U8,
                     quality = quality,
                     isActive = isActive,
                     fullText = button.text()
