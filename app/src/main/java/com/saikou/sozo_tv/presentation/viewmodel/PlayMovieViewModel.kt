@@ -152,14 +152,14 @@ class PlayMovieViewModel(
                 )
 
                 try {
-                    val server = if (isMovie) currentExtractor.server(movie) else currentExtractor.server(series)
-
-                    val subtitles = getAllSubtitleList(isMovie, tmdbId, season, episode)
-                    val vodSubs = subtitles.map { it.toDomain() }
+                    val server =
+                        if (isMovie) currentExtractor.server(movie) else currentExtractor.server(
+                            series
+                        )
                     currentExtractor.extract(server.src).let { video ->
                         VodMovieResponse(
                             authInfo = "",
-                            subtitleList = vodSubs,
+                            subtitleList = arrayListOf(),
                             urlobj = video.source,
                             header = video.headers,
                             type = video.type
@@ -167,7 +167,7 @@ class PlayMovieViewModel(
                         )
                     }
 
-                }catch (e:Exception) {
+                } catch (e: Exception) {
                     throw Exception("Failed to extract video: ${e.message}")
                 }
 

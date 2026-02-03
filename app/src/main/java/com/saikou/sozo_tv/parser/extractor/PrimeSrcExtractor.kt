@@ -1,11 +1,13 @@
 package com.saikou.sozo_tv.parser.extractor
 
 import android.annotation.SuppressLint
-import android.util.Log
 import com.google.gson.Gson
+import com.lagradost.nicehttp.Requests
+import com.saikou.sozo_tv.di.createOkHttpClient
 import com.saikou.sozo_tv.parser.anime.AnimePahe.Companion.USER_AGENT
 import com.saikou.sozo_tv.parser.models.Video
 import com.saikou.sozo_tv.utils.Utils
+import com.saikou.sozo_tv.utils.parser
 
 class PrimeSrcExtractor : Extractor() {
 
@@ -18,14 +20,20 @@ class PrimeSrcExtractor : Extractor() {
         val apiUrl = when (videoType) {
             is Video.Type.Episode -> "$mainUrl/api/v1/s?tmdb=${videoType.tvShow.id}&season=${videoType.season.number}&episode=${videoType.number}&type=tv"
             is Video.Type.Movie -> "$mainUrl/api/v1/s?tmdb=${videoType.id}&type=movie"
+            else -> throw IllegalArgumentException("Unknown video type")
         }
 
         return try {
             val headers = mapOf(
-                "User-Agent" to USER_AGENT, "Accept" to "application/json", "Referer" to mainUrl
+                "User-Agent" to USER_AGENT,
+                "Accept" to "application/json",
+                "Referer" to mainUrl
             )
 
-            val response = Utils.get(apiUrl, headers)
+            val response = Utils.get(
+                apiUrl,
+                headers
+            )
             println(apiUrl)
             println(response)
             val serversResponse = gson.fromJson(response, ServersResponse::class.java)
@@ -51,20 +59,15 @@ class PrimeSrcExtractor : Extractor() {
         }
     }
 
-
     override fun server(videoType: Video.Type): Video.Server {
-        val servers = servers(videoType)
-        Log.d("GGG", "servers:${servers} ")
-        val firstOrNull = servers.filter { it.name.contains("Filemoon") }.lastOrNull(   )
-        Log.d("GGG", "server:${firstOrNull} ")
-        return firstOrNull ?: throw Exception(
-            "No servers found"
-        )
+        return servers(videoType).firstOrNull() ?: throw Exception("No servers found")
     }
 
     override suspend fun extract(link: String): Video {
         val headers = mapOf(
-            "User-Agent" to USER_AGENT, "Accept" to "application/json", "Referer" to mainUrl
+            "User-Agent" to USER_AGENT,
+            "Accept" to "application/json",
+            "Referer" to mainUrl
         )
 
         println(link)
@@ -72,7 +75,8 @@ class PrimeSrcExtractor : Extractor() {
         println(response)
         val linkResponse = gson.fromJson(response, LinkResponse::class.java)
 
-        val videoLink = linkResponse.link ?: throw Exception("No video link found in response")
+        val videoLink = linkResponse.link
+            ?: throw Exception("No video link found in response")
         return Extractor.extract(videoLink)
     }
 
@@ -81,7 +85,8 @@ class PrimeSrcExtractor : Extractor() {
     )
 
     data class Server(
-        val name: String, val key: String
+        val name: String,
+        val key: String
     )
 
     data class LinkResponse(

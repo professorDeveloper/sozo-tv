@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.parser.extractor
 
+import android.util.Log
 import com.saikou.sozo_tv.parser.models.Video
 
 abstract class Extractor {
@@ -20,7 +21,9 @@ abstract class Extractor {
             VixSrcExtractor(),
             FilemoonExtractor(),
             VidzeeExtractor(),
-            PrimeSrcExtractor()
+            PrimeSrcExtractor(),
+            DoodLaExtractor(),
+            MixDropExtractor(),
         )
 
         fun getCurrentExtractor(name: String): Extractor? {
@@ -30,14 +33,12 @@ abstract class Extractor {
         suspend fun extract(link: String): Video {
             val urlRegex = Regex("^(https?://)?(www\\.)?")
             val compareUrl = link.lowercase().replace(urlRegex, "")
-
             for (extractor in extractors) {
                 // Asosiy URL ni tekshirish
                 if (compareUrl.startsWith(extractor.mainUrl.lowercase().replace(urlRegex, ""))) {
                     return extractor.extract(link)
                 }
 
-                // Alias URL larni tekshirish
                 for (aliasUrl in extractor.aliasUrls) {
                     if (compareUrl.startsWith(aliasUrl.lowercase().replace(urlRegex, ""))) {
                         return extractor.extract(link)
@@ -52,6 +53,7 @@ abstract class Extractor {
                 }
             }
 
+            Log.d("GGG", "extract: No extractor found for URL: $link")
             throw Exception("No extractor found for URL: $link")
         }
     }
