@@ -224,7 +224,6 @@ class MovieSeriesPlayerScreen : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        model.changeCurrentSource(args.currentSource)
         initializeVideo()
         binding.pvPlayer.controller.binding.frameBackButton.setOnClickListener {
             navigateBack()
@@ -239,6 +238,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                 }
             })
         model.currentEpIndex = args.currentIndex
+        model.changeCurrentSource(args.currentSource)
         model.getAllEpisodeByImdb(
             args.imdbId, args.tmdbId, args.currentPage, args.isMovie, args.image
         )

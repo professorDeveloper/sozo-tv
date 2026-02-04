@@ -379,7 +379,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 progressBar.max = getLocalEp.totalDuration.toInt()
                 progressBar.progress = getLocalEp.lastPosition.toInt()
                 binding.country.text = if (getLocalEp.currentSourceName.isNotEmpty()) {
-                    "Episode ${getLocalEp.epIndex + 1} || Source: ${getLocalEp.currentSourceName}"
+                    "Ep: ${getLocalEp.epIndex + 1} || ${getLocalEp.currentSourceName}"
                 } else {
                     "Episode ${getLocalEp.epIndex + 1}"
                 }

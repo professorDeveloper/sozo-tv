@@ -74,10 +74,10 @@ class HomeScreen : Fragment() {
             }
             LocalData.setonClickedlistenerItemBanner {
                 if (homeViewModel.preferenceManager.isModeAnimeEnabled()) {
-                    if (it.contentItem.mal_id!=-1){
+                    if (it.contentItem.mal_id != -1) {
                         WaitDialog.show(requireActivity(), "Loading...")
                         homeViewModel.getMalId(it.contentItem.mal_id)
-                    }else {
+                    } else {
                         WaitDialog.dismiss(requireActivity())
                         homeViewModel.aniId.postValue(Resource.Idle)
                         val intent = Intent(binding.root.context, PlayerActivity::class.java)
@@ -125,6 +125,7 @@ class HomeScreen : Fragment() {
                         intent.putExtra("animeTitle", it.mediaName)
                         intent.putExtra("isHistory", true)
                         intent.putExtra("isSeries", it.isSeries)
+                        intent.putExtra("currentSource", it.currentSourceName)
                         requireContext().startActivity(intent)
                         binding.root.context.startActivity(intent)
                     }
