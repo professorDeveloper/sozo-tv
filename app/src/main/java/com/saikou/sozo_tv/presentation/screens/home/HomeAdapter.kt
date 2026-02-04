@@ -378,7 +378,11 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 binding.topContainer.text = getLocalEp.title
                 progressBar.max = getLocalEp.totalDuration.toInt()
                 progressBar.progress = getLocalEp.lastPosition.toInt()
-                binding.country.text = (getLocalEp.epIndex + 1).toString()
+                binding.country.text = if (getLocalEp.currentSourceName.isNotEmpty()) {
+                    "Episode ${getLocalEp.epIndex + 1} || Source: ${getLocalEp.currentSourceName}"
+                } else {
+                    "Episode ${getLocalEp.epIndex + 1}"
+                }
                 binding.root.setOnFocusChangeListener { _, hasFocus ->
                     val animation = when {
                         hasFocus -> AnimationUtils.loadAnimation(
