@@ -23,6 +23,7 @@ abstract class Extractor {
             VidzeeExtractor(),
             PrimeSrcExtractor(),
             DoodLaExtractor(),
+            VidsrcNetExtractor(),
             MixDropExtractor(),
         )
 
