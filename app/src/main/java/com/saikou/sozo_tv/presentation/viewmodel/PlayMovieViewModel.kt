@@ -43,19 +43,19 @@ class PlayMovieViewModel(
     var getWatchedHistoryEntity: WatchHistoryEntity? = null
 
     private val playImdb = PlayImdb()
-    private val currentExtractor by lazy {
-        Extractor.getCurrentExtractor(
-            PreferenceManager(MyApp.context).getString(
-                MOVIE_SOURCE
-            )
-        )!!
-    }
+    var currentSource = PreferenceManager(MyApp.context).getString(MOVIE_SOURCE)
+    private var currentExtractor: Extractor = Extractor.getCurrentExtractor(currentSource)!!
 
     val currentEpisodeData = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     val currentQualityEpisode = MutableLiveData<Resource<VodMovieResponse>>(Resource.Idle)
     var seriesResponse: VodMovieResponse? = null
 
     val allEpisodeData = MutableLiveData<Resource<EpisodeData>>(Resource.Idle)
+
+    fun changeCurrentSource(currentSource: String) {
+        currentExtractor = Extractor.getCurrentExtractor(currentSource)!!
+        this.currentSource = currentSource
+    }
 
     /*This also working always by tmdb id + season | ep */
     private suspend fun getAllSubtitleList(

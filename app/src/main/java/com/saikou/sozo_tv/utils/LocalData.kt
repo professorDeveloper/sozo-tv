@@ -24,6 +24,7 @@ object LocalData {
 
     var trailer: String = ""
     const val SOURCE = "subSource"
+
     const val MOVIE_SOURCE = "movieSubSource"
     var isHistoryItemClicked = false
     const val IMDB_IMAGE_PATH = "https://image.tmdb.org/t/p/w500/"
@@ -229,7 +230,7 @@ object LocalData {
         SectionItem(MyApp.context.getString(R.string.my_history), R.drawable.ic_time_history),
         SectionItem(MyApp.context.getString(R.string.bookmark), R.drawable.ic_bookmark),
         SectionItem(MyApp.context.getString(R.string.message_page), R.drawable.ic_chat),
-        )
+    )
     lateinit var listenerItemCategory: (isAbout: CategoryDetails) -> Unit
     fun setonClickedListenerItemCategory(listener: (isAbout: CategoryDetails) -> Unit) {
         listenerItemCategory = listener

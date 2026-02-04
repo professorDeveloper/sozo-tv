@@ -72,4 +72,5 @@ data class WatchHistoryEntity(
     val isAnime: Boolean = true,
     val isSeries: Boolean = false,
     var source: String = "",
+    val currentSourceName: String = ""
 )

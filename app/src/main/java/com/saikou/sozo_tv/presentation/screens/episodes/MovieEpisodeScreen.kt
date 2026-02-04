@@ -20,12 +20,14 @@ import androidx.navigation.fragment.navArgs
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.EpisodeTabAdapter
 import com.saikou.sozo_tv.adapters.SeriesPageAdapter
+import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.EpisodeScreenBinding
 import com.saikou.sozo_tv.parser.models.Part
 import com.saikou.sozo_tv.parser.movie.PlayImdb
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.readData
@@ -161,7 +163,10 @@ class MovieEpisodeScreen : Fragment() {
                                                 args.title,
                                                 args.image,
                                                 it.session ?: "",
-                                                it.episode ?: -1
+                                                it.episode ?: -1,
+                                                PreferenceManager(MyApp.context).getString(
+                                                    LocalData.MOVIE_SOURCE
+                                                )
                                             )
                                         )
                                     }

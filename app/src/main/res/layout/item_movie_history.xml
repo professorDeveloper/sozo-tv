@@ -85,7 +85,6 @@
                 android:max="100"
                 android:progress="20"
                 android:progressDrawable="@drawable/custom_progress" />
-
         </LinearLayout>
 
 

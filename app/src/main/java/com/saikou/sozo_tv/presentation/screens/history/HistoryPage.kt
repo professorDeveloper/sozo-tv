@@ -42,7 +42,9 @@ class HistoryPage : Fragment() {
         lifecycleScope.launch {
             val watchHistoryList = if (isAnimeEnabled) model.getAllWatchHistory()
                 .filter { it.isAnime }
-                .filter { it.source == (readData<String>(SOURCE) ?: "") } else model.getAllWatchHistory()
+                .filter {
+                    it.source == (readData<String>(SOURCE) ?: "")
+                } else model.getAllWatchHistory()
                 .filter { !it.isAnime }
             if (watchHistoryList.isNotEmpty()) {
                 binding.historyGroup.visibility = View.VISIBLE
@@ -76,6 +78,7 @@ class HistoryPage : Fragment() {
                             intent.putExtra("image", it.image)
                             intent.putExtra("animeTitle", it.mediaName)
                             intent.putExtra("isHistory", true)
+                            intent.putExtra("currentSource", it.currentSourceName)
                             intent.putExtra("isSeries", it.isSeries)
                             requireContext().startActivity(intent)
                             binding.root.context.startActivity(intent)

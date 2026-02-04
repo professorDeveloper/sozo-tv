@@ -44,7 +44,8 @@ class HistoryAdapter : RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder>() 
                     movieTitle.marqueeRepeatLimit = -1
                     movieTitle.isSelected = true
                     movieStatus.visible()
-                    movieStatus.text = "Episode ${item.epIndex + 1}"
+                    movieStatus.text =
+                        if (item.currentSourceName.isNotEmpty()) "Episode ${item.epIndex + 1} || ${item.currentSourceName}" else "Episode ${item.epIndex + 1}"
                 }
             }
         }

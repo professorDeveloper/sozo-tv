@@ -13,6 +13,7 @@ import com.saikou.sozo_tv.presentation.screens.detail.CastDetailScreenArgs
 import com.saikou.sozo_tv.presentation.screens.play.MovieSeriesPlayerScreenArgs
 import com.saikou.sozo_tv.presentation.screens.play.SeriesPlayerScreenArgs
 import com.saikou.sozo_tv.presentation.viewmodel.DetailViewModel
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.LocalData.isHistoryItemClicked
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -73,6 +74,7 @@ class PlayerActivity : AppCompatActivity() {
                 val epIndex = intent.getIntExtra("epIndex", -1)
                 val isSeries = intent.getBooleanExtra("isSeries", false)
                 val navInflater = navController.navInflater
+                val currentSource = intent.getStringExtra("currentSource")
                 isHistoryItemClicked = true
                 val graph = navInflater.inflate(R.navigation.play_graph)
                 graph.setStartDestination(R.id.movieSeriesPlayerScreen)
@@ -87,9 +89,11 @@ class PlayerActivity : AppCompatActivity() {
                         animeTitle ?: "",
                         image ?: "",
                         session ?: "",
-                        epIndex + 1
+                        epIndex + 1,
+                        currentSource ?: ""
                     ).toBundle()
                 )
+
             }
         } else {
             val character = intent.getIntExtra("character", -1)
