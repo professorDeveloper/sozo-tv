@@ -42,7 +42,7 @@ abstract class Extractor {
                 for (aliasUrl in extractor.aliasUrls) {
                     if (compareUrl.startsWith(aliasUrl.lowercase().replace(urlRegex, ""))) {
                         return extractor.extract(link)
-                    }
+                    };
                 }
 
                 // Rotating domain lar uchun tekshirish

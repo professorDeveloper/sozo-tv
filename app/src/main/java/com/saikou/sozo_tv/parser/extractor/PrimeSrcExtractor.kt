@@ -60,7 +60,20 @@ class PrimeSrcExtractor : Extractor() {
     }
 
     override fun server(videoType: Video.Type): Video.Server {
-        return servers(videoType).firstOrNull() ?: throw Exception("No servers found")
+        val servers = servers(videoType)
+        val checkFIleMoon = servers.find { it.name.contains("Filemoon") }
+        if (checkFIleMoon != null) {
+            return checkFIleMoon
+        }
+        val checkDood = servers.find { it.name.contains("Dood") }
+        if (checkDood != null) {
+            return checkDood
+        }
+        val checkMixDrop = servers.find { it.name.contains("MixDrop") }
+        if (checkMixDrop != null) {
+            return checkMixDrop
+        }
+        return servers.first()
     }
 
     override suspend fun extract(link: String): Video {
