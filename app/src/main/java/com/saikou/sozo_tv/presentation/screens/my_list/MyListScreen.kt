@@ -13,6 +13,7 @@ import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.ItemTabChipBinding
 import com.saikou.sozo_tv.databinding.MyListScreenBinding
 import com.saikou.sozo_tv.domain.model.MainModel
+import com.saikou.sozo_tv.domain.model.MyListTab
 import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.MyListViewModel
 import com.saikou.sozo_tv.utils.Resource
@@ -35,9 +36,7 @@ class MyListScreen : Fragment() {
     private val model by viewModel<MyListViewModel>()
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = MyListScreenBinding.inflate(inflater, container, false)
         return binding.root
@@ -156,11 +155,8 @@ class MyListScreen : Fragment() {
 
     private fun animateTabView(v: View, highlight: Boolean) {
         v.animate().cancel()
-        v.animate()
-            .alpha(if (highlight) 1.0f else 0.85f)
-            .translationY(if (highlight) -2f else 0f)
-            .setDuration(120)
-            .start()
+        v.animate().alpha(if (highlight) 1.0f else 0.85f).translationY(if (highlight) -2f else 0f)
+            .setDuration(120).start()
     }
 
     override fun onDestroyView() {
@@ -169,11 +165,4 @@ class MyListScreen : Fragment() {
     }
 }
 
-enum class MyListTab(val title: String) {
-    WATCHING("Watching"),
-    COMPLETED("Completed"),
-    ON_HOLD("On-Hold"),
-    DROPPED("Dropped"),
-    PLAN_TO_WATCH("Plan to Watch"),
-    FAVORITES("Favorites")
-}
+
