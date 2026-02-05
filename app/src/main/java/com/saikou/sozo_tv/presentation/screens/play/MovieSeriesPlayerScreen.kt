@@ -2,9 +2,7 @@ package com.saikou.sozo_tv.presentation.screens.play
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.Rect
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
@@ -13,7 +11,6 @@ import android.os.Looper
 import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
-import android.view.PixelCopy
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -46,7 +43,6 @@ import androidx.media3.session.MediaSession
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerControlView
 import androidx.media3.ui.PlayerView
-import androidx.media3.ui.TimeBar
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.bugsnag.android.Bugsnag
@@ -77,7 +73,7 @@ import okhttp3.Request
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.io.IOException
-import java.util.concurrent.atomic.AtomicBoolean
+
 
 class MovieSeriesPlayerScreen : Fragment() {
     private var _binding: ImdbSeriesPlayerScreenBinding? = null
@@ -95,15 +91,8 @@ class MovieSeriesPlayerScreen : Fragment() {
     private var progressHandler: Handler? = null
     private var progressRunnable: Runnable? = null
 
-    private var lastThumbTime = 0L
-    private val isThumbBusy = AtomicBoolean(false)
-    private var pendingThumbPositionMs: Long? = null
-    private var wasPlayingBeforeScrub: Boolean = false
-
     private val PlayerControlView.binding
-        @OptIn(UnstableApi::class) get() = ContentControllerTvSeriesBinding.bind(
-            this.findViewById(R.id.cl_exo_controller_tv)
-        )
+        @OptIn(UnstableApi::class) get() = ContentControllerTvSeriesBinding.bind(this.findViewById(R.id.cl_exo_controller_tv))
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -111,6 +100,7 @@ class MovieSeriesPlayerScreen : Fragment() {
         _binding = ImdbSeriesPlayerScreenBinding.inflate(inflater, container, false)
         return binding.root
     }
+
 
     private fun showNextEpisodeCountdown() {
         binding.apply {
@@ -120,8 +110,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                     countdownShown = true
                     isCountdownActive = true
 
-                    countdownOverlay.startCountdown(
-                        seconds = 10,
+                    countdownOverlay.startCountdown(seconds = 10,
                         nextEpisode = nextEpisodeIndex + 1,
                         currentEpisode = model.currentEpIndex + 1,
                         title = args.name,
@@ -132,8 +121,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                         onCancelled = {
                             isCountdownActive = false
                             player.play()
-                        }
-                    )
+                        })
                 }
             }
         }
@@ -226,6 +214,7 @@ class MovieSeriesPlayerScreen : Fragment() {
         progressRunnable = null
     }
 
+
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -235,6 +224,7 @@ class MovieSeriesPlayerScreen : Fragment() {
             navigateBack()
         }
 
+
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
@@ -242,7 +232,6 @@ class MovieSeriesPlayerScreen : Fragment() {
                     navigateBack()
                 }
             })
-
         model.currentEpIndex = args.currentIndex
         model.changeCurrentSource(args.currentSource)
         model.getAllEpisodeByImdb(
@@ -251,13 +240,13 @@ class MovieSeriesPlayerScreen : Fragment() {
 
         binding.pvPlayer.controller.binding.filmTitle.text =
             "${args.name} - Episode ${model.currentEpIndex + 1}"
-
         model.allEpisodeData.observe(viewLifecycleOwner) {
             when (it) {
                 Resource.Loading -> {
                     binding.loadingLayout.visible()
                     binding.loadingText.text = "Part ${args.currentPage} are episodes loading..."
                     binding.pvPlayer.gone()
+
                 }
 
                 is Resource.Success -> {
@@ -293,8 +282,8 @@ class MovieSeriesPlayerScreen : Fragment() {
 
                                 binding.pvPlayer.controller.binding.exoQuality.gone()
                                 binding.pvPlayer.controller.binding.exoSubtidtle.visible()
+                                binding.pvPlayer.controller.binding.exoSubtidtle.visible()
                                 binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
-
                                 binding.pvPlayer.controller.binding.epListContainer.setOnClickListener {
                                     binding.episodeRv.scrollToPosition(model.currentEpIndex)
                                     toggleSidebarRight(true)
@@ -313,7 +302,9 @@ class MovieSeriesPlayerScreen : Fragment() {
                                 episodeAdapter.setOnEpisodeClick { position, data ->
                                     toggleSidebarRight(false)
                                     if (position != model.currentEpIndex) {
-                                        lifecycleScope.launch { saveWatchHistory() }
+                                        lifecycleScope.launch {
+                                            saveWatchHistory()
+                                        }
                                         model.doNotAsk = false
                                         model.currentEpIndex = position
                                         model.lastPosition = 0
@@ -328,6 +319,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                                             args.tmdbId
                                         )
 
+
                                         model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
                                             if (resource is Resource.Success) {
                                                 val newUrl = resource.data.urlobj
@@ -339,9 +331,12 @@ class MovieSeriesPlayerScreen : Fragment() {
                                     }
                                 }
 
+
                                 binding.pvPlayer.controller.binding.exoNextContainer.setOnClickListener {
                                     if (model.currentEpIndex < episodeList.size - 1) {
-                                        lifecycleScope.launch { saveWatchHistory() }
+                                        lifecycleScope.launch {
+                                            saveWatchHistory()
+                                        }
                                         model.currentEpIndex += 1
                                         model.doNotAsk = false
                                         model.getCurrentEpisodeVodByImdb(
@@ -352,10 +347,10 @@ class MovieSeriesPlayerScreen : Fragment() {
                                             args.currentPage,
                                             model.currentEpIndex + 1,
                                             args.tmdbId
+
                                         )
                                         binding.pvPlayer.controller.binding.filmTitle.text =
                                             episodeList[model.currentEpIndex].title
-
                                         model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
                                             if (resource is Resource.Success) {
                                                 val newUrl = resource.data.urlobj
@@ -364,6 +359,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                                                     "${args.name} - Episode ${model.currentEpIndex + 1}"
                                             }
                                         }
+
                                     } else {
                                         Toast.makeText(
                                             requireContext(),
@@ -392,12 +388,12 @@ class MovieSeriesPlayerScreen : Fragment() {
                                                 model.lastPosition = 0
                                                 binding.pvPlayer.controller.binding.filmTitle.text =
                                                     episodeList[model.currentEpIndex].title
-
                                                 model.currentEpisodeData.observeOnce(
                                                     viewLifecycleOwner
                                                 ) { resource ->
                                                     if (resource is Resource.Success) {
                                                         val newUrl = resource.data.urlobj
+
                                                         playNewEpisode(newUrl, args.name)
                                                         binding.pvPlayer.controller.binding.filmTitle.text =
                                                             "${args.name} - Episode ${model.currentEpIndex + 1}"
@@ -415,15 +411,23 @@ class MovieSeriesPlayerScreen : Fragment() {
                                 }
                             }
 
-                            else -> Unit
+                            else -> {
+
+                            }
                         }
+
                     }
+
                 }
 
-                else -> Unit
+                else -> {
+
+                }
             }
+
         }
     }
+
 
     private suspend fun saveWatchHistory() {
         try {
@@ -505,90 +509,12 @@ class MovieSeriesPlayerScreen : Fragment() {
                     currentQualityIndex = model.currentSelectedVideoOptionIndex,
                     isSeries = !args.isMovie,
                     isAnime = false
+
                 )
                 model.addHistory(historyBuild)
             }
         } catch (e: Exception) {
             Log.e("SaveHistory", "Exception in saveWatchHistory: ${e.message}", e)
-        }
-    }
-
-    // ===== Thumbnail helpers (NEW) =====
-    private fun showThumb(bitmap: Bitmap?) {
-        val thumbView = binding.pvPlayer.controller.binding.exoThumbnail
-        if (bitmap == null) {
-            thumbView.visibility = View.GONE
-            return
-        }
-        thumbView.setImageBitmap(bitmap)
-        thumbView.visibility = View.VISIBLE
-    }
-
-    private fun hideThumb() {
-        val thumbView = binding.pvPlayer.controller.binding.exoThumbnail
-        thumbView.visibility = View.GONE
-    }
-
-    /**
-     * "Universal" HLS/MP4 thumbnail: seek -> wait a bit -> PixelCopy from PlayerView
-     */
-    private fun requestThumbnailAt(positionMs: Long) {
-        if (!::player.isInitialized || !isAdded) return
-
-        val now = System.currentTimeMillis()
-        if (now - lastThumbTime < 250) return
-        lastThumbTime = now
-
-        if (isThumbBusy.get()) {
-            pendingThumbPositionMs = positionMs
-            return
-        }
-        isThumbBusy.set(true)
-
-        player.seekTo(positionMs)
-
-        binding.pvPlayer.postDelayed({
-            capturePlayerViewFrame { bmp ->
-                showThumb(bmp)
-                isThumbBusy.set(false)
-
-                pendingThumbPositionMs?.let { p ->
-                    pendingThumbPositionMs = null
-                    requestThumbnailAt(p)
-                }
-            }
-        }, 120)
-    }
-
-    private fun capturePlayerViewFrame(onResult: (Bitmap?) -> Unit) {
-        if (!isAdded) {
-            onResult(null); return
-        }
-
-        val pv = binding.pvPlayer
-        if (pv.width <= 0 || pv.height <= 0) {
-            onResult(null); return
-        }
-
-        val srcBmp = Bitmap.createBitmap(
-            pv.width.coerceAtLeast(1),
-            pv.height.coerceAtLeast(1),
-            Bitmap.Config.ARGB_8888
-        )
-
-        val rect = Rect()
-        pv.getGlobalVisibleRect(rect)
-
-        try {
-            PixelCopy.request(requireActivity().window, rect, srcBmp, { copyResult ->
-                if (copyResult == PixelCopy.SUCCESS) {
-                    onResult(srcBmp)
-                } else {
-                    onResult(null)
-                }
-            }, Handler(Looper.getMainLooper()))
-        } catch (e: Exception) {
-            onResult(null)
         }
     }
 
@@ -605,28 +531,20 @@ class MovieSeriesPlayerScreen : Fragment() {
         dataSourceFactory = DefaultDataSource.Factory(requireContext(), okHttpDataSourceFactory)
 
         val renderersFactory =
-            DefaultRenderersFactory(requireContext())
-                .setEnableDecoderFallback(true)
+            DefaultRenderersFactory(requireContext()).setEnableDecoderFallback(true)
                 .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
 
         player = ExoPlayer.Builder(requireContext(), renderersFactory)
-            .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
-            .setLoadControl(
-                DefaultLoadControl.Builder()
-                    .setBufferDurationsMs(5000, 15000, 1000, 5000)
-                    .build()
-            )
-            .build()
+            .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory)).setLoadControl(
+                DefaultLoadControl.Builder().setBufferDurationsMs(5000, 15000, 1000, 5000).build()
+            ).build()
 
         player.playWhenReady = true
         player.setWakeMode(C.WAKE_MODE_LOCAL)
 
         player.setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(C.USAGE_MEDIA)
-                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-                .build(),
-            true
+            AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(), true
         )
 
         if (!::mediaSession.isInitialized) {
@@ -674,12 +592,10 @@ class MovieSeriesPlayerScreen : Fragment() {
         binding.pvPlayer.controller.binding.exoPlayPauseContainer.setOnClickListener {
             if (player.isPlaying) {
                 player.pause()
-                binding.pvPlayer.controller.binding.exoPlayPaused
-                    .setImageResource(R.drawable.anim_play_to_pause)
+                binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_play_to_pause)
             } else {
                 player.play()
-                binding.pvPlayer.controller.binding.exoPlayPaused
-                    .setImageResource(R.drawable.anim_pause_to_play)
+                binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_pause_to_play)
             }
         }
 
@@ -703,29 +619,10 @@ class MovieSeriesPlayerScreen : Fragment() {
             }
         }
 
-        val timeBar =
-            binding.pvPlayer.controller.findViewById<TrailerPlayerScreen.ExtendedTimeBar>(R.id.exo_progress)
-        timeBar?.setKeyTimeIncrement(10_000)
-
-        hideThumb()
-        timeBar.addListener(object : TimeBar.OnScrubListener {
-            override fun onScrubStart(timeBar: TimeBar, position: Long) {
-                wasPlayingBeforeScrub = player.isPlaying
-                player.pause()
-                requestThumbnailAt(position)
-            }
-
-            override fun onScrubMove(timeBar: TimeBar, position: Long) {
-                requestThumbnailAt(position)
-            }
-
-            override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
-                hideThumb()
-                player.seekTo(position)
-                if (wasPlayingBeforeScrub && !canceled) player.play()
-            }
-        })
+        binding.pvPlayer.controller.findViewById<TrailerPlayerScreen.ExtendedTimeBar>(R.id.exo_progress)
+            .setKeyTimeIncrement(10_000)
     }
+
 
     @OptIn(UnstableApi::class)
     private fun playNewEpisode(videoUrl: String, title: String) {
@@ -742,10 +639,8 @@ class MovieSeriesPlayerScreen : Fragment() {
         player.stop()
         player.clearMediaItems()
 
-        val mediaItem = MediaItem.Builder()
-            .setUri(videoUrl)
-            .setMimeType(model.seriesResponse?.type ?: MimeTypes.APPLICATION_M3U8)
-            .setTag(title)
+        val mediaItem = MediaItem.Builder().setUri(videoUrl)
+            .setMimeType(model.seriesResponse?.type ?: MimeTypes.APPLICATION_M3U8).setTag(title)
             .build()
 
         val mediaSource =
@@ -755,6 +650,7 @@ class MovieSeriesPlayerScreen : Fragment() {
         player.prepare()
         player.play()
     }
+
 
     @OptIn(UnstableApi::class)
     private fun playQualityVideo(videoUrl: String, title: String) {
@@ -768,10 +664,8 @@ class MovieSeriesPlayerScreen : Fragment() {
         player.stop()
         player.clearMediaItems()
 
-        val mediaItem = MediaItem.Builder()
-            .setUri(videoUrl)
-            .setMimeType(model.seriesResponse?.type ?: MimeTypes.APPLICATION_M3U8)
-            .setTag(title)
+        val mediaItem = MediaItem.Builder().setUri(videoUrl)
+            .setMimeType(model.seriesResponse?.type ?: MimeTypes.APPLICATION_M3U8).setTag(title)
             .build()
 
         val mediaSource =
@@ -793,7 +687,6 @@ class MovieSeriesPlayerScreen : Fragment() {
             canUseSubtitle = subtitles.isNotEmpty()
             val videoUrl = model.seriesResponse!!.urlobj
             val lastPosition = model.getWatchedHistoryEntity?.lastPosition ?: 0L
-
             binding.pvPlayer.subtitleView?.visible()
             if (LocalData.isHistoryItemClicked) {
                 binding.pvPlayer.controller.binding.exoNextContainer.gone()
@@ -814,9 +707,7 @@ class MovieSeriesPlayerScreen : Fragment() {
             player.setMediaSource(finalSource)
             player.prepare()
             player.playWhenReady = true
-
             applySubtitleStyleToPlayer(binding.pvPlayer, PreferenceManager())
-
             player.setMediaSource(finalSource)
             player.prepare()
             player.playWhenReady = true
@@ -831,13 +722,9 @@ class MovieSeriesPlayerScreen : Fragment() {
             } else {
                 player.seekTo(model.lastPosition)
             }
-
             player.prepare()
             player.play()
-
-            binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(
-                if (canUseSubtitle) R.drawable.ic_subtitle_fill else R.drawable.ic_subtitle_off
-            )
+            binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(if (canUseSubtitle) R.drawable.ic_subtitle_fill else R.drawable.ic_subtitle_off)
 
             binding.pvPlayer.controller.binding.exoSubtidtle.setOnClickListener {
                 val currentSelected = subtitles.getOrNull(model.currentSubEpIndex)
@@ -870,11 +757,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                 binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_pause_to_play)
             }
 
-            if (model.isWatched &&
-                model.getWatchedHistoryEntity != null &&
-                model.getWatchedHistoryEntity!!.lastPosition > 0 &&
-                !model.doNotAsk
-            ) {
+            if (model.isWatched && model.getWatchedHistoryEntity != null && model.getWatchedHistoryEntity!!.lastPosition > 0 && !model.doNotAsk) {
                 player.pause()
                 val dialog = AlertPlayerDialog(model.getWatchedHistoryEntity!!)
                 dialog.setNoClearListener {
@@ -892,6 +775,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                     player.play()
                 }
                 dialog.show(parentFragmentManager, "ConfirmationDialog")
+
             }
         }
     }
@@ -930,7 +814,8 @@ class MovieSeriesPlayerScreen : Fragment() {
                 s.color,
                 if (s.background) Color.argb(180, 0, 0, 0) else Color.TRANSPARENT,
                 Color.TRANSPARENT,
-                if (s.outline) CaptionStyleCompat.EDGE_TYPE_OUTLINE else CaptionStyleCompat.EDGE_TYPE_NONE,
+                if (s.outline) CaptionStyleCompat.EDGE_TYPE_OUTLINE
+                else CaptionStyleCompat.EDGE_TYPE_NONE,
                 Color.BLACK,
                 when (s.font) {
                     PreferenceManager.Font.DEFAULT -> null
@@ -954,16 +839,14 @@ class MovieSeriesPlayerScreen : Fragment() {
         )
     }
 
+
     @SuppressLint("UnsafeOptInUsageError")
     private fun buildMediaSourceWithSubtitle(
         videoUrl: String, useSubtitles: Boolean
     ): MediaSource {
-        val mediaItem = MediaItem.Builder()
-            .setUri(videoUrl)
-            .setMimeType(model.seriesResponse?.type ?: MimeTypes.APPLICATION_M3U8)
-            .setTag(args.name)
-            .build()
-
+        val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(
+            model.seriesResponse?.type ?: MimeTypes.APPLICATION_M3U8
+        ).setTag(args.name).build()
         val videoSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
         if (!useSubtitles) return videoSource
 
@@ -972,8 +855,7 @@ class MovieSeriesPlayerScreen : Fragment() {
 
             val request = Request.Builder()
                 .url(model.seriesResponse!!.subtitleList[model.currentSubEpIndex].file)
-                .header("User-Agent", "Mozilla/5.0")
-                .build()
+                .header("User-Agent", "Mozilla/5.0").build()
 
             OkHttpClient().newCall(request).execute().use { response ->
                 if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
@@ -985,13 +867,12 @@ class MovieSeriesPlayerScreen : Fragment() {
                 }
             }
 
+
             val subtitleSource =
                 SingleSampleMediaSource.Factory(dataSourceFactory).createMediaSource(
                     MediaItem.SubtitleConfiguration.Builder(Uri.fromFile(localFile))
                         .setMimeType(MimeTypes.APPLICATION_SUBRIP)
-                        .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-                        .build(),
-                    33_000_000L
+                        .setSelectionFlags(C.SELECTION_FLAG_DEFAULT).build(), 33_000_000L
                 )
 
             MergingMediaSource(videoSource, subtitleSource)
@@ -1022,6 +903,7 @@ class MovieSeriesPlayerScreen : Fragment() {
         val newTime = date.time + 12000L
         return sdf.format(java.util.Date(newTime))
     }
+
 
     private fun toggleSidebarRight(show: Boolean) {
         val sidebar = binding.sidebarRight
@@ -1068,6 +950,8 @@ class MovieSeriesPlayerScreen : Fragment() {
                     isEnabled = false
                 }
 
+
+
                 binding.episodeRv.clearFocus()
                 binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
             }
@@ -1081,8 +965,11 @@ class MovieSeriesPlayerScreen : Fragment() {
         }
 
         if (::player.isInitialized) {
-            if (player.currentPosition > 10) {
-                runBlocking { saveWatchHistory() }
+
+            if (player.currentPosition > 10 && ::player.isInitialized) {
+                runBlocking {
+                    saveWatchHistory()
+                }
             }
         }
 
@@ -1101,7 +988,9 @@ class MovieSeriesPlayerScreen : Fragment() {
 
         if (::player.isInitialized && player.currentPosition > 10) {
             player.pause()
-            lifecycleScope.launch { saveWatchHistory() }
+            lifecycleScope.launch {
+                saveWatchHistory()
+            }
         }
     }
 
