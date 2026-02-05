@@ -24,14 +24,16 @@ class MyListScreen : Fragment() {
 
     private var _binding: MyListScreenBinding? = null
     private val binding get() = _binding!!
-    private val animeAdapter = CategoriesPageAdapter(isDetail = true)
 
+    private val animeAdapter = CategoriesPageAdapter(isDetail = true)
     private var currentTab: MyListTab = MyListTab.WATCHING
 
     private val userId by lazy {
         PreferenceManager(requireContext()).getString(AuthPrefKeys.ANILIST_ANI_ID).toInt()
     }
+
     private val model by viewModel<MyListViewModel>()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -43,9 +45,16 @@ class MyListScreen : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.rvContent.adapter = animeAdapter
+
         setupTabs(binding.tabLayout)
-        selectTab(MyListTab.WATCHING)
-        model.loadMyList(MyListTab.WATCHING.title, userId)
+
+        binding.tabLayout.post {
+            val idx = binding.tabLayout.selectedTabPosition.coerceAtLeast(0)
+            updateTabStyles(binding.tabLayout, idx)
+            currentTab = MyListTab.entries[idx]
+            model.loadMyList(currentTab.title, userId)
+        }
+
         model.listData.observe(viewLifecycleOwner) {
             when (it) {
                 is Resource.Error -> {
@@ -58,6 +67,7 @@ class MyListScreen : Fragment() {
                 Resource.Loading -> {
                     binding.isLoading.root.visible()
                     binding.rvContent.gone()
+                    binding.emptyState.gone()
                 }
 
                 is Resource.Success -> {
@@ -69,26 +79,27 @@ class MyListScreen : Fragment() {
                     } else {
                         binding.emptyState.gone()
                         binding.rvContent.visible()
-                        animeAdapter.updateCategoriesAll(it.data as ArrayList<MainModel>)
+                        animeAdapter.updateCategoriesAll(data as ArrayList<MainModel>)
                         animeAdapter.setCategoriesPageInterface(object :
                             CategoriesPageAdapter.CategoriesPageInterface {
-                            override fun onCategorySelected(category: MainModel, position: Int) {
-                            }
-
+                            override fun onCategorySelected(category: MainModel, position: Int) {}
                         })
-
                     }
                 }
 
-                else -> {
-
-                }
+                else -> Unit
             }
         }
     }
 
     private fun setupTabs(tabLayout: TabLayout) {
         tabLayout.removeAllTabs()
+        tabLayout.clipToPadding = false
+        tabLayout.clipChildren = false
+        (tabLayout.getChildAt(0) as? ViewGroup)?.apply {
+            clipToPadding = false
+            clipChildren = false
+        }
 
         MyListTab.entries.forEachIndexed { index, tab ->
             val newTab = tabLayout.newTab()
@@ -96,25 +107,35 @@ class MyListScreen : Fragment() {
             tabLayout.addTab(newTab, index == 0)
         }
 
-
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
-                selectTab(MyListTab.entries[tab.position])
+                val idx = tab.position
+                updateTabStyles(tabLayout, idx)
+                currentTab = MyListTab.entries[idx]
+                model.loadMyList(currentTab.title, userId)
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab) {
-                updateTabStyles(tabLayout, selectedIndex = tabLayout.selectedTabPosition)
+                updateTabStyles(tabLayout, tabLayout.selectedTabPosition)
             }
 
-            override fun onTabReselected(tab: TabLayout.Tab) = Unit
+            override fun onTabReselected(tab: TabLayout.Tab) {
+                updateTabStyles(tabLayout, tab.position)
+            }
         })
     }
 
     private fun createTabView(title: String): View {
         val chipBinding = ItemTabChipBinding.inflate(layoutInflater)
         chipBinding.tvTab.text = title
-        chipBinding.tvTab.setOnFocusChangeListener { v, hasFocus ->
-            animateTabView(v, hasFocus || v.isSelected)
+
+        chipBinding.root.isFocusable = true
+        chipBinding.root.isFocusableInTouchMode = true
+
+        chipBinding.root.setOnFocusChangeListener { v, hasFocus ->
+            val tv = v.findViewById<TextView>(R.id.tvTab)
+            val highlight = hasFocus || (tv?.isSelected == true)
+            animateTabView(v, highlight)
         }
 
         return chipBinding.root
@@ -123,26 +144,23 @@ class MyListScreen : Fragment() {
     private fun updateTabStyles(tabLayout: TabLayout, selectedIndex: Int) {
         for (i in 0 until tabLayout.tabCount) {
             val tab = tabLayout.getTabAt(i) ?: continue
-            val tv = tab.customView?.findViewById<TextView>(R.id.tvTab) ?: continue
+            val root = tab.customView ?: continue
+            val tv = root.findViewById<TextView>(R.id.tvTab) ?: continue
 
             val selected = i == selectedIndex
             tv.isSelected = selected
 
-            animateTabView(tv, selected || tv.isFocused)
+            animateTabView(root, selected || root.isFocused)
         }
     }
 
     private fun animateTabView(v: View, highlight: Boolean) {
+        v.animate().cancel()
         v.animate()
-            .scaleX(if (highlight) 1.08f else 1.0f)
-            .scaleY(if (highlight) 1.08f else 1.0f)
+            .alpha(if (highlight) 1.0f else 0.85f)
+            .translationY(if (highlight) -2f else 0f)
             .setDuration(120)
             .start()
-    }
-
-    private fun selectTab(tab: MyListTab) {
-        currentTab = tab
-        model.loadMyList(tab.title, userId)
     }
 
     override fun onDestroyView() {
