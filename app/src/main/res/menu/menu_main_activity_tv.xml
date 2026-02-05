@@ -1,33 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:showIn="@layout/activity_main">
-
-
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/home"
-
         android:icon="@drawable/ic_menu_home"
         android:title="@string/main_menu_home" />
-
 
     <item
         android:id="@+id/categories"
         android:icon="@drawable/ic_menu_shorts"
         android:title="@string/main_menu_filter" />
+
     <item
         android:id="@+id/tvgarden"
         android:icon="@drawable/ic_clapper_open"
         android:title="@string/main_menu_tvgarden" />
 
+    <!-- My List menu item - visible faqat login qilganda -->
+    <item
+        android:id="@+id/myList"
+        android:icon="@drawable/ic_bookmark"
+        android:title="@string/main_menu_my_list"
+        android:visible="false" />
+
     <item
         android:id="@+id/search"
         android:icon="@drawable/ic_menu_search"
         android:title="@string/main_menu_search" />
+
     <item
         android:id="@+id/contact"
         android:icon="@drawable/ic_chat"
         android:title="@string/contact" />
-
-
 </menu>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/tvTab"
+    android:layout_width="wrap_content"
+    android:layout_height="40dp"
+    android:layout_marginEnd="10dp"
+    android:background="@drawable/selector_tab_chip"
+    android:duplicateParentState="true"
+    android:gravity="center"
+    android:paddingVertical="10dp"
+
+    android:paddingStart="18dp"
+    android:paddingEnd="18dp"
+    android:text="Watching"
+    android:textAllCaps="false"
+    android:textColor="@color/color_item_tv_category_tv"
+    android:textSize="14sp" />

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true" android:color="@color/item_tv_selected" />
 
     <item android:state_focused="true" android:color="#1B1E23" />
     <item android:color="@color/white80" />

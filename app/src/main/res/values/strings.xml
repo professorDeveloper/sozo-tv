@@ -156,5 +156,6 @@
     <string name="current_selected_anime_source">Anime: %s</string>
     <string name="current_selected_movie_source">Movie: %s</string>
     <string name="current_selected_both">Anime: %1$s, Movie: %2$s</string>
+    <string name="main_menu_my_list">My AniList</string>
 
 </resources>

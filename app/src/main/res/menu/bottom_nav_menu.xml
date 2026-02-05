@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_search"
+        android:icon="@drawable/ic_search"
+        android:title="Search" />
+
+    <item
+        android:id="@+id/navigation_watching"
+        android:icon="@drawable/ic_play"
+        android:title="Watching" />
+
+    <item
+        android:id="@+id/navigation_completed"
+        android:icon="@drawable/ic_check_circle"
+        android:title="Completed" />
+
+    <item
+        android:id="@+id/navigation_hold"
+        android:icon="@drawable/lb_ic_pause"
+        android:title="On-Hold" />
+
+    <item
+        android:id="@+id/navigation_dropped"
+        android:icon="@drawable/ic_close"
+        android:title="Dropped" />
+
+    <item
+        android:id="@+id/navigation_plan"
+        android:icon="@drawable/ic_add"
+        android:title="Plan to Watch" />
+
+    <item
+        android:id="@+id/navigation_favorites"
+        android:icon="@drawable/ic_favorite_filled"
+        android:title="Favorites" />
+</menu>

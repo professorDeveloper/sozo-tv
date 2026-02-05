@@ -25,16 +25,8 @@ class SourceScreen : Fragment() {
     private lateinit var adapter: GroupedSourceAdapter
 
     private val preferenceManager by lazy { PreferenceManager() }
-    private val currentSelectedAnimeSource by lazy {
-        val source = preferenceManager.getString(LocalData.SOURCE)
-        Log.d("SourceScreen", "Loaded Anime Source: $source")
-        source
-    }
-    private val currentSelectedMovieSource by lazy {
-        val source = preferenceManager.getString(LocalData.MOVIE_SOURCE)
-        Log.d("SourceScreen", "Loaded Movie Source: $source")
-        source
-    }
+    private var currentSelectedAnimeSource = ""
+    private var currentSelectedMovieSource = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -43,28 +35,34 @@ class SourceScreen : Fragment() {
         return binding.root
     }
 
-    fun saveData(key: String, value: String) {
-        val preferenceManager = PreferenceManager()
-        preferenceManager.putString(key, value)
-        Log.d("SharedPrefs", "Saved: key=$key, value=$value")
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val dbRef = FirebaseDatabase.getInstance().getReference("sources")
+        currentSelectedAnimeSource = preferenceManager.getString(LocalData.SOURCE)
+        currentSelectedMovieSource = preferenceManager.getString(LocalData.MOVIE_SOURCE)
 
+        Log.d("SourceScreen", "Loaded Anime Source: $currentSelectedAnimeSource")
+        Log.d("SourceScreen", "Loaded Movie Source: $currentSelectedMovieSource")
+
+        initializeAdapter()
+        setupRecyclerView()
+        fetchSources()
+    }
+
+    private fun initializeAdapter() {
         adapter = GroupedSourceAdapter(
             onSourceClick = { sub ->
                 when (sub.sourceType) {
                     "anime" -> {
                         saveData(LocalData.SOURCE, sub.sourceId)
+                        currentSelectedAnimeSource = sub.sourceId
                         Log.d("SourceScreen", "Saved Anime Source: ${sub.sourceId}")
                         updateDisplayText()
                     }
 
                     "movie" -> {
                         saveData(LocalData.MOVIE_SOURCE, sub.sourceId)
+                        currentSelectedMovieSource = sub.sourceId
                         Log.d("SourceScreen", "Saved Movie Source: ${sub.sourceId}")
                         updateDisplayText()
                     }
@@ -73,29 +71,46 @@ class SourceScreen : Fragment() {
             selectedAnimeId = currentSelectedAnimeSource,
             selectedMovieId = currentSelectedMovieSource
         )
+    }
 
+    private fun setupRecyclerView() {
         binding.sourceRv.adapter = adapter
+    }
+
+    private fun fetchSources() {
         showLoading()
 
         viewLifecycleOwner.lifecycleScope.launch {
-            runCatching {
-                fetchSourcesOnce(dbRef)
-            }.onSuccess { list ->
-                showSources(list)
-                updateDisplayText()
-            }.onFailure {
-                showErrorState()
+            try {
+                val sources = fetchSourcesFromFirebase()
+                if (isAdded && view != null) { // Check if fragment is still attached
+                    showSources(sources)
+                    updateDisplayText()
+                }
+            } catch (e: Exception) {
+                Log.e("SourceScreen", "Error fetching sources", e)
+                if (isAdded && view != null) { // Check if fragment is still attached
+                    showErrorState()
+                }
             }
         }
     }
 
-    private suspend fun fetchSourcesOnce(dbRef: com.google.firebase.database.DatabaseReference): List<SubSource> {
+    private suspend fun fetchSourcesFromFirebase(): List<SubSource> {
+        val dbRef = FirebaseDatabase.getInstance().getReference("sources")
         val snapshot = dbRef.get().await()
         return snapshot.children.mapNotNull { it.getValue(SubSource::class.java) }
     }
 
+    private fun saveData(key: String, value: String) {
+        preferenceManager.putString(key, value)
+        Log.d("SharedPrefs", "Saved: key=$key, value=$value")
+    }
+
     @SuppressLint("SetTextI18n")
     private fun showSources(list: List<SubSource>) {
+        if (!isAdded || view == null) return // Check if fragment is still attached
+
         binding.progressBar.visibility = View.GONE
 
         if (list.isEmpty()) {
@@ -124,8 +139,10 @@ class SourceScreen : Fragment() {
     }
 
     private fun updateDisplayText() {
-        val animeSource = preferenceManager.getString(LocalData.SOURCE)
-        val movieSource = preferenceManager.getString(LocalData.MOVIE_SOURCE)
+        if (!isAdded || view == null) return // Check if fragment is still attached
+
+        val animeSource = currentSelectedAnimeSource
+        val movieSource = currentSelectedMovieSource
 
         val displayText = buildString {
             if (animeSource.isNotEmpty()) {
@@ -145,12 +162,16 @@ class SourceScreen : Fragment() {
     }
 
     private fun showLoading() {
+        if (!isAdded || view == null) return // Check if fragment is still attached
+
         binding.progressBar.visibility = View.VISIBLE
         binding.sourcePlaceHolder.root.visibility = View.GONE
         binding.sourceRv.visibility = View.VISIBLE
     }
 
     private fun showErrorState() {
+        if (!isAdded || view == null) return // Check if fragment is still attached
+
         binding.progressBar.visibility = View.GONE
         binding.sourcePlaceHolder.root.visibility = View.VISIBLE
         binding.sourceRv.visibility = View.GONE
@@ -158,6 +179,7 @@ class SourceScreen : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // Clear the binding reference to avoid memory leaks
         _binding = null
     }
 }
