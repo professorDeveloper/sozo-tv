@@ -44,7 +44,6 @@ class MegacloudExtractor {
 
         val match2 = Regex("""([a-zA-Z0-9]{16}).*?([a-zA-Z0-9]{16}).*?([a-zA-Z0-9]{16})""")
             .find(html)
-        println(html)
 
         return match2?.groupValues?.drop(1)?.joinToString("") ?: ""
     }

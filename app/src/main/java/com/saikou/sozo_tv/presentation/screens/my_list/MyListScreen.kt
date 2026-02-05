@@ -5,8 +5,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.TextView
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.tabs.TabLayout
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
@@ -21,6 +24,9 @@ import com.saikou.sozo_tv.presentation.viewmodel.MyListViewModel
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.visible
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MyListScreen : Fragment() {
@@ -37,6 +43,11 @@ class MyListScreen : Fragment() {
 
     private val model by viewModel<MyListViewModel>()
 
+    private var fullList: List<MainModel> = emptyList()
+    private var indexedList: List<Pair<MainModel, String>> = emptyList()
+    private var currentQuery: String = ""
+    private var searchJob: Job? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -47,7 +58,13 @@ class MyListScreen : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.rvContent.adapter = animeAdapter
 
+        animeAdapter.setCategoriesPageInterface(object : CategoriesPageAdapter.CategoriesPageInterface {
+            override fun onCategorySelected(category: MainModel, position: Int) {}
+        })
+        animeAdapter.setClickDetail { openPlayer(it.id) }
+
         setupTabs(binding.tabLayout)
+        setupSearch()
 
         binding.tabLayout.post {
             val idx = binding.tabLayout.selectedTabPosition.coerceAtLeast(0)
@@ -63,6 +80,9 @@ class MyListScreen : Fragment() {
                     binding.rvContent.gone()
                     binding.emptyState.visible()
                     binding.tvEmptyTitle.text = it.throwable.message
+
+                    fullList = emptyList()
+                    indexedList = emptyList()
                 }
 
                 Resource.Loading -> {
@@ -73,27 +93,89 @@ class MyListScreen : Fragment() {
 
                 is Resource.Success -> {
                     binding.isLoading.root.gone()
-                    val data = it.data
-                    if (data.isEmpty()) {
-                        binding.rvContent.gone()
-                        binding.emptyState.visible()
-                    } else {
-                        binding.emptyState.gone()
-                        binding.rvContent.visible()
-                        animeAdapter.updateCategoriesAll(data as ArrayList<MainModel>)
-                        animeAdapter.setCategoriesPageInterface(object :
-                            CategoriesPageAdapter.CategoriesPageInterface {
-                            override fun onCategorySelected(category: MainModel, position: Int) {}
-                        })
-                        animeAdapter.setClickDetail {
-                            openPlayer(it.id)
-                        }
+
+                    fullList = it.data ?: emptyList()
+                    indexedList = fullList.map { item ->
+                        item to item.toSearchString().lowercase()
                     }
+
+                    applySearchFilter()
                 }
 
                 else -> Unit
             }
         }
+    }
+
+    private fun setupSearch() {
+        binding.btnMenu.setOnClickListener {
+            binding.searchEdt.requestFocus()
+        }
+
+        binding.searchEdt.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                currentQuery = binding.searchEdt.text?.toString().orEmpty()
+                applySearchFilter()
+                true
+            } else false
+        }
+
+        binding.searchEdt.addTextChangedListener { editable ->
+            searchJob?.cancel()
+            searchJob = viewLifecycleOwner.lifecycleScope.launch {
+                delay(250)
+                currentQuery = editable?.toString().orEmpty()
+                applySearchFilter()
+            }
+        }
+    }
+
+    private fun applySearchFilter() {
+        val q = currentQuery.trim().lowercase()
+
+        val filtered = if (q.isBlank()) {
+            fullList
+        } else {
+            indexedList
+                .asSequence()
+                .filter { (_, searchText) -> searchText.contains(q) }
+                .map { (item, _) -> item }
+                .toList()
+        }
+
+        if (filtered.isEmpty()) {
+            binding.rvContent.gone()
+            binding.emptyState.visible()
+            binding.tvEmptyTitle.text =
+                if (fullList.isEmpty()) "Your library is empty ☹"
+                else "No results for \"${currentQuery.trim()}\""
+        } else {
+            binding.emptyState.gone()
+            binding.rvContent.visible()
+            animeAdapter.updateCategoriesAll(ArrayList(filtered))
+        }
+    }
+
+    /**
+     * MainModel ichidan qidiruv uchun text yasab beradi.
+     * Field nomlarini bilmasak ham ishlashi uchun reflection bilan String fieldlarni yig'ib oladi.
+     */
+    private fun MainModel.toSearchString(): String {
+        val sb = StringBuilder()
+        runCatching { sb.append(this.id).append(' ') }
+
+        runCatching {
+            this.javaClass.declaredFields.forEach { f ->
+                f.isAccessible = true
+                val v = f.get(this)
+                when (v) {
+                    is String -> if (v.isNotBlank()) sb.append(v).append(' ')
+                    is Number -> sb.append(v.toString()).append(' ')
+                }
+            }
+        }
+
+        return sb.toString()
     }
 
     private fun setupTabs(tabLayout: TabLayout) {
@@ -166,14 +248,16 @@ class MyListScreen : Fragment() {
 
     private fun animateTabView(v: View, highlight: Boolean) {
         v.animate().cancel()
-        v.animate().alpha(if (highlight) 1.0f else 0.85f).translationY(if (highlight) -2f else 0f)
-            .setDuration(120).start()
+        v.animate()
+            .alpha(if (highlight) 1.0f else 0.85f)
+            .translationY(if (highlight) -2f else 0f)
+            .setDuration(120)
+            .start()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        searchJob?.cancel()
         _binding = null
     }
 }
-
-

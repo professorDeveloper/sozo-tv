@@ -30,6 +30,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -310,7 +311,7 @@ class SeriesPlayerScreen : Fragment() {
                                         model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
                                             if (resource is Resource.Success) {
                                                 val newUrl =
-                                                    resource.data.urlobj
+                                                    resource.data.urlobj ?: return@observeOnce
                                                 playNewEpisode(
                                                     newUrl,
                                                     headers = resource.data.header
@@ -484,7 +485,7 @@ class SeriesPlayerScreen : Fragment() {
                 Log.d("SaveHistory", "Building new history entity...")
                 val historyBuild = WatchHistoryEntity(
                     episodeList[model.currentEpIndex].session ?: return,
-                    "${args.name} - Episode ${model.currentEpIndex + 1}",
+                    "${args.name} - Episode ${model.currentEpIndex + 1}" ?: return,
                     mediaName = args.name,
                     episodeList[model.currentEpIndex].snapshot ?: return,
                     "",
@@ -515,71 +516,140 @@ class SeriesPlayerScreen : Fragment() {
     @OptIn(UnstableApi::class)
     private fun initializeVideo(headers: Map<String, String> = mapOf()) {
         if (::player.isInitialized) return
+        Log.d("GGG", "initializeVideo: true :${headers}")
 
-        val client = OkHttpClient.Builder()
-            .connectionSpecs(
-                listOf(
-                    ConnectionSpec.MODERN_TLS,
-                    ConnectionSpec.COMPATIBLE_TLS,
-                    ConnectionSpec.CLEARTEXT
-                )
+        val client = OkHttpClient.Builder().connectionSpecs(
+            listOf(
+                ConnectionSpec.MODERN_TLS, ConnectionSpec.COMPATIBLE_TLS, ConnectionSpec.CLEARTEXT
             )
-            .addInterceptor { chain ->
-                val request = chain.request()
-                    .newBuilder()
-                    .headers(headers.toHeaders())
-                    .build()
-                chain.proceed(request)
-            }
-            .ignoreAllSSLErrors()
-            .connectTimeout(60, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(60, TimeUnit.SECONDS)
-            .build()
+        ).addInterceptor { chain ->
+            val originalRequest = chain.request()
+            val modifiedRequest = originalRequest.newBuilder().headers(headers.toHeaders()).build()
+            chain.proceed(modifiedRequest)
+        }.connectTimeout(60, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS).callTimeout(120, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true).ignoreAllSSLErrors().build()
 
         dataSourceFactory =
             DefaultDataSource.Factory(requireContext(), OkHttpDataSource.Factory(client))
 
-        val renderersFactory = DefaultRenderersFactory(requireContext())
-            .setEnableDecoderFallback(true)
-            .setEnableAudioFloatOutput(true) // ✅ MUHIM
-            .setMediaCodecSelector(MediaCodecSelector.DEFAULT)
+        val renderersFactory =
+            DefaultRenderersFactory(requireContext()).setEnableDecoderFallback(true)
+                .setMediaCodecSelector(MediaCodecSelector.DEFAULT).setEnableAudioFloatOutput(false)
+
+        httpDataSource = DefaultHttpDataSource.Factory()
 
         player = ExoPlayer.Builder(requireContext(), renderersFactory)
             .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
-            .setWakeMode(C.WAKE_MODE_LOCAL)
-            .build()
+            .setRenderersFactory(renderersFactory).setVideoChangeFrameRateStrategy(
+                C.VIDEO_CHANGE_FRAME_RATE_STRATEGY_ONLY_IF_SEAMLESS
+            ).build()
+
+        player.setPlayWhenReady(true)
+        player.setWakeMode(C.WAKE_MODE_LOCAL)
 
         player.setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(C.USAGE_MEDIA)
-                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-                .build(),
-            true
+            AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(), true
         )
-
-        player.volume = 1f
-        player.skipSilenceEnabled = false
-        player.setHandleAudioBecomingNoisy(true)
 
         if (!::mediaSession.isInitialized) {
             mediaSession = MediaSession.Builder(requireContext(), player).build()
         }
+
+
 
         player.addListener(object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
                 Bugsnag.notify(error)
             }
 
-            override fun onPlaybackStateChanged(state: Int) {
-                if (state == Player.STATE_READY) {
-                    resetCountdownState()
-                    startProgressTracking()
+            @SuppressLint("SwitchIntDef")
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                when (playbackState) {
+                    Player.STATE_READY -> {
+                        if (!LocalData.isHistoryItemClicked) {
+                            resetCountdownState()
+                            startProgressTracking()
+
+                        }
+                        val dur = player.duration
+                        if (::skipIntroView.isInitialized) {
+                            skipIntroView.cleanup()
+                        }
+                        skipIntroView = SkipIntroView(
+                            binding.pvPlayer.controller.binding.root,
+                            player,
+                            model,
+                            handler,
+                            args.idMal ?: 0,
+                            episodeList[model.currentEpIndex].episode ?: 0,
+                            dur / 1000
+                        )
+                        Log.d("GGG", "onPlaybackStateChanged:${args.id} ")
+                        Log.d(
+                            "GGG",
+                            "onPlaybackStateChanged: ${episodeList[model.currentEpIndex].episode} || ${dur / 1000} ||| ${model.currentEpIndex} || ${episodeList[model.currentEpIndex].anime_id}  "
+                        )
+                        skipIntroView.initialize()
+                    }
+
+                    Player.STATE_ENDED -> {
+                        Log.d("GG", "onPlaybackStateChanged:WHY ENDED ")
+                        if (!LocalData.isHistoryItemClicked && player.duration > 0) {
+                            stopProgressTracking()
+                            if (!isCountdownActive) {
+                                playNextEpisodeAutomatically()
+                            }
+
+                        }
+                    }
+
                 }
             }
         })
 
         binding.pvPlayer.player = player
+
+        binding.pvPlayer.controller.binding.exoNextTenContainer.setOnClickListener {
+            player.seekTo(player.currentPosition + 10_000)
+        }
+        binding.pvPlayer.controller.binding.exoPrevTenContainer.setOnClickListener {
+            player.seekTo(player.currentPosition - 10_000)
+        }
+
+        binding.pvPlayer.controller.binding.exoPlayPauseContainer.setOnClickListener {
+            if (player.isPlaying) {
+                player.pause()
+                binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_play_to_pause)
+            } else {
+                player.play()
+                binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_pause_to_play)
+            }
+        }
+
+        model.videoOptionsData.observe(viewLifecycleOwner) { videoOptions ->
+            binding.pvPlayer.controller.binding.exoQuality.setOnClickListener {
+                val dialog = VideoQualityDialog(videoOptions, model.currentSelectedVideoOptionIndex)
+                dialog.setYesContinueListener { videoOption, i ->
+                    if (i != model.currentSelectedVideoOptionIndex) {
+                        model.currentSelectedVideoOptionIndex = i
+                        model.updateQualityByIndex()
+                    }
+                }
+                dialog.show(parentFragmentManager, "VideoQualityDialog")
+            }
+            model.currentQualityEpisode.observe(viewLifecycleOwner) { resource ->
+                if (resource is Resource.Success) {
+                    val newUrl = resource.data.urlobj
+                    playQualityVideo(newUrl)
+                }
+
+            }
+        }
+
+        binding.pvPlayer.controller.findViewById<TrailerPlayerScreen.ExtendedTimeBar>(R.id.exo_progress)
+            .setKeyTimeIncrement(10_000)
     }
 
     @OptIn(UnstableApi::class)
@@ -811,7 +881,7 @@ class SeriesPlayerScreen : Fragment() {
 
             OkHttpClient().newCall(request).execute().use { response ->
                 if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
-                response.body.byteStream().use { input ->
+                response.body!!.byteStream().use { input ->
                     localFile.outputStream().use { output ->
                         input.copyTo(output)
                     }

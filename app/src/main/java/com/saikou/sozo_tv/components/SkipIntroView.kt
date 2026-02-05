@@ -18,6 +18,7 @@ import com.saikou.sozo_tv.SkipIntroOverlayView
 import com.saikou.sozo_tv.aniskip.AniSkip
 import com.saikou.sozo_tv.aniskip.AniSkip.getType
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.presentation.viewmodel.PlayAnimeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +27,7 @@ import kotlinx.coroutines.launch
 class SkipIntroView(
     private val controller: ConstraintLayout,
     private val player: ExoPlayer,
-    private val viewModel: PlayViewModel,
+    private val viewModel: PlayAnimeViewModel,
     private val handler: Handler,
     private val malId: Int,
     private val episodeNumber: Int,

@@ -17,9 +17,6 @@ class HiAnimeVideoExtractor {
     fun extractServers(episodeId: Int): List<HiServer> {
         val json = Utils.get("$base/ajax/v2/episode/servers?episodeId=$episodeId")
         val resp = gson.fromJson(json, EpisodeServers::class.java)
-        Log.d("GGG", "extractServers:$base/ajax/v2/episode/servers?episodeId=$episodeId ")
-        Log.d("GGG", "extractServers:${json} ")
-
         val doc = Jsoup.parse(resp.html)
 
         return doc.select(".server-item[data-id]").mapNotNull { el ->

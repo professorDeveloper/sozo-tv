@@ -208,10 +208,16 @@ class PlayAnimeViewModel(
         return if (sourceKey == SOURCE_HIANIME) {
             VodMovieResponse(
                 authInfo = "",
-                subtitleList = option.tracks.map { SubTitle(it.file, it.label ?: "") },
+                subtitleList = option.tracks.map {
+                    if (!it.file.contains("thumbnail")) SubTitle(
+                        it.file,
+                        it.label ?: ""
+                    ) else null
+                }.filterNotNull(),
                 urlobj = option.videoUrl,
                 header = option.headers,
-                type = option.mimeTypes
+                type = option.mimeTypes,
+                thumbnail = option.tracks.find { it.file.contains("thumbnail") }?.file ?: ""
             )
         } else {
             val extractedUrl = parser.extractVideo(option.videoUrl)
