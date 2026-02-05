@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.my_list
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +15,7 @@ import com.saikou.sozo_tv.databinding.ItemTabChipBinding
 import com.saikou.sozo_tv.databinding.MyListScreenBinding
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.MyListTab
+import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.MyListViewModel
 import com.saikou.sozo_tv.utils.Resource
@@ -83,6 +85,9 @@ class MyListScreen : Fragment() {
                             CategoriesPageAdapter.CategoriesPageInterface {
                             override fun onCategorySelected(category: MainModel, position: Int) {}
                         })
+                        animeAdapter.setClickDetail {
+                            openPlayer(it.id)
+                        }
                     }
                 }
 
@@ -138,6 +143,12 @@ class MyListScreen : Fragment() {
         }
 
         return chipBinding.root
+    }
+
+    private fun openPlayer(id: Int) {
+        val intent = Intent(requireActivity(), PlayerActivity::class.java)
+        intent.putExtra("model", id)
+        requireActivity().startActivity(intent)
     }
 
     private fun updateTabStyles(tabLayout: TabLayout, selectedIndex: Int) {

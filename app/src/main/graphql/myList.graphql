@@ -1,27 +1,41 @@
-query MyList($userId: Int) {
-    MediaListCollection(userId:$userId, type: ANIME ,) {
-        lists { name isCustomList entries
-        {
-            status progress private score (format:POINT_100)
-            updatedAt
-            media {
-            id idMal isAdult type status chapters episodes nextAiringEpisode
-            { episode }
-            bannerImage meanScore isFavourite coverImage
-            { large }
-            startDate{
-                year
-                month
-                day
+query MyList($userId: Int, $type: MediaType = ANIME) {
+    MediaListCollection(userId: $userId, type: $type) {
+        lists {
+            name
+            isCustomList
+            isSplitCompletedList
+            entries {
+                status
+                progress
+                private
+                score(format: POINT_100)
+                updatedAt
+                media {
+                    id
+                    idMal
+                    isAdult
+                    type
+                    format
+                    status(version: 2)
+                    chapters
+                    episodes
+                    nextAiringEpisode { episode }
+                    bannerImage
+                    meanScore
+                    isFavourite
+                    coverImage { large }
+                    startDate { year month day }
+                    title { english romaji userPreferred }
+                }
             }
-            title {
-                english
-                romaji
-                userPreferred
-            }
-        }
-        }
         }
         user {
-            id mediaListOptions { rowOrder animeList { sectionOrder } mangaList { sectionOrder } } } }
+            id
+            mediaListOptions {
+                rowOrder
+                animeList { sectionOrder splitCompletedSectionByFormat }
+                mangaList { sectionOrder splitCompletedSectionByFormat }
+            }
+        }
+    }
 }

@@ -12,34 +12,52 @@ class MyListRepositoryImpl(
 
     override suspend fun getMyList(userId: Int, listType: String): Result<List<MainModel>> =
         runCatching {
-            val data = client.query(MyListQuery(userId = Optional.present(userId))).execute().data
+            val response = client.query(
+                MyListQuery(
+                    userId = Optional.Present(userId),
+                )
+            ).execute()
 
-            val lists = data?.MediaListCollection?.lists.orEmpty()
+            if (!response.errors.isNullOrEmpty()) {
+                throw IllegalStateException(response.errors!!.joinToString(" | ") { it.message })
+            }
+
+            val lists = response.data?.MediaListCollection?.lists.orEmpty()
             val normalized = normalizeListType(listType)
 
-            val entries = if (normalized == "Favorites") {
-                lists.flatMap { it?.entries.orEmpty() }.filter { it?.media?.isFavourite == true }
-            } else {
-                lists.firstOrNull { it?.name == normalized }?.entries.orEmpty()
+            val entries = when (normalized) {
+                "Favorites" -> lists
+                    .flatMap { it?.entries.orEmpty() }
+                    .filter { it?.media?.isFavourite == true }
+
+                "Completed" -> lists
+                    .filter { it?.name == "Completed" || (it?.name?.startsWith("Completed ") == true) }
+                    .flatMap { it?.entries.orEmpty() }
+
+                else -> lists
+                    .firstOrNull { it?.name == normalized }
+                    ?.entries
+                    .orEmpty()
             }
+
             entries.mapNotNull { entry ->
                 val media = entry?.media ?: return@mapNotNull null
-                if (!media.isAdult!!) {
-                    MainModel(
-                        id = media.id,
-                        title = media.title?.userPreferred ?: media.title?.romaji
-                        ?: media.title?.english ?: "Unknown Title",
-                        idMal = media.idMal ?: -1,
-                        image = media.coverImage?.large.orEmpty(),
-                        genres = arrayListOf(),
-                        studios = arrayListOf(),
-                        averageScore = media.meanScore ?: -1,
-                        meanScore = media.meanScore ?: -1,
-                        isAnime = true
-                    )
-                } else {
-                    null
-                }
+                if (media.isAdult == true) return@mapNotNull null
+
+                MainModel(
+                    id = media.id,
+                    title = media.title?.userPreferred
+                        ?: media.title?.romaji
+                        ?: media.title?.english
+                        ?: "Unknown Title",
+                    idMal = media.idMal ?: -1,
+                    image = media.coverImage?.large.orEmpty(),
+                    genres = arrayListOf(),
+                    studios = arrayListOf(),
+                    averageScore = media.meanScore ?: -1,
+                    meanScore = media.meanScore ?: -1,
+                    isAnime = true
+                )
             }
         }
 
@@ -47,15 +65,6 @@ class MyListRepositoryImpl(
         return when (listType.trim()) {
             "On-Hold" -> "Paused"
             "Plan to Watch" -> "Planning"
-
-            "Watching" -> "Watching"
-            "Completed TV" -> "Completed TV"
-            "Completed Movie" -> "Completed Movie"
-            "Paused" -> "Paused"
-            "Planning" -> "Planning"
-
-            "Favorites" -> "Favorites"
-
             else -> listType.trim()
         }
     }
