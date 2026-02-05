@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.components
 
-import android.animation.AnimatorInflater
 import android.content.Context
 import android.util.AttributeSet
 import android.util.TypedValue

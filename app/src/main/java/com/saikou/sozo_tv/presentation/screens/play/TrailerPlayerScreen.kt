@@ -7,11 +7,11 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.os.Bundle
 import android.util.AttributeSet
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.OptIn
+import androidx.fragment.app.Fragment
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -20,14 +20,11 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
-import androidx.media3.datasource.DefaultHttpDataSource
-import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerControlView
 import androidx.navigation.fragment.findNavController
@@ -99,7 +96,13 @@ class TrailerPlayerScreen : Fragment() {
         )
 
         val client = OkHttpClient.Builder()
-            .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.COMPATIBLE_TLS, ConnectionSpec.CLEARTEXT))
+            .connectionSpecs(
+                listOf(
+                    ConnectionSpec.MODERN_TLS,
+                    ConnectionSpec.COMPATIBLE_TLS,
+                    ConnectionSpec.CLEARTEXT
+                )
+            )
             .ignoreAllSSLErrors()
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)

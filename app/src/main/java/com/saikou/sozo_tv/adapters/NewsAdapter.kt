@@ -1,7 +1,6 @@
 package com.saikou.sozo_tv.adapters
 
 import android.content.Context
-import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -9,7 +8,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.pref.NewsPreferences
 import com.saikou.sozo_tv.data.model.NewsItem
-import com.saikou.sozo_tv.data.model.NewsPriority
 import com.saikou.sozo_tv.databinding.ItemFeaturedNewsBinding
 import java.text.SimpleDateFormat
 import java.util.Date

@@ -73,9 +73,13 @@ fun createOkHttpClient(): OkHttpClient {
         @SuppressLint("CustomX509TrustManager")
         object : X509TrustManager {
             @SuppressLint("TrustAllX509TrustManager")
-            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {
+            }
+
             @SuppressLint("TrustAllX509TrustManager")
-            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
+            }
+
             override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
         }
     )

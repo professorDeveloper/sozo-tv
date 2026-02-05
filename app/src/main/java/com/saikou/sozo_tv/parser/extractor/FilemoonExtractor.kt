@@ -12,7 +12,7 @@ import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
- open class FilemoonExtractor : Extractor() {
+open class FilemoonExtractor : Extractor() {
 
 
     override val name = "Filemoon"

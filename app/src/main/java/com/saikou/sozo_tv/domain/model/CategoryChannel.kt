@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.domain.model
 
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
+
 data class ChannelResponseItem(
     val title: String = "",
     val image: String = "",

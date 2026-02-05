@@ -12,7 +12,6 @@ import com.saikou.sozo_tv.adapters.HistoryAdapter
 import com.saikou.sozo_tv.databinding.HistoryPageBinding
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
-import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.SOURCE
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.readData

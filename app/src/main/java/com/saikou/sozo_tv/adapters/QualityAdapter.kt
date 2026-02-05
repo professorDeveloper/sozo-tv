@@ -1,14 +1,9 @@
 package com.saikou.sozo_tv.adapters
 
-import android.annotation.SuppressLint
-import android.app.Dialog
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.media3.common.Format
-import androidx.media3.exoplayer.ExoPlayer
-import com.google.android.material.radiobutton.MaterialRadioButton
+import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.databinding.ItemQualityBinding
 
 class QualityAdapter(

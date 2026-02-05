@@ -1,4 +1,3 @@
-
 package com.saikou.sozo_tv.converter
 
 import okhttp3.ResponseBody

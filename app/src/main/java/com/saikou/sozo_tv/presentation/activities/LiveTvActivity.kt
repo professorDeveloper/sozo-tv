@@ -9,8 +9,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -22,16 +20,13 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.ui.PlayerControlView
-import androidx.navigation.fragment.findNavController
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.entity.ChannelsEntity
 import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.databinding.ActivityLiveTvBinding
 import com.saikou.sozo_tv.databinding.ControllerLiveTvBinding
 import com.saikou.sozo_tv.presentation.screens.play.TrailerPlayerScreen
-import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.LiveTvViewModel
-import com.saikou.sozo_tv.presentation.viewmodel.TvGardenViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class LiveTvActivity : AppCompatActivity() {
@@ -192,7 +187,7 @@ class LiveTvActivity : AppCompatActivity() {
     }
 
     private fun restartStream() {
-        player?.let { player ->
+        player.let { player ->
             player.seekToDefaultPosition()
             player.prepare()
         }

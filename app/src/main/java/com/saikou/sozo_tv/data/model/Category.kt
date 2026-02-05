@@ -1,7 +1,6 @@
 package com.saikou.sozo_tv.data.model
 
 import com.google.gson.annotations.SerializedName
-import kotlinx.serialization.Serializable
 
 data class Category(
     val key: String, val name: String

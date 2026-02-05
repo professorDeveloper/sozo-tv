@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.parser.models
 
-import androidx.media3.common.MimeTypes
 import com.saikou.sozo_tv.data.model.hianime.MegaTrack
 import java.io.Serializable
 
@@ -12,9 +11,7 @@ data class ShowResponse(
     val total: Int? = null,
     val extra: Map<String, String>? = null,
     val seasons: List<Int> = listOf(),
-) : Serializable {
-
-}
+) : Serializable
 
 
 data class VideoOption(

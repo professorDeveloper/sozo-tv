@@ -8,23 +8,23 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.adapters.ChannelsAdapter
 import com.saikou.sozo_tv.adapters.CharactersPageAdapter
+import com.saikou.sozo_tv.data.model.BookmarkType
+import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.databinding.BookmarkScreenBinding
 import com.saikou.sozo_tv.domain.model.MainModel
+import com.saikou.sozo_tv.presentation.activities.LiveTvActivity
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
-import com.saikou.sozo_tv.utils.toDomain
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import com.saikou.sozo_tv.R
-import com.saikou.sozo_tv.adapters.ChannelsAdapter
-import com.saikou.sozo_tv.data.model.BookmarkType
-import com.saikou.sozo_tv.data.model.Channel
-import com.saikou.sozo_tv.presentation.activities.LiveTvActivity
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
+import com.saikou.sozo_tv.utils.toDomain
 import com.saikou.sozo_tv.utils.visible
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class BookmarkScreen : Fragment() {
     private var _binding: BookmarkScreenBinding? = null
@@ -58,7 +58,7 @@ class BookmarkScreen : Fragment() {
 
 
         model.bookmarkData.observe(viewLifecycleOwner) { list ->
-            if (LocalData.isAnimeEnabled) {
+            if (isAnimeEnabled) {
                 val domainList =
                     list.map { it.toDomain() }.filter { it.isAnime } as ArrayList<MainModel>
                 animeAdapter.updateCategoriesAll(domainList)
@@ -84,7 +84,7 @@ class BookmarkScreen : Fragment() {
             binding.bookmarkRv.visibility =
                 if (characters.isEmpty() && bookmarkType != BookmarkType.MEDIA) View.GONE else View.VISIBLE
         }
-        val channelsAdapter = ChannelsAdapter() {
+        val channelsAdapter = ChannelsAdapter {
             val intent = Intent(requireContext(), LiveTvActivity::class.java)
             intent.putExtra("url", it.iptvUrls[0])
             intent.putExtra("title", it.name)
@@ -95,7 +95,7 @@ class BookmarkScreen : Fragment() {
             binding.bookmarkRv.visible()
             binding.bookmarkPlaceHolder.root.visibility =
                 if (channels.isEmpty() && bookmarkType == BookmarkType.TV_CHANNEL) View.VISIBLE else View.GONE
-            binding.bookmarkRv.adapter=channelsAdapter
+            binding.bookmarkRv.adapter = channelsAdapter
             val channelList = channels.map {
                 Channel(
                     it.id,

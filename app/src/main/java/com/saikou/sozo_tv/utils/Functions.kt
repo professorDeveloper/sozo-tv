@@ -6,9 +6,6 @@ import android.content.Context
 import android.graphics.Paint
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.RoundRectShape
-import android.os.Build
-import android.provider.Settings
-import android.util.DisplayMetrics
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -19,43 +16,18 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import com.google.android.material.snackbar.Snackbar
-import com.google.gson.Gson
 import com.saikou.sozo_tv.R
-import com.saikou.sozo_tv.adapters.CharactersPageAdapter
 import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.domain.exceptions.ApiException
 import com.saikou.sozo_tv.domain.exceptions.NotFoundException
 import com.saikou.sozo_tv.domain.exceptions.ServerException
 import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import org.kamranzafar.jtar.TarEntry
-import org.kamranzafar.jtar.TarInputStream
 import retrofit2.Response
-import java.io.BufferedInputStream
-import java.io.BufferedOutputStream
-import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
-import java.net.URL
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
-import java.text.SimpleDateFormat
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
-import javax.net.ssl.HostnameVerifier
-import javax.net.ssl.HttpsURLConnection
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
+
 fun <T> Response<T>.toResult(): Result<T> {
     return when {
         this.isSuccessful && this.body() != null -> {
@@ -81,6 +53,7 @@ fun <T> Response<T>.toResult(): Result<T> {
         }
     }
 }
+
 @SuppressLint("NewApi")
 fun snackString(s: String?, activity: Activity? = null, clipboard: String? = null) {
     if (s != null) {
@@ -99,7 +72,7 @@ fun snackString(s: String?, activity: Activity? = null, clipboard: String? = nul
                     translationY = (24f + 32f)
                     translationZ = 32f
                     val shapeDrawable = ShapeDrawable()
-                    shapeDrawable.paint.setColor(activity.getColor(R.color.main_background))// Set the background color if needed
+                    shapeDrawable.paint.color = activity.getColor(R.color.main_background)// Set the background color if needed
                     shapeDrawable.paint.style = Paint.Style.FILL
                     shapeDrawable.shape = RoundRectShape(
                         floatArrayOf(120f, 120f, 120f, 120f, 120f, 120f, 120f, 120f),
@@ -120,6 +93,7 @@ fun snackString(s: String?, activity: Activity? = null, clipboard: String? = nul
         }
     }
 }
+
 fun VerticalGridView.setupGridLayoutForCategories(pageAdapter: CategoriesPageAdapter) {
     this.apply {
         isFocusable = true
@@ -147,8 +121,6 @@ private fun VerticalGridView.calculateDynamicColumns(itemWidthDp: Int): Int {
 }
 
 
-
-
 fun View.visible() {
     this.visibility = View.VISIBLE
 }
@@ -172,13 +144,14 @@ fun <T : Serializable> readData(
     context: Context? = null,
     toast: Boolean = true
 ): T? {
-    val a = context ?: MyApp.context ?: return null
+    val a = context ?: MyApp.context
 
     try {
         val files = a.fileList()
         if (files != null && fileName in files) {
             val fileIS = a.openFileInput(fileName)
             val objIS = ObjectInputStream(fileIS)
+
             @Suppress("UNCHECKED_CAST")
             val data = objIS.readObject() as T
             objIS.close()
@@ -191,12 +164,13 @@ fun <T : Serializable> readData(
 
         try {
             a.deleteFile(fileName)
-        } catch (_: Exception) { }
+        } catch (_: Exception) {
+        }
     }
     return null
 }
 
-fun <T : java.io.Serializable> saveData(
+fun <T : Serializable> saveData(
     fileName: String,
     data: T?,
     context: Context? = null
@@ -204,7 +178,7 @@ fun <T : java.io.Serializable> saveData(
     if (data == null) return
 
     tryWith {
-        val a = context ?: MyApp.context ?: return@tryWith null
+        val a = context ?: MyApp.context
         val fos: FileOutputStream = a.openFileOutput(fileName, Context.MODE_PRIVATE)
         val os = ObjectOutputStream(fos)
         os.writeObject(data)

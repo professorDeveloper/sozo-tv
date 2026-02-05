@@ -3,12 +3,12 @@ package com.saikou.sozo_tv.presentation.screens.category
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -30,7 +30,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 class CategoriesScreen : Fragment() {
     private var _binding: CategoriesScreenBinding? = null
@@ -243,10 +242,6 @@ class CategoriesScreen : Fragment() {
                     ?: -1 else -1 else -1
         }
         model.loadFilter(model.searchResults)
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
     }
 
     private fun showFilterDialog() {

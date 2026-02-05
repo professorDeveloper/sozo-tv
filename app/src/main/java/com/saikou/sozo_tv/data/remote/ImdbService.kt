@@ -5,7 +5,6 @@ import com.saikou.sozo_tv.data.model.tmdb.MediaDetails
 import com.saikou.sozo_tv.data.model.tmdb.TmdbGenreResponse
 import com.saikou.sozo_tv.data.model.tmdb.TmdbListResponse
 import com.saikou.sozo_tv.data.model.tmdb.cast.CastDetail
-import com.saikou.sozo_tv.data.model.tmdb.cast.MediaCast
 import com.saikou.sozo_tv.data.model.tmdb.cast.MediaCastResponse
 import com.saikou.sozo_tv.data.model.tmdb.cast.MovieCast
 import retrofit2.Response

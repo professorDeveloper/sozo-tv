@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
-import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.SearchItemBinding
 import com.saikou.sozo_tv.domain.model.SearchModel
 

@@ -4,7 +4,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.domain.repository.EpisodeRepository
-import com.saikou.sozo_tv.parser.anime.AnimePahe
 import com.saikou.sozo_tv.parser.anime.HentaiMama
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.sources.AnimeSources

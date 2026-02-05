@@ -9,16 +9,13 @@ import com.bumptech.glide.Glide
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ItemMovieBinding
 import com.saikou.sozo_tv.domain.model.MainModel
-import com.saikou.sozo_tv.utils.loadImage
 
 class CategoriesPageAdapter(val isDetail: Boolean = false) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
         var isUpdated = false
-        const val TYPE_CATEGORY = 1
         const val COLUMN_COUNT = 5
-        const val COLUMN_COUNT_NUM4 = 4
     }
 
     lateinit var clickDetaill: (MainModel) -> Unit

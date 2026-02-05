@@ -32,7 +32,7 @@ internal class FestiveParticlesRenderer(context: Context) {
         0xFFFFD27F.toInt(),
         0xFF7FDFFF.toInt(),
         0xFFFF9FA3.toInt(),
-        0xFFB9FFB0.toInt()  ,
+        0xFFB9FFB0.toInt(),
         0xFFFF7FFF.toInt(),
         0xFFFFFF7F.toInt()
     )

@@ -1,10 +1,14 @@
 package com.saikou.sozo_tv.components.circleView
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.BlurMaskFilter
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
-import androidx.core.content.ContextCompat
 
 class CircleWarningView @JvmOverloads constructor(
     context: Context,
@@ -90,7 +94,7 @@ class CircleWarningView @JvmOverloads constructor(
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val desiredSize = 64.dpToPx() // Default 64dp size
-        
+
         val widthMode = MeasureSpec.getMode(widthMeasureSpec)
         val widthSize = MeasureSpec.getSize(widthMeasureSpec)
         val heightMode = MeasureSpec.getMode(heightMeasureSpec)

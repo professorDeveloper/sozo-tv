@@ -22,7 +22,6 @@ class FilterDialog : DialogFragment() {
     private var selectedRating: String? = null
 
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -70,7 +69,7 @@ class FilterDialog : DialogFragment() {
             preferenceName = "sort"
         }
         binding.yearFilter.apply {
-            setSpinnerAdapter(CustomSpinnerAdapter(-1,this).apply {
+            setSpinnerAdapter(CustomSpinnerAdapter(-1, this).apply {
                 this.setOnSpinnerItemSelectedListen {
                     selectedYear = it.title
                     binding.yearFilter.hint = "Selected Year: ${it.title}"

@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.logging.HttpLoggingInterceptor
 import java.io.IOException
 import java.util.Locale
 
@@ -268,7 +267,7 @@ object GardenDataManager {
                         throw IOException("GitHub error ${response.code}: $body")
                     }
 
-                    val json = response.body?.string().orEmpty()
+                    val json = response.body.string().orEmpty()
                     val type = object : TypeToken<List<GitHubFile>>() {}.type
                     val files: List<GitHubFile> = gson.fromJson(json, type) ?: emptyList()
 
@@ -295,26 +294,26 @@ object GardenDataManager {
     }.flowOn(Dispatchers.IO)
 
     suspend fun loadChannels(key: String, isCountry: Boolean) = flow<List<Channel>> {
-            val url =
-                "https://raw.githubusercontent.com/professorDeveloper/tv-garden-channel-list/main/channels/${if (isCountry) "raw/countries/${key.lowercase()}.json" else "raw/categories/${key.lowercase()}.json"}"
+        val url =
+            "https://raw.githubusercontent.com/professorDeveloper/tv-garden-channel-list/main/channels/${if (isCountry) "raw/countries/${key.lowercase()}.json" else "raw/categories/${key.lowercase()}.json"}"
 
-            val request = Request.Builder().url(url).get().build()
+        val request = Request.Builder().url(url).get().build()
 
-            try {
-                client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) throw IOException("Unexpected response code: ${response.code}")
-                    val json = response.body?.string().orEmpty()
-                    if (json.trim().isEmpty()) throw IOException("JSON content is empty")
-                    val type = object : TypeToken<List<Channel>>() {}.type
-                    emit(gson.fromJson<List<Channel>>(json, type) ?: emptyList())
-                }
-            } catch (e: Exception) {
-                Log.d(
-                    "GGG",
-                    "Error loading channels for category $key: ${e.message}. Returning empty list."
-                )
-                emit(emptyList())
+        try {
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) throw IOException("Unexpected response code: ${response.code}")
+                val json = response.body.string().orEmpty()
+                if (json.trim().isEmpty()) throw IOException("JSON content is empty")
+                val type = object : TypeToken<List<Channel>>() {}.type
+                emit(gson.fromJson<List<Channel>>(json, type) ?: emptyList())
             }
+        } catch (e: Exception) {
+            Log.d(
+                "GGG",
+                "Error loading channels for category $key: ${e.message}. Returning empty list."
+            )
+            emit(emptyList())
+        }
     }.flowOn(Dispatchers.IO)
 
 

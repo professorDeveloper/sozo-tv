@@ -1,21 +1,20 @@
 package com.saikou.sozo_tv.app
 
-import android.annotation.SuppressLint
+//import com.ipsat.ipsat_tv.di.NetworkModule
+//import com.ipsat.ipsat_tv.di.firebaseModule
+//import com.ipsat.ipsat_tv.di.koinModule
 import android.app.Application
 import android.content.Context
 import com.bugsnag.android.Bugsnag
 import com.bugsnag.android.performance.BugsnagPerformance
 import com.google.firebase.FirebaseApp
-import org.koin.android.ext.koin.androidContext
-import org.koin.android.ext.koin.androidLogger
-import org.koin.core.context.startKoin
-//import com.ipsat.ipsat_tv.di.NetworkModule
-//import com.ipsat.ipsat_tv.di.firebaseModule
-//import com.ipsat.ipsat_tv.di.koinModule
 import com.jakewharton.threetenabp.AndroidThreeTen
 import com.saikou.sozo_tv.di.NetworkModule
 import com.saikou.sozo_tv.di.firebaseModule
 import com.saikou.sozo_tv.di.koinModule
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.core.context.startKoin
 
 /**
  * Main activity for SozoTv app.

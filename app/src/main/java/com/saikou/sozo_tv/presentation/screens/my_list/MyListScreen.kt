@@ -5,20 +5,33 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.tabs.TabLayout
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.ItemTabChipBinding
 import com.saikou.sozo_tv.databinding.MyListScreenBinding
+import com.saikou.sozo_tv.domain.model.MainModel
+import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
+import com.saikou.sozo_tv.presentation.viewmodel.MyListViewModel
+import com.saikou.sozo_tv.utils.Resource
+import com.saikou.sozo_tv.utils.gone
+import com.saikou.sozo_tv.utils.visible
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MyListScreen : Fragment() {
 
     private var _binding: MyListScreenBinding? = null
     private val binding get() = _binding!!
+    private val animeAdapter = CategoriesPageAdapter(isDetail = true)
 
     private var currentTab: MyListTab = MyListTab.WATCHING
 
+    private val userId by lazy {
+        PreferenceManager(requireContext()).getString(AuthPrefKeys.ANILIST_ANI_ID).toInt()
+    }
+    private val model by viewModel<MyListViewModel>()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -29,8 +42,49 @@ class MyListScreen : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.rvContent.adapter = animeAdapter
         setupTabs(binding.tabLayout)
         selectTab(MyListTab.WATCHING)
+        model.loadMyList(MyListTab.WATCHING.title, userId)
+        model.listData.observe(viewLifecycleOwner) {
+            when (it) {
+                is Resource.Error -> {
+                    binding.isLoading.root.gone()
+                    binding.rvContent.gone()
+                    binding.emptyState.visible()
+                    binding.tvEmptyTitle.text = it.throwable.message
+                }
+
+                Resource.Loading -> {
+                    binding.isLoading.root.visible()
+                    binding.rvContent.gone()
+                }
+
+                is Resource.Success -> {
+                    binding.isLoading.root.gone()
+                    val data = it.data
+                    if (data.isEmpty()) {
+                        binding.rvContent.gone()
+                        binding.emptyState.visible()
+                    } else {
+                        binding.emptyState.gone()
+                        binding.rvContent.visible()
+                        animeAdapter.updateCategoriesAll(it.data as ArrayList<MainModel>)
+                        animeAdapter.setCategoriesPageInterface(object :
+                            CategoriesPageAdapter.CategoriesPageInterface {
+                            override fun onCategorySelected(category: MainModel, position: Int) {
+                            }
+
+                        })
+
+                    }
+                }
+
+                else -> {
+
+                }
+            }
+        }
     }
 
     private fun setupTabs(tabLayout: TabLayout) {
@@ -88,15 +142,7 @@ class MyListScreen : Fragment() {
 
     private fun selectTab(tab: MyListTab) {
         currentTab = tab
-
-        val list = when (tab) {
-            MyListTab.WATCHING -> { /* TODO */ }
-            MyListTab.COMPLETED -> { /* TODO */ }
-            MyListTab.ON_HOLD -> { /* TODO */ }
-            MyListTab.DROPPED -> { /* TODO */ }
-            MyListTab.PLAN_TO_WATCH -> { /* TODO */ }
-            MyListTab.FAVORITES -> { /* TODO */ }
-        }
+        model.loadMyList(tab.title, userId)
     }
 
     override fun onDestroyView() {

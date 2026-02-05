@@ -12,6 +12,7 @@ import com.saikou.sozo_tv.data.repository.EpisodeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.HomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.ImdbHomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.MovieBookmarkRepositoryImpl
+import com.saikou.sozo_tv.data.repository.MyListRepositoryImpl
 import com.saikou.sozo_tv.data.repository.ProfileRepositoryImpl
 import com.saikou.sozo_tv.data.repository.SearchRepositoryImpl
 import com.saikou.sozo_tv.data.repository.SharedPrefsSettingsRepository
@@ -24,6 +25,7 @@ import com.saikou.sozo_tv.domain.repository.DetailRepository
 import com.saikou.sozo_tv.domain.repository.EpisodeRepository
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
+import com.saikou.sozo_tv.domain.repository.MyListRepository
 import com.saikou.sozo_tv.domain.repository.ProfileRepository
 import com.saikou.sozo_tv.domain.repository.SearchRepository
 import com.saikou.sozo_tv.domain.repository.SettingsRepository
@@ -37,6 +39,7 @@ import com.saikou.sozo_tv.presentation.viewmodel.DetailViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.LiveTvViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.MyListViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.NewsViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayAnimeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayMovieViewModel
@@ -77,6 +80,10 @@ val koinModule = module {
     single<SettingsRepository> {
         SharedPrefsSettingsRepository(PreferenceManager())
     }
+
+    single<MyListRepository> {
+        MyListRepositoryImpl(client = get())
+    }
     single<TMDBHomeRepository> {
         ImdbHomeRepositoryImpl(api = get())
     }
@@ -116,6 +123,7 @@ val koinModule = module {
     viewModel { DetailViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
     viewModel { SearchViewModel(repo = get()) }
+    viewModel { MyListViewModel(repo = get()) }
     viewModel { CastDetailViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel {
         BookmarkViewModel(
@@ -129,7 +137,7 @@ val koinModule = module {
 
 val firebaseModule = module {
     single<FirebaseDatabase> {
-        ; FirebaseDatabase.getInstance("https://sozo-app-a36e6-default-rtdb.asia-southeast1.firebasedatabase.app/")
+        FirebaseDatabase.getInstance("https://sozo-app-a36e6-default-rtdb.asia-southeast1.firebasedatabase.app/")
     }
     single { FirebaseService(get()) }
 }

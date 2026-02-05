@@ -4,15 +4,12 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.OptIn
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.fragment.app.Fragment
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -32,19 +29,15 @@ import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.screens.profile.NfcDisabledDialog
 import com.saikou.sozo_tv.presentation.viewmodel.DetailViewModel
-import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
-import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.loadImage
 import com.saikou.sozo_tv.utils.toDomain
 import com.saikou.sozo_tv.utils.visible
-import kotlinx.coroutines.launch
 import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.concurrent.TimeUnit
 
 

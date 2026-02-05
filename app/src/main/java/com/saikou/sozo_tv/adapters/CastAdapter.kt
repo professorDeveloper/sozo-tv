@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.adapters
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils

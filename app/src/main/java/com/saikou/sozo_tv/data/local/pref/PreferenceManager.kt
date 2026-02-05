@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
-class PreferenceManager(context: Context= MyApp.context) {
+class PreferenceManager(context: Context = MyApp.context) {
 
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)

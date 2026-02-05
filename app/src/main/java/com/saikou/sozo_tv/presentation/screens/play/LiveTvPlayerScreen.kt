@@ -11,20 +11,20 @@ import androidx.annotation.OptIn
 import androidx.fragment.app.Fragment
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
-import androidx.navigation.fragment.navArgs
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.hls.HlsMediaSource
-import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.common.util.Util
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.ui.PlayerControlView
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.saikou.sozo_tv.R
-import com.saikou.sozo_tv.databinding.LiveTvPlayerScreenBinding
 import com.saikou.sozo_tv.databinding.ControllerLiveTvBinding
+import com.saikou.sozo_tv.databinding.LiveTvPlayerScreenBinding
 
 class LiveTvPlayerScreen : Fragment() {
     private var _binding: LiveTvPlayerScreenBinding? = null
@@ -134,7 +134,8 @@ class LiveTvPlayerScreen : Fragment() {
 
     @SuppressLint("UnsafeOptInUsageError")
     private fun setupPlayerControls() {
-        val exoProgress:TrailerPlayerScreen.ExtendedTimeBar = binding.pvPlayer.findViewById(R.id.exo_progress)
+        val exoProgress: TrailerPlayerScreen.ExtendedTimeBar =
+            binding.pvPlayer.findViewById(R.id.exo_progress)
         exoProgress.setForceDisabled(true)
         binding.pvPlayer.useController = true
         binding.pvPlayer.controllerAutoShow = true
@@ -181,7 +182,7 @@ class LiveTvPlayerScreen : Fragment() {
     }
 
     private fun restartStream() {
-        player?.let { player ->
+        player.let { player ->
             player.seekToDefaultPosition()
             player.prepare()
         }

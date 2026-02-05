@@ -10,7 +10,6 @@ import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
-import kotlin.math.log
 
 const val BASE_URL = "https://www.imdb.com/"
 
@@ -135,7 +134,7 @@ class IMDBScraping {
         return CastResponse(castList)
     }
 
-    fun getPhotos(item: IMDBScraping.SearchItem): PhotosResponse {
+    fun getPhotos(item: SearchItem): PhotosResponse {
         val document = Utils.getJsoup(
             item.detailsUrl,
             mapOf(

@@ -25,6 +25,7 @@ data class Video(
     val url: String,
     val size: Long?
 )
+
 enum class VideoType {
     M3U8,
     CONTAINER

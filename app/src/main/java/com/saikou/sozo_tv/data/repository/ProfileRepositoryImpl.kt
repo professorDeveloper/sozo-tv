@@ -15,7 +15,7 @@ class ProfileRepositoryImpl(private val apollo: ApolloClient) : ProfileRepositor
             val profile = Profile(
                 id = profileData?.id ?: -1,
                 name = profileData?.name ?: "Unknown",
-                avatarUrl = profileData?.avatar?.large?:"",
+                avatarUrl = profileData?.avatar?.large ?: "",
                 bannerImg = profileData?.bannerImage ?: "",
                 unreadNotificationCount = profileData?.unreadNotificationCount ?: 0
             )

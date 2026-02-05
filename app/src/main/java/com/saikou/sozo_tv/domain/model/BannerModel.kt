@@ -1,7 +1,6 @@
 package com.saikou.sozo_tv.domain.model
 
 import com.saikou.sozo_tv.data.model.jikan.BannerHomeData
-import com.saikou.sozo_tv.data.model.jikan.Data
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 
 data class BannerModel(

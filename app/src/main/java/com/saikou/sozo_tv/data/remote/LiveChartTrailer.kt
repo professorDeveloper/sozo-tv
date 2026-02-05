@@ -12,16 +12,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.Request
-import org.jsoup.Jsoup
 import java.util.concurrent.CancellationException
 
-class LiveChartTrailer() {
+class LiveChartTrailer {
     private val BASE_URL = "https://www.livechart.me"
     suspend fun searchAndGetTrailer(animeTitle: String): TrailerModel {
         val niceHttp = Requests(baseClient = Utils.httpClient, responseParser = parser)
         var detailsUrl = ""
-        niceHttp.get("$BASE_URL/search?q=$animeTitle").document?.let {
-            val firstItem = it.selectFirst("li.grouped-list-item.anime-item")?:return@let
+        niceHttp.get("$BASE_URL/search?q=$animeTitle").document.let {
+            val firstItem = it.selectFirst("li.grouped-list-item.anime-item") ?: return@let
             detailsUrl =
                 "https://www.livechart.me" + firstItem.selectFirst("a[data-anime-item-target=mainTitle]")
                     ?.attr("href").orEmpty()
@@ -33,7 +32,7 @@ class LiveChartTrailer() {
     suspend fun getTrailerByDetail(url: String): ArrayList<TrailerModel> {
         val trailers = ArrayList<TrailerModel>()
         val niceHttp = Requests(baseClient = Utils.httpClient, responseParser = parser)
-        if (url.startsWith("http") ){
+        if (url.startsWith("http")) {
             val doc = niceHttp.get(url).document
             val videoElements = doc.select("div.lc-video a[href^=https://www.youtube.com/watch]")
 
@@ -49,7 +48,7 @@ class LiveChartTrailer() {
             //
 
             return trailers
-        }else {
+        } else {
             return trailers
         }
     }
@@ -69,17 +68,22 @@ class DubsMp4Parser {
         repeat(40) { attempt ->
             if (progressId == null) {
                 val initUrl = "$BASE_URL/download-video?id=$videoId&format=720"
-                val initResp = Requests(baseClient = Utils.httpClient, responseParser = parser).get(initUrl)
+                val initResp =
+                    Requests(baseClient = Utils.httpClient, responseParser = parser).get(initUrl)
 
                 if (!initResp.isSuccessful) throw Exception("Request failed: ${initResp.code}")
 
-                val initBody = initResp.body.string() ?: throw Exception("Empty response")
+                val initBody = initResp.body.string()
                 val initJson = gson.fromJson(initBody, JsonObject::class.java)
 
                 Log.d("GGG", "Init response: $initBody")
 
                 // 🔥 Agar message bo‘lsa va "Something went wrong" bo‘lsa — ishni to‘xtatamiz
-                if (initJson.has("message") && initJson["message"].asString.contains("Something went wrong", true)) {
+                if (initJson.has("message") && initJson["message"].asString.contains(
+                        "Something went wrong",
+                        true
+                    )
+                ) {
                     throw CancellationException("Download cancelled: ${initJson["message"].asString}")
                 }
 
@@ -96,12 +100,16 @@ class DubsMp4Parser {
             val statusResp = withContext(Dispatchers.IO) {
                 Utils.httpClient.newCall(Request.Builder().url(statusUrl).build()).execute()
             }
-            val statusBody = statusResp.body?.string() ?: ""
+            val statusBody = statusResp.body.string()
             val statusJson = gson.fromJson(statusBody, JsonObject::class.java)
 
             Log.d("GGG", "Status [$attempt]: $statusBody")
 
-            if (statusJson.has("message") && statusJson["message"].asString.contains("Something went wrong", true)) {
+            if (statusJson.has("message") && statusJson["message"].asString.contains(
+                    "Something went wrong",
+                    true
+                )
+            ) {
                 throw CancellationException("Status cancelled: ${statusJson["message"].asString}")
             }
 

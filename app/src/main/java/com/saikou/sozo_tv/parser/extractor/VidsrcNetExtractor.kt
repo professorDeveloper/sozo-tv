@@ -88,6 +88,7 @@ class VidsrcNetExtractor : Extractor() {
             headers = mapOf("Referer" to iframedoc)
         )
     }
+
     private fun findPlayerId(script: String): String? {
         val pattern1 = Regex("Playerjs.*file:\\s*([a-zA-Z0-9]*?)\\s*,")
         val match1 = pattern1.find(script)?.groupValues?.get(1)

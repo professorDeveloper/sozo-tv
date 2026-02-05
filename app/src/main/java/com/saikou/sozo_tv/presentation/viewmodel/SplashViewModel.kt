@@ -8,7 +8,6 @@ import com.saikou.sozo_tv.domain.model.AppUpdate
 import com.saikou.sozo_tv.services.FirebaseService
 import com.saikou.sozo_tv.utils.AppUtils
 import com.saikou.sozo_tv.utils.Resource
-import com.saikou.sozo_tv.BuildConfig
 
 class SplashViewModel(
     private val firebaseService: FirebaseService

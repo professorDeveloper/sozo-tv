@@ -10,8 +10,6 @@ import com.saikou.sozo_tv.data.model.SeasonResponse
 import com.saikou.sozo_tv.data.model.SubtitleItem
 import com.saikou.sozo_tv.parser.base.BaseParser
 import com.saikou.sozo_tv.parser.models.Episode
-import com.saikou.sozo_tv.parser.models.EpisodeData
-import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.movie.helper.SourceHelper.decryptMethods
 import com.saikou.sozo_tv.parser.movie.helper.SourceHelper.extractIframeUrl
 import com.saikou.sozo_tv.parser.movie.helper.SourceHelper.normalizeStreamUrl
@@ -19,12 +17,9 @@ import com.saikou.sozo_tv.utils.Utils.getJsoup
 import com.saikou.sozo_tv.utils.Utils.httpClient
 import com.saikou.sozo_tv.utils.parser
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import org.jsoup.Connection
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import java.net.SocketTimeoutException
 import java.net.URI
 
 
@@ -259,7 +254,7 @@ class PlayImdb : BaseParser() {
             )
 
             // Body ni faqat 1 marta o'qing
-            val bodyString = response.body?.string().orEmpty()
+            val bodyString = response.body.string().orEmpty()
             Log.d("GGG", "isSuccessful=${response.isSuccessful}")
             Log.d("GGG", "BODY: $bodyString")
 

@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.random.Random
 

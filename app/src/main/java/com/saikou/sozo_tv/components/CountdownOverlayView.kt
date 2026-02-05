@@ -1,14 +1,17 @@
 package com.saikou.sozo_tv.components
+
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
-import kotlin.math.cos
-import kotlin.math.sin
 
 class CountdownOverlayView @JvmOverloads constructor(
     context: Context,

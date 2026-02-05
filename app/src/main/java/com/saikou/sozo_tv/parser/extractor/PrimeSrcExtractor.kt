@@ -2,12 +2,9 @@ package com.saikou.sozo_tv.parser.extractor
 
 import android.annotation.SuppressLint
 import com.google.gson.Gson
-import com.lagradost.nicehttp.Requests
-import com.saikou.sozo_tv.di.createOkHttpClient
 import com.saikou.sozo_tv.parser.anime.AnimePahe.Companion.USER_AGENT
 import com.saikou.sozo_tv.parser.models.Video
 import com.saikou.sozo_tv.utils.Utils
-import com.saikou.sozo_tv.utils.parser
 
 class PrimeSrcExtractor : Extractor() {
 

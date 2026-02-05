@@ -6,16 +6,16 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.saikou.sozo_tv.adapters.ChannelsAdapter
-import com.saikou.sozo_tv.databinding.TvGardenScreenBinding
 import com.saikou.sozo_tv.data.model.Category
 import com.saikou.sozo_tv.data.model.Country
+import com.saikou.sozo_tv.databinding.TvGardenScreenBinding
 import com.saikou.sozo_tv.presentation.activities.LiveTvActivity
 import com.saikou.sozo_tv.presentation.screens.category.CategoryTabAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
@@ -62,7 +62,7 @@ class TvGardenScreen : Fragment() {
         }
         if (!model.isOpened) {
             categoriesAdapter = CategoryTabAdapter(isFiltered = true)
-            channelsAdapter = ChannelsAdapter() {
+            channelsAdapter = ChannelsAdapter {
                 if (it.iptvUrls.isNotEmpty()) {
                     model.isOpened = true
                     val intent = Intent(requireContext(), LiveTvActivity::class.java)
@@ -193,14 +193,6 @@ class TvGardenScreen : Fragment() {
             binding.bookmarkRv.setNumColumns(4)
             binding.bookmarkRv.visibility = if (it.isEmpty()) View.GONE else View.VISIBLE
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
     }
 
 

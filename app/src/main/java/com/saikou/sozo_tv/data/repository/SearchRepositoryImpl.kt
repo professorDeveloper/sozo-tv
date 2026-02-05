@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.data.repository
 
-import androidx.preference.Preference
 import com.animestudios.animeapp.SearchAnimeQuery
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional

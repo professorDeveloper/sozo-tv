@@ -1,4 +1,5 @@
 package com.saikou.sozo_tv.components.spoiler
+
 import android.graphics.Color
 import android.text.Spannable
 import android.text.Spanned
@@ -83,6 +84,7 @@ class SpoilerPlugin : AbstractMarkwonPlugin() {
                     spoilerSpan.setRevealed(true)
                     widget.postInvalidateOnAnimation()
                 }
+
                 override fun updateDrawState(ds: TextPaint) {
                 }
             }

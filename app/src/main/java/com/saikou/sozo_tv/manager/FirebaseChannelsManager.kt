@@ -15,7 +15,10 @@ import kotlinx.coroutines.flow.callbackFlow
 object FirebaseChannelsManager {
     private const val CHANNELS_REF = "liveChannels"
 
-    fun saveChannelsToRealtimeDatabase(channels: CategoryChannel, onComplete: (Boolean, String?) -> Unit) {
+    fun saveChannelsToRealtimeDatabase(
+        channels: CategoryChannel,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
         val database = FirebaseDatabase.getInstance()
         val liveChannelsRef = database.getReference(CHANNELS_REF)
 
@@ -45,11 +48,16 @@ object FirebaseChannelsManager {
                         for (child in listSnapshot.children) {
                             val contentSnapshot = child.child("content")
 
-                            val title = contentSnapshot.child("title").getValue(String::class.java) ?: ""
-                            val image = contentSnapshot.child("image").getValue(String::class.java) ?: ""
-                            val playLink = contentSnapshot.child("playLink").getValue(String::class.java) ?: ""
-                            val country = contentSnapshot.child("country").getValue(String::class.java) ?: ""
-                            val viewTypeItem = child.child("viewType").getValue(Int::class.java) ?: 0
+                            val title =
+                                contentSnapshot.child("title").getValue(String::class.java) ?: ""
+                            val image =
+                                contentSnapshot.child("image").getValue(String::class.java) ?: ""
+                            val playLink =
+                                contentSnapshot.child("playLink").getValue(String::class.java) ?: ""
+                            val country =
+                                contentSnapshot.child("country").getValue(String::class.java) ?: ""
+                            val viewTypeItem =
+                                child.child("viewType").getValue(Int::class.java) ?: 0
 
                             val item = CategoryChannelItem(
                                 viewType = viewTypeItem,
@@ -90,7 +98,7 @@ object FirebaseChannelsManager {
     }
 
     fun initializeDefaultChannels(): CategoryChannel {
-        return  CategoryChannel(
+        return CategoryChannel(
             "Live Channels",
             arrayListOf(
 
@@ -133,11 +141,16 @@ object FirebaseChannelsManager {
                         for (child in listSnapshot.children) {
                             val contentSnapshot = child.child("content")
 
-                            val title = contentSnapshot.child("title").getValue(String::class.java) ?: ""
-                            val image = contentSnapshot.child("image").getValue(String::class.java) ?: ""
-                            val playLink = contentSnapshot.child("playLink").getValue(String::class.java) ?: ""
-                            val country = contentSnapshot.child("country").getValue(String::class.java) ?: ""
-                            val viewTypeItem = child.child("viewType").getValue(Int::class.java) ?: 0
+                            val title =
+                                contentSnapshot.child("title").getValue(String::class.java) ?: ""
+                            val image =
+                                contentSnapshot.child("image").getValue(String::class.java) ?: ""
+                            val playLink =
+                                contentSnapshot.child("playLink").getValue(String::class.java) ?: ""
+                            val country =
+                                contentSnapshot.child("country").getValue(String::class.java) ?: ""
+                            val viewTypeItem =
+                                child.child("viewType").getValue(Int::class.java) ?: 0
 
                             val item = CategoryChannelItem(
                                 viewType = viewTypeItem,

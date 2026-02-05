@@ -33,7 +33,7 @@ suspend fun <T> safeApiCall(
             }
         }
 
-        Bugsnag.notify(lastException?:Exception("nothing"))
+        Bugsnag.notify(lastException ?: Exception("nothing"))
         Result.failure(NetworkException("Network error: ${lastException?.message}"))
     }
 }

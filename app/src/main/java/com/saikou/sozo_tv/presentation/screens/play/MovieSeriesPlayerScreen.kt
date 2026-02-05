@@ -27,12 +27,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
-import androidx.media3.datasource.DefaultHttpDataSource
-import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -52,7 +49,6 @@ import com.bugsnag.android.Bugsnag
 import com.lagradost.nicehttp.ignoreAllSSLErrors
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.EpisodePlayerAdapter
-import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.components.SkipIntroView
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
@@ -62,7 +58,6 @@ import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.screens.play.dialog.SubtitleChooserDialog
 import com.saikou.sozo_tv.presentation.viewmodel.PlayMovieViewModel
-import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone

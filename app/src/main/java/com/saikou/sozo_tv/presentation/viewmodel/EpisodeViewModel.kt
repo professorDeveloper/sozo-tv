@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
-import com.saikou.sozo_tv.data.model.SubSource
 import com.saikou.sozo_tv.domain.repository.EpisodeRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.anime.HentaiMama
@@ -18,7 +17,6 @@ import com.saikou.sozo_tv.parser.movie.PlayImdb
 import com.saikou.sozo_tv.parser.sources.AnimeSources
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
-import com.saikou.sozo_tv.utils.readData
 import com.saikou.sozo_tv.utils.toDomain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -186,7 +184,7 @@ class EpisodeViewModel(
     private fun getEpisodesLocal() {
         viewModelScope.launch {
             epListFromLocal.clear()
-            epListFromLocal.addAll(watchHistoryRepository.getAllHistory() ?: arrayListOf())
+            epListFromLocal.addAll(watchHistoryRepository.getAllHistory())
         }
     }
 

@@ -6,10 +6,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.addCallback
 import androidx.fragment.app.DialogFragment
 import com.saikou.sozo_tv.R
-import com.saikou.sozo_tv.databinding.HistoryAlertDialogBinding
 import com.saikou.sozo_tv.databinding.NsfwDisableDialogBinding
 
 class NfcDisabledDialog : DialogFragment() {

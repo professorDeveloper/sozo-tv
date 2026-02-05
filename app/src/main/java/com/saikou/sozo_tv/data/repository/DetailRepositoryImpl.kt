@@ -1,24 +1,19 @@
 package com.saikou.sozo_tv.data.repository
 
 import android.annotation.SuppressLint
-import android.util.Log
 import com.animestudios.animeapp.GetAnimeByIdQuery
 import com.animestudios.animeapp.GetCharacterDetailQuery
 import com.animestudios.animeapp.GetCharactersAnimeByIdQuery
 import com.animestudios.animeapp.GetRelationsByIdQuery
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
-import com.saikou.sozo_tv.data.local.pref.PreferenceManager
-import com.saikou.sozo_tv.data.model.tmdb.TmdbListResponse
 import com.saikou.sozo_tv.data.remote.ImdbService
-import com.saikou.sozo_tv.data.remote.safeApiCall
 import com.saikou.sozo_tv.data.remote.safeExecute
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.CastDetailModel
 import com.saikou.sozo_tv.domain.model.DetailModel
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.DetailRepository
-import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.toDomain
 import java.time.LocalDate
@@ -193,12 +188,12 @@ class DetailRepositoryImpl(private val client: ApolloClient, private val api: Im
                 response.name,
                 role = if (response.also_known_as?.isNotEmpty() == true) response.also_known_as[0] else "Empty",
                 seriesList,
-                (response.birthday.let {
+                response.birthday.let {
                     val date =
                         LocalDate.parse(it, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                     val age = ChronoUnit.YEARS.between(date, LocalDate.now()).toInt()
                     age
-                } ?: -1).toString(),
+                }.toString(),
 
                 response.popularity.toInt()
             )

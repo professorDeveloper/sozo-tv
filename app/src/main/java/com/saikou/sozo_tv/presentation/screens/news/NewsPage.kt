@@ -65,9 +65,11 @@ class NewsPage : Fragment() {
             "update" -> {
                 // Navigate to updates screen
             }
+
             "watch" -> {
                 // Navigate to watch screen
             }
+
             "download" -> {
                 // Handle download action
             }

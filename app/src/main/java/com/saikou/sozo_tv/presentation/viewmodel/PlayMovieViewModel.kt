@@ -10,7 +10,6 @@ import com.saikou.sozo_tv.data.model.SubtitleItem
 import com.saikou.sozo_tv.data.model.VodMovieResponse
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.extractor.Extractor
-import com.saikou.sozo_tv.parser.extractor.VixSrcExtractor
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.Video

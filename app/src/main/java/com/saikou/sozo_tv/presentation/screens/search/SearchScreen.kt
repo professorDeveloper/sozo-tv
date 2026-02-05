@@ -1,12 +1,13 @@
 package com.saikou.sozo_tv.presentation.screens.search
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
-import android.speech.RecognitionListener
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -15,7 +16,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.content.Context
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.saikou.sozo_tv.R
@@ -165,7 +165,8 @@ class SearchScreen : Fragment() {
 
                     if (error == SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS) {
                         if (isTV) {
-                            binding.voiceListeningOverlay.listeningTxt.text = "Microphone not available"
+                            binding.voiceListeningOverlay.listeningTxt.text =
+                                "Microphone not available"
                             showVoiceOverlay(true)
                             binding.voiceListeningOverlay.root.postDelayed({
                                 showVoiceOverlay(false)
@@ -203,7 +204,8 @@ class SearchScreen : Fragment() {
                         binding.searchEdt.setSelection(spokenText.length)
                         performSearchImmediate(spokenText)
 
-                        binding.voiceListeningOverlay.listeningTxt.text = "Searching for: $spokenText"
+                        binding.voiceListeningOverlay.listeningTxt.text =
+                            "Searching for: $spokenText"
                         showVoiceOverlay(true)
                         binding.voiceListeningOverlay.root.postDelayed({
                             showVoiceOverlay(false)
@@ -237,7 +239,8 @@ class SearchScreen : Fragment() {
 
     private fun startVoiceRecognition() {
         try {
-            val isTV = requireContext().packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+            val isTV =
+                requireContext().packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
 
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                 putExtra(
@@ -251,7 +254,10 @@ class SearchScreen : Fragment() {
 
                 if (isTV) {
                     putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 2000)
-                    putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1500)
+                    putExtra(
+                        RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,
+                        1500
+                    )
                 }
             }
 
@@ -415,7 +421,6 @@ class SearchScreen : Fragment() {
             binding.recommendationsTitle.text = "Search Results for \"$query\""
         }
     }
-
 
 
     private fun scheduleSearch(query: String) {

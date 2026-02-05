@@ -8,6 +8,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.saikou.sozo_tv.parser.models.Video
 import com.saikou.sozo_tv.utils.Utils
+import kotlinx.coroutines.coroutineScope
 import okhttp3.Request
 import java.security.MessageDigest
 import java.util.Base64
@@ -15,7 +16,6 @@ import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
-import kotlinx.coroutines.coroutineScope
 
 class VidzeeExtractor : Extractor() {
     override val name = "Vidzee"
@@ -80,7 +80,7 @@ class VidzeeExtractor : Extractor() {
             val response = Utils.httpClient.newCall(request).execute()
             if (!response.isSuccessful) throw Exception("Network error: HTTP ${response.code}")
 
-            val body = response.body?.string() ?: throw Exception("Empty body")
+            val body = response.body.string()
 
             val root = JsonParser.parseString(body).asJsonObject
 
@@ -148,7 +148,7 @@ class VidzeeExtractor : Extractor() {
             val response = Utils.httpClient.newCall(request).execute()
             if (!response.isSuccessful) return null
 
-            val b64Data = response.body?.string() ?: return null
+            val b64Data = response.body.string()
             val data = b64Decode(b64Data)
 
             if (data.size < 12 + 16 + 1) return null

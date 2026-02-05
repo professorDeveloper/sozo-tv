@@ -15,7 +15,8 @@ class TabAdapter(
     override fun getItemCount(): Int = 1 // only one header row
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TabViewHolder {
-        val binding = ItemBottombarBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding =
+            ItemBottombarBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return TabViewHolder(binding)
     }
 

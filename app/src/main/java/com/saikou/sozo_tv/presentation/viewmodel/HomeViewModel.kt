@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Category
@@ -19,10 +18,8 @@ import com.saikou.sozo_tv.domain.repository.TMDBHomeRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.manager.FirebaseChannelsManager
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
-import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.UiState
-import com.saikou.sozo_tv.utils.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

@@ -2,11 +2,10 @@ package com.saikou.sozo_tv.parser.sources
 
 import android.util.Log
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
-import com.saikou.sozo_tv.parser.base.BaseParser
 import com.saikou.sozo_tv.parser.anime.AnimePahe
 import com.saikou.sozo_tv.parser.anime.HiAnime
+import com.saikou.sozo_tv.parser.base.BaseParser
 import com.saikou.sozo_tv.utils.LocalData.SOURCE
-import com.saikou.sozo_tv.utils.readData
 
 object AnimeSources {
 

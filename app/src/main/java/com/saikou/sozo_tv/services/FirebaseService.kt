@@ -29,10 +29,10 @@ class FirebaseService(firebaseDatabase: FirebaseDatabase) {
     }
 
 
-        private val newsRef: DatabaseReference = firebaseDatabase.getReference("news")
+    private val newsRef: DatabaseReference = firebaseDatabase.getReference("news")
 
-        suspend fun getNews(): List<NewsItem> {
-            val snapshot = newsRef.get().await()
-            return snapshot.children.mapNotNull { it.getValue(NewsItem::class.java) }
-        }
+    suspend fun getNews(): List<NewsItem> {
+        val snapshot = newsRef.get().await()
+        return snapshot.children.mapNotNull { it.getValue(NewsItem::class.java) }
+    }
 }

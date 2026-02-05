@@ -165,7 +165,7 @@ class NavigationSlideView @JvmOverloads constructor(
         }
         menuView.post {
             val headerHeight = headerView?.height ?: 0
-            val params = menuView.layoutParams as FrameLayout.LayoutParams
+            val params = menuView.layoutParams as LayoutParams
             params.topMargin = 2 * headerHeight
             menuView.layoutParams = params
         }

@@ -23,7 +23,6 @@ import com.saikou.sozo_tv.databinding.ActivityProfileBinding
 import com.saikou.sozo_tv.presentation.screens.profile.ExitDialog
 import com.saikou.sozo_tv.presentation.screens.profile.MyAccountPage
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
-import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isHistoryItemClicked
 import com.saikou.sozo_tv.utils.LocalData.sectionList
 import kotlinx.coroutines.launch
@@ -216,10 +215,6 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
-    }
-
-    override fun onResume() {
-        super.onResume()
     }
 
     companion object {

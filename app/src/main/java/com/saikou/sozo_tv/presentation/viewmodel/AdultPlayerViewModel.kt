@@ -24,7 +24,8 @@ class AdultPlayerViewModel : ViewModel() {
             episodeData.postValue(Resource.Success(kiwi))
         }
     }
-    fun extractVideoFromKiwi(kiwi: Kiwi){
+
+    fun extractVideoFromKiwi(kiwi: Kiwi) {
         extractData.value = Resource.Loading
         viewModelScope.launch {
             val video = adultSource.extract(kiwi)

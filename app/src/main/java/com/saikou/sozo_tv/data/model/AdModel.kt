@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.data.model
 
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
+
 data class AdModel(
     val id: String = "",
     val title: String = "",

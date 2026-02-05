@@ -8,21 +8,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.DialogFragment
-import com.google.android.material.internal.ViewUtils.hideKeyboard
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.WrongTitleSearchAdapter
-import com.saikou.sozo_tv.databinding.FilterDialogBinding
 import com.saikou.sozo_tv.databinding.WrongTitleDialogBinding
 import com.saikou.sozo_tv.parser.models.ShowResponse
-import com.saikou.sozo_tv.presentation.screens.category.CustomSpinnerAdapter
-import com.saikou.sozo_tv.presentation.screens.category.dialog.FilterDialog
 import com.saikou.sozo_tv.presentation.viewmodel.WrongTitleViewModel
-import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.hideKeyboard
 import com.saikou.sozo_tv.utils.visible
-import com.skydoves.powerspinner.IconSpinnerItem
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class WrongTitleDialog : DialogFragment() {
@@ -137,7 +131,7 @@ class WrongTitleDialog : DialogFragment() {
     companion object {
         fun newInstance(
             animeTitle: String,
-            isAdult : Boolean
+            isAdult: Boolean
         ): WrongTitleDialog {
             val dialog = WrongTitleDialog()
             val args = Bundle()

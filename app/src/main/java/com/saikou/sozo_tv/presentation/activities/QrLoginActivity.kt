@@ -5,11 +5,10 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import com.saikou.sozo_tv.databinding.ActivityLoginWebBinding
-
 import com.google.firebase.database.ValueEventListener
 import com.saikou.sozo_tv.data.repository.AuthRepository
 import com.saikou.sozo_tv.data.repository.TvPairingRepository
+import com.saikou.sozo_tv.databinding.ActivityLoginWebBinding
 import com.saikou.sozo_tv.utils.QrCodeUtil
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch

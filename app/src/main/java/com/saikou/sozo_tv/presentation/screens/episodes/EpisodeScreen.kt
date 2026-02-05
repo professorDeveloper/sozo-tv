@@ -8,12 +8,12 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.saikou.sozo_tv.R
@@ -30,7 +30,6 @@ import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.SOURCE
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
-import com.saikou.sozo_tv.utils.readData
 import com.saikou.sozo_tv.utils.visible
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -58,7 +57,7 @@ class EpisodeScreen : Fragment() {
         }
         binding.seasonalBackground.setTheme(PreferenceManager().getSeasonalTheme())
         addAnimFocus()
-        val currentSource = PreferenceManager().getString(SOURCE) ?: ""
+        val currentSource = PreferenceManager().getString(SOURCE)
         if (currentSource == "" && !args.isAdult) {
             binding.topContainer.gone()
             binding.loadingLayout.gone()
@@ -157,7 +156,7 @@ class EpisodeScreen : Fragment() {
                                                     name = dataFound.data.name,
                                                     currentEpisode = (it.episode ?: 0).toString(),
                                                     image = it.snapshot ?: LocalData.anime404,
-                                                    seriesMainId = currentMediaId ?: "",
+                                                    seriesMainId = currentMediaId,
                                                     currentPage = selectedPosition + 1,
                                                     currentIndex = currentIndex
                                                 )
@@ -173,7 +172,7 @@ class EpisodeScreen : Fragment() {
                                                     name = dataFound.data.name,
                                                     currentEpisode = (it.episode ?: 0).toString(),
                                                     image = it.snapshot ?: LocalData.anime404,
-                                                    seriesMainId = currentMediaId ?: "",
+                                                    seriesMainId = currentMediaId,
                                                     currentPage = selectedPosition + 1,
                                                     currentIndex = index,
                                                     idMal = args.malId

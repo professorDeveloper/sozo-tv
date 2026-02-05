@@ -2,7 +2,6 @@ package com.saikou.sozo_tv.data.local.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
 import com.saikou.sozo_tv.data.local.dao.ChannelDao
 import com.saikou.sozo_tv.data.local.dao.CharacterDao
 import com.saikou.sozo_tv.data.local.dao.MovieDao

@@ -4,11 +4,9 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ItemTvCategoryBinding
-import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.visible
 
 class CategoryTabAdapter(private var isFiltered: Boolean = true) :

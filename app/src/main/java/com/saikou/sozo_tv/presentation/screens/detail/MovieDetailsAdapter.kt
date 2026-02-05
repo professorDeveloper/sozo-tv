@@ -19,7 +19,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.CastAdapter
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
-import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.databinding.ItemPlayCastBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsHeaderBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsSectionBinding

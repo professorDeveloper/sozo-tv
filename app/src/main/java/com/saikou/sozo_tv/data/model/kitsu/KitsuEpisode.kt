@@ -1,4 +1,5 @@
 package com.saikou.sozo_tv.data.model.kitsu
+
 data class KitsuEpisode(
     val id: String,
     val number: Int,
@@ -23,6 +24,7 @@ data class KitsuEpisodeAttributes(
     val titles: KitsuTitles?,
     val thumbnail: KitsuThumbnail?
 )
+
 data class KitsuSearchResponse(
     val data: List<KitsuSearchItem>?
 )

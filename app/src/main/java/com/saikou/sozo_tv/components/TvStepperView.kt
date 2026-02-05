@@ -1,5 +1,5 @@
 package com.saikou.sozo_tv.components
-import android.animation.AnimatorInflater
+
 import android.content.Context
 import android.util.AttributeSet
 import android.view.Gravity
@@ -66,8 +66,14 @@ class TvStepperView @JvmOverloads constructor(
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         return when (keyCode) {
-            KeyEvent.KEYCODE_DPAD_LEFT -> { decrement(); true }
-            KeyEvent.KEYCODE_DPAD_RIGHT -> { increment(); true }
+            KeyEvent.KEYCODE_DPAD_LEFT -> {
+                decrement(); true
+            }
+
+            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                increment(); true
+            }
+
             else -> super.onKeyDown(keyCode, event)
         }
     }

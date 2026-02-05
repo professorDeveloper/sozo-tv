@@ -2,7 +2,6 @@ package com.saikou.sozo_tv.data.remote
 
 import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
-import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import okhttp3.Interceptor
 import okhttp3.Response
 

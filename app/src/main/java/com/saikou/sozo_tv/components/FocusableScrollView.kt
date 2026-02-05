@@ -17,7 +17,7 @@ class FocusableScrollView @JvmOverloads constructor(
             val rect = Rect()
             focused.getDrawingRect(rect)
             offsetDescendantRectToMyCoords(focused, rect)
-            
+
             val scrollDelta = computeScrollDeltaToGetChildRectOnScreen(rect)
             if (scrollDelta != 0) {
                 smoothScrollBy(0, scrollDelta)
@@ -41,9 +41,11 @@ class FocusableScrollView @JvmOverloads constructor(
             rect.bottom > screenBottom && rect.top > screenTop -> {
                 if (rect.height() > height) rect.top - screenTop else rect.bottom - screenBottom
             }
+
             rect.top < screenTop && rect.bottom < screenBottom -> {
                 if (rect.height() > height) rect.bottom - screenBottom else rect.top - screenTop
             }
+
             else -> 0
         }
     }

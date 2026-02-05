@@ -56,6 +56,7 @@ class TvDropdownSectionView @JvmOverloads constructor(
                     toggle(true)
                     true
                 }
+
                 else -> false
             }
         }

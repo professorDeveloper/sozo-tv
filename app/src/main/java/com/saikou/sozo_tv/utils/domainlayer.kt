@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.utils
 
-import android.media.MediaCas
 import com.animestudios.animeapp.GetAnimeByGenreQuery
 import com.animestudios.animeapp.GetAnimeByIdQuery
 import com.animestudios.animeapp.GetAnimeByOnlGenreQuery
@@ -18,7 +17,6 @@ import com.saikou.sozo_tv.data.model.jikan.BannerHomeData
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.data.model.tmdb.MediaDetails
 import com.saikou.sozo_tv.data.model.tmdb.TmdbListItem
-import com.saikou.sozo_tv.data.model.tmdb.cast.MediaCast
 import com.saikou.sozo_tv.domain.model.AiringSchedule
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
@@ -40,7 +38,7 @@ fun com.saikou.sozo_tv.data.model.tmdb.cast.Cast.toDomain(): MainModel {
         this.id,
         titleFormat,
         -1,
-        this.imageUrl ?: "",
+        this.imageUrl,
         null,
         null,
         -1,
@@ -185,7 +183,7 @@ fun JikanBannerResponse.toDomain(): BannerModel {
             list.add(
                 BannerItem(
                     contentItem = BannerHomeData(
-                        data.images.jpg.large_image_url ?: "",
+                        data.images.jpg.large_image_url,
                         data.title,
                         data.synopsis,
                         mal_id = data.mal_id

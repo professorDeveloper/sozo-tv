@@ -11,9 +11,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.saikou.sozo_tv.databinding.SearchItemBinding
 import com.saikou.sozo_tv.parser.models.ShowResponse
-import com.saikou.sozo_tv.utils.gone
 
-class WrongTitleSearchAdapter() :
+class WrongTitleSearchAdapter :
     RecyclerView.Adapter<WrongTitleSearchAdapter.MovieViewHolder>() {
     private var movieList = ArrayList<ShowResponse>()
     var query: String = ""

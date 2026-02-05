@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.local.entity.CharacterEntity
 import com.saikou.sozo_tv.domain.model.CastDetailModel
 import com.saikou.sozo_tv.domain.repository.CharacterBookmarkRepository
@@ -12,7 +11,6 @@ import com.saikou.sozo_tv.domain.repository.DetailRepository
 import com.saikou.sozo_tv.utils.LocalData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 class CastDetailViewModel(
     private val repo: DetailRepository,

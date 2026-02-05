@@ -51,6 +51,7 @@ data class MediaDetails(
         get() = poster_path?.let { LocalData.IMDB_IMAGE_PATH + it }
 
 }
+
 data class Genre(
     val id: Int,
     val name: String

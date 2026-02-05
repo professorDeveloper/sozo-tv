@@ -310,7 +310,7 @@ class SeriesPlayerScreen : Fragment() {
                                         model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
                                             if (resource is Resource.Success) {
                                                 val newUrl =
-                                                    resource.data.urlobj ?: return@observeOnce
+                                                    resource.data.urlobj
                                                 playNewEpisode(
                                                     newUrl,
                                                     headers = resource.data.header
@@ -484,7 +484,7 @@ class SeriesPlayerScreen : Fragment() {
                 Log.d("SaveHistory", "Building new history entity...")
                 val historyBuild = WatchHistoryEntity(
                     episodeList[model.currentEpIndex].session ?: return,
-                    "${args.name} - Episode ${model.currentEpIndex + 1}" ?: return,
+                    "${args.name} - Episode ${model.currentEpIndex + 1}",
                     mediaName = args.name,
                     episodeList[model.currentEpIndex].snapshot ?: return,
                     "",
@@ -558,8 +558,8 @@ class SeriesPlayerScreen : Fragment() {
             true
         )
 
-        player.setVolume(1f)
-        player.setSkipSilenceEnabled(false)
+        player.volume = 1f
+        player.skipSilenceEnabled = false
         player.setHandleAudioBecomingNoisy(true)
 
         if (!::mediaSession.isInitialized) {
@@ -811,7 +811,7 @@ class SeriesPlayerScreen : Fragment() {
 
             OkHttpClient().newCall(request).execute().use { response ->
                 if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
-                response.body!!.byteStream().use { input ->
+                response.body.byteStream().use { input ->
                     localFile.outputStream().use { output ->
                         input.copyTo(output)
                     }

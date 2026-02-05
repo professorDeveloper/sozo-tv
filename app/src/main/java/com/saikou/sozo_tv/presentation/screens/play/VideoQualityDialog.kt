@@ -8,8 +8,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.VideoOptionsAdapter
-import com.saikou.sozo_tv.data.local.pref.PreferenceManager
-import com.saikou.sozo_tv.databinding.AlertPlayerDialogBinding
 import com.saikou.sozo_tv.databinding.DialogVideoQualityBinding
 import com.saikou.sozo_tv.parser.models.VideoOption
 

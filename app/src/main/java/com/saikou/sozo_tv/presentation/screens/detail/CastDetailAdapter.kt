@@ -177,9 +177,9 @@ class CastDetailAdapter(
         @SuppressLint("SetTextI18n")
         fun bind(item: CastAdapterModel, interfaceListener: DetailsInterface) {
 
-                binding.backBtn.setOnClickListener {
-                    interfaceListener.onCancelButtonClicked()
-                }
+            binding.backBtn.setOnClickListener {
+                interfaceListener.onCancelButtonClicked()
+            }
 
             binding.favoriteBtn.setOnClickListener {
                 interfaceListener.onFavoriteButtonClicked(item)

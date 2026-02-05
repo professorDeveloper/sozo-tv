@@ -13,7 +13,6 @@ import com.saikou.sozo_tv.presentation.screens.detail.CastDetailScreenArgs
 import com.saikou.sozo_tv.presentation.screens.play.MovieSeriesPlayerScreenArgs
 import com.saikou.sozo_tv.presentation.screens.play.SeriesPlayerScreenArgs
 import com.saikou.sozo_tv.presentation.viewmodel.DetailViewModel
-import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.LocalData.isHistoryItemClicked
 import org.koin.androidx.viewmodel.ext.android.viewModel

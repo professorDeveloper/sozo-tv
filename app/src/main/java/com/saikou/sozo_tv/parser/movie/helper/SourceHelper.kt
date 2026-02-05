@@ -17,6 +17,7 @@ object SourceHelper {
         val plPart = cleaned.substring(plIndex)
         return "https://tmstr2.thrumbleandjaxon.com$plPart"
     }
+
     private fun httpsify(url: String): String {
         return if (url.startsWith("//")) "https:$url" else url
     }

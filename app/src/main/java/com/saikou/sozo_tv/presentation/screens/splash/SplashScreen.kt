@@ -19,7 +19,6 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import androidx.navigation.fragment.findNavController
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.SplashScreenBinding
 import com.saikou.sozo_tv.domain.model.AppUpdate

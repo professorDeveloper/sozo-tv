@@ -35,6 +35,7 @@ class EpisodeTabAdapter(private var isFiltered: Boolean = false) :
                     hasFocus -> AnimationUtils.loadAnimation(
                         binding.root.context, R.anim.zoom_in
                     )
+
                     else -> AnimationUtils.loadAnimation(
                         binding.root.context, R.anim.zoom_out
                     )

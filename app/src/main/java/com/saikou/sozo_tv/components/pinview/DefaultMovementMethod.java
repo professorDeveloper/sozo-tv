@@ -11,15 +11,15 @@ class DefaultMovementMethod implements MovementMethod {
 
     private static DefaultMovementMethod sInstance;
 
+    private DefaultMovementMethod() {
+    }
+
     public static MovementMethod getInstance() {
         if (sInstance == null) {
             sInstance = new DefaultMovementMethod();
         }
 
         return sInstance;
-    }
-
-    private DefaultMovementMethod() {
     }
 
     @Override

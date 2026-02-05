@@ -4,5 +4,5 @@ data class ServerResponse(val link: String)
 data class HiServer(
     val id: String,
     val label: String,
-    val type: String="",
+    val type: String = "",
 )

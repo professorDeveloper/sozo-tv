@@ -10,9 +10,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.FilterDialogGardenBinding
-import com.saikou.sozo_tv.domain.model.MySpinnerItem
-import com.saikou.sozo_tv.presentation.screens.category.CustomSpinnerAdapter
-import com.saikou.sozo_tv.utils.LocalData
 
 class FilterDialogGarden : DialogFragment() {
 
@@ -94,10 +91,12 @@ class FilterDialogGarden : DialogFragment() {
                 binding.countryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
                 binding.countryContainer.title.setTextColor(selectedColor)
             }
+
             "By Category" -> {
                 binding.categoryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
                 binding.categoryContainer.title.setTextColor(selectedColor)
             }
+
             "Custom List" -> {
                 binding.customContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
                 binding.customContainer.title.setTextColor(selectedColor)

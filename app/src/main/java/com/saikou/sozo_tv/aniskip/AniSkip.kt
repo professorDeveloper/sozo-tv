@@ -1,6 +1,6 @@
 package com.saikou.sozo_tv.aniskip
+
 import com.google.gson.Gson
-import com.google.gson.annotations.SerializedName
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder

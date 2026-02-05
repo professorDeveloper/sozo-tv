@@ -2,10 +2,10 @@ package com.saikou.sozo_tv.presentation.screens.detail
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.saikou.sozo_tv.databinding.CastDetailScreenBinding
@@ -17,7 +17,6 @@ import com.saikou.sozo_tv.utils.LocalData.characterBookmark
 import com.saikou.sozo_tv.utils.snackString
 import com.saikou.sozo_tv.utils.toDomain
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
     private var _binding: CastDetailScreenBinding? = null

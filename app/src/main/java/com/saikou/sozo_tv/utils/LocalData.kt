@@ -3,7 +3,6 @@ package com.saikou.sozo_tv.utils
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
-import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.data.model.SectionItem

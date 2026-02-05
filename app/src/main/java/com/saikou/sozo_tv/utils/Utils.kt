@@ -49,7 +49,7 @@ object Utils {
         }
 
         val response = httpClient.newCall(requestBuilder.build()).execute()
-        return response.body?.string().toString()
+        return response.body.string().toString()
     }
 
     fun getJsoup(

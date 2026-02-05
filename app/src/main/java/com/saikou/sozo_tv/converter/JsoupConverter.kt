@@ -5,7 +5,6 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.parser.Parser
 import retrofit2.Converter
-import java.nio.charset.Charset
 
 class JsoupConverter(
     private val baseUri: String,

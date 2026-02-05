@@ -9,12 +9,12 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.widget.ImageViewCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.fragment.NavHostFragment
-import com.saikou.sozo_tv.components.navigation.setupWithNavController
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.components.navigation.setupWithNavController
 import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.ActivityMainBinding
 import com.saikou.sozo_tv.databinding.ContentHeaderMenuMainTvBinding
-import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.loadImage
@@ -69,6 +69,7 @@ class MainActivity : FragmentActivity() {
             when (destination.id) {
                 R.id.search, R.id.home, R.id.categories, R.id.contact, R.id.tvgarden, R.id.myList ->
                     binding.navMain.visibility = View.VISIBLE
+
                 else -> binding.navMain.visibility = View.GONE
             }
         }
@@ -91,7 +92,10 @@ class MainActivity : FragmentActivity() {
 
         myListMenuItem?.isVisible = isLoggedIn
 
-        Log.d("MainActivity", "User logged in: $isLoggedIn, My List visible: ${myListMenuItem?.isVisible}")
+        Log.d(
+            "MainActivity",
+            "User logged in: $isLoggedIn, My List visible: ${myListMenuItem?.isVisible}"
+        )
     }
 
     private fun navigateProfile() {

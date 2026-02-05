@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.domain.repository
 
-import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.local.entity.CharacterEntity
 
 interface CharacterBookmarkRepository {

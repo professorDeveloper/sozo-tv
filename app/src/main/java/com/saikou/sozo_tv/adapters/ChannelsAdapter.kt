@@ -11,9 +11,10 @@ import com.saikou.sozo_tv.databinding.ItemChannelBinding
 class ChannelsAdapter(
     private val onChannelClick: (Channel) -> Unit
 ) : RecyclerView.Adapter<ChannelsAdapter.ChannelViewHolder>() {
-    private val channels =ArrayList<Channel>()
+    private val channels = ArrayList<Channel>()
 
-    class ChannelViewHolder(private val binding: ItemChannelBinding) : RecyclerView.ViewHolder(binding.root) {
+    class ChannelViewHolder(private val binding: ItemChannelBinding) :
+        RecyclerView.ViewHolder(binding.root) {
 
         @SuppressLint("SetTextI18n")
         fun bind(channel: Channel, onChannelClick: (Channel) -> Unit) {

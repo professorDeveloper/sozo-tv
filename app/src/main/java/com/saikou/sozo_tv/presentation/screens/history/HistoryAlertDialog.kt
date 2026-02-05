@@ -10,7 +10,7 @@ import androidx.fragment.app.DialogFragment
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.HistoryAlertDialogBinding
 
-class HistoryAlertDialog() : DialogFragment() {
+class HistoryAlertDialog : DialogFragment() {
 
     private var _binding: HistoryAlertDialogBinding? = null
     private val binding get() = _binding!!

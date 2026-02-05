@@ -1,7 +1,6 @@
 package com.saikou.sozo_tv.utils
 
 import android.content.Context
-import android.content.pm.PackageManager
 
 object AppUtils {
 

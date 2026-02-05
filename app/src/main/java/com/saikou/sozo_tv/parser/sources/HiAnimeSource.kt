@@ -9,7 +9,6 @@ import com.saikou.sozo_tv.utils.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
-import java.net.URI
 
 class HiAnimeSource {
 

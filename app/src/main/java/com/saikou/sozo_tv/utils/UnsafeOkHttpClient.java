@@ -1,10 +1,13 @@
 package com.saikou.sozo_tv.utils;
 
-import okhttp3.OkHttpClient;
-
 import java.security.cert.CertificateException;
 
-import javax.net.ssl.*;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import okhttp3.OkHttpClient;
 
 public class UnsafeOkHttpClient {
     public static OkHttpClient getUnsafeOkHttpClient() {

@@ -9,10 +9,9 @@ import android.view.ViewGroup
 import androidx.activity.addCallback
 import androidx.fragment.app.DialogFragment
 import com.saikou.sozo_tv.R
-import com.saikou.sozo_tv.databinding.HistoryAlertDialogBinding
 import com.saikou.sozo_tv.databinding.NsfwDialogBinding
 
-class NsfwAlertDialog: DialogFragment() {
+class NsfwAlertDialog : DialogFragment() {
 
     private var _binding: NsfwDialogBinding? = null
     private val binding get() = _binding!!

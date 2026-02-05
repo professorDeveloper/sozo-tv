@@ -47,6 +47,7 @@ class TvToggleRowView @JvmOverloads constructor(
                     switchView.toggle()
                     true
                 }
+
                 else -> false
             }
         }
@@ -89,11 +90,13 @@ class TvToggleRowView @JvmOverloads constructor(
 
     private fun updateStatus(enabled: Boolean) {
         if (enabled) {
-            statusDot.background = ContextCompat.getDrawable(context, R.drawable.netflix_status_dot_enabled)
+            statusDot.background =
+                ContextCompat.getDrawable(context, R.drawable.netflix_status_dot_enabled)
             statusText.text = "Enabled"
             statusText.setTextColor(ContextCompat.getColor(context, R.color.netflix_green))
         } else {
-            statusDot.background = ContextCompat.getDrawable(context, R.drawable.netflix_status_dot_disabled)
+            statusDot.background =
+                ContextCompat.getDrawable(context, R.drawable.netflix_status_dot_disabled)
             statusText.text = "Disabled"
             statusText.setTextColor(ContextCompat.getColor(context, R.color.netflix_gray))
         }
