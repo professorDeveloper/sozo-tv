@@ -11,7 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.saikou.sozo_tv.adapters.HistoryAdapter
 import com.saikou.sozo_tv.databinding.HistoryPageBinding
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
-import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.PlayAnimeViewModel
 import com.saikou.sozo_tv.utils.LocalData.SOURCE
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.readData
@@ -23,7 +23,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class HistoryPage : Fragment() {
     private lateinit var binding: HistoryPageBinding
-    private val model by viewModel<PlayViewModel>()
+    private val model by viewModel<PlayAnimeViewModel>()
     private val historyAdapter = HistoryAdapter()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?

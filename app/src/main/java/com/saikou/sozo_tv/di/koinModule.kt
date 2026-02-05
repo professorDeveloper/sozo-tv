@@ -43,7 +43,6 @@ import com.saikou.sozo_tv.presentation.viewmodel.MyListViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.NewsViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayAnimeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayMovieViewModel
-import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SplashViewModel
@@ -117,7 +116,6 @@ val koinModule = module {
     viewModel { LiveTvViewModel(dao = get()) }
     viewModel { AdultPlayerViewModel() }
     viewModel { SplashViewModel(firebaseService = get()) }
-    viewModel { PlayViewModel(watchHistoryRepository = get()) }
     viewModel { PlayMovieViewModel(watchHistoryRepository = get()) }
     viewModel { PlayAnimeViewModel(watchHistoryRepository = get()) }
     viewModel { DetailViewModel(repo = get(), bookmarkRepo = get()) }

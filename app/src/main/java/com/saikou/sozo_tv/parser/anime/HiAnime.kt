@@ -163,7 +163,7 @@ class HiAnime : BaseParser() {
                     VideoOption(
                         videoUrl = m3u8,
                         fansub = "HiAnime",
-                        resolution = "HLS",
+                        resolution = server.label,
                         mimeTypes = MimeTypes.APPLICATION_M3U8,
                         audioType = if (server.type == "dub") AudioType.DUB else AudioType.SUB,
                         quality = "Adaptive",

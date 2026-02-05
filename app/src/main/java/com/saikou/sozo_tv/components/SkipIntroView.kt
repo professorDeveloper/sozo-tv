@@ -19,7 +19,6 @@ import com.saikou.sozo_tv.aniskip.AniSkip
 import com.saikou.sozo_tv.aniskip.AniSkip.getType
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.presentation.viewmodel.PlayAnimeViewModel
-import com.saikou.sozo_tv.presentation.viewmodel.PlayViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

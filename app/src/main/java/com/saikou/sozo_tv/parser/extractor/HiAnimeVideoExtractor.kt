@@ -42,10 +42,4 @@ class HiAnimeVideoExtractor {
         return source
     }
 
-    fun extractMegacloudVideo(url: String): Pair<String, List<MegaTrack>> {
-        val extractor = MegacloudExtractor()
-        val (m3u8, tracks) = extractor.extractVideoUrl(url)
-        println("Subtitles: $tracks")
-        return Pair(m3u8, tracks)
-    }
 }
