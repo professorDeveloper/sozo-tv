@@ -1,0 +1,350 @@
+package com.saikou.sozo_tv.parser.anime
+
+import android.util.Log
+import androidx.media3.common.MimeTypes
+import com.saikou.sozo_tv.parser.base.BaseParser
+import com.saikou.sozo_tv.parser.extractor.Extractor
+import com.saikou.sozo_tv.parser.models.AudioType
+import com.saikou.sozo_tv.parser.models.Data
+import com.saikou.sozo_tv.parser.models.EpisodeData
+import com.saikou.sozo_tv.parser.models.ShowResponse
+import com.saikou.sozo_tv.parser.models.VideoOption
+import com.saikou.sozo_tv.utils.Utils.getJsoup
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
+
+class AnimeFlvParser : BaseParser() {
+
+    override val name = "AnimeFLV"
+    override val saveName = "AnimeFlv"
+    override val hostUrl = "https://www3.animeflv.net"
+    override val language = "es"
+
+    private val json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
+
+    companion object {
+        private const val TAG = "AnimeFlvParser"
+
+        private val genres = listOf(
+            "accion" to "Acción",
+            "artes-marciales" to "Artes Marciales",
+            "aventura" to "Aventuras",
+            "carreras" to "Carreras",
+            "ciencia-ficcion" to "Ciencia Ficción",
+            "comedia" to "Comedia",
+            "demencia" to "Demencia",
+            "demonios" to "Demonios",
+            "deportes" to "Deportes",
+            "drama" to "Drama",
+            "ecchi" to "Ecchi",
+            "escolares" to "Escolares",
+            "espacial" to "Espacial",
+            "fantasia" to "Fantasía",
+            "harem" to "Harem",
+            "historico" to "Histórico",
+            "infantil" to "Infantil",
+            "josei" to "Josei",
+            "juegos" to "Juegos",
+            "magia" to "Magia",
+            "mecha" to "Mecha",
+            "militar" to "Militar",
+            "misterio" to "Misterio",
+            "musica" to "Música",
+            "parodia" to "Parodia",
+            "policia" to "Policía",
+            "psicologico" to "Psicológico",
+            "recuentos-de-la-vida" to "Recuentos de la vida",
+            "romance" to "Romance",
+            "samurai" to "Samurai",
+            "seinen" to "Seinen",
+            "shoujo" to "Shojo",
+            "shounen" to "Shounen",
+            "sobrenatural" to "Sobrenatural",
+            "superpoderes" to "Superpoderes",
+            "suspenso" to "Suspenso",
+            "terror" to "Terror",
+            "vampiros" to "Vampiros",
+            "yaoi" to "Yaoi",
+            "yuri" to "Yuri"
+        )
+    }
+
+    private fun getDefaultHeaders(): Map<String, String> {
+        return mapOf(
+            "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept" to "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language" to "es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3",
+            "Connection" to "keep-alive",
+            "Upgrade-Insecure-Requests" to "1",
+            "Referer" to "$hostUrl/"
+        )
+    }
+
+    private fun getEpisodePoster(animeId: String, episodeNum: String): String {
+        return "https://cdn.animeflv.net/screenshots/$animeId/$episodeNum/th_3.jpg"
+    }
+
+    // Search funksiyasi - qidiruv va janrlar ro'yxatini qaytaradi
+    override suspend fun search(query: String): List<ShowResponse> {
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.d(TAG, "Searching for: $query")
+
+                if (query.isBlank()) {
+                    // Janrlar ro'yxatini qaytarish
+                    return@withContext genres.map { (id, name) ->
+                        ShowResponse(
+                            name = name,
+                            link = id,
+                            coverUrl = "",
+                            otherNames = emptyList(),
+                            extra = mapOf("type" to "genre")
+                        )
+                    }
+                }
+
+                val url = "$hostUrl/browse?q=${query.replace(" ", "%20")}"
+                Log.d(TAG, "Searching url: $url")
+
+                val doc = getJsoup(url, getDefaultHeaders())
+                parseShows(doc.select("ul.ListAnimes li article"))
+            } catch (e: Exception) {
+                Log.e(TAG, "Search error: ${e.message}")
+                emptyList()
+            }
+        }
+    }
+
+    // TV Show/Movie elementlarini parse qilish
+    private fun parseShows(elements: List<Element>): List<ShowResponse> {
+        return elements.mapNotNull { element ->
+            try {
+                val url = element.selectFirst("div.Description a.Button")?.attr("href")
+                    ?: return@mapNotNull null
+                val id = url.substringAfterLast("/")
+                val title = element.selectFirst("a h3")?.text() ?: ""
+                val posterUrl = element.selectFirst("a div.Image figure img")?.attr("src")
+                val type = element.selectFirst("span.Type")?.text()
+
+                val finalPoster = if (posterUrl?.startsWith("http") == true) {
+                    posterUrl
+                } else {
+                    posterUrl?.let { "$hostUrl$it" }
+                }
+
+                ShowResponse(
+                    name = title,
+                    link = id,
+                    coverUrl = finalPoster ?: "",
+                    otherNames = emptyList(),
+                    extra = mapOf(
+                        "type" to if (type == "Película") "movie" else "tv",
+                        "is_movie" to (type == "Película").toString(),
+                        "full_url" to "$hostUrl/anime/$id"
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Error parsing show: ${e.message}")
+                null
+            }
+        }
+    }
+
+    // Epizodlarni yuklash
+    override suspend fun loadEpisodes(
+        id: String,
+        page: Int,
+        showResponse: ShowResponse
+    ): EpisodeData? {
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.d(TAG, "Loading episodes for: $id, page: $page")
+                Log.d(TAG, "loadEpisodes: ${hostUrl}/anime/$id")
+
+                val doc = getJsoup("$hostUrl/anime/$id", getDefaultHeaders())
+                val episodes = parseEpisodes(doc)
+                Log.d(TAG, "loadEpisodes: ${episodes}")
+                EpisodeData(
+                    current_page = 1,
+                    data = episodes,
+                    from = 1,
+                    last_page = 1,
+                    next_page_url = null,
+                    per_page = episodes.size,
+                    prev_page_url = null,
+                    to = episodes.size,
+                    total = episodes.size
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading episodes: ${e.message}")
+                null
+            }
+        }
+    }
+
+    private fun parseEpisodes(doc: Document): List<Data> {
+        val episodes = mutableListOf<Data>()
+        try {
+            val script = doc.select("script")
+                .firstOrNull { it.data().contains("var episodes =") }
+                ?.data() ?: return emptyList()
+
+            val episodesData = script.substringAfter("var episodes = [").substringBefore("];")
+            val animeInfoJson =
+                Regex("""var\s+anime_info\s*=\s*(\[[^\]]+])""").find(script)?.groupValues?.get(1)
+            val animeInfo = animeInfoJson?.let { json.decodeFromString<List<String>>(it) }
+            val animeId = animeInfo?.getOrNull(0) ?: ""
+            val animeUri = animeInfo?.getOrNull(2) ?: ""
+
+            val episodeList = episodesData.split("],[").mapNotNull { episodeStr ->
+                val parts = episodeStr.replace("[", "").replace("]", "").split(",")
+                if (parts.size >= 2) {
+                    val episodeNum = parts[0].trim()
+                    val episodeId = parts[1].trim()
+                    Pair(episodeNum, episodeId)
+                } else null
+            }
+
+            episodeList.forEachIndexed { index, (episodeNum, episodeId) ->
+                episodes.add(
+                    Data(
+                        id = episodeId.toIntOrNull() ?: (index + 1),
+                        anime_id = animeId.toIntOrNull() ?: 0,
+                        title = "Episodio $episodeNum",
+                        episode = episodeNum.toIntOrNull(),
+                        episode2 = episodeNum.toIntOrNull(),
+                        session = "$hostUrl/ver/$animeUri-$episodeNum",
+                        season = 1,
+                        serverId = "$hostUrl/ver/$animeUri-$episodeNum",
+                        snapshot = getEpisodePoster(animeId, episodeNum)
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error parsing episodes: ${e.message}")
+        }
+
+        // Epizodlarni raqam bo'yicha teskari tartibda (eng yangisi birinchi)
+        return episodes.sortedByDescending { it.episode ?: 0 }
+    }
+
+    override suspend fun getEpisodeVideo(id: String, epId: String): List<VideoOption> {
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.d(TAG, "Getting video options for episode: $epId")
+
+                val episodeUrl = if (epId.startsWith("http")) epId else "$hostUrl/ver/$epId"
+                val doc = getJsoup(episodeUrl, getDefaultHeaders())
+                val servers = parseServers(doc)
+
+                servers.map { server ->
+                    VideoOption(
+                        videoUrl = server.src,
+                        fansub = server.name,
+                        resolution = "HD",
+                        audioType = if (server.name.contains("(Latino)", ignoreCase = true) ||
+                            server.name.contains("(Español)", ignoreCase = true)
+                        )
+                            AudioType.DUB else AudioType.SUB,
+                        quality = "",
+                        isActive = true,
+                        mimeTypes = MimeTypes.APPLICATION_M3U8,
+                        fullText = server.name,
+                        tracks = emptyList(),
+                        headers = emptyMap()
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error getting video options: ${e.message}")
+                emptyList()
+            }
+        }
+    }
+
+    // Serverlarni parse qilish
+    private fun parseServers(doc: Document): List<com.saikou.sozo_tv.parser.models.Video.Server> {
+        val servers = mutableListOf<com.saikou.sozo_tv.parser.models.Video.Server>()
+
+        try {
+            val script =
+                doc.selectFirst("script:containsData(var videos = {)")?.data() ?: return emptyList()
+            val jsonString = script.substringAfter("var videos =").substringBefore(";").trim()
+
+            // JSON ni parse qilish
+            val serverModel = try {
+                json.decodeFromString<AnimeFlvServerModel>(jsonString)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error parsing server JSON: ${e.message}")
+                return emptyList()
+            }
+
+            // SUB (subtitled) serverlari
+            serverModel.sub?.forEach { sub ->
+                if (sub.code.isNotBlank()) {
+                    servers.add(
+                        com.saikou.sozo_tv.parser.models.Video.Server(
+                            id = sub.code,
+                            name = sub.title ?: "Servidor SUB",
+                            src = sub.code,
+                            fileName = "",
+                            fileSize = ""
+                        )
+                    )
+                }
+            }
+
+            // DUB (dubbed) serverlari
+            serverModel.dub?.forEach { dub ->
+                if (dub.code.isNotBlank()) {
+                    servers.add(
+                        com.saikou.sozo_tv.parser.models.Video.Server(
+                            id = dub.code,
+                            name = dub.title ?: "Servidor DUB",
+                            src = dub.code,
+                            fileName = "",
+                            fileSize = ""
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error parsing servers: ${e.message}")
+        }
+
+        return servers
+    }
+
+    override suspend fun extractVideo(url: String): String {
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.d(TAG, "Extracting video from: $url")
+
+                val video = Extractor.extract(url)
+                val videoUrl = video.source
+                Log.d(TAG, "Extracted video URL: $videoUrl")
+                videoUrl
+            } catch (e: Exception) {
+                Log.e(TAG, "Error extracting video: ${e.message}")
+                throw e
+            }
+        }
+    }
+
+}
+
+// AnimeFLV uchun server modeli
+data class AnimeFlvServerModel(
+    val sub: List<AnimeFlvSubServer>? = null,
+    val dub: List<AnimeFlvSubServer>? = null
+)
+
+data class AnimeFlvSubServer(
+    val code: String,
+    val title: String? = null
+)

@@ -3,6 +3,7 @@ package com.saikou.sozo_tv.parser.sources
 import android.util.Log
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.parser.anime.AnimeFenixParser
+import com.saikou.sozo_tv.parser.anime.AnimeFlvParser
 import com.saikou.sozo_tv.parser.anime.AnimePahe
 import com.saikou.sozo_tv.parser.anime.AnimeSaturnParser
 import com.saikou.sozo_tv.parser.anime.AnimeWorldParser
@@ -18,6 +19,7 @@ object AnimeSources {
         return when (readData) {
             "animeworld" -> AnimeWorldParser()
             "hianime" -> HiAnime()
+            "AnimeFlvParser" -> AnimeFlvParser()
             "AnimeSaturn" -> AnimeSaturnParser()
             "AnimeFenix" -> AnimeFenixParser()
             else -> AnimePahe()
@@ -27,6 +29,7 @@ object AnimeSources {
     fun getSourceById(id: String): BaseParser {
         return when (id) {
             "animeworld" -> AnimeWorldParser()
+            "AnimeFlv" -> AnimeFlvParser()
             "hianime" -> HiAnime()
             "AnimeSaturn" -> AnimeSaturnParser()
             "AnimeFenix" -> AnimeFenixParser()
