@@ -94,14 +94,5 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <ImageView
-        android:id="@+id/ivSelected"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_marginStart="8dp"
-        android:src="@drawable/ic_check"
-        android:visibility="gone"
-        app:tint="@color/netflix_red"
-        tools:visibility="visible" />
 
 </LinearLayout>

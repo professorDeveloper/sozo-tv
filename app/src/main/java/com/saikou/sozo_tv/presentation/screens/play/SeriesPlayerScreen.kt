@@ -38,6 +38,7 @@ import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
+import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.exoplayer.source.SingleSampleMediaSource
@@ -129,6 +130,8 @@ class SeriesPlayerScreen : Fragment() {
     @OptIn(UnstableApi::class)
     private fun buildOkHttpClient(headers: Map<String, String>): OkHttpClient {
         return OkHttpClient.Builder()
+            .followRedirects(true)
+            .followSslRedirects(true)
             .connectionSpecs(
                 listOf(
                     ConnectionSpec.MODERN_TLS,
@@ -136,20 +139,21 @@ class SeriesPlayerScreen : Fragment() {
                     ConnectionSpec.CLEARTEXT
                 )
             )
-            .addInterceptor { chain ->
+            .addNetworkInterceptor { chain ->
                 val original = chain.request()
-                val builder = original.newBuilder()
+
+                val b = original.newBuilder()
+
                 headers.forEach { (k, v) ->
-                    builder.header(k, v)
+                    b.header(k, v)
                 }
 
-                chain.proceed(builder.build())
+                val req = b.build()
+                val resp = chain.proceed(req)
+                resp
             }
-            .connectTimeout(60, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(60, TimeUnit.SECONDS)
-            .callTimeout(120, TimeUnit.SECONDS)
-            .retryOnConnectionFailure(true)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
             .ignoreAllSSLErrors()
             .build()
     }
@@ -421,10 +425,7 @@ class SeriesPlayerScreen : Fragment() {
 
 
     @OptIn(UnstableApi::class)
-    private fun createMediaSource(
-        url: String,
-        mimeType: String?
-    ): androidx.media3.exoplayer.source.MediaSource {
+    private fun createMediaSource(url: String, mimeType: String?): MediaSource {
         val mime = mimeType ?: MimeTypes.APPLICATION_MP4
         val item = MediaItem.Builder()
             .setUri(url)
@@ -435,7 +436,9 @@ class SeriesPlayerScreen : Fragment() {
         return if (mime == MimeTypes.APPLICATION_M3U8) {
             HlsMediaSource.Factory(dataSourceFactory).createMediaSource(item)
         } else {
-            ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(item)
+            ProgressiveMediaSource.Factory(dataSourceFactory)
+                .setContinueLoadingCheckIntervalBytes(1024 * 1024)
+                .createMediaSource(item)
         }
     }
 

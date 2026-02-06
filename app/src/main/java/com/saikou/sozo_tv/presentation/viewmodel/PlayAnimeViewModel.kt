@@ -218,12 +218,20 @@ class PlayAnimeViewModel(
                 type = option.mimeTypes,
                 thumbnail = option.tracks.find { it.file.contains("thumbnail") }?.file ?: ""
             )
-        } else if (sourceKey == SOURCE_ANIMEWORLD) {
+        }else if (sourceKey == "AnimeSaturn") {
+            VodMovieResponse(
+                authInfo = "",
+                subtitleList = arrayListOf(),
+                urlobj = option.videoUrl,
+                header = option.headers,
+                type = MimeTypes.APPLICATION_MP4,
+            )
+        }
+        else if (sourceKey == SOURCE_ANIMEWORLD) {
             val headers = linkedMapOf(
-                "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+                "User-Agent" to "Mozilla/5.0",
                 "Accept" to "*/*",
                 "Accept-Language" to "en-US,en;q=0.9,uz-UZ;q=0.8,uz;q=0.7",
-                "Range" to "bytes=0-",
                 "Connection" to "keep-alive",
                 "Upgrade-Insecure-Requests" to "1"
             )

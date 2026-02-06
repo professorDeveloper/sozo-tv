@@ -5,6 +5,7 @@ import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
@@ -28,14 +29,9 @@ class SourceAdapter(
     inner class SourceViewHolder(val binding: ItemSourceBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        private val letterColors = listOf(
-            "#FF4081", "#2196F3", "#4CAF50", "#FF9800",
-            "#9C27B0", "#009688", "#E91E63", "#3F51B5"
-        )
-
         fun bind(item: SubSource, isSelected: Boolean) {
             binding.tvCode.text = item.sourceId.uppercase()
-            binding.tvTitle.text = item.title
+            binding.tvTitle.text = item.country
             binding.tvCountry.text = item.country
 
             if (!item.logoUrl.isNullOrEmpty() && item.logoUrl != "null") {
@@ -52,18 +48,19 @@ class SourceAdapter(
                     item.sourceId.take(1).uppercase()
 
                 binding.tvLetterLogo.text = firstLetter
-                val colorIndex = (item.sourceId.hashCode() % letterColors.size).absoluteValue
-                val backgroundColor = Color.parseColor(letterColors[colorIndex])
-                binding.tvLetterLogo.background = ColorDrawable(backgroundColor)
             }
 
-            binding.ivSelected.visibility = if (isSelected) View.VISIBLE else View.GONE
 
             val bgRes = if (isSelected) R.drawable.bg_item_selected
             else R.drawable.bg_item_normal
+
             binding.rootItem.background = ContextCompat.getDrawable(binding.root.context, bgRes)
 
             binding.rootItem.setOnClickListener {
+                val oldIndex = selectedIndex
+                selectedIndex = bindingAdapterPosition
+                if (oldIndex != -1) notifyItemChanged(oldIndex)
+                notifyItemChanged(selectedIndex)
                 onClick(item)
             }
         }
