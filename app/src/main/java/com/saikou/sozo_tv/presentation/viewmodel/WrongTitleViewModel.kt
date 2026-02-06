@@ -3,22 +3,28 @@ package com.saikou.sozo_tv.presentation.viewmodel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.saikou.sozo_tv.domain.repository.EpisodeRepository
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.parser.anime.AnimePahe
+import com.saikou.sozo_tv.parser.anime.AnimeWorldParser
 import com.saikou.sozo_tv.parser.anime.HentaiMama
+import com.saikou.sozo_tv.parser.anime.HiAnime
 import com.saikou.sozo_tv.parser.models.ShowResponse
-import com.saikou.sozo_tv.parser.sources.AnimeSources
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import kotlinx.coroutines.launch
 
-class WrongTitleViewModel(private val repo: EpisodeRepository) : ViewModel() {
+class WrongTitleViewModel() : ViewModel() {
     val dataFound: MutableLiveData<Resource<List<ShowResponse>>> = MutableLiveData()
-    private val animePahe = AnimeSources.getCurrent()
+    private val source = when (PreferenceManager().getString(LocalData.SOURCE)) {
+        "animeworld" -> AnimeWorldParser()
+        "hianime" -> HiAnime()
+        else -> AnimePahe()
+    }
+
     private val adultSource = HentaiMama()
 
 
     fun findEpisodes(title: String, isAdult: Boolean = false) {
-
         viewModelScope.launch {
             if (LocalData.isAnimeEnabled) {
                 if (isAdult) {
@@ -32,7 +38,7 @@ class WrongTitleViewModel(private val repo: EpisodeRepository) : ViewModel() {
                     }
                 } else {
                     dataFound.value = Resource.Loading
-                    val medias = animePahe.search(title)
+                    val medias = source.search(title)
                     if (medias.isNotEmpty()) {
                         dataFound.value = Resource.Success(medias)
                     } else {

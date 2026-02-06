@@ -74,7 +74,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.ConnectionSpec
-import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -139,8 +138,12 @@ class SeriesPlayerScreen : Fragment() {
             )
             .addInterceptor { chain ->
                 val original = chain.request()
-                val modified = original.newBuilder().headers(headers.toHeaders()).build()
-                chain.proceed(modified)
+                val builder = original.newBuilder()
+                headers.forEach { (k, v) ->
+                    builder.header(k, v)
+                }
+
+                chain.proceed(builder.build())
             }
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
@@ -155,10 +158,10 @@ class SeriesPlayerScreen : Fragment() {
     private fun updateFactories(headers: Map<String, String>) {
         lastHeaders = headers
         okHttpClient = buildOkHttpClient(headers)
-        dataSourceFactory = DefaultDataSource.Factory(
-            requireContext(),
-            OkHttpDataSource.Factory(okHttpClient!!)
-        )
+
+        val okFactory = OkHttpDataSource.Factory(okHttpClient!!)
+
+        dataSourceFactory = DefaultDataSource.Factory(requireContext(), okFactory)
     }
 
 
@@ -296,8 +299,8 @@ class SeriesPlayerScreen : Fragment() {
         }
 
         player.addListener(object : Player.Listener {
-
             override fun onPlayerError(error: PlaybackException) {
+                Log.e("PLAYER_ERR", "code=${error.errorCodeName}", error)
                 Bugsnag.notify(error)
             }
 
@@ -321,7 +324,7 @@ class SeriesPlayerScreen : Fragment() {
                                 player,
                                 model,
                                 handler,
-                                args.idMal ?: 0,
+                                args.idMal,
                                 episodeList.getOrNull(model.currentEpIndex)?.episode ?: 0,
                                 dur / 1000
                             )
@@ -329,6 +332,10 @@ class SeriesPlayerScreen : Fragment() {
                         }.onFailure {
                             Log.w("SeriesPlayerScreen", "SkipIntro init failed: ${it.message}")
                         }
+                    }
+
+                    Player.STATE_BUFFERING -> {
+                        Log.d("GGG", "Buffering... ${player.currentPosition} / ${player.duration}")
                     }
 
                     Player.STATE_ENDED -> {
@@ -689,8 +696,7 @@ class SeriesPlayerScreen : Fragment() {
         val previewImage = binding.pvPlayer.controller.binding.exoThumbnail
         val timeBar =
             binding.pvPlayer.controller.findViewById<TrailerPlayerScreen.ExtendedTimeBar>(R.id.exo_progress)
-
-        if (timeBar == null) return
+                ?: return
 
         if (url.isEmpty()) {
             previewImage.visibility = View.GONE

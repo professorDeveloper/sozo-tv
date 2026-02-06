@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.MimeTypes
 import com.saikou.sozo_tv.aniskip.AniSkip
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.model.SubTitle
@@ -26,6 +27,7 @@ class PlayAnimeViewModel(
     companion object {
         private const val TAG = "PlayAnimeViewModel"
         private const val SOURCE_HIANIME = "hianime"
+        private const val SOURCE_ANIMEWORLD = "animeworld"
     }
 
     val timeStamps = MutableLiveData<List<AniSkip.Stamp>?>()
@@ -201,16 +203,14 @@ class PlayAnimeViewModel(
     }
 
     private suspend fun buildVodFromOption(
-        option: VideoOption,
-        sourceKey: String
+        option: VideoOption, sourceKey: String
     ): VodMovieResponse {
         return if (sourceKey == SOURCE_HIANIME) {
             VodMovieResponse(
                 authInfo = "",
                 subtitleList = option.tracks.map {
                     if (!it.file.contains("thumbnail")) SubTitle(
-                        it.file,
-                        it.label ?: ""
+                        it.file, it.label ?: ""
                     ) else null
                 }.filterNotNull(),
                 urlobj = option.videoUrl,
@@ -218,16 +218,29 @@ class PlayAnimeViewModel(
                 type = option.mimeTypes,
                 thumbnail = option.tracks.find { it.file.contains("thumbnail") }?.file ?: ""
             )
+        } else if (sourceKey == SOURCE_ANIMEWORLD) {
+            val headers = linkedMapOf(
+                "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+                "Accept" to "*/*",
+                "Accept-Language" to "en-US,en;q=0.9,uz-UZ;q=0.8,uz;q=0.7",
+                "Range" to "bytes=0-",
+                "Connection" to "keep-alive",
+                "Upgrade-Insecure-Requests" to "1"
+            )
+
+            VodMovieResponse(
+                authInfo = "",
+                subtitleList = arrayListOf(),
+                urlobj = option.videoUrl,
+                header = headers,
+                type = MimeTypes.APPLICATION_MP4,
+            )
         } else {
             val extractedUrl = parser.extractVideo(option.videoUrl)
             Log.d(TAG, "buildVodFromOption: $extractedUrl | ${option.videoUrl}")
             VodMovieResponse(
-                authInfo = "",
-                subtitleList = arrayListOf(),
-                urlobj = extractedUrl,
-                header = mapOf(
-                    "User-Agent" to AnimePahe.USER_AGENT,
-                    "Referer" to option.videoUrl
+                authInfo = "", subtitleList = arrayListOf(), urlobj = extractedUrl, header = mapOf(
+                    "User-Agent" to AnimePahe.USER_AGENT, "Referer" to option.videoUrl
                 )
             )
         }

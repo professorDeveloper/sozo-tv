@@ -3,6 +3,7 @@ package com.saikou.sozo_tv.data.repository
 import com.animestudios.animeapp.MyListQuery
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.MyListRepository
 
@@ -42,8 +43,9 @@ class MyListRepositoryImpl(
 
             entries.mapNotNull { entry ->
                 val media = entry?.media ?: return@mapNotNull null
-                if (media.isAdult == true) return@mapNotNull null
-
+                if (!PreferenceManager().isNsfwEnabled()) {
+                    if (media.isAdult == true) return@mapNotNull null
+                }
                 MainModel(
                     id = media.id,
                     title = media.title?.userPreferred

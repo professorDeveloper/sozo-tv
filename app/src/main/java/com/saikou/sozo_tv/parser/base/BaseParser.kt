@@ -55,6 +55,5 @@ abstract class BaseParser {
     open suspend fun extractVideo(url: String): String = ""
 
     open suspend fun search(query: String): List<ShowResponse> = arrayListOf()
-    fun encode(input: String): String = URLEncoder.encode(input, "utf-8").replace("+", "%20")
-    fun decode(input: String): String = URLDecoder.decode(input, "utf-8")
+
 }

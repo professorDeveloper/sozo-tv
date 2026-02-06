@@ -58,7 +58,7 @@ class WrongTitleSearchAdapter :
         holder.bind(movieList[position])
     }
 
-    override fun getItemCount(): Int = if (movieList.size > 5) 5 else movieList.size
+    override fun getItemCount(): Int = if (movieList.size > 10) 10 else movieList.size
 
     fun updateData(newMovies: List<ShowResponse>) {
         movieList.clear()

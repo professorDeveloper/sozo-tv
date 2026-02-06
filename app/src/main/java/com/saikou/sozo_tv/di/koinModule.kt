@@ -110,7 +110,7 @@ val koinModule = module {
     viewModel { HomeViewModel(repo = get(), imdbRepo = get(), historyRepository = get()) }
     viewModel { TvGardenViewModel(get()) }
     viewModel { EpisodeViewModel(watchHistoryRepository = get(), repo = get()) }
-    viewModel { WrongTitleViewModel(get()) }
+    viewModel { WrongTitleViewModel() }
     viewModel { UpdateViewModel() }
     viewModel { SettingsViewModel(get(), profileRepo = get()) }
     viewModel { LiveTvViewModel(dao = get()) }

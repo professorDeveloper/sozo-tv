@@ -52,4 +52,5 @@ data class Data(
     val snapshot: String? = null,
     val title: String? = null,
     val season: Int = 0,
+    val serverId: String = ""
 )
