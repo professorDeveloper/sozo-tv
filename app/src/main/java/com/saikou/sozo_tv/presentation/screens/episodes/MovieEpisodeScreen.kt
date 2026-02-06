@@ -28,9 +28,9 @@ import com.saikou.sozo_tv.parser.movie.PlayImdb
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.LocalData.MOVIE_SOURCE
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
-import com.saikou.sozo_tv.utils.readData
 import com.saikou.sozo_tv.utils.visible
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -65,8 +65,8 @@ class MovieEpisodeScreen : Fragment() {
 
         addAnimFocus()
 
-        val currentSource = readData("movieSource") ?: "playimdb"
-        if (currentSource != "playimdb") {
+        val currentSource = PreferenceManager(requireContext()).getString(MOVIE_SOURCE)
+        if (currentSource.isEmpty()) {
             binding.topContainer.gone()
             binding.loadingLayout.gone()
             binding.textView6.gone()
@@ -82,7 +82,7 @@ class MovieEpisodeScreen : Fragment() {
                 requireActivity().startActivity(intent)
             }
         } else {
-            val sourceText = "Current Selected Source:${PlayImdb::class.java.simpleName}"
+            val sourceText = "Searching Data By :${PlayImdb::class.java.simpleName}"
             binding.textView6.text = sourceText.highlightPart(
                 PlayImdb::class.java.simpleName,
                 ContextCompat.getColor(requireContext(), R.color.orange)

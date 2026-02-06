@@ -3,17 +3,14 @@ package com.saikou.sozo_tv.parser.anime
 import android.util.Log
 import androidx.media3.common.MimeTypes
 import com.saikou.sozo_tv.parser.base.BaseParser
-import com.saikou.sozo_tv.parser.models.AudioType
-import com.saikou.sozo_tv.parser.models.Data
-import com.saikou.sozo_tv.parser.models.EpisodeData
-import com.saikou.sozo_tv.parser.models.ShowResponse
-import com.saikou.sozo_tv.parser.models.VideoOption
-import com.saikou.sozo_tv.utils.Utils
+import com.saikou.sozo_tv.parser.extractor.Extractor
+import com.saikou.sozo_tv.parser.models.*
+import com.saikou.sozo_tv.parser.models.Video
+import com.saikou.sozo_tv.utils.Utils.getJsoup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
-import java.net.URLEncoder
 
 class AnimeFenixParser : BaseParser() {
 
@@ -24,7 +21,6 @@ class AnimeFenixParser : BaseParser() {
 
     companion object {
         private const val TAG = "AnimeFenixProvider"
-        private const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 
         private val genres = listOf(
             "1" to "Acción", "23" to "Aventuras", "20" to "Ciencia Ficción",
@@ -45,7 +41,7 @@ class AnimeFenixParser : BaseParser() {
 
     private fun getDefaultHeaders(): Map<String, String> {
         return mapOf(
-            "User-Agent" to USER_AGENT,
+            "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept" to "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
             "Accept-Language" to "es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3",
             "Connection" to "keep-alive",
@@ -53,14 +49,12 @@ class AnimeFenixParser : BaseParser() {
             "Referer" to "$hostUrl/"
         )
     }
-
     override suspend fun search(query: String): List<ShowResponse> {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d(TAG, "Searching for: $query")
 
                 if (query.isBlank()) {
-                    // Return genres as ShowResponse for empty query
                     return@withContext genres.map { (id, name) ->
                         ShowResponse(
                             name = name,
@@ -72,10 +66,11 @@ class AnimeFenixParser : BaseParser() {
                     }
                 }
 
-                val encodedQuery = URLEncoder.encode(query, "UTF-8")
+                val encodedQuery = query.replace(" ", "%20")
                 val url = "$hostUrl/directorio/anime?q=$encodedQuery"
+                Log.d(TAG, "Searching url: $url")
 
-                val doc = Utils.getJsoup(url, getDefaultHeaders())
+                val doc = getJsoup(url, getDefaultHeaders())
                 parseShows(doc.select(".grid-animes li article")).distinctBy { it.link }
             } catch (e: Exception) {
                 Log.e(TAG, "Search error: ${e.message}")
@@ -92,32 +87,30 @@ class AnimeFenixParser : BaseParser() {
                 val imageElement = item.selectFirst("img")
 
                 val href = a.attr("href")
-                val id = if (href.contains("/")) href.substringAfterLast("/") else href
+                val fullUrl = if (href.startsWith("http")) href else "$hostUrl$href"
                 val title = titleElement?.text()?.trim() ?: ""
+
                 val poster = imageElement?.let { img ->
-                    img.attr("data-src").ifBlank { img.attr("src") }
+                    val src = img.attr("data-src").ifBlank { img.attr("src") }
+                    when {
+                        src.startsWith("//") -> "https:$src"
+                        src.startsWith("/") -> "$hostUrl$src"
+                        src.startsWith("http") -> src
+                        else -> ""
+                    }
                 } ?: ""
 
                 val isMovie = item.selectFirst(".main-img") != null
 
                 ShowResponse(
                     name = title,
-                    link = id,
-                    coverUrl = if (poster.isNotEmpty() && !poster.startsWith("http")) {
-                        if (poster.startsWith("//")) {
-                            "https:$poster"
-                        } else if (poster.startsWith("/")) {
-                            "$hostUrl$poster"
-                        } else {
-                            poster
-                        }
-                    } else {
-                        poster
-                    },
+                    link = fullUrl,
+                    coverUrl = poster,
                     otherNames = emptyList(),
                     extra = mapOf(
                         "type" to if (isMovie) "movie" else "tv",
-                        "full_url" to href
+                        "full_url" to fullUrl,
+                        "is_movie" to isMovie.toString()
                     )
                 )
             } catch (e: Exception) {
@@ -136,63 +129,21 @@ class AnimeFenixParser : BaseParser() {
             try {
                 Log.d(TAG, "Loading episodes for: $id, page: $page")
 
-                if (showResponse.extra?.get("type") == "genre") {
-                    return@withContext null
-                }
+                val doc = getJsoup(id, getDefaultHeaders())
+                val episodes = parseEpisodes(doc)
 
-                val fullUrl = showResponse.extra?.get("full_url") ?: "$hostUrl/anime/$id"
-                val doc = Utils.getJsoup(fullUrl, getDefaultHeaders())
-
-                val isMovie = doc.selectFirst("p.text-gray-300")?.text()?.contains("Película", true) == true ||
-                        showResponse.extra?.get("type") == "movie"
-
-                if (isMovie) {
-                    Log.d(TAG, "Detected as movie")
-                    return@withContext EpisodeData(
-                        current_page = 1,
-                        data = listOf(
-                            Data(
-                                id = id.hashCode(),
-                                episode = 1,
-                                session = fullUrl,
-                                title = showResponse.name,
-                                snapshot = showResponse.coverUrl,
-                                season = 1
-                            )
-                        ),
-                        from = 1,
-                        last_page = 1,
-                        next_page_url = null,
-                        per_page = 1,
-                        prev_page_url = null,
-                        to = 1,
-                        total = 1
-                    )
-                }
-
-                val allEpisodes = parseEpisodesFromDocument(doc, showResponse)
-
-                if (allEpisodes.isEmpty()) {
-                    Log.w(TAG, "No episodes found")
-                    return@withContext null
-                }
-
-                Log.d(TAG, "Total episodes: ${allEpisodes.size}")
-
-                val reversedEpisodes = allEpisodes.sortedByDescending { it.episode }
-
+                // EpisodeData ga o'rab qaytarish
                 EpisodeData(
                     current_page = 1,
-                    data = reversedEpisodes,
+                    data = episodes,
                     from = 1,
                     last_page = 1,
                     next_page_url = null,
-                    per_page = reversedEpisodes.size,
+                    per_page = episodes.size,
                     prev_page_url = null,
-                    to = reversedEpisodes.size,
-                    total = reversedEpisodes.size
+                    to = episodes.size,
+                    total = episodes.size
                 )
-
             } catch (e: Exception) {
                 Log.e(TAG, "Error loading episodes: ${e.message}")
                 null
@@ -200,24 +151,33 @@ class AnimeFenixParser : BaseParser() {
         }
     }
 
-    private fun parseEpisodesFromDocument(doc: Document, showResponse: ShowResponse): List<Data> {
-        val allEpisodes = mutableListOf<Data>()
+    private fun parseEpisodes(doc: Document): List<Data> {
+        val episodes = mutableListOf<Data>()
 
-        doc.select(".divide-y li > a").forEachIndexed { index, element ->
+        val episodeElements = doc.select(".divide-y li > a")
+        episodeElements.forEachIndexed { index, element ->
             try {
-                val episodeUrl = element.attr("href")
-                val titleElement = element.selectFirst(".font-semibold")
-                val title = titleElement?.text()?.trim() ?: "Episodio ${index + 1}"
-                val episodeNum = extractEpisodeNumber(title, index + 1)
+                val titleEp =
+                    element.selectFirst(".font-semibold")?.text() ?: "Episode ${index + 1}"
+                val href = element.attr("href")
+                val fullUrl = if (href.startsWith("http")) href else "$hostUrl$href"
 
-                allEpisodes.add(
+                val episodeNumber = try {
+                    titleEp.substringAfter("Episodio ").toIntOrNull() ?: (index + 1)
+                } catch (e: Exception) {
+                    index + 1
+                }
+
+                episodes.add(
                     Data(
-                        id = episodeUrl.hashCode(),
-                        episode = episodeNum,
-                        session = episodeUrl,
-                        title = title,
-                        snapshot = showResponse.coverUrl,
-                        season = 1
+                        id = episodes.size + 1,
+                        anime_id = episodes.size + 1000,
+                        title = titleEp,
+                        episode = episodeNumber,
+                        episode2 = episodeNumber,
+                        session = fullUrl,
+                        season = 1,
+                        serverId = fullUrl
                     )
                 )
             } catch (e: Exception) {
@@ -225,216 +185,95 @@ class AnimeFenixParser : BaseParser() {
             }
         }
 
-        return allEpisodes
-    }
-
-    private fun extractEpisodeNumber(title: String, default: Int): Int {
-        val patterns = listOf(
-            "Episodio\\s+(\\d+)".toRegex(RegexOption.IGNORE_CASE),
-            "Episode\\s+(\\d+)".toRegex(RegexOption.IGNORE_CASE),
-            "Ep\\.\\s*(\\d+)".toRegex(RegexOption.IGNORE_CASE),
-            "Capítulo\\s+(\\d+)".toRegex(RegexOption.IGNORE_CASE),
-            "Cap\\.\\s*(\\d+)".toRegex(RegexOption.IGNORE_CASE),
-            "#(\\d+)".toRegex(),
-            "\\b(\\d+)\\b".toRegex()
-        )
-
-        for (pattern in patterns) {
-            val match = pattern.find(title)
-            if (match != null) {
-                return match.groupValues[1].toIntOrNull() ?: default
-            }
-        }
-        return default
+        return episodes.sortedByDescending { it.episode ?: 0 }
     }
 
     override suspend fun getEpisodeVideo(id: String, epId: String): List<VideoOption> {
         return withContext(Dispatchers.IO) {
             try {
-                Log.d(TAG, "Getting video for episode: $epId")
+                Log.d(TAG, "Getting video options for episode: $epId")
 
-                val episodeUrl = if (epId.startsWith("http")) epId else "$hostUrl$epId"
+                val doc = getJsoup(epId, getDefaultHeaders())
+                val servers = parseServers(doc)
 
-                val doc = Utils.getJsoup(episodeUrl, getDefaultHeaders())
-
-                val serverNames = doc.select(".episode-page__servers-list li a").map { a ->
-                    a.select("span").last()?.text()?.trim() ?: ""
-                }.filter { it.isNotBlank() }
-
-                Log.d(TAG, "Found ${serverNames.size} server names")
-
-                val script = doc.selectFirst("script:containsData(var tabsArray)")
-                if (script == null) {
-                    Log.e(TAG, "No tabsArray script found")
-                    return@withContext emptyList()
-                }
-
-                val scriptContent = script.data()
-                Log.d(TAG, "Script content length: ${scriptContent.length}")
-                val videoUrls = extractVideoUrlsFromScript(scriptContent)
-
-                if (videoUrls.isEmpty()) {
-                    Log.e(TAG, "No video URLs found in script")
-                    return@withContext emptyList()
-                }
-
-                Log.d(TAG, "Found ${videoUrls.size} video URLs")
-
-                val videoOptions = mutableListOf<VideoOption>()
-
-                for (i in videoUrls.indices) {
-                    val videoUrl = videoUrls[i]
-                    val serverName = if (i < serverNames.size) serverNames[i] else "Server ${i + 1}"
-
-                    if (videoUrl.isBlank()) continue
-
-                    val resolution = determineResolution(serverName)
-                    val audioType = determineAudioType(serverName)
-
-                    Log.d(TAG, "Processing server: $serverName, URL: ${videoUrl.take(100)}...")
-
-                    videoOptions.add(
-                        VideoOption(
-                            videoUrl = videoUrl,
-                            fansub = "AnimeFenix",
-                            resolution = resolution,
-                            audioType = audioType,
-                            quality = "Adaptive",
-                            isActive = true,
-                            mimeTypes = "video/mp4",
-                            fullText = serverName,
-                            headers = getDefaultHeaders()
-                        )
+                servers.map { server ->
+                    VideoOption(
+                        videoUrl = server.src,
+                        fansub = server.name,
+                        resolution = "HD",
+                        audioType = AudioType.SUB,
+                        quality = "",
+                        isActive = true,
+                        mimeTypes = MimeTypes.APPLICATION_M3U8,
+                        fullText = server.name,
+                        tracks = emptyList(),
+                        headers = emptyMap()
                     )
                 }
-
-                return@withContext videoOptions
-
             } catch (e: Exception) {
-                Log.e(TAG, "Error getting episode video: ${e.message}", e)
+                Log.e(TAG, "Error getting video options: ${e.message}")
                 emptyList()
             }
         }
     }
 
-    private fun extractVideoUrlsFromScript(scriptContent: String): List<String> {
-        val urls = mutableListOf<String>()
+    private fun parseServers(doc: Document): List<Video.Server> {
+        val servers = mutableListOf<Video.Server>()
 
-        val srcPattern = "src='([^']+)'".toRegex()
-        val srcMatches = srcPattern.findAll(scriptContent)
+        try {
+            val serverElements = doc.select(".episode-page__servers-list li a")
+            val script = doc.selectFirst("script:containsData(var tabsArray)")
 
-        srcMatches.forEach { match ->
-            val url = match.groupValues[1]
-            if (url.contains("redirect.php")) {
-                val fullUrl = if (url.startsWith("http")) url else "$hostUrl/$url"
-                urls.add(fullUrl)
-            }
-        }
-
-        // Method 2: Look for var tabsArray = [...]
-        if (urls.isEmpty()) {
-            val tabsArrayPattern = "var tabsArray\\s*=\\s*\\[([^\\]]+)\\]".toRegex()
-            val tabsArrayMatch = tabsArrayPattern.find(scriptContent)
-
-            if (tabsArrayMatch != null) {
-                val arrayContent = tabsArrayMatch.groupValues[1]
-                val urlPattern = "\"([^\"]+)\"".toRegex()
-                val urlMatches = urlPattern.findAll(arrayContent)
-
-                urlMatches.forEach { match ->
-                    val url = match.groupValues[1]
-                    if (url.contains("redirect.php")) {
-                        val fullUrl = if (url.startsWith("http")) url else "$hostUrl/$url"
-                        urls.add(fullUrl)
+            if (script != null && serverElements.isNotEmpty()) {
+                val names = serverElements.map { a ->
+                    a.select("span").last()?.text()?.trim() ?: "Server ${servers.size + 1}"
+                }
+                val scriptData = script.data()
+                val urls = if (scriptData.contains("src='")) {
+                    scriptData
+                        .substringAfter("<iframe").split("src='")
+                        .drop(1)
+                        .map { it.substringBefore("'").substringAfter("redirect.php?id=").trim() }
+                } else {
+                    // Alternative pattern
+                    scriptData.split("src=\"").drop(1).map {
+                        it.substringBefore("\"").substringAfter("redirect.php?id=").trim()
                     }
                 }
+
+                val count = minOf(urls.size, names.size)
+                for (i in 0 until count) {
+                    val name = names[i].ifBlank { "Server ${i + 1}" }
+                    val urlValue = urls[i]
+                    if (urlValue.isBlank()) {
+                        continue
+                    }
+                    servers.add(Video.Server(name = name, src = urlValue.toString(), id = urlValue.toString()))
+                }
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error parsing servers: ${e.message}")
         }
 
-        return urls
-    }
-
-    private fun determineResolution(serverName: String): String {
-        return when {
-            serverName.contains("1080") -> "1080p"
-            serverName.contains("720") -> "720p"
-            serverName.contains("480") -> "480p"
-            serverName.contains("360") -> "360p"
-            else -> "720p" // Default
-        }
-    }
-
-    private fun determineAudioType(serverName: String): AudioType {
-        return if (serverName.contains("Latino", ignoreCase = true) ||
-            serverName.contains("Español", ignoreCase = true) ||
-            serverName.contains("Castellano", ignoreCase = true) ||
-            serverName.contains("DUB", ignoreCase = true)) {
-            AudioType.DUB
-        } else {
-            AudioType.SUB
-        }
+        return servers
     }
 
     override suspend fun extractVideo(url: String): String {
         return withContext(Dispatchers.IO) {
             try {
-                Log.d(TAG, "Extracting video from: ${url.take(100)}...")
-                if (url.endsWith(".mp4") || url.endsWith(".m3u8") ||
-                    url.endsWith(".webm") || url.endsWith(".mpd")) {
-                    return@withContext url
+                Log.d(TAG, "Extracting video from: $url")
+                val video = Extractor.extract(url)
+                val videoUrl = when {
+                    video.source.isNotEmpty() -> video.source
+                    else -> throw Exception("No video URL found")
                 }
-                if (url.contains("redirect.php")) {
-                    val redirectUrl = url
-                    val doc = Utils.getJsoup(redirectUrl, getDefaultHeaders())
-                    val iframeSrc = doc.selectFirst("iframe")?.attr("src")
-                    if (!iframeSrc.isNullOrBlank()) {
-                        Log.d(TAG, "Found iframe src: $iframeSrc")
-                        return@withContext extractVideo(iframeSrc)
-                    }
-                    val videoSource = doc.selectFirst("video source")
-                    val videoUrl = videoSource?.attr("src")
-                    if (!videoUrl.isNullOrBlank()) {
-                        Log.d(TAG, "Found direct video source: $videoUrl")
-                        return@withContext videoUrl
-                    }
-                    val scripts = doc.select("script")
-                    for (script in scripts) {
-                        val scriptContent = script.html()
-                        if (scriptContent.contains("file") || scriptContent.contains("sources")) {
-                            val patterns = listOf(
-                                "\"file\"\\s*:\\s*\"([^\"]+)\"".toRegex(),
-                                "\"src\"\\s*:\\s*\"([^\"]+)\"".toRegex(),
-                                "\"url\"\\s*:\\s*\"([^\"]+)\"".toRegex(),
-                                "file:\\s*[\"']([^\"']+)[\"']".toRegex(),
-                                "sources\\s*:\\s*\\[\\s*\\{[^}]*src\\s*:\\s*\"([^\"]+)\"".toRegex()
-                            )
-
-                            for (pattern in patterns) {
-                                val match = pattern.find(scriptContent)
-                                if (match != null) {
-                                    val foundUrl = match.groupValues[1]
-                                    if (foundUrl.isNotBlank()) {
-                                        Log.d(TAG, "Found video URL in script: ${foundUrl.take(100)}...")
-                                        return@withContext foundUrl
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    val finalUrl = doc.location()
-                    if (finalUrl != redirectUrl && !finalUrl.contains("redirect.php")) {
-                        Log.d(TAG, "Final URL after redirect: $finalUrl")
-                        return@withContext finalUrl
-                    }
-                }
-
-                Log.w(TAG, "Could not extract video from URL")
-                return@withContext url
+                Log.d(TAG, "Extracted video URL: $videoUrl")
+                videoUrl
             } catch (e: Exception) {
                 Log.e(TAG, "Error extracting video: ${e.message}")
-                url
+                throw e
             }
         }
     }
 
-}
+    }

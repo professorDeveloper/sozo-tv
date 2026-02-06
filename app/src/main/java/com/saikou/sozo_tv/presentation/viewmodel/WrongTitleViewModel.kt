@@ -4,7 +4,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.parser.anime.AnimeFenixParser
 import com.saikou.sozo_tv.parser.anime.AnimePahe
+import com.saikou.sozo_tv.parser.anime.AnimeSaturnParser
 import com.saikou.sozo_tv.parser.anime.AnimeWorldParser
 import com.saikou.sozo_tv.parser.anime.HentaiMama
 import com.saikou.sozo_tv.parser.anime.HiAnime
@@ -18,6 +20,9 @@ class WrongTitleViewModel() : ViewModel() {
     private val source = when (PreferenceManager().getString(LocalData.SOURCE)) {
         "animeworld" -> AnimeWorldParser()
         "hianime" -> HiAnime()
+        "AnimeSaturn" -> AnimeSaturnParser()
+        "AnimeFenix" -> AnimeFenixParser()
+
         else -> AnimePahe()
     }
 
