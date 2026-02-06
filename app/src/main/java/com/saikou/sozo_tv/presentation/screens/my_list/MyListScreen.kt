@@ -57,8 +57,10 @@ class MyListScreen : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.rvContent.adapter = animeAdapter
+        binding.root.setTheme(PreferenceManager().getSeasonalTheme())
 
-        animeAdapter.setCategoriesPageInterface(object : CategoriesPageAdapter.CategoriesPageInterface {
+        animeAdapter.setCategoriesPageInterface(object :
+            CategoriesPageAdapter.CategoriesPageInterface {
             override fun onCategorySelected(category: MainModel, position: Int) {}
         })
         animeAdapter.setClickDetail { openPlayer(it.id) }

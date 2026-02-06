@@ -32,7 +32,6 @@ class PlayAnimeViewModel(
     private val timeStampsMap: MutableMap<Int, List<AniSkip.Stamp>?> = mutableMapOf()
     var doNotAsk: Boolean = false
     var lastPosition: Long = 0
-    var qualityProgress: Long = -1
 
     var currentEpIndex: Int = -1
     var currentSubEpIndex: Int = 0

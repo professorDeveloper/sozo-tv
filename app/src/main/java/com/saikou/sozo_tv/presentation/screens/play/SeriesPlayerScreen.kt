@@ -67,7 +67,6 @@ import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.VttSpriteThumbnailLoader
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.observeOnce
-import com.saikou.sozo_tv.utils.readData
 import com.saikou.sozo_tv.utils.visible
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -821,7 +820,7 @@ class SeriesPlayerScreen : Fragment() {
 
                 val historyBuild = WatchHistoryEntity(
                     ep.session ?: return,
-                    "${args.name} - Episode ${model.currentEpIndex + 1}",
+                    "${ep.title} - Episode ${model.currentEpIndex + 1}",
                     mediaName = args.name,
                     ep.snapshot ?: return,
                     "",
@@ -839,7 +838,7 @@ class SeriesPlayerScreen : Fragment() {
                     epIndex = model.currentEpIndex,
                     isEpisode = true,
                     currentQualityIndex = model.currentSelectedVideoOptionIndex,
-                    source = readData<String>(LocalData.SOURCE) ?: ""
+                    source = PreferenceManager().getString(LocalData.SOURCE)
                 )
                 model.addHistory(historyBuild)
             }

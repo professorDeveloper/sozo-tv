@@ -9,12 +9,12 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.saikou.sozo_tv.adapters.HistoryAdapter
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.HistoryPageBinding
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.PlayAnimeViewModel
-import com.saikou.sozo_tv.utils.LocalData.SOURCE
+import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
-import com.saikou.sozo_tv.utils.readData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,7 +42,7 @@ class HistoryPage : Fragment() {
             val watchHistoryList = if (isAnimeEnabled) model.getAllWatchHistory()
                 .filter { it.isAnime }
                 .filter {
-                    it.source == (readData<String>(SOURCE) ?: "")
+                    it.source == PreferenceManager().getString(LocalData.SOURCE)
                 } else model.getAllWatchHistory()
                 .filter { !it.isAnime }
             if (watchHistoryList.isNotEmpty()) {
