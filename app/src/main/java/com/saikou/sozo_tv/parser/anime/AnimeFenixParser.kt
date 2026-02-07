@@ -136,8 +136,6 @@ class AnimeFenixParser : BaseParser() {
 
                 val doc = getJsoup(id, getDefaultHeaders())
                 val episodes = parseEpisodes(doc)
-
-                // EpisodeData ga o'rab qaytarish
                 EpisodeData(
                     current_page = 1,
                     data = episodes.reversed(),
