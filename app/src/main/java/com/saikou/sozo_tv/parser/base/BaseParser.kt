@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.parser.base
 
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
+import com.saikou.sozo_tv.parser.models.Video
 import com.saikou.sozo_tv.parser.models.VideoOption
 
 abstract class BaseParser {
@@ -50,8 +51,7 @@ abstract class BaseParser {
         showResponse: ShowResponse
     ): EpisodeData? = null
 
-    open suspend fun extractVideo(url: String): Pair<String, Map<String, String>> =
-        Pair(url, emptyMap())
+    open suspend fun extractVideo(url: String): Video = Video("", arrayListOf(), mapOf())
 
     open suspend fun search(query: String): List<ShowResponse> = arrayListOf()
 

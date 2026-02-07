@@ -8,6 +8,7 @@ import com.saikou.sozo_tv.parser.models.AudioType
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
+import com.saikou.sozo_tv.parser.models.Video
 import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.utils.Utils.getJsoup
 import kotlinx.coroutines.Dispatchers
@@ -386,14 +387,12 @@ class AnimeFlvParser : BaseParser() {
         return servers
     }
 
-    override suspend fun extractVideo(url: String): Pair<String, Map<String, String>> {
+    override suspend fun extractVideo(url: String): Video {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d(TAG, "Extracting video from: $url")
                 val video = Extractor.extract(url)
-                val videoUrl = video.source
-                Log.d(TAG, "Extracted video URL: $videoUrl")
-                Pair(videoUrl, video.headers)
+                video
             } catch (e: Exception) {
                 Log.e(TAG, "Error extracting video: ${e.message}")
                 throw e

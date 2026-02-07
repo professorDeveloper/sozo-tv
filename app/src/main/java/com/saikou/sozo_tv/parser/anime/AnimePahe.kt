@@ -15,6 +15,7 @@ import com.saikou.sozo_tv.parser.models.AnimePaheData
 import com.saikou.sozo_tv.parser.models.AudioType
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
+import com.saikou.sozo_tv.parser.models.Video
 import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.utils.Utils.getJsoup
 import com.saikou.sozo_tv.utils.Utils.httpClient
@@ -140,7 +141,7 @@ class AnimePahe : BaseParser() {
         return videoOptions
     }
 
-    override suspend fun extractVideo(url: String): Pair<String, Map<String, String>> {
+    override suspend fun extractVideo(url: String): Video {
         val doc = getJsoup(url, mapOf("User-Agent" to USER_AGENT, "Referer" to hostUrl))
         val scripts: Elements = doc.getElementsByTag("script")
         var evalContent: String? = null
@@ -153,9 +154,18 @@ class AnimePahe : BaseParser() {
             }
         }
 
-        return Pair(
-            extractFileUrl(getAndUnpack(evalContent ?: "")) ?: "",
-            mapOf("User-Agent" to USER_AGENT, "Referer" to url)
+        return Video(
+            source = extractFileUrl(getAndUnpack(evalContent ?: "")) ?: "",
+            subtitles = listOf(),
+            type = MimeTypes.APPLICATION_M3U8,
+            headers = mapOf(
+                "Referer" to hostUrl,
+                "User-Agent" to USER_AGENT,
+                "Accept" to "*/*",
+                "Accept-Language" to "en-US,en;q=0.9",
+                "Accept-Encoding" to "gzip, deflate, br",
+                "Connection" to "keep-alive"
+            )
         )
     }
 

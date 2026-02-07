@@ -23,6 +23,7 @@ abstract class Extractor {
             StreamWishExtractor(),
             VidzeeExtractor(),
             YourUploadExtractor(),
+            StreamtapeExtractor(),
             OkruExtractor(),
             PrimeSrcExtractor(),
             DoodLaExtractor(),

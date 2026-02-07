@@ -194,6 +194,7 @@ class PlayAnimeViewModel(
                 buildVodFromOption(options[currentSelectedVideoOptionIndex], sourceKey)
             }.onSuccess { vod ->
                 seriesResponse = vod
+
                 currentEpisodeData.postValue(Resource.Success(vod))
             }.onFailure { e ->
                 currentEpisodeData.postValue(Resource.Error(asException(e)))
@@ -254,8 +255,9 @@ class PlayAnimeViewModel(
                 VodMovieResponse(
                     authInfo = "",
                     subtitleList = arrayListOf(),
-                    urlobj = extractedUrl.first,
-                    header = extractedUrl.second
+                    urlobj = extractedUrl.source,
+                    header = extractedUrl.headers,
+                    type = extractedUrl.type,
                 )
             }
         }

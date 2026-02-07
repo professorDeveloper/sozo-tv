@@ -140,7 +140,7 @@ class AnimeFenixParser : BaseParser() {
                 // EpisodeData ga o'rab qaytarish
                 EpisodeData(
                     current_page = 1,
-                    data = episodes,
+                    data = episodes.reversed(),
                     from = 1,
                     last_page = 1,
                     next_page_url = null,
@@ -205,7 +205,7 @@ class AnimeFenixParser : BaseParser() {
                     if (server.name.contains(
                             "YourUpload",
                             ignoreCase = true
-                        ) || server.name.contains("HQQ", ignoreCase = true)
+                        ) || server.name.contains("StreamTape", ignoreCase = true)
                     ) {
                         VideoOption(
                             videoUrl = server.src,
@@ -277,17 +277,13 @@ class AnimeFenixParser : BaseParser() {
         return servers
     }
 
-    override suspend fun extractVideo(url: String): Pair<String, Map<String, String>> {
+    override suspend fun extractVideo(url: String): Video {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d(TAG, "Extracting video from: $url")
                 val video = Extractor.extract(url)
-                val videoUrl = when {
-                    video.source.isNotEmpty() -> video.source
-                    else -> throw Exception("No video URL found")
-                }
-                Log.d(TAG, "Extracted video URL: $videoUrl")
-                Pair(videoUrl, video.headers)
+                Log.d(TAG, "Extracted video URL: ${video.type}")
+                video
             } catch (e: Exception) {
                 Log.e(TAG, "Error extracting video: ${e.message}")
                 throw e
