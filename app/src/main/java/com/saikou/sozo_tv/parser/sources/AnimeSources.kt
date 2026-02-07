@@ -19,7 +19,7 @@ object AnimeSources {
         return when (readData) {
             "animeworld" -> AnimeWorldParser()
             "hianime" -> HiAnime()
-            "AnimeFlvParser" -> AnimeFlvParser()
+            "AnimeFlv" -> AnimeFlvParser()
             "AnimeSaturn" -> AnimeSaturnParser()
             "AnimeFenix" -> AnimeFenixParser()
             else -> AnimePahe()

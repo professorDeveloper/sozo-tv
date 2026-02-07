@@ -218,7 +218,7 @@ class PlayAnimeViewModel(
                 type = option.mimeTypes,
                 thumbnail = option.tracks.find { it.file.contains("thumbnail") }?.file ?: ""
             )
-        }else if (sourceKey == "AnimeSaturn") {
+        } else if (sourceKey == "AnimeSaturn") {
             VodMovieResponse(
                 authInfo = "",
                 subtitleList = arrayListOf(),
@@ -226,8 +226,7 @@ class PlayAnimeViewModel(
                 header = option.headers,
                 type = MimeTypes.APPLICATION_MP4,
             )
-        }
-        else if (sourceKey == SOURCE_ANIMEWORLD) {
+        } else if (sourceKey == SOURCE_ANIMEWORLD) {
             val headers = linkedMapOf(
                 "User-Agent" to "Mozilla/5.0",
                 "Accept" to "*/*",

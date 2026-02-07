@@ -1,0 +1,60 @@
+package com.saikou.sozo_tv.parser.extractor
+
+import com.saikou.sozo_tv.converter.JsoupConverterFactory
+import com.saikou.sozo_tv.parser.models.Video
+import com.saikou.sozo_tv.utils.DnsResolver
+import okhttp3.OkHttpClient
+import org.jsoup.nodes.Document
+import retrofit2.Retrofit
+import retrofit2.http.GET
+import retrofit2.http.Url
+
+class YourUploadExtractor : Extractor() {
+
+    override val name = "YourUpload"
+    override val mainUrl = "https://www.yourupload.com"
+    override val aliasUrls = listOf("https://www.yucache.net")
+
+    override suspend fun extract(link: String): Video {
+        val service = YourUploadExtractorService.build(mainUrl)
+        val doc = service.getSource(link.replace(mainUrl, ""))
+
+        val scriptContent = doc.select("script:containsData(jwplayerOptions)").html()
+        val regex = Regex("""file:\s*'([^']+\.(?:m3u8|mp4))'""")
+        val match = regex.find(scriptContent)
+        val videoUrl = match?.groupValues?.get(1) ?: ""
+
+        return Video(
+            source = videoUrl,
+            subtitles = listOf(),
+            headers = mapOf(
+                "Referer" to mainUrl,
+                "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+                        "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                        "Chrome/116.0.0.0 Safari/537.36"
+            )
+        )
+    }
+
+    private interface YourUploadExtractorService {
+
+        companion object {
+            fun build(baseUrl: String): YourUploadExtractorService {
+                val client = OkHttpClient.Builder()
+                    .dns(DnsResolver.doh)
+                    .build()
+
+                val retrofit = Retrofit.Builder()
+                    .baseUrl(baseUrl)
+                    .client(client)
+                    .addConverterFactory(JsoupConverterFactory.create())
+                    .build()
+
+                return retrofit.create(YourUploadExtractorService::class.java)
+            }
+        }
+
+        @GET
+        suspend fun getSource(@Url url: String): Document
+    }
+}

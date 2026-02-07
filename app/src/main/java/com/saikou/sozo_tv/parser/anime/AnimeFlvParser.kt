@@ -90,14 +90,12 @@ class AnimeFlvParser : BaseParser() {
         return "https://cdn.animeflv.net/screenshots/$animeId/$episodeNum/th_3.jpg"
     }
 
-    // Search funksiyasi - qidiruv va janrlar ro'yxatini qaytaradi
     override suspend fun search(query: String): List<ShowResponse> {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d(TAG, "Searching for: $query")
 
                 if (query.isBlank()) {
-                    // Janrlar ro'yxatini qaytarish
                     return@withContext genres.map { (id, name) ->
                         ShowResponse(
                             name = name,
@@ -121,7 +119,6 @@ class AnimeFlvParser : BaseParser() {
         }
     }
 
-    // TV Show/Movie elementlarini parse qilish
     private fun parseShows(elements: List<Element>): List<ShowResponse> {
         return elements.mapNotNull { element ->
             try {
@@ -156,7 +153,6 @@ class AnimeFlvParser : BaseParser() {
         }
     }
 
-    // Epizodlarni yuklash
     override suspend fun loadEpisodes(
         id: String,
         page: Int,
@@ -230,35 +226,39 @@ class AnimeFlvParser : BaseParser() {
             Log.e(TAG, "Error parsing episodes: ${e.message}")
         }
 
-        // Epizodlarni raqam bo'yicha teskari tartibda (eng yangisi birinchi)
         return episodes.sortedByDescending { it.episode ?: 0 }
     }
 
     override suspend fun getEpisodeVideo(id: String, epId: String): List<VideoOption> {
         return withContext(Dispatchers.IO) {
             try {
-                Log.d(TAG, "Getting video options for episode: $epId")
+                Log.d(TAG, "Getting video options for episode: $id, epId: $epId")
 
-                val episodeUrl = if (epId.startsWith("http")) epId else "$hostUrl/ver/$epId"
+                val episodeUrl = if (epId.startsWith("http")) epId else "$hostUrl/ver/$id"
                 val doc = getJsoup(episodeUrl, getDefaultHeaders())
                 val servers = parseServers(doc)
+                Log.d(TAG, "getEpisodeVideo: ${servers}")
 
-                servers.map { server ->
-                    VideoOption(
-                        videoUrl = server.src,
-                        fansub = server.name,
-                        resolution = "HD",
-                        audioType = if (server.name.contains("(Latino)", ignoreCase = true) ||
-                            server.name.contains("(Español)", ignoreCase = true)
+                servers.mapNotNull { server ->
+                    if (server.name.equals("Sw", ignoreCase = true)) {
+                        VideoOption(
+                            videoUrl = server.src,
+                            fansub = server.name,
+                            resolution = "HD",
+                            audioType = if (server.name.contains("(Latino)", ignoreCase = true) ||
+                                server.name.contains("(Español)", ignoreCase = true)
+                            )
+                                AudioType.DUB else AudioType.SUB,
+                            quality = "",
+                            isActive = true,
+                            mimeTypes = MimeTypes.APPLICATION_M3U8,
+                            fullText = server.name,
+                            tracks = emptyList(),
+                            headers = emptyMap()
                         )
-                            AudioType.DUB else AudioType.SUB,
-                        quality = "",
-                        isActive = true,
-                        mimeTypes = MimeTypes.APPLICATION_M3U8,
-                        fullText = server.name,
-                        tracks = emptyList(),
-                        headers = emptyMap()
-                    )
+                    } else {
+                        null
+                    }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error getting video options: ${e.message}")
@@ -267,54 +267,120 @@ class AnimeFlvParser : BaseParser() {
         }
     }
 
-    // Serverlarni parse qilish
     private fun parseServers(doc: Document): List<com.saikou.sozo_tv.parser.models.Video.Server> {
         val servers = mutableListOf<com.saikou.sozo_tv.parser.models.Video.Server>()
 
         try {
-            val script =
-                doc.selectFirst("script:containsData(var videos = {)")?.data() ?: return emptyList()
-            val jsonString = script.substringAfter("var videos =").substringBefore(";").trim()
+            val scriptElements = doc.select("script")
 
-            // JSON ni parse qilish
-            val serverModel = try {
-                json.decodeFromString<AnimeFlvServerModel>(jsonString)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error parsing server JSON: ${e.message}")
-                return emptyList()
-            }
+            for (script in scriptElements) {
+                val scriptData = script.data()
+                if (scriptData.contains("var videos =")) {
+                    val regex =
+                        Regex("var videos\\s*=\\s*(\\{.*?\\});", RegexOption.DOT_MATCHES_ALL)
+                    val matchResult = regex.find(scriptData)
 
-            // SUB (subtitled) serverlari
-            serverModel.sub?.forEach { sub ->
-                if (sub.code.isNotBlank()) {
-                    servers.add(
-                        com.saikou.sozo_tv.parser.models.Video.Server(
-                            id = sub.code,
-                            name = sub.title ?: "Servidor SUB",
-                            src = sub.code,
-                            fileName = "",
-                            fileSize = ""
-                        )
-                    )
-                }
-            }
+                    if (matchResult != null) {
+                        val jsonString = matchResult.groupValues[1]
+                        Log.d(TAG, "Parsed JSON string: $jsonString")
 
-            // DUB (dubbed) serverlari
-            serverModel.dub?.forEach { dub ->
-                if (dub.code.isNotBlank()) {
-                    servers.add(
-                        com.saikou.sozo_tv.parser.models.Video.Server(
-                            id = dub.code,
-                            name = dub.title ?: "Servidor DUB",
-                            src = dub.code,
-                            fileName = "",
-                            fileSize = ""
-                        )
-                    )
+                        try {
+                            val jsonObject = org.json.JSONObject(jsonString)
+                            if (jsonObject.has("SUB")) {
+                                val subArray = jsonObject.getJSONArray("SUB")
+                                for (i in 0 until subArray.length()) {
+                                    val item = subArray.getJSONObject(i)
+                                    val code = item.optString("code", "")
+                                    if (code.isNotBlank()) {
+                                        val title = item.optString("title", "")
+                                        val serverName = item.optString("server", "")
+
+                                        val name = when {
+                                            title.isNotBlank() -> title
+                                            serverName.isNotBlank() -> serverName
+                                            else -> "Server ${i + 1}"
+                                        }
+
+                                        servers.add(
+                                            com.saikou.sozo_tv.parser.models.Video.Server(
+                                                id = code,
+                                                name = name,
+                                                src = code,
+                                                fileName = "",
+                                                fileSize = ""
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+
+                            if (jsonObject.has("DUB")) {
+                                val dubArray = jsonObject.getJSONArray("DUB")
+                                for (i in 0 until dubArray.length()) {
+                                    val item = dubArray.getJSONObject(i)
+                                    val code = item.optString("code", "")
+                                    if (code.isNotBlank()) {
+                                        val title = item.optString("title", "")
+                                        val serverName = item.optString("server", "")
+
+                                        val name = when {
+                                            title.isNotBlank() -> "DUB - $title"
+                                            serverName.isNotBlank() -> "DUB - $serverName"
+                                            else -> "DUB Server ${i + 1}"
+                                        }
+
+                                        servers.add(
+                                            com.saikou.sozo_tv.parser.models.Video.Server(
+                                                id = code,
+                                                name = name,
+                                                src = code,
+                                                fileName = "",
+                                                fileSize = ""
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+
+                            if (jsonObject.has("LAT")) {
+                                val latArray = jsonObject.getJSONArray("LAT")
+                                for (i in 0 until latArray.length()) {
+                                    val item = latArray.getJSONObject(i)
+                                    val code = item.optString("code", "")
+                                    if (code.isNotBlank()) {
+                                        val title = item.optString("title", "")
+                                        val serverName = item.optString("server", "")
+
+                                        val name = when {
+                                            title.isNotBlank() -> "LAT - $title"
+                                            serverName.isNotBlank() -> "LAT - $serverName"
+                                            else -> "LAT Server ${i + 1}"
+                                        }
+
+                                        servers.add(
+                                            com.saikou.sozo_tv.parser.models.Video.Server(
+                                                id = code,
+                                                name = name,
+                                                src = code,
+                                                fileName = "",
+                                                fileSize = ""
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error parsing JSON: ${e.message}")
+                            continue
+                        }
+
+                        break
+                    }
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error parsing servers: ${e.message}")
+            Log.e(TAG, "Error parsing servers: ${e.message}", e)
         }
 
         return servers
@@ -324,7 +390,6 @@ class AnimeFlvParser : BaseParser() {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d(TAG, "Extracting video from: $url")
-
                 val video = Extractor.extract(url)
                 val videoUrl = video.source
                 Log.d(TAG, "Extracted video URL: $videoUrl")
@@ -337,14 +402,3 @@ class AnimeFlvParser : BaseParser() {
     }
 
 }
-
-// AnimeFLV uchun server modeli
-data class AnimeFlvServerModel(
-    val sub: List<AnimeFlvSubServer>? = null,
-    val dub: List<AnimeFlvSubServer>? = null
-)
-
-data class AnimeFlvSubServer(
-    val code: String,
-    val title: String? = null
-)

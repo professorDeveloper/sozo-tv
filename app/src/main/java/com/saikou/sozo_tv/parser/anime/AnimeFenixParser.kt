@@ -195,7 +195,7 @@ class AnimeFenixParser : BaseParser() {
 
                 val doc = getJsoup(epId, getDefaultHeaders())
                 val servers = parseServers(doc)
-
+                Log.d(TAG, "getEpisodeVideo: ${servers}")
                 servers.map { server ->
                     VideoOption(
                         videoUrl = server.src,

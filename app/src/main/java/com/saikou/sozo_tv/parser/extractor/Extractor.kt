@@ -20,7 +20,10 @@ abstract class Extractor {
         private val extractors = listOf(
             VixSrcExtractor(),
             FilemoonExtractor(),
+            StreamWishExtractor(),
             VidzeeExtractor(),
+            YourUploadExtractor(),
+            OkruExtractor(),
             PrimeSrcExtractor(),
             DoodLaExtractor(),
             VidsrcNetExtractor(),
