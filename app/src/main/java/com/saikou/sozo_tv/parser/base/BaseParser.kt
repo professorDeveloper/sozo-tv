@@ -3,8 +3,6 @@ package com.saikou.sozo_tv.parser.base
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.models.VideoOption
-import java.net.URLDecoder
-import java.net.URLEncoder
 
 abstract class BaseParser {
 
@@ -52,7 +50,8 @@ abstract class BaseParser {
         showResponse: ShowResponse
     ): EpisodeData? = null
 
-    open suspend fun extractVideo(url: String): String = ""
+    open suspend fun extractVideo(url: String): Pair<String, Map<String, String>> =
+        Pair(url, emptyMap())
 
     open suspend fun search(query: String): List<ShowResponse> = arrayListOf()
 

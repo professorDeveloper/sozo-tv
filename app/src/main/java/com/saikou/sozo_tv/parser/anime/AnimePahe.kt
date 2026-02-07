@@ -140,7 +140,7 @@ class AnimePahe : BaseParser() {
         return videoOptions
     }
 
-    override suspend fun extractVideo(url: String): String {
+    override suspend fun extractVideo(url: String): Pair<String, Map<String, String>> {
         val doc = getJsoup(url, mapOf("User-Agent" to USER_AGENT, "Referer" to hostUrl))
         val scripts: Elements = doc.getElementsByTag("script")
         var evalContent: String? = null
@@ -153,7 +153,10 @@ class AnimePahe : BaseParser() {
             }
         }
 
-        return extractFileUrl(getAndUnpack(evalContent ?: "")) ?: ""
+        return Pair(
+            extractFileUrl(getAndUnpack(evalContent ?: "")) ?: "",
+            mapOf("User-Agent" to USER_AGENT, "Referer" to url)
+        )
     }
 
     private val packedRegex = Regex("""eval\(function\(p,a,c,k,e,.*\)\)""")

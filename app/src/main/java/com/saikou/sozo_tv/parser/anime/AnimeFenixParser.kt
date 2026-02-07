@@ -4,8 +4,12 @@ import android.util.Log
 import androidx.media3.common.MimeTypes
 import com.saikou.sozo_tv.parser.base.BaseParser
 import com.saikou.sozo_tv.parser.extractor.Extractor
-import com.saikou.sozo_tv.parser.models.*
+import com.saikou.sozo_tv.parser.models.AudioType
+import com.saikou.sozo_tv.parser.models.Data
+import com.saikou.sozo_tv.parser.models.EpisodeData
+import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.models.Video
+import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.utils.Utils.getJsoup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -49,6 +53,7 @@ class AnimeFenixParser : BaseParser() {
             "Referer" to "$hostUrl/"
         )
     }
+
     override suspend fun search(query: String): List<ShowResponse> {
         return withContext(Dispatchers.IO) {
             try {
@@ -196,19 +201,27 @@ class AnimeFenixParser : BaseParser() {
                 val doc = getJsoup(epId, getDefaultHeaders())
                 val servers = parseServers(doc)
                 Log.d(TAG, "getEpisodeVideo: ${servers}")
-                servers.map { server ->
-                    VideoOption(
-                        videoUrl = server.src,
-                        fansub = server.name,
-                        resolution = "HD",
-                        audioType = AudioType.SUB,
-                        quality = "",
-                        isActive = true,
-                        mimeTypes = MimeTypes.APPLICATION_M3U8,
-                        fullText = server.name,
-                        tracks = emptyList(),
-                        headers = emptyMap()
-                    )
+                servers.mapNotNull { server ->
+                    if (server.name.contains(
+                            "YourUpload",
+                            ignoreCase = true
+                        ) || server.name.contains("HQQ", ignoreCase = true)
+                    ) {
+                        VideoOption(
+                            videoUrl = server.src,
+                            fansub = server.name,
+                            resolution = "HD",
+                            audioType = AudioType.SUB,
+                            quality = "",
+                            isActive = true,
+                            mimeTypes = MimeTypes.APPLICATION_M3U8,
+                            fullText = server.name,
+                            tracks = emptyList(),
+                            headers = emptyMap()
+                        )
+                    } else {
+                        null
+                    }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error getting video options: ${e.message}")
@@ -248,7 +261,13 @@ class AnimeFenixParser : BaseParser() {
                     if (urlValue.isBlank()) {
                         continue
                     }
-                    servers.add(Video.Server(name = name, src = urlValue.toString(), id = urlValue.toString()))
+                    servers.add(
+                        Video.Server(
+                            name = name,
+                            src = urlValue,
+                            id = urlValue
+                        )
+                    )
                 }
             }
         } catch (e: Exception) {
@@ -258,7 +277,7 @@ class AnimeFenixParser : BaseParser() {
         return servers
     }
 
-    override suspend fun extractVideo(url: String): String {
+    override suspend fun extractVideo(url: String): Pair<String, Map<String, String>> {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d(TAG, "Extracting video from: $url")
@@ -268,7 +287,7 @@ class AnimeFenixParser : BaseParser() {
                     else -> throw Exception("No video URL found")
                 }
                 Log.d(TAG, "Extracted video URL: $videoUrl")
-                videoUrl
+                Pair(videoUrl, video.headers)
             } catch (e: Exception) {
                 Log.e(TAG, "Error extracting video: ${e.message}")
                 throw e
@@ -276,4 +295,4 @@ class AnimeFenixParser : BaseParser() {
         }
     }
 
-    }
+}

@@ -386,14 +386,14 @@ class AnimeFlvParser : BaseParser() {
         return servers
     }
 
-    override suspend fun extractVideo(url: String): String {
+    override suspend fun extractVideo(url: String): Pair<String, Map<String, String>> {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d(TAG, "Extracting video from: $url")
                 val video = Extractor.extract(url)
                 val videoUrl = video.source
                 Log.d(TAG, "Extracted video URL: $videoUrl")
-                videoUrl
+                Pair(videoUrl, video.headers)
             } catch (e: Exception) {
                 Log.e(TAG, "Error extracting video: ${e.message}")
                 throw e

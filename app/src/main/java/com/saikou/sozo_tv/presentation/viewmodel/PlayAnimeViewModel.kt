@@ -10,7 +10,6 @@ import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.model.SubTitle
 import com.saikou.sozo_tv.data.model.VodMovieResponse
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
-import com.saikou.sozo_tv.parser.anime.AnimePahe
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.models.VideoOption
@@ -205,51 +204,60 @@ class PlayAnimeViewModel(
     private suspend fun buildVodFromOption(
         option: VideoOption, sourceKey: String
     ): VodMovieResponse {
-        return if (sourceKey == SOURCE_HIANIME) {
-            VodMovieResponse(
-                authInfo = "",
-                subtitleList = option.tracks.map {
-                    if (!it.file.contains("thumbnail")) SubTitle(
-                        it.file, it.label ?: ""
-                    ) else null
-                }.filterNotNull(),
-                urlobj = option.videoUrl,
-                header = option.headers,
-                type = option.mimeTypes,
-                thumbnail = option.tracks.find { it.file.contains("thumbnail") }?.file ?: ""
-            )
-        } else if (sourceKey == "AnimeSaturn") {
-            VodMovieResponse(
-                authInfo = "",
-                subtitleList = arrayListOf(),
-                urlobj = option.videoUrl,
-                header = option.headers,
-                type = MimeTypes.APPLICATION_MP4,
-            )
-        } else if (sourceKey == SOURCE_ANIMEWORLD) {
-            val headers = linkedMapOf(
-                "User-Agent" to "Mozilla/5.0",
-                "Accept" to "*/*",
-                "Accept-Language" to "en-US,en;q=0.9,uz-UZ;q=0.8,uz;q=0.7",
-                "Connection" to "keep-alive",
-                "Upgrade-Insecure-Requests" to "1"
-            )
-
-            VodMovieResponse(
-                authInfo = "",
-                subtitleList = arrayListOf(),
-                urlobj = option.videoUrl,
-                header = headers,
-                type = MimeTypes.APPLICATION_MP4,
-            )
-        } else {
-            val extractedUrl = parser.extractVideo(option.videoUrl)
-            Log.d(TAG, "buildVodFromOption: $extractedUrl | ${option.videoUrl}")
-            VodMovieResponse(
-                authInfo = "", subtitleList = arrayListOf(), urlobj = extractedUrl, header = mapOf(
-                    "User-Agent" to AnimePahe.USER_AGENT, "Referer" to option.videoUrl
+        return when (sourceKey) {
+            SOURCE_HIANIME -> {
+                VodMovieResponse(
+                    authInfo = "",
+                    subtitleList = option.tracks.map {
+                        if (!it.file.contains("thumbnail")) SubTitle(
+                            it.file, it.label ?: ""
+                        ) else null
+                    }.filterNotNull(),
+                    urlobj = option.videoUrl,
+                    header = option.headers,
+                    type = option.mimeTypes,
+                    thumbnail = option.tracks.find { it.file.contains("thumbnail") }?.file ?: ""
                 )
-            )
+            }
+
+            "AnimeSaturn" -> {
+                VodMovieResponse(
+                    authInfo = "",
+                    subtitleList = arrayListOf(),
+                    urlobj = option.videoUrl,
+                    header = option.headers,
+                    type = MimeTypes.APPLICATION_MP4,
+                )
+            }
+
+            SOURCE_ANIMEWORLD -> {
+                val headers = linkedMapOf(
+                    "User-Agent" to "Mozilla/5.0",
+                    "Accept" to "*/*",
+                    "Accept-Language" to "en-US,en;q=0.9,uz-UZ;q=0.8,uz;q=0.7",
+                    "Connection" to "keep-alive",
+                    "Upgrade-Insecure-Requests" to "1"
+                )
+
+                VodMovieResponse(
+                    authInfo = "",
+                    subtitleList = arrayListOf(),
+                    urlobj = option.videoUrl,
+                    header = headers,
+                    type = MimeTypes.APPLICATION_MP4,
+                )
+            }
+
+            else -> {
+                val extractedUrl = parser.extractVideo(option.videoUrl)
+                Log.d(TAG, "buildVodFromOption: $extractedUrl | ${option.videoUrl}")
+                VodMovieResponse(
+                    authInfo = "",
+                    subtitleList = arrayListOf(),
+                    urlobj = extractedUrl.first,
+                    header = extractedUrl.second
+                )
+            }
         }
     }
 
