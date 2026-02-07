@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -29,7 +30,6 @@ import com.lagradost.nicehttp.ignoreAllSSLErrors
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ContentControllerTvBinding
 import com.saikou.sozo_tv.databinding.TrailerPlayerScreenBinding
-import com.saikou.sozo_tv.parser.anime.VideoType
 import com.saikou.sozo_tv.presentation.viewmodel.AdultPlayerViewModel
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
@@ -94,9 +94,9 @@ class AdultPlayerScreen : Fragment() {
                                 binding.pvPlayer.visible()
                                 initializeVideo(
                                     args.link,
-                                    it.data.type == VideoType.M3U8
+                                    it.data.type == MimeTypes.APPLICATION_M3U8
                                 )
-                                playVideo(it.data.url)
+                                playVideo(it.data.source)
                             }
 
                             else -> {

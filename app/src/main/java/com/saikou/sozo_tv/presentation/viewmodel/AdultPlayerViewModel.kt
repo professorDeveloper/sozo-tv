@@ -4,18 +4,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.parser.anime.HentaiMama
-import com.saikou.sozo_tv.parser.anime.Video
-import com.saikou.sozo_tv.parser.models.Kiwi
 import com.saikou.sozo_tv.utils.Resource
 import kotlinx.coroutines.launch
 
 class AdultPlayerViewModel : ViewModel() {
     val adultSource = HentaiMama()
 
-    var videoServer: Video? = null
     var episodeLink: String? = null
-    val episodeData = MutableLiveData<Resource<Kiwi>>()
-    val extractData = MutableLiveData<Resource<Video>>()
+    val episodeData = MutableLiveData<Resource<com.saikou.sozo_tv.parser.models.Video.Server>>()
+    val extractData = MutableLiveData<Resource<com.saikou.sozo_tv.parser.models.Video>>()
     fun loadVideoServers(epLink: String) {
         episodeData.value = Resource.Loading
         episodeLink = epLink
@@ -25,7 +22,7 @@ class AdultPlayerViewModel : ViewModel() {
         }
     }
 
-    fun extractVideoFromKiwi(kiwi: Kiwi) {
+    fun extractVideoFromKiwi(kiwi: com.saikou.sozo_tv.parser.models.Video.Server) {
         extractData.value = Resource.Loading
         viewModelScope.launch {
             val video = adultSource.extract(kiwi)

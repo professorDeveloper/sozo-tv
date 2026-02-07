@@ -155,9 +155,7 @@ class AnimeFlvParser : BaseParser() {
     }
 
     override suspend fun loadEpisodes(
-        id: String,
-        page: Int,
-        showResponse: ShowResponse
+        id: String, page: Int, showResponse: ShowResponse
     ): EpisodeData? {
         return withContext(Dispatchers.IO) {
             try {
@@ -188,9 +186,9 @@ class AnimeFlvParser : BaseParser() {
     private fun parseEpisodes(doc: Document): List<Data> {
         val episodes = mutableListOf<Data>()
         try {
-            val script = doc.select("script")
-                .firstOrNull { it.data().contains("var episodes =") }
-                ?.data() ?: return emptyList()
+            val script =
+                doc.select("script").firstOrNull { it.data().contains("var episodes =") }?.data()
+                    ?: return emptyList()
 
             val episodesData = script.substringAfter("var episodes = [").substringBefore("];")
             val animeInfoJson =
@@ -246,10 +244,10 @@ class AnimeFlvParser : BaseParser() {
                             videoUrl = server.src,
                             fansub = server.name,
                             resolution = "HD",
-                            audioType = if (server.name.contains("(Latino)", ignoreCase = true) ||
-                                server.name.contains("(Español)", ignoreCase = true)
-                            )
-                                AudioType.DUB else AudioType.SUB,
+                            audioType = if (server.name.contains(
+                                    "(Latino)", ignoreCase = true
+                                ) || server.name.contains("(Español)", ignoreCase = true)
+                            ) AudioType.DUB else AudioType.SUB,
                             quality = "",
                             isActive = true,
                             mimeTypes = MimeTypes.APPLICATION_M3U8,
@@ -268,8 +266,8 @@ class AnimeFlvParser : BaseParser() {
         }
     }
 
-    private fun parseServers(doc: Document): List<com.saikou.sozo_tv.parser.models.Video.Server> {
-        val servers = mutableListOf<com.saikou.sozo_tv.parser.models.Video.Server>()
+    private fun parseServers(doc: Document): List<Video.Server> {
+        val servers = mutableListOf<Video.Server>()
 
         try {
             val scriptElements = doc.select("script")
@@ -303,7 +301,7 @@ class AnimeFlvParser : BaseParser() {
                                         }
 
                                         servers.add(
-                                            com.saikou.sozo_tv.parser.models.Video.Server(
+                                            Video.Server(
                                                 id = code,
                                                 name = name,
                                                 src = code,
@@ -331,7 +329,7 @@ class AnimeFlvParser : BaseParser() {
                                         }
 
                                         servers.add(
-                                            com.saikou.sozo_tv.parser.models.Video.Server(
+                                            Video.Server(
                                                 id = code,
                                                 name = name,
                                                 src = code,
@@ -359,7 +357,7 @@ class AnimeFlvParser : BaseParser() {
                                         }
 
                                         servers.add(
-                                            com.saikou.sozo_tv.parser.models.Video.Server(
+                                            Video.Server(
                                                 id = code,
                                                 name = name,
                                                 src = code,

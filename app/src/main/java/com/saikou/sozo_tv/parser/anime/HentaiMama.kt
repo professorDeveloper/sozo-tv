@@ -1,35 +1,19 @@
 package com.saikou.sozo_tv.parser.anime
 
+import androidx.media3.common.MimeTypes
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lagradost.nicehttp.Requests
+import com.saikou.sozo_tv.data.model.ResponseElement
 import com.saikou.sozo_tv.parser.base.BaseParser
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.EpisodeData
-import com.saikou.sozo_tv.parser.models.Kiwi
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.utils.Utils
 import com.saikou.sozo_tv.utils.parser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-data class ResponseElement(
-    val type: String,
-    val file: String
-)
-
-
-data class Video(
-    val id: String?,
-    val type: VideoType,
-    val url: String,
-    val size: Long?
-)
-
-enum class VideoType {
-    M3U8,
-    CONTAINER
-}
 
 class HentaiMama : BaseParser() {
     override val name: String = "hentaimama"
@@ -37,7 +21,6 @@ class HentaiMama : BaseParser() {
     override val hostUrl = "https://hentaimama.io"
     override val isNSFW: Boolean = true
     override val language: String = "jp"
-
 
     override suspend fun search(query: String): List<ShowResponse> = withContext(Dispatchers.IO) {
         val updatedQuery = if (query.length > 7) query.substring(0, 7) else query
@@ -78,7 +61,7 @@ class HentaiMama : BaseParser() {
     suspend fun loadVideoServers(
         episodeLink: String,
         extra: Map<String, String>?
-    ): Kiwi {
+    ): com.saikou.sozo_tv.parser.models.Video.Server {
         val client = Requests(Utils.httpClient, responseParser = parser)
         val animeId = client.get(episodeLink).document
             .select("#post_report > input:nth-child(5)")
@@ -98,7 +81,11 @@ class HentaiMama : BaseParser() {
 
         val videoServers = videoUrls.mapIndexed { index, url ->
             println(url.extractIframeSrc())
-            Kiwi(url.extractIframeSrc() ?: "", "Mirror $index", "")
+            com.saikou.sozo_tv.parser.models.Video.Server(
+                url.extractIframeSrc() ?: "",
+                "Mirror $index",
+                url.extractIframeSrc() ?: ""
+            )
         }
 
         return videoServers.first()
@@ -109,23 +96,22 @@ class HentaiMama : BaseParser() {
         return srcPattern.find(this)?.groupValues?.get(1)
     }
 
-    suspend fun extract(server: Kiwi): Video {
+    suspend fun extract(server: com.saikou.sozo_tv.parser.models.Video.Server): com.saikou.sozo_tv.parser.models.Video {
         val client = Requests(Utils.httpClient, responseParser = parser)
-        val doc = client.get(server.session)
+        val doc = client.get(server.src)
 
         doc.document.selectFirst("video>source")?.attr("src")?.let { directSrc ->
 
-            return Video(null, VideoType.CONTAINER, directSrc, getSize(directSrc))
+            return com.saikou.sozo_tv.parser.models.Video(
+                directSrc,
+                arrayListOf(),
+                mapOf(),
+                type = MimeTypes.APPLICATION_M3U8,
+            )
         }
 
         val unSanitized =
-            doc.text.findBetween("sources: [", "],") ?: return Video(
-                null,
-                VideoType.CONTAINER,
-                "",
-                null
-            )
-
+            doc.text.findBetween("sources: [", "],") ?: throw Exception("Can't find video sources")
         val sanitizedJson = "[${
             unSanitized
                 .replace("type:", "\"type\":")
@@ -136,15 +122,25 @@ class HentaiMama : BaseParser() {
         val listType = object : TypeToken<List<ResponseElement>>() {}.type
         val json: List<ResponseElement> = gson.fromJson(sanitizedJson, listType)
 
-        // Convert to Video objects
         val videos = json.map { element ->
             if (element.type == "hls")
-                Video(null, VideoType.M3U8, element.file, null)
+                com.saikou.sozo_tv.parser.models.Video(
+                    element.file,
+                    arrayListOf(),
+                    mapOf(),
+                    type = MimeTypes.APPLICATION_M3U8
+                )
             else
-                Video(null, VideoType.CONTAINER, element.file, getSize(element.file))
+                com.saikou.sozo_tv.parser.models.Video(
+                    element.file,
+                    arrayListOf(),
+                    mapOf(),
+                    type = MimeTypes.VIDEO_MP4
+                )
         }
 
-        return videos.first()
+        return videos.firstOrNull() ?: throw Exception("No valid video sources found")
+
     }
 
     fun String.findBetween(start: String, end: String): String? {
@@ -158,7 +154,4 @@ class HentaiMama : BaseParser() {
         return this.substring(actualStart, endIndex)
     }
 
-    fun getSize(url: String): Long? {
-        return null
-    }
 }

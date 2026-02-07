@@ -7,7 +7,7 @@ data class VodMovieResponse(
     val authInfo: String,
     var header: Map<String, String>,
     @Transient
-    val subtitleList: List<SubTitle> = arrayListOf(),  // Ignored during serialization
+    val subtitleList: List<SubTitle> = arrayListOf(),
     val urlobj: String,
     val type: String = MimeTypes.APPLICATION_M3U8,
     val thumbnail: String = "",
