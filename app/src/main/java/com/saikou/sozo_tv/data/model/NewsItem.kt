@@ -7,10 +7,10 @@ data class NewsItem(
     val description: String = "",
     val timestamp: Long = 0L,
     val action: String = "",
-    val isRead: Boolean = false, // Added isRead field for unread/read state
-    val priority: NewsPriority = NewsPriority.NORMAL // Added priority for different notification types
+    val isRead: Boolean = false,
+    val priority: NewsPriority = NewsPriority.NORMAL
 )
 
 enum class NewsPriority {
-    LOW, NORMAL, HIGH, URGENT
+     NORMAL, HIGH, URGENT
 }
