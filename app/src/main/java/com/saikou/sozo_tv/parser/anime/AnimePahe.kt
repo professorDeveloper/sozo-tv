@@ -142,31 +142,38 @@ class AnimePahe : BaseParser() {
     }
 
     override suspend fun extractVideo(url: String): Video {
-        val doc = getJsoup(url, mapOf("User-Agent" to USER_AGENT, "Referer" to hostUrl))
-        val scripts: Elements = doc.getElementsByTag("script")
-        var evalContent: String? = null
+        try {
+            val doc = getJsoup(url, mapOf("User-Agent" to USER_AGENT, "Referer" to hostUrl))
+            val scripts: Elements = doc.getElementsByTag("script")
+            var evalContent: String? = null
 
-        for (script in scripts) {
-            val scriptContent = script.html()
-            if (scriptContent.contains("eval(function(p,a,c,k,e,d){")) {
-                evalContent = scriptContent
-                break
+            for (script in scripts) {
+                val scriptContent = script.html()
+                if (scriptContent.contains("eval(function(p,a,c,k,e,d){")) {
+                    evalContent = scriptContent
+                    break
+                }
             }
+
+            return Video(
+                source = extractFileUrl(getAndUnpack(evalContent ?: "")) ?: "",
+                subtitles = listOf(),
+                type = MimeTypes.APPLICATION_M3U8,
+                headers = mapOf(
+                    "Referer" to "https://kwik.cx",
+                    "User-Agent" to USER_AGENT,
+                    "Accept" to "*/*",
+                    "Origin" to "https://kwik.cx/",
+                    "Accept-Language" to "en-US,en;q=0.9",
+                    "Accept-Encoding" to "gzip, deflate, br",
+                    "Connection" to "keep-alive"
+                )
+            )
+        } catch (e: Exception) {
+            Bugsnag.notify(Exception("AnimePahe Error::   " + e.message))
+            return Video("")
         }
 
-        return Video(
-            source = extractFileUrl(getAndUnpack(evalContent ?: "")) ?: "",
-            subtitles = listOf(),
-            type = MimeTypes.APPLICATION_M3U8,
-            headers = mapOf(
-                "Referer" to hostUrl,
-                "User-Agent" to USER_AGENT,
-                "Accept" to "*/*",
-                "Accept-Language" to "en-US,en;q=0.9",
-                "Accept-Encoding" to "gzip, deflate, br",
-                "Connection" to "keep-alive"
-            )
-        )
     }
 
     private val packedRegex = Regex("""eval\(function\(p,a,c,k,e,.*\)\)""")

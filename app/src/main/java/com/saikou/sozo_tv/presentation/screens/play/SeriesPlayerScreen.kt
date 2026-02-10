@@ -291,7 +291,7 @@ class SeriesPlayerScreen : Fragment() {
         player.addListener(object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
                 Log.e("PLAYER_ERR", "code=${error.errorCodeName}", error)
-                Bugsnag.notify(error)
+                Bugsnag.notify(Exception("GGGG:${model.seriesResponse?.urlobj} || ${model.parser.name}" + error.message))
             }
 
             @SuppressLint("SwitchIntDef")

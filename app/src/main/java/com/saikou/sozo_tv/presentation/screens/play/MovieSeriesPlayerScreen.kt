@@ -553,7 +553,7 @@ class MovieSeriesPlayerScreen : Fragment() {
 
         player.addListener(object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
-                Bugsnag.notify(error)
+                Bugsnag.notify(Exception("GGMoviePlayer: | ${model.currentSource} | ${model.seriesResponse?.urlobj} | ${error.message}"))
             }
 
             @SuppressLint("SwitchIntDef")
