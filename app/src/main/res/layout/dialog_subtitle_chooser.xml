@@ -1,25 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
     android:layout_width="700dp"
     android:layout_height="wrap_content"
-    android:minWidth="700dp"
     android:layout_gravity="center"
     android:background="@drawable/dialog_background"
+    android:minWidth="700dp"
     android:orientation="vertical"
     android:padding="16dp">
 
-    <FrameLayout
+    <!-- Header -->
+    <TextView
+        android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:text="dialog_subtitle_chooser" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
         <TextView
             android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:fontFamily="sans-serif-medium"
             android:text="@string/choose_subtitle"
             android:textColor="@android:color/white"
             android:textSize="18sp"
@@ -35,30 +42,80 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:src="@drawable/close"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/color_item_tv_section_profile" />
     </FrameLayout>
 
+    <!-- Subtitles ON/OFF + Style -->
     <LinearLayout
         android:id="@+id/subtitle_toggle_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-
+        android:layout_marginTop="14dp"
+        android:layout_marginBottom="12dp"
         android:background="@drawable/netflix_focusable_background"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingVertical="12dp">
+        android:padding="12dp">
 
+        <TextView
+            android:id="@+id/subtitle_toggle_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/choose_subtitle"
+            android:textColor="@color/netflix_white"
+            android:textSize="14sp" />
 
+        <com.saikou.sozo_tv.components.TvOptionChipView
+            android:id="@+id/subtitle_toggle_off"
+            android:layout_width="96dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:text="@string/off"
+            android:textColor="@color/netflix_text_primary"
+            android:textSize="14sp" />
+
+        <com.saikou.sozo_tv.components.TvOptionChipView
+            android:id="@+id/subtitle_toggle_on"
+            android:layout_width="96dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:text="@string/on"
+            android:textColor="@color/netflix_text_primary"
+            android:textSize="14sp" />
+
+        <com.saikou.sozo_tv.components.TvOptionChipView
+            android:id="@+id/subtitle_style_btn"
+            android:layout_width="120dp"
+            android:layout_height="48dp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:text="@string/style"
+            android:textColor="@color/netflix_text_primary"
+            android:textSize="14sp" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/subtitle_off_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:fontFamily="sans-serif"
+        android:text="@string/subtitles_are_off"
+        android:textColor="@color/netflix_gray"
+        android:textSize="13sp"
+        android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_subtitles"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="280dp"
         android:focusable="true"
-        android:nextFocusDown="@id/rv_subtitles"
         android:orientation="vertical"
         android:overScrollMode="never" />
 

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.data.model.SubTitle
 import com.saikou.sozo_tv.data.model.SubtitleItem
 import com.saikou.sozo_tv.data.model.VodMovieResponse
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
@@ -158,7 +159,7 @@ class PlayMovieViewModel(
                     currentExtractor.extract(server.src).let { video ->
                         VodMovieResponse(
                             authInfo = "",
-                            subtitleList = arrayListOf(),
+                            subtitleList = video.subtitles.map { SubTitle(it.url, it.label) },
                             urlobj = video.source,
                             header = video.headers,
                             type = video.type

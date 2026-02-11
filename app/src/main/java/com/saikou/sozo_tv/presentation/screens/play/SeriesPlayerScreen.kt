@@ -38,6 +38,7 @@ import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
@@ -471,8 +472,8 @@ class SeriesPlayerScreen : Fragment() {
 
             val videoUrl = vod.urlobj
             val subtitles = vod.subtitleList.orEmpty()
-            val isSubtitleHave = subtitles.isNotEmpty()
-            var useSubtitles = isSubtitleHave
+            var isSubtitleHave = subtitles.isNotEmpty()
+            val useSubtitles = isSubtitleHave
 
             val lastPosition = model.getWatchedHistoryEntity?.lastPosition ?: 0L
 
@@ -514,29 +515,42 @@ class SeriesPlayerScreen : Fragment() {
             binding.pvPlayer.controller.binding.exoSubtidtle.setOnClickListener {
                 val currentSelected = subtitles.getOrNull(model.currentSubEpIndex)
                 val dialog =
-                    SubtitleChooserDialog.newInstance(subtitles, currentSelected, useSubtitles)
+                    SubtitleChooserDialog.newInstance(subtitles, currentSelected, isSubtitleHave)
 
                 dialog.setSubtitleSelectionListener { selectedSubtitle ->
-                    if (model.currentSubEpIndex == subtitles.indexOf(selectedSubtitle)) return@setSubtitleSelectionListener
+                    val enabled = selectedSubtitle?.file?.isNotEmpty() == true
 
-                    model.currentSubEpIndex = subtitles.indexOf(selectedSubtitle)
-                    binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(R.drawable.ic_subtitle_fill)
-                    binding.pvPlayer.subtitleView?.visibility = View.VISIBLE
+                    val newIndex = if (enabled) subtitles.indexOf(selectedSubtitle) else -1
+                    if (model.currentSubEpIndex == newIndex) return@setSubtitleSelectionListener
+
+                    model.currentSubEpIndex = newIndex
+
+                    binding.pvPlayer.subtitleView?.visibility =
+                        if (enabled) View.VISIBLE else View.GONE
+                    binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(
+                        if (enabled) R.drawable.ic_subtitle_fill else R.drawable.ic_subtitle
+                    )
 
                     val previousPos = player.currentPosition
                     player.pause()
 
-                    useSubtitles = selectedSubtitle?.file?.isNotEmpty() ?: false
+                    isSubtitleHave = enabled
 
                     lifecycleScope.launch {
                         val newSource = withContext(Dispatchers.IO) {
-                            buildMediaSourceWithSubtitle(videoUrl, useSubtitles)
+                            buildMediaSourceWithSubtitle(videoUrl, isSubtitleHave)
                         }
                         player.setMediaSource(newSource)
                         player.prepare()
                         player.seekTo(previousPos)
                         player.play()
                     }
+                }
+                dialog.setOnSubtitleStyleChangedListener {
+                    applySubtitleStyleToPlayer(
+                        binding.pvPlayer,
+                        PreferenceManager(requireContext())
+                    )
                 }
 
                 dialog.show(parentFragmentManager, "subtitle_chooser")
@@ -564,51 +578,68 @@ class SeriesPlayerScreen : Fragment() {
         }
     }
 
-
     @SuppressLint("UnsafeOptInUsageError")
     private fun buildMediaSourceWithSubtitle(
-        videoUrl: String, useSubtitles: Boolean
-    ): androidx.media3.exoplayer.source.MediaSource {
+        videoUrl: String,
+        useSubtitles: Boolean
+    ): MediaSource {
 
-        val mime = model.seriesResponse?.type
-        val mediaSource = createMediaSource(videoUrl, mime)
+        val vod = model.seriesResponse
+        val mime = vod?.type
 
-        if (!useSubtitles) return mediaSource
+        val mediaItemBuilder = MediaItem.Builder()
+            .setUri(videoUrl)
+            .setTag(args.name)
+            .apply { mime?.let { setMimeType(it) } }
 
-        return try {
-            val localFile = File(requireContext().cacheDir, "sub.vtt")
+        if (useSubtitles) {
+            val list = vod?.subtitleList.orEmpty()
+            val idx = model.currentSubEpIndex
 
-            val client = okHttpClient ?: buildOkHttpClient(lastHeaders)
+            if (idx in list.indices) {
+                val subUrl = list[idx].file
+                if (subUrl.isNotBlank()) {
 
-            val request = Request.Builder()
-                .url(model.seriesResponse!!.subtitleList[model.currentSubEpIndex].file)
-                .header("User-Agent", "Mozilla/5.0").build()
+                    val client = okHttpClient ?: buildOkHttpClient(lastHeaders)
+                    val tmp = File(requireContext().cacheDir, "sub_${System.currentTimeMillis()}.vtt")
 
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
-                response.body!!.byteStream().use { input ->
-                    localFile.outputStream().use { output -> input.copyTo(output) }
+                    val request = Request.Builder()
+                        .url(subUrl)
+                        .header("User-Agent", "Mozilla/5.0")
+                        .build()
+
+                    client.newCall(request).execute().use { response ->
+                        if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+                        response.body!!.byteStream().use { input ->
+                            tmp.outputStream().use { output -> input.copyTo(output) }
+                        }
+                    }
+
+                    val text = tmp.readText()
+
+                    val fixedFile = if (!text.startsWith("WEBVTT")) {
+                        tmp.writeText("WEBVTT\n\n$text")
+                        tmp
+                    } else tmp
+
+                    val subConfig = MediaItem.SubtitleConfiguration.Builder(
+                        Uri.fromFile(fixedFile)
+                    )
+                        .setMimeType(MimeTypes.TEXT_VTT)
+                        .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+                        .build()
+
+                    mediaItemBuilder.setSubtitleConfigurations(listOf(subConfig))
                 }
             }
-
-            val text = localFile.readText()
-            if (!text.startsWith("WEBVTT")) {
-                localFile.writeText("WEBVTT\n\n$text")
-            }
-
-            val subtitleSource =
-                SingleSampleMediaSource.Factory(dataSourceFactory).createMediaSource(
-                    MediaItem.SubtitleConfiguration.Builder(Uri.fromFile(localFile))
-                        .setMimeType(MimeTypes.TEXT_VTT).setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-                        .build(), C.TIME_UNSET
-                )
-
-            MergingMediaSource(mediaSource, subtitleSource)
-        } catch (e: Exception) {
-            Log.e("Subtitle", "Subtitle load failed", e)
-            mediaSource
         }
+
+        val finalItem = mediaItemBuilder.build()
+
+        return DefaultMediaSourceFactory(dataSourceFactory)
+            .createMediaSource(finalItem)
     }
+
 
 
     @SuppressLint("UnsafeOptInUsageError")

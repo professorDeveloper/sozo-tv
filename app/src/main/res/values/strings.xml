@@ -157,5 +157,9 @@
     <string name="current_selected_movie_source">Movie: %s</string>
     <string name="current_selected_both">Anime: %1$s, Movie: %2$s</string>
     <string name="main_menu_my_list">My AniList</string>
+    <string name="style">Subtitle Style</string>
+    <string name="off">Off</string>
+    <string name="on">On</string>
+    <string name="subtitles_are_off">Subtitles Are Off</string>
 
 </resources>

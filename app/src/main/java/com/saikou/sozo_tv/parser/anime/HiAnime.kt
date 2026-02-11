@@ -155,7 +155,7 @@ class HiAnime : BaseParser() {
                 "Referer" to "https://megacloud.blog/"
             )
 
-            val jobs = servers.drop(1).map { server ->
+            val jobs = servers.map { server ->
                 async {
                     val embedUrl = extractor.extractVideoFromServer(server.id)
                     val (m3u8, tracks) = mega.extractVideoUrl(embedUrl)
