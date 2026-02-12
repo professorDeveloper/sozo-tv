@@ -160,14 +160,15 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
     // exo player
-    implementation("androidx.media3:media3-transformer:1.6.0")
-    implementation("androidx.media3:media3-exoplayer:1.6.0")
-    implementation("androidx.media3:media3-exoplayer-dash:1.6.0")
-    implementation("androidx.media3:media3-ui:1.6.0")
-    implementation("androidx.media3:media3-exoplayer-hls:1.6.0")
-    implementation("androidx.media3:media3-session:1.6.0")
-    implementation("androidx.media3:media3-datasource-okhttp:1.6.0")
+    val media3_version = "1.9.2"
 
+    implementation("androidx.media3:media3-transformer:$media3_version")
+    implementation("androidx.media3:media3-exoplayer:$media3_version")
+    implementation("androidx.media3:media3-exoplayer-dash:$media3_version")
+    implementation("androidx.media3:media3-ui:$media3_version")
+    implementation("androidx.media3:media3-exoplayer-hls:$media3_version")
+    implementation("androidx.media3:media3-session:$media3_version")
+    implementation("androidx.media3:media3-datasource-okhttp:$media3_version")
     //Jackson
     api("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.1")
 

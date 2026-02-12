@@ -27,6 +27,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionParameters.AudioOffloadPreferences
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
@@ -34,25 +35,21 @@ import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import androidx.media3.exoplayer.source.MediaSource
-import androidx.media3.exoplayer.source.MergingMediaSource
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
-import androidx.media3.exoplayer.source.SingleSampleMediaSource
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.extractor.DefaultExtractorsFactory
+import androidx.media3.extractor.mp4.FragmentedMp4Extractor
+import androidx.media3.extractor.mp4.Mp4Extractor
 import androidx.media3.session.MediaSession
-import androidx.media3.transformer.ExperimentalFrameExtractor
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerControlView
 import androidx.media3.ui.PlayerView
-import androidx.media3.ui.TimeBar
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.bugsnag.android.Bugsnag
 import com.lagradost.nicehttp.ignoreAllSSLErrors
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.EpisodePlayerAdapter
-import com.saikou.sozo_tv.components.SkipIntroView
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.ContentControllerTvSeriesBinding
@@ -73,37 +70,45 @@ import kotlinx.coroutines.withContext
 import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.io.IOException
-import kotlin.math.abs
+import java.nio.charset.Charset
+import kotlin.math.max
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MovieSeriesPlayerScreen : Fragment() {
+
     private var _binding: ImdbSeriesPlayerScreenBinding? = null
     private val binding get() = _binding!!
+
     private lateinit var player: ExoPlayer
+    private lateinit var trackSelector: DefaultTrackSelector
     private lateinit var okHttpClient: OkHttpClient
     private lateinit var okHttpDataSourceFactory: OkHttpDataSource.Factory
     private lateinit var dataSourceFactory: DataSource.Factory
+
     private val model by viewModel<PlayMovieViewModel>()
     private lateinit var mediaSession: MediaSession
     private val args by navArgs<MovieSeriesPlayerScreenArgs>()
+
     private val episodeList = arrayListOf<Data>()
     private var countdownShown = false
     private var isCountdownActive = false
+
     private var progressHandler: Handler? = null
     private var progressRunnable: Runnable? = null
 
-    @SuppressLint("UnsafeOptInUsageError")
-    private var frameExtractor: ExperimentalFrameExtractor? = null
-    private lateinit var skipIntroView: SkipIntroView
     private var canUseSubtitle = false
 
-    private var lastThumbReqPos: Long = -1L
-    private var lastThumbReqTs: Long = 0L
+    private companion object {
+        private const val SUBTITLE_OFFSET_MS = 0L
+        private val TIME_LINE_REGEX =
+            Regex("""^\s*(\d{1,2}:\d{2}:\d{2}[,\.]\d{3}|\d{2}:\d{2}[,\.]\d{3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[,\.]\d{3}|\d{2}:\d{2}[,\.]\d{3})(.*)$""")
+    }
 
     private val PlayerControlView.binding
-        @OptIn(UnstableApi::class) get() = ContentControllerTvSeriesBinding.bind(this.findViewById(R.id.cl_exo_controller_tv))
+        @OptIn(UnstableApi::class)
+        get() = ContentControllerTvSeriesBinding.bind(this.findViewById(R.id.cl_exo_controller_tv))
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -119,16 +124,13 @@ class MovieSeriesPlayerScreen : Fragment() {
                 if (nextEpisodeIndex < episodeList.size) {
                     countdownShown = true
                     isCountdownActive = true
-
                     countdownOverlay.startCountdown(
                         seconds = 10,
                         nextEpisode = nextEpisodeIndex + 1,
                         currentEpisode = model.currentEpIndex + 1,
                         title = args.name,
                         useEnglish = true,
-                        onFinished = {
-                            playNextEpisodeAutomatically()
-                        },
+                        onFinished = { playNextEpisodeAutomatically() },
                         onCancelled = {
                             isCountdownActive = false
                             player.play()
@@ -147,7 +149,6 @@ class MovieSeriesPlayerScreen : Fragment() {
                     model.currentEpIndex += 1
                     model.doNotAsk = false
                     model.lastPosition = 0
-
                     model.getCurrentEpisodeVodByImdb(
                         args.imdbId,
                         args.iframeLink,
@@ -157,15 +158,12 @@ class MovieSeriesPlayerScreen : Fragment() {
                         args.currentIndex,
                         args.tmdbId
                     )
-
                     model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
                         if (resource is Resource.Success) {
                             val newUrl = resource.data.urlobj
                             playNewEpisode(newUrl, args.name)
-
                             binding.pvPlayer.controller.binding.filmTitle.text =
                                 "${args.name} - Episode ${model.currentEpIndex + 1}"
-
                             resetCountdownState()
                         }
                     }
@@ -187,16 +185,13 @@ class MovieSeriesPlayerScreen : Fragment() {
                 if (::player.isInitialized && player.isPlaying) {
                     val currentPosition = player.currentPosition
                     val duration = player.duration
-
                     if (duration > 0 && currentPosition > 0) {
                         val remainingTime = duration - currentPosition
-
                         if (remainingTime in 9001..10000 && !countdownShown && !isCountdownActive) {
                             showNextEpisodeCountdown()
                         }
                     }
                 }
-
                 progressHandler?.postDelayed(this, 1000)
             }
         }
@@ -210,11 +205,7 @@ class MovieSeriesPlayerScreen : Fragment() {
             startActivity(intent)
             activity?.finish()
         } else {
-            runCatching {
-                findNavController().navigateUp()
-            }.onFailure { e ->
-                e.printStackTrace()
-            }
+            runCatching { findNavController().navigateUp() }.onFailure { it.printStackTrace() }
         }
     }
 
@@ -228,27 +219,25 @@ class MovieSeriesPlayerScreen : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
         initializeVideo()
-        binding.pvPlayer.controller.binding.frameBackButton.setOnClickListener {
-            navigateBack()
-        }
+
+        binding.pvPlayer.controller.binding.frameBackButton.setOnClickListener { navigateBack() }
 
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    navigateBack()
-                }
+                override fun handleOnBackPressed() = navigateBack()
             }
         )
+
         model.currentEpIndex = args.currentIndex
         model.changeCurrentSource(args.currentSource)
-        model.getAllEpisodeByImdb(
-            args.imdbId, args.tmdbId, args.currentPage, args.isMovie, args.image
-        )
+        model.getAllEpisodeByImdb(args.imdbId, args.tmdbId, args.currentPage, args.isMovie, args.image)
 
         binding.pvPlayer.controller.binding.filmTitle.text =
             "${args.name} - Episode ${model.currentEpIndex + 1}"
+
         model.allEpisodeData.observe(viewLifecycleOwner) {
             when (it) {
                 Resource.Loading -> {
@@ -256,12 +245,10 @@ class MovieSeriesPlayerScreen : Fragment() {
                     binding.loadingText.text = "Part ${args.currentPage} are episodes loading..."
                     binding.pvPlayer.gone()
                 }
-
                 is Resource.Success -> {
                     binding.loadingLayout.gone()
                     episodeList.clear()
                     episodeList.addAll(it.data.data ?: listOf())
-
                     model.getCurrentEpisodeVodByImdb(
                         args.imdbId,
                         args.iframeLink,
@@ -271,23 +258,20 @@ class MovieSeriesPlayerScreen : Fragment() {
                         args.currentEp,
                         args.tmdbId
                     )
-
-                    model.currentEpisodeData.observe(viewLifecycleOwner) {
-                        when (it) {
+                    model.currentEpisodeData.observe(viewLifecycleOwner) { epRes ->
+                        when (epRes) {
                             Resource.Loading -> {
                                 binding.loadingLayout.visible()
                                 binding.pvPlayer.gone()
                                 binding.loadingText.text =
                                     "Episode ${model.currentEpIndex + 1} is loading..."
                             }
-
                             is Resource.Success -> {
                                 binding.loadingLayout.gone()
                                 binding.pvPlayer.visible()
                                 binding.textView9.text =
                                     "Part ${args.currentPage} • Episode ${episodeList.size}"
                                 displayVideo()
-
                                 binding.pvPlayer.controller.binding.exoQuality.gone()
                                 binding.pvPlayer.controller.binding.exoSubtidtle.visible()
                                 binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
@@ -295,27 +279,17 @@ class MovieSeriesPlayerScreen : Fragment() {
                                     binding.episodeRv.scrollToPosition(model.currentEpIndex)
                                     toggleSidebarRight(true)
                                 }
-                                binding.btnHideMenuRight.setOnClickListener {
-                                    toggleSidebarRight(false)
-                                }
-
-                                val episodeAdapter = EpisodePlayerAdapter(
-                                    model.currentEpIndex,
-                                    args.image,
-                                )
+                                binding.btnHideMenuRight.setOnClickListener { toggleSidebarRight(false) }
+                                val episodeAdapter = EpisodePlayerAdapter(model.currentEpIndex, args.image)
                                 episodeAdapter.submitList(episodeList)
                                 binding.episodeRv.adapter = episodeAdapter
-
                                 episodeAdapter.setOnEpisodeClick { position, data ->
                                     toggleSidebarRight(false)
                                     if (position != model.currentEpIndex) {
-                                        lifecycleScope.launch {
-                                            saveWatchHistory()
-                                        }
+                                        lifecycleScope.launch { saveWatchHistory() }
                                         model.doNotAsk = false
                                         model.currentEpIndex = position
                                         model.lastPosition = 0
-
                                         model.getCurrentEpisodeVodByImdb(
                                             args.imdbId,
                                             episodeList[position].session.toString(),
@@ -325,10 +299,9 @@ class MovieSeriesPlayerScreen : Fragment() {
                                             data.episode ?: -1,
                                             args.tmdbId
                                         )
-
-                                        model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
-                                            if (resource is Resource.Success) {
-                                                val newUrl = resource.data.urlobj
+                                        model.currentEpisodeData.observeOnce(viewLifecycleOwner) { r ->
+                                            if (r is Resource.Success) {
+                                                val newUrl = r.data.urlobj
                                                 playNewEpisode(newUrl, args.name)
                                                 binding.pvPlayer.controller.binding.filmTitle.text =
                                                     "${args.name} - Episode ${position + 1}"
@@ -336,12 +309,9 @@ class MovieSeriesPlayerScreen : Fragment() {
                                         }
                                     }
                                 }
-
                                 binding.pvPlayer.controller.binding.exoNextContainer.setOnClickListener {
                                     if (model.currentEpIndex < episodeList.size - 1) {
-                                        lifecycleScope.launch {
-                                            saveWatchHistory()
-                                        }
+                                        lifecycleScope.launch { saveWatchHistory() }
                                         model.currentEpIndex += 1
                                         model.doNotAsk = false
                                         model.getCurrentEpisodeVodByImdb(
@@ -353,17 +323,14 @@ class MovieSeriesPlayerScreen : Fragment() {
                                             model.currentEpIndex + 1,
                                             args.tmdbId
                                         )
-                                        binding.pvPlayer.controller.binding.filmTitle.text =
-                                            episodeList[model.currentEpIndex].title
-                                        model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
-                                            if (resource is Resource.Success) {
-                                                val newUrl = resource.data.urlobj
+                                        model.currentEpisodeData.observeOnce(viewLifecycleOwner) { r ->
+                                            if (r is Resource.Success) {
+                                                val newUrl = r.data.urlobj
                                                 playNewEpisode(newUrl, args.name)
                                                 binding.pvPlayer.controller.binding.filmTitle.text =
                                                     "${args.name} - Episode ${model.currentEpIndex + 1}"
                                             }
                                         }
-
                                     } else {
                                         Toast.makeText(
                                             requireContext(),
@@ -372,7 +339,6 @@ class MovieSeriesPlayerScreen : Fragment() {
                                         ).show()
                                     }
                                 }
-
                                 binding.pvPlayer.controller.binding.exoPrevContainer.setOnClickListener {
                                     if (model.currentEpIndex > 0) {
                                         lifecycleScope.launch {
@@ -380,6 +346,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                                             withContext(Dispatchers.Main) {
                                                 model.currentEpIndex -= 1
                                                 model.doNotAsk = false
+                                                model.lastPosition = 0
                                                 model.getCurrentEpisodeVodByImdb(
                                                     args.imdbId,
                                                     episodeList[model.currentEpIndex].session.toString(),
@@ -389,15 +356,9 @@ class MovieSeriesPlayerScreen : Fragment() {
                                                     model.currentEpIndex + 1,
                                                     args.tmdbId
                                                 )
-                                                model.lastPosition = 0
-                                                binding.pvPlayer.controller.binding.filmTitle.text =
-                                                    episodeList[model.currentEpIndex].title
-                                                model.currentEpisodeData.observeOnce(
-                                                    viewLifecycleOwner
-                                                ) { resource ->
-                                                    if (resource is Resource.Success) {
-                                                        val newUrl = resource.data.urlobj
-
+                                                model.currentEpisodeData.observeOnce(viewLifecycleOwner) { r ->
+                                                    if (r is Resource.Success) {
+                                                        val newUrl = r.data.urlobj
                                                         playNewEpisode(newUrl, args.name)
                                                         binding.pvPlayer.controller.binding.filmTitle.text =
                                                             "${args.name} - Episode ${model.currentEpIndex + 1}"
@@ -414,81 +375,40 @@ class MovieSeriesPlayerScreen : Fragment() {
                                     }
                                 }
                             }
-
-                            else -> {
-
-                            }
+                            else -> Unit
                         }
-
                     }
-
                 }
-
-                else -> {
-
-                }
+                else -> Unit
             }
-
         }
     }
 
     private suspend fun saveWatchHistory() {
         try {
-            if (!::player.isInitialized) {
-                Log.w("SaveHistory", "Player is not initialized -> returning")
-                return
-            }
+            if (!::player.isInitialized) return
+            val dur = player.duration
+            val pos = player.currentPosition
+            if (dur > 0 && pos >= max(0L, dur - 50L)) return
 
-            Log.d(
-                "SaveHistory",
-                "player.duration=${player.duration}, player.currentPosition=${player.currentPosition}"
-            )
-            if (player.duration <= 0 && player.currentPosition >= 100_000 && player.currentPosition >= player.duration - 50) {
-                Log.w("SaveHistory", "Skipping save: player not fully loaded")
-                return
-            }
-
-            Log.d("SaveHistory", "model.isWatched=${model.isWatched}")
             if (model.isWatched) {
-                val getEpIndex = model.getWatchedHistoryEntity
-                Log.d("SaveHistory", "getWatchedHistoryEntity=$getEpIndex")
-                Log.d("SaveHistory", "model.seriesResponse=${model.seriesResponse}")
-
-                if (getEpIndex == null) {
-                    Log.e("SaveHistory", "getWatchedHistoryEntity is NULL!")
-                    return
-                }
-                if (model.seriesResponse == null) {
-                    Log.e("SaveHistory", "seriesResponse is NULL!")
-                    return
-                }
-
+                val getEpIndex = model.getWatchedHistoryEntity ?: return
+                val series = model.seriesResponse ?: return
                 val newEp = getEpIndex.copy(
                     totalDuration = player.duration,
                     imdbID = args.tmdbId.toString(),
                     isEpisode = true,
                     epIndex = model.currentEpIndex,
                     lastPosition = player.currentPosition,
-                    videoUrl = model.seriesResponse!!.urlobj,
+                    videoUrl = series.urlobj,
                     currentQualityIndex = model.currentSelectedVideoOptionIndex
                 )
                 model.updateHistory(newEp)
                 model.getWatchedHistoryEntity = null
             } else {
-                if (episodeList.isEmpty() || model.currentEpIndex !in episodeList.indices) {
-                    Log.e("SaveHistory", "episodeList is empty or currentEpIndex out of range!")
-                    return
-                }
-                if (episodeList[model.currentEpIndex].session == null) {
-                    Log.e("SaveHistory", "session is NULL!")
-                    return
-                }
-                if (episodeList[model.currentEpIndex].snapshot == null) {
-                    Log.e("SaveHistory", "snapshot is NULL!")
-                    return
-                }
-
-                Log.d("SaveHistory", "Building new history entity...")
+                if (episodeList.isEmpty() || model.currentEpIndex !in episodeList.indices) return
+                if (episodeList[model.currentEpIndex].session == null) return
+                if (episodeList[model.currentEpIndex].snapshot == null) return
                 val historyBuild = WatchHistoryEntity(
                     episodeList[model.currentEpIndex].session ?: return,
                     "${args.name} - Episode ${model.currentEpIndex + 1}",
@@ -527,45 +447,70 @@ class MovieSeriesPlayerScreen : Fragment() {
 
         okHttpClient = OkHttpClient.Builder()
             .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.CLEARTEXT))
-            .ignoreAllSSLErrors().build()
+            .ignoreAllSSLErrors()
+            .build()
 
         okHttpDataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
         dataSourceFactory = DefaultDataSource.Factory(requireContext(), okHttpDataSourceFactory)
 
+        val extractorsFactory = DefaultExtractorsFactory()
+            .setMp4ExtractorFlags(Mp4Extractor.FLAG_WORKAROUND_IGNORE_EDIT_LISTS)
+            .setFragmentedMp4ExtractorFlags(FragmentedMp4Extractor.FLAG_WORKAROUND_IGNORE_EDIT_LISTS)
+
+        val mediaSourceFactory = DefaultMediaSourceFactory(requireContext(), extractorsFactory)
+            .setDataSourceFactory(dataSourceFactory)
+
+        trackSelector = DefaultTrackSelector(requireContext())
+        trackSelector.setParameters(trackSelector.buildUponParameters().setTunnelingEnabled(false))
+
         val renderersFactory =
-            DefaultRenderersFactory(requireContext()).setEnableDecoderFallback(true)
-                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
+            DefaultRenderersFactory(requireContext())
+                .setEnableDecoderFallback(true)
+                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
 
         player = ExoPlayer.Builder(requireContext(), renderersFactory)
-            .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
+            .setTrackSelector(trackSelector)
+            .setMediaSourceFactory(mediaSourceFactory)
             .setLoadControl(
-                DefaultLoadControl.Builder().setBufferDurationsMs(5000, 15000, 1000, 5000).build()
+                DefaultLoadControl.Builder()
+                    .setBufferDurationsMs(20_000, 90_000, 2_500, 5_000)
+                    .setPrioritizeTimeOverSizeThresholds(true)
+                    .build()
             )
             .build()
 
+        val offloadPrefs = AudioOffloadPreferences.Builder()
+            .setAudioOffloadMode(AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED)
+            .build()
+
+        player.trackSelectionParameters =
+            player.trackSelectionParameters
+                .buildUpon()
+                .setAudioOffloadPreferences(offloadPrefs)
+                .build()
+
+        player.volume = 1.0f
         player.playWhenReady = true
         player.setWakeMode(C.WAKE_MODE_LOCAL)
-
         player.setAudioAttributes(
-            AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
-                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(), true
+            AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+                .build(),
+            true
         )
 
         if (!::mediaSession.isInitialized) {
             mediaSession = MediaSession.Builder(requireContext(), player).build()
         }
 
-        frameExtractor = ExperimentalFrameExtractor(
-            requireContext(),
-            ExperimentalFrameExtractor.Configuration.Builder().setExtractHdrFrames(true).build()
-        )
-
         player.addListener(object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
-                Bugsnag.notify(Exception("GGMoviePlayer: | ${model.currentSource} | ${model.seriesResponse?.urlobj} | ${error.message}"))
+                Bugsnag.notify(
+                    Exception("GGMoviePlayer: | ${model.currentSource} | ${model.seriesResponse?.urlobj} | ${error.message}")
+                )
             }
 
-            @SuppressLint("SwitchIntDef")
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (LocalData.isAnimeEnabled) {
                     when (playbackState) {
@@ -574,11 +519,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                                 resetCountdownState()
                                 startProgressTracking()
                             }
-                            player.currentMediaItem?.let {
-                                extractAndSetThumbnail(player.currentPosition)
-                            }
                         }
-
                         Player.STATE_ENDED -> {
                             if (!LocalData.isHistoryItemClicked) {
                                 stopProgressTracking()
@@ -588,16 +529,6 @@ class MovieSeriesPlayerScreen : Fragment() {
                             }
                         }
                     }
-                }
-            }
-
-            override fun onPositionDiscontinuity(
-                oldPosition: Player.PositionInfo,
-                newPosition: Player.PositionInfo,
-                reason: Int
-            ) {
-                if (reason == Player.DISCONTINUITY_REASON_SEEK) {
-                    extractAndSetThumbnail(newPosition.positionMs)
                 }
             }
         })
@@ -610,7 +541,6 @@ class MovieSeriesPlayerScreen : Fragment() {
         binding.pvPlayer.controller.binding.exoPrevTenContainer.setOnClickListener {
             player.seekTo(player.currentPosition - 10_000)
         }
-
         binding.pvPlayer.controller.binding.exoPlayPauseContainer.setOnClickListener {
             if (player.isPlaying) {
                 player.pause()
@@ -632,7 +562,6 @@ class MovieSeriesPlayerScreen : Fragment() {
                 }
                 dialog.show(parentFragmentManager, "VideoQualityDialog")
             }
-
             model.currentQualityEpisode.observe(viewLifecycleOwner) { resource ->
                 if (resource is Resource.Success) {
                     val newUrl = resource.data.urlobj
@@ -643,117 +572,200 @@ class MovieSeriesPlayerScreen : Fragment() {
 
         binding.pvPlayer.controller.findViewById<TrailerPlayerScreen.ExtendedTimeBar>(R.id.exo_progress)
             .setKeyTimeIncrement(10_000)
-
-        binding.pvPlayer.controller.findViewById<TrailerPlayerScreen.ExtendedTimeBar>(R.id.exo_progress)
-            ?.addListener(object : TimeBar.OnScrubListener {
-                override fun onScrubStart(timeBar: TimeBar, position: Long) {
-                    requestThumb(position)
-                }
-
-                override fun onScrubMove(timeBar: TimeBar, position: Long) {
-                    requestThumb(position)
-                }
-
-                override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
-                    requestThumb(position)
-                }
-            })
     }
 
-    private fun requestThumb(positionMs: Long) {
-        val now = android.os.SystemClock.elapsedRealtime()
-        if (lastThumbReqPos >= 0 && abs(positionMs - lastThumbReqPos) < 500) return
-        if (now - lastThumbReqTs < 200) return
-        lastThumbReqPos = positionMs
-        lastThumbReqTs = now
-        extractAndSetThumbnail(positionMs)
+    @OptIn(UnstableApi::class)
+    private suspend fun buildMediaItemWithOptionalSubtitle(
+        videoUrl: String,
+        title: String,
+        useSubtitle: Boolean
+    ): MediaItem = withContext(Dispatchers.IO) {
+        val mime = model.seriesResponse?.type?.takeIf { it.isNotBlank() }
+        val builder = MediaItem.Builder()
+            .setUri(videoUrl)
+            .setTag(title)
+
+        if (mime != null) builder.setMimeType(mime)
+
+        if (!useSubtitle) return@withContext builder.build()
+
+        return@withContext runCatching {
+            val subs = model.seriesResponse?.subtitleList.orEmpty()
+            val idx = model.currentSubEpIndex
+            if (idx !in subs.indices) return@runCatching builder.build()
+            val subUrl = subs[idx].file
+            if (subUrl.isBlank()) return@runCatching builder.build()
+
+            val encodingHint = Uri.parse(subUrl).getQueryParameter("encoding") ?: "UTF-8"
+            val subMime = guessSubtitleMime(subUrl)
+            val ext = if (subMime == MimeTypes.TEXT_VTT) "vtt" else "srt"
+            val localFile = File(requireContext().cacheDir, "sub_${idx}_${subUrl.hashCode()}.$ext")
+
+            val adjustedFile = downloadAndAdjustSubtitleGeneric(
+                url = subUrl,
+                headers = model.seriesResponse?.header,
+                encodingHint = encodingHint,
+                outFile = localFile,
+                offsetMs = SUBTITLE_OFFSET_MS,
+                isVtt = subMime == MimeTypes.TEXT_VTT
+            )
+
+            val subtitleConfig = MediaItem.SubtitleConfiguration.Builder(Uri.fromFile(adjustedFile))
+                .setMimeType(subMime)
+                .setLanguage("en")
+                .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+                .build()
+
+            builder.setSubtitleConfigurations(listOf(subtitleConfig))
+            builder.build()
+        }.getOrElse { builder.build() }
     }
 
-    @SuppressLint("UnsafeOptInUsageError")
-    private fun extractAndSetThumbnail(positionMs: Long) {
-        val currentMediaItem = player.currentMediaItem ?: return
-        val extractor = frameExtractor ?: return
-        extractor.setMediaItem(currentMediaItem, emptyList())
+    private fun guessSubtitleMime(url: String): String {
+        val u = url.lowercase()
+        return when {
+            u.contains(".vtt") || u.contains("text/vtt") || u.contains("webvtt") -> MimeTypes.TEXT_VTT
+            u.contains(".ssa") || u.contains(".ass") -> MimeTypes.TEXT_SSA
+            u.contains(".ttml") || u.contains(".xml") -> MimeTypes.APPLICATION_TTML
+            else -> MimeTypes.APPLICATION_SUBRIP
+        }
+    }
 
+    private fun downloadAndAdjustSubtitleGeneric(
+        url: String,
+        headers: Map<String, String>?,
+        encodingHint: String,
+        outFile: File,
+        offsetMs: Long,
+        isVtt: Boolean
+    ): File {
+        val reqBuilder = Request.Builder()
+            .url(url)
+            .header("User-Agent", "Mozilla/5.0")
+        headers?.forEach { (k, v) -> reqBuilder.header(k, v) }
+
+        val bytes = okHttpClient.newCall(reqBuilder.build()).execute().use { response ->
+            if (!response.isSuccessful) throw IOException("Subtitle HTTP ${response.code}")
+            response.body.bytes()
+        }
+
+        val charset = when (encodingHint.uppercase()) {
+            "CP1252", "WINDOWS-1252", "WIN1252" -> Charset.forName("windows-1252")
+            "UTF-8", "UTF8" -> Charsets.UTF_8
+            else -> runCatching { Charset.forName(encodingHint) }.getOrDefault(Charsets.UTF_8)
+        }
+
+        val content = bytes.toString(charset)
+        val adjustedContent = if (offsetMs == 0L) {
+            content
+        } else {
+            shiftSubtitleTimings(content, offsetMs, isVtt)
+        }
+
+        outFile.writeText(adjustedContent, Charsets.UTF_8)
+        return outFile
+    }
+
+    private fun shiftSubtitleTimings(
+        content: String,
+        offsetMs: Long,
+        isVtt: Boolean
+    ): String {
+        val sb = StringBuilder()
+        val lines = content.lines()
+        for (line in lines) {
+            val m = TIME_LINE_REGEX.matchEntire(line)
+            if (m != null) {
+                val start = m.groupValues[1]
+                val end = m.groupValues[2]
+                val tail = m.groupValues[3]
+                val startMs = parseSubtitleTimeMs(start)
+                val endMs = parseSubtitleTimeMs(end)
+                val newStart = max(0L, startMs + offsetMs)
+                val newEnd = max(newStart + 100L, endMs + offsetMs)
+                val s = formatSubtitleTimeMs(newStart, isVtt)
+                val e = formatSubtitleTimeMs(newEnd, isVtt)
+                sb.append(s).append(" --> ").append(e).append(tail).append("\n")
+            } else {
+                sb.append(line).append("\n")
+            }
+        }
+        return sb.toString()
+    }
+
+    private fun parseSubtitleTimeMs(time: String): Long {
+        val t = time.trim()
+        val parts = t.split(":")
+        val (h, m, secPart) = when (parts.size) {
+            3 -> Triple(parts[0].toLongOrNull() ?: 0L, parts[1].toLongOrNull() ?: 0L, parts[2])
+            2 -> Triple(0L, parts[0].toLongOrNull() ?: 0L, parts[1])
+            else -> Triple(0L, 0L, t)
+        }
+        val secMs = secPart.split(',', '.')
+        val s = secMs.getOrNull(0)?.toLongOrNull() ?: 0L
+        val ms = secMs.getOrNull(1)?.toLongOrNull() ?: 0L
+        return h * 3_600_000L + m * 60_000L + s * 1_000L + ms
+    }
+
+    private fun formatSubtitleTimeMs(ms: Long, isVtt: Boolean): String {
+        val hours = ms / 3_600_000L
+        val minutes = (ms % 3_600_000L) / 60_000L
+        val seconds = (ms % 60_000L) / 1_000L
+        val millis = ms % 1_000L
+        val sep = if (isVtt) "." else ","
+        return String.format("%02d:%02d:%02d%s%03d", hours, minutes, seconds, sep, millis)
     }
 
     @OptIn(UnstableApi::class)
     private fun playNewEpisode(videoUrl: String, title: String) {
         if (!::player.isInitialized) initializeVideo()
         applyHeaders(model.seriesResponse?.header)
-
-        if (::skipIntroView.isInitialized) {
-            skipIntroView.resetSkippedTimestamps()
-        }
-
         resetCountdownState()
         stopProgressTracking()
-
         player.stop()
         player.clearMediaItems()
-
-        val mime = model.seriesResponse?.type ?: MimeTypes.APPLICATION_M3U8
-        val mediaItem = MediaItem.Builder().setUri(videoUrl)
-            .setMimeType(mime)
-            .setTag(title)
-            .build()
-
-        val mediaSource =
-            if (mime == MimeTypes.APPLICATION_M3U8 || videoUrl.contains(".m3u8", true)) {
-                HlsMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-            } else {
-                ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-            }
-
-        player.setMediaSource(mediaSource)
-        player.prepare()
-        player.play()
-
-        extractAndSetThumbnail(0L)
+        lifecycleScope.launch {
+            val subtitles = model.seriesResponse?.subtitleList.orEmpty()
+            val subtitleEnabled =
+                subtitles.isNotEmpty() && model.currentSubEpIndex in subtitles.indices && canUseSubtitle
+            val item = buildMediaItemWithOptionalSubtitle(videoUrl, title, subtitleEnabled)
+            player.setMediaItem(item)
+            player.prepare()
+            player.play()
+        }
     }
 
     @OptIn(UnstableApi::class)
     private fun playQualityVideo(videoUrl: String, title: String) {
         if (!::player.isInitialized) initializeVideo()
         applyHeaders(model.seriesResponse?.header)
-
         resetCountdownState()
         model.qualityProgress = player.currentPosition
         stopProgressTracking()
-
         player.stop()
         player.clearMediaItems()
-
-        val mime = model.seriesResponse?.type ?: MimeTypes.APPLICATION_M3U8
-        val mediaItem = MediaItem.Builder().setUri(videoUrl)
-            .setMimeType(mime)
-            .setTag(title)
-            .build()
-
-        val mediaSource =
-            if (mime == MimeTypes.APPLICATION_M3U8 || videoUrl.contains(".m3u8", true)) {
-                HlsMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-            } else {
-                ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-            }
-
-        player.setMediaSource(mediaSource)
-        player.prepare()
-        player.play()
-        player.seekTo(model.qualityProgress)
-        model.qualityProgress = 0
-
-        extractAndSetThumbnail(player.currentPosition)
+        val resumePos = model.qualityProgress
+        lifecycleScope.launch {
+            val subtitles = model.seriesResponse?.subtitleList.orEmpty()
+            val subtitleEnabled =
+                subtitles.isNotEmpty() && model.currentSubEpIndex in subtitles.indices && canUseSubtitle
+            val item = buildMediaItemWithOptionalSubtitle(videoUrl, title, subtitleEnabled)
+            player.setMediaItem(item)
+            player.prepare()
+            player.seekTo(resumePos)
+            player.play()
+            model.qualityProgress = 0
+        }
     }
 
     @OptIn(UnstableApi::class)
     private fun displayVideo() {
         lifecycleScope.launch {
             val subtitles = model.seriesResponse?.subtitleList.orEmpty()
-            canUseSubtitle = subtitles.isNotEmpty()
             val videoUrl = model.seriesResponse!!.urlobj
             val lastPosition = model.getWatchedHistoryEntity?.lastPosition ?: 0L
             binding.pvPlayer.subtitleView?.visible()
+
             if (LocalData.isHistoryItemClicked) {
                 binding.pvPlayer.controller.binding.exoNextContainer.gone()
                 binding.pvPlayer.controller.binding.exoPrevContainer.gone()
@@ -765,74 +777,62 @@ class MovieSeriesPlayerScreen : Fragment() {
             }
 
             applyHeaders(model.seriesResponse?.header)
+            val subtitleEnabled = subtitles.isNotEmpty() && model.currentSubEpIndex in subtitles.indices
+            canUseSubtitle = subtitleEnabled
 
-            val finalSource = withContext(Dispatchers.IO) {
-                buildMediaSourceWithSubtitle(videoUrl, canUseSubtitle)
-            }
+            val mediaItem = buildMediaItemWithOptionalSubtitle(
+                videoUrl = videoUrl,
+                title = args.name,
+                useSubtitle = subtitleEnabled
+            )
 
-            player.setMediaSource(finalSource)
+            player.setMediaItem(mediaItem)
             player.prepare()
             player.playWhenReady = true
-            applySubtitleStyleToPlayer(binding.pvPlayer, PreferenceManager())
-            player.setMediaSource(finalSource)
-            player.prepare()
-            player.playWhenReady = true
+            applySubtitleStyleToPlayer(binding.pvPlayer, PreferenceManager(requireContext()))
 
             if (!model.doNotAsk) {
-                if (lastPosition > 0) {
-                    Log.d("PlayerScreen", "Resuming from last position: $lastPosition")
-                    player.seekTo(lastPosition)
-                } else {
-                    Log.d("PlayerScreen", "Starting from the beginning")
-                }
+                if (lastPosition > 0) player.seekTo(lastPosition)
             } else {
                 player.seekTo(model.lastPosition)
             }
-            player.prepare()
+
             player.play()
-            binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(if (canUseSubtitle) R.drawable.ic_subtitle_fill else R.drawable.ic_subtitle_off)
+
+            binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(
+                if (subtitleEnabled) R.drawable.ic_subtitle_fill else R.drawable.ic_subtitle_off
+            )
 
             binding.pvPlayer.controller.binding.exoSubtidtle.setOnClickListener {
                 val currentSelected = subtitles.getOrNull(model.currentSubEpIndex)
-                val dialog =
-                    SubtitleChooserDialog.newInstance(subtitles, currentSelected, canUseSubtitle)
-
+                val dialog = SubtitleChooserDialog.newInstance(subtitles, currentSelected, subtitleEnabled)
                 dialog.setSubtitleSelectionListener { selectedSubtitle ->
-                    val enabled = selectedSubtitle?.file?.isNotEmpty() == true
-
-                    val newIndex = if (enabled) subtitles.indexOf(selectedSubtitle) else -1
+                    val enabledNow = selectedSubtitle?.file?.isNotEmpty() == true
+                    val newIndex = if (enabledNow) subtitles.indexOf(selectedSubtitle) else -1
                     if (model.currentSubEpIndex == newIndex) return@setSubtitleSelectionListener
-
                     model.currentSubEpIndex = newIndex
-
-                    binding.pvPlayer.subtitleView?.visibility =
-                        if (enabled) View.VISIBLE else View.GONE
+                    canUseSubtitle = enabledNow
+                    binding.pvPlayer.subtitleView?.visibility = if (enabledNow) View.VISIBLE else View.GONE
                     binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(
-                        if (enabled) R.drawable.ic_subtitle_fill else R.drawable.ic_subtitle
+                        if (enabledNow) R.drawable.ic_subtitle_fill else R.drawable.ic_subtitle
                     )
-
                     val previousPos = player.currentPosition
                     player.pause()
-
-                    canUseSubtitle = enabled
-
                     lifecycleScope.launch {
-                        val newSource = withContext(Dispatchers.IO) {
-                            buildMediaSourceWithSubtitle(videoUrl, canUseSubtitle)
-                        }
-                        player.setMediaSource(newSource)
+                        val item = buildMediaItemWithOptionalSubtitle(
+                            videoUrl = videoUrl,
+                            title = args.name,
+                            useSubtitle = enabledNow
+                        )
+                        player.setMediaItem(item)
                         player.prepare()
                         player.seekTo(previousPos)
                         player.play()
                     }
                 }
                 dialog.setOnSubtitleStyleChangedListener {
-                    applySubtitleStyleToPlayer(
-                        binding.pvPlayer,
-                        PreferenceManager(requireContext())
-                    )
+                    applySubtitleStyleToPlayer(binding.pvPlayer, PreferenceManager(requireContext()))
                 }
-
                 dialog.show(parentFragmentManager, "subtitle_chooser")
             }
 
@@ -842,7 +842,9 @@ class MovieSeriesPlayerScreen : Fragment() {
                 binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_pause_to_play)
             }
 
-            if (model.isWatched && model.getWatchedHistoryEntity != null && model.getWatchedHistoryEntity!!.lastPosition > 0 && !model.doNotAsk) {
+            if (model.isWatched && model.getWatchedHistoryEntity != null
+                && model.getWatchedHistoryEntity!!.lastPosition > 0 && !model.doNotAsk
+            ) {
                 player.pause()
                 val dialog = AlertPlayerDialog(model.getWatchedHistoryEntity!!)
                 dialog.setNoClearListener {
@@ -861,9 +863,6 @@ class MovieSeriesPlayerScreen : Fragment() {
                 }
                 dialog.show(parentFragmentManager, "ConfirmationDialog")
             }
-
-            val thumbnailPosition = if (model.doNotAsk) model.lastPosition else lastPosition
-            extractAndSetThumbnail(thumbnailPosition)
         }
     }
 
@@ -875,11 +874,8 @@ class MovieSeriesPlayerScreen : Fragment() {
     }
 
     @SuppressLint("UnsafeOptInUsageError")
-    fun applySubtitleStyleToPlayer(
-        playerView: PlayerView, prefs: PreferenceManager
-    ) {
+    fun applySubtitleStyleToPlayer(playerView: PlayerView, prefs: PreferenceManager) {
         val subtitleView = playerView.subtitleView ?: return
-
         if (!prefs.isSubtitleCustom()) {
             subtitleView.setStyle(
                 CaptionStyleCompat(
@@ -893,113 +889,30 @@ class MovieSeriesPlayerScreen : Fragment() {
             )
             return
         }
-
         val s = prefs.getSubtitleStyle()
-
         subtitleView.setStyle(
             CaptionStyleCompat(
                 s.color,
                 if (s.background) Color.argb(180, 0, 0, 0) else Color.TRANSPARENT,
                 Color.TRANSPARENT,
-                if (s.outline) CaptionStyleCompat.EDGE_TYPE_OUTLINE
-                else CaptionStyleCompat.EDGE_TYPE_NONE,
+                if (s.outline) CaptionStyleCompat.EDGE_TYPE_OUTLINE else CaptionStyleCompat.EDGE_TYPE_NONE,
                 Color.BLACK,
                 when (s.font) {
                     PreferenceManager.Font.DEFAULT -> null
-                    PreferenceManager.Font.POPPINS -> ResourcesCompat.getFont(
-                        playerView.context,
-                        R.font.poppins
-                    )
-
-                    PreferenceManager.Font.DAYS -> ResourcesCompat.getFont(
-                        playerView.context,
-                        R.font.days
-                    )
-
+                    PreferenceManager.Font.POPPINS -> ResourcesCompat.getFont(playerView.context, R.font.poppins)
+                    PreferenceManager.Font.DAYS -> ResourcesCompat.getFont(playerView.context, R.font.days)
                     PreferenceManager.Font.MONO -> Typeface.MONOSPACE
                 }
             )
         )
-
-        subtitleView.setFixedTextSize(
-            TypedValue.COMPLEX_UNIT_SP, s.sizeSp.toFloat()
-        )
-    }
-
-    @SuppressLint("UnsafeOptInUsageError")
-    private fun buildMediaSourceWithSubtitle(
-        videoUrl: String, useSubtitles: Boolean
-    ): MediaSource {
-        val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(
-            model.seriesResponse?.type ?: MimeTypes.APPLICATION_M3U8
-        ).setTag(args.name).build()
-        val videoSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
-        if (!useSubtitles) return videoSource
-
-        return try {
-            val localFile = File(requireContext().cacheDir, "sub.srt")
-
-            val reqBuilder = Request.Builder()
-                .url(model.seriesResponse!!.subtitleList[model.currentSubEpIndex].file)
-                .header("User-Agent", "Mozilla/5.0")
-
-            model.seriesResponse?.header?.forEach { (k, v) ->
-                reqBuilder.header(k, v)
-            }
-
-            okHttpClient.newCall(reqBuilder.build()).execute().use { response ->
-                if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
-                response.body.byteStream().use { input ->
-                    localFile.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                    extendSubtitleDuration(localFile)
-                }
-            }
-
-            val subtitleSource =
-                SingleSampleMediaSource.Factory(dataSourceFactory).createMediaSource(
-                    MediaItem.SubtitleConfiguration.Builder(Uri.fromFile(localFile))
-                        .setMimeType(MimeTypes.APPLICATION_SUBRIP)
-                        .setSelectionFlags(C.SELECTION_FLAG_DEFAULT).build(), 33_000_000L
-                )
-
-            MergingMediaSource(videoSource, subtitleSource)
-        } catch (e: Exception) {
-            Log.e("Subtitle", "Subtitle load failed", e)
-            videoSource
-        }
-    }
-
-    private fun extendSubtitleDuration(file: File) {
-        val lines = file.readLines().toMutableList()
-        val regex = Regex("(\\d{2}:\\d{2}:\\d{2},\\d{3}) --> (\\d{2}:\\d{2}:\\d{2},\\d{3})")
-
-        for (i in lines.indices) {
-            val match = regex.find(lines[i])
-            if (match != null) {
-                val (start, end) = match.destructured
-                val newEnd = addMsToTimestamp(end)
-                lines[i] = "$start --> $newEnd"
-            }
-        }
-        file.writeText(lines.joinToString("\n"))
-    }
-
-    private fun addMsToTimestamp(timestamp: String): String {
-        val sdf = java.text.SimpleDateFormat("HH:mm:ss,SSS", java.util.Locale.US)
-        val date = sdf.parse(timestamp) ?: return timestamp
-        val newTime = date.time + 12000L
-        return sdf.format(java.util.Date(newTime))
+        subtitleView.setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, s.sizeSp.toFloat())
     }
 
     private fun toggleSidebarRight(show: Boolean) {
         val sidebar = binding.sidebarRight
         val epListContainer = binding.pvPlayer.controller.binding.epListContainer
-
         sidebar.post {
             val sidebarWidth = sidebar.width.toFloat()
-
             if (show) {
                 sidebar.apply {
                     isVisible = true
@@ -1008,14 +921,12 @@ class MovieSeriesPlayerScreen : Fragment() {
                         .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
                         .start()
                 }
-
                 binding.btnHideMenuRight.apply {
                     isFocusable = true
                     isFocusableInTouchMode = true
                     isEnabled = true
                     requestFocus()
                 }
-
                 epListContainer.apply {
                     isFocusable = false
                     gone()
@@ -1023,45 +934,30 @@ class MovieSeriesPlayerScreen : Fragment() {
             } else {
                 sidebar.animate().translationX(sidebarWidth).setDuration(100)
                     .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
-                    .withEndAction {
-                        sidebar.isVisible = false
-                    }.start()
-
+                    .withEndAction { sidebar.isVisible = false }
+                    .start()
                 epListContainer.apply {
                     isFocusable = true
                     visible()
                 }
-
                 binding.btnHideMenuRight.apply {
                     isFocusable = false
                     isFocusableInTouchMode = false
                     isEnabled = false
                 }
-
                 binding.episodeRv.clearFocus()
                 binding.pvPlayer.controller.binding.exoPlayPauseContainer.requestFocus()
             }
         }
     }
 
-    @SuppressLint("UnsafeOptInUsageError")
     override fun onDestroyView() {
         stopProgressTracking()
-        if (::skipIntroView.isInitialized) {
-            skipIntroView.cleanup()
-        }
-
         if (::player.isInitialized) {
             if (player.currentPosition > 10) {
-                runBlocking {
-                    saveWatchHistory()
-                }
+                runBlocking { saveWatchHistory() }
             }
         }
-
-        frameExtractor?.release()
-        frameExtractor = null
-
         if (::player.isInitialized) {
             player.release()
             mediaSession.release()
@@ -1074,12 +970,9 @@ class MovieSeriesPlayerScreen : Fragment() {
     override fun onPause() {
         super.onPause()
         stopProgressTracking()
-
         if (::player.isInitialized && player.currentPosition > 10) {
             player.pause()
-            lifecycleScope.launch {
-                saveWatchHistory()
-            }
+            lifecycleScope.launch { saveWatchHistory() }
         }
     }
 

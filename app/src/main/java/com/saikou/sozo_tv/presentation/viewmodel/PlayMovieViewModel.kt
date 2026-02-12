@@ -156,13 +156,14 @@ class PlayMovieViewModel(
                         if (isMovie) currentExtractor.server(movie) else currentExtractor.server(
                             series
                         )
+                    val subtitleList = getAllSubtitleList(isMovie, tmdbId, season, episode)
                     currentExtractor.extract(server.src).let { video ->
                         VodMovieResponse(
-                            authInfo = "",
-                            subtitleList = video.subtitles.map { SubTitle(it.url, it.label) },
-                            urlobj = video.source,
-                            header = video.headers,
-                            type = video.type
+                            authInfo = "", subtitleList = subtitleList.map {
+                                SubTitle(
+                                    it.url, it.lang, it.flagUrl
+                                )
+                            }, urlobj = video.source, header = video.headers, type = video.type
 
                         )
                     }
