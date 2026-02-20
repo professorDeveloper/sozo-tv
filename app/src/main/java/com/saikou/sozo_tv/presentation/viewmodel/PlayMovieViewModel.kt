@@ -79,7 +79,7 @@ class PlayMovieViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             allEpisodeData.postValue(Resource.Loading)
             runCatching {
-                val list = playImdb.getEpisodes(imdbId)
+                val list = playImdb.getEpisodes(imdbId, isMovie)
 
                 if (!isMovie) {
                     val backdrops = playImdb.getDetails(season, tmdbId)

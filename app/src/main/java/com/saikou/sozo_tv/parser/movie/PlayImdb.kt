@@ -26,11 +26,11 @@ import java.net.URI
 class PlayImdb : BaseParser() {
     override val name: String = "VIDSRC"
     override val saveName: String = "vidsrc"
-    override val hostUrl: String = "https://vidsrc-embed.su"
+    override val hostUrl: String = "https://vidsrc-embed.ru"
     override val language: String = "en"
     override val isNSFW: Boolean = false
 
-    suspend fun getEpisodes(imdbId: String): List<Episode> {
+    suspend fun getEpisodes(imdbId: String, isMovie: Boolean): List<Episode> {
         return try {
             withContext(Dispatchers.IO) {
                 val doc: Document = getJsoup("$hostUrl/embed/$imdbId")
@@ -86,7 +86,7 @@ class PlayImdb : BaseParser() {
 
         } catch (e: Exception) {
             Bugsnag.notify(e)
-            println(e)
+            Log.d("GGG", "getEpisode Error: ${e.message}")
             return arrayListOf()
         }
     }

@@ -67,11 +67,11 @@ class EpisodeViewModel(
                 try {
                     episodeData.value = Resource.Loading
                     val listData = ArrayList<Data>()
-
-                    val allEpisodes = cachedEpisodes ?: movieSource.getEpisodes(imdbId).also {
-                        cachedEpisodes = it
-                        cachedSeasons = it.groupingBy { it.season }.eachCount()
-                    }
+                    val allEpisodes =
+                        cachedEpisodes ?: movieSource.getEpisodes(imdbId, isMovie).also {
+                            cachedEpisodes = it
+                            cachedSeasons = it.groupingBy { it.season }.eachCount()
+                        }
                     if (cachedSeasons.isEmpty()) {
                         cachedSeasons = allEpisodes.groupingBy { it.season }.eachCount()
                         if (seasons.isEmpty()) seasons = cachedSeasons
@@ -131,8 +131,8 @@ class EpisodeViewModel(
             viewModelScope.launch {
                 episodeData.value = Resource.Loading
                 val listData = ArrayList<Data>()
-
-                val allEpisodes = cachedEpisodes ?: movieSource.getEpisodes(imdbId).also {
+                Log.d("GGG", "loadMovieSeriesEpisodes:$imdbId ")
+                val allEpisodes = cachedEpisodes ?: movieSource.getEpisodes(imdbId, isMovie).also {
                     cachedEpisodes = it
                     cachedSeasons = it.groupingBy { it.season }.eachCount()
                 }

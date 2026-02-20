@@ -230,6 +230,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     override fun onWatchButtonClicked(
         item: DetailCategory, id: Int, url: String, title: String, isFree: Boolean
     ) {
+        Log.d("GGG", "onWatchButtonClicked:${preference.isModeAnimeEnabled()} ")
         if (preference.isModeAnimeEnabled()) {
             val isAdult = item.content.isAdult
             val canWatchAdult = PreferenceManager().isNsfwEnabled()

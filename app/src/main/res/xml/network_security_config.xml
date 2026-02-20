@@ -6,6 +6,7 @@
         <domain includeSubdomains="true">cdn.jwplayer.com</domain>
         <domain includeSubdomains="true">api.jikan.moe</domain>
         <domain includeSubdomains="true">www.imdb.com</domain>
+        <domain includeSubdomains="true">vidsrc-embed.su</domain>
         <domain includeSubdomains="true">hentaimama.io</domain>
         <domain includeSubdomains="true">dood.watch</domain>
         <domain includeSubdomains="true">imdb-video.media-imdb.com</domain>
