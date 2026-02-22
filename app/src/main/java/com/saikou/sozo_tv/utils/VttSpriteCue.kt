@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.utils
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import android.util.LruCache
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -42,10 +43,12 @@ class VttSpriteThumbnailLoader(
         val vttText = fetchText(vttUrl) ?: ""
         cues = parseWebVtt(vttText, vttUrl)
     }
+    // VttSpriteThumbnailLoader ga qo'shish — loadVtt dan keyin
     @Throws(Exception::class)
     fun loadVttFromContent(vttContent: String, baseUrl: String) {
         baseVttUrl = baseUrl
         cues = parseWebVtt(vttContent, baseUrl)
+        Log.d("VTT_THUMB", "loadVttFromContent: ${cues.size} cues, baseUrl=$baseUrl")
     }
     /**
      * Main API: positionMs -> cropped Bitmap

@@ -228,6 +228,7 @@ class PlayAnimeViewModel(
 
             "anime_lok" -> {
                 Log.d(TAG, "buildVodFromOption:AnimeLok ${option.videoUrl}")
+                Log.d(TAG, "buildVodFromOption:AnimeLok ${option.tracks.find { it.file.contains("jpg") }?.file ?: ""}")
                 VodMovieResponse(
                     authInfo = "",
                     subtitleList = arrayListOf(),

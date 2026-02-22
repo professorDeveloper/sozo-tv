@@ -749,7 +749,6 @@ class SeriesPlayerScreen : Fragment() {
             thumbLoadJob = lifecycleScope.launch(Dispatchers.IO) {
                 runCatching {
                     if (url.endsWith(".jpg") || url.endsWith(".png")) {
-                        // jpg/png URL — ichida VTT content bo'lishi mumkin
                         val request = Request.Builder()
                             .url(url)
                             .apply { headers.forEach { (k, v) -> header(k, v) } }
@@ -758,22 +757,24 @@ class SeriesPlayerScreen : Fragment() {
                         val body = response.body?.string() ?: ""
                         response.close()
 
+                        Log.d("VTT_THUMB", "jpg body first 100: ${body.take(100)}")
+                        Log.d("VTT_THUMB", "starts with WEBVTT: ${body.trimStart().startsWith("WEBVTT")}")
+
                         if (body.trimStart().startsWith("WEBVTT")) {
-                            // VTT content jpg ichida — base URL dan resolve qilish
                             val baseUrl = url.substringBeforeLast("/") + "/"
+                            Log.d("VTT_THUMB", "baseUrl: $baseUrl")
                             thumbLoader?.loadVttFromContent(body, baseUrl)
+                            Log.d("VTT_THUMB", "loaded: ${thumbLoader?.isLoaded()}")
                         } else {
                             Log.d("VTT_THUMB", "jpg is actual image, not VTT")
                         }
                     } else {
-                        // Oddiy .vtt URL
                         thumbLoader?.loadVtt(url)
                     }
                 }.onFailure {
                     Log.e("VTT_THUMB", "loadVtt failed: ${it.message}", it)
                 }
-            }
-        }
+            }        }
     }
     private fun requestThumb(
         imageView: ImageView, timeBar: TrailerPlayerScreen.ExtendedTimeBar, position: Long
