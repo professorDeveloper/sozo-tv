@@ -738,26 +738,43 @@ class SeriesPlayerScreen : Fragment() {
                 }
             })
         }
+
         if (currentVttUrl != url || thumbLoader == null) {
             currentVttUrl = url
-
             val client = buildOkHttpClient(headers)
             thumbLoader?.clear()
             thumbLoader = VttSpriteThumbnailLoader(client, headers)
 
             thumbLoadJob?.cancel()
             thumbLoadJob = lifecycleScope.launch(Dispatchers.IO) {
-                runCatching { thumbLoader?.loadVtt(url) }.onFailure {
-                    Log.e(
-                        "VTT_THUMB",
-                        "loadVtt failed: ${it.message}",
-                        it
-                    )
+                runCatching {
+                    if (url.endsWith(".jpg") || url.endsWith(".png")) {
+                        // jpg/png URL — ichida VTT content bo'lishi mumkin
+                        val request = Request.Builder()
+                            .url(url)
+                            .apply { headers.forEach { (k, v) -> header(k, v) } }
+                            .build()
+                        val response = client.newCall(request).execute()
+                        val body = response.body?.string() ?: ""
+                        response.close()
+
+                        if (body.trimStart().startsWith("WEBVTT")) {
+                            // VTT content jpg ichida — base URL dan resolve qilish
+                            val baseUrl = url.substringBeforeLast("/") + "/"
+                            thumbLoader?.loadVttFromContent(body, baseUrl)
+                        } else {
+                            Log.d("VTT_THUMB", "jpg is actual image, not VTT")
+                        }
+                    } else {
+                        // Oddiy .vtt URL
+                        thumbLoader?.loadVtt(url)
+                    }
+                }.onFailure {
+                    Log.e("VTT_THUMB", "loadVtt failed: ${it.message}", it)
                 }
             }
         }
     }
-
     private fun requestThumb(
         imageView: ImageView, timeBar: TrailerPlayerScreen.ExtendedTimeBar, position: Long
     ) {

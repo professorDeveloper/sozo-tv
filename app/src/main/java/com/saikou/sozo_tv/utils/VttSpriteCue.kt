@@ -42,7 +42,11 @@ class VttSpriteThumbnailLoader(
         val vttText = fetchText(vttUrl) ?: ""
         cues = parseWebVtt(vttText, vttUrl)
     }
-
+    @Throws(Exception::class)
+    fun loadVttFromContent(vttContent: String, baseUrl: String) {
+        baseVttUrl = baseUrl
+        cues = parseWebVtt(vttContent, baseUrl)
+    }
     /**
      * Main API: positionMs -> cropped Bitmap
      */

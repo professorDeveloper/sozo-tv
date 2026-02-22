@@ -266,43 +266,23 @@ class AnimeLokParser : BaseParser() {
                     if (unpacker.detect()) {
                         val unpacked = unpacker.unpack()
                         if (unpacked != null) {
-                            val cleaned = unpacked
-                                .replace("\\\\/", "/")
-                                .replace("\\/", "/")
-                                .replace("\\\\", "\\")
+                            // Variant 1: "file":"...","kind":"thumbnails"
+                            var thumbRegex = Regex(""""file"\s*:\s*"([^"]+)"\s*,\s*"kind"\s*:\s*"thumbnails"""")
+                            var thumbMatch = thumbRegex.find(unpacked)
 
-                            Log.d(TAG, "Cleaned first 200: ${cleaned.take(200)}")
+                            // Variant 2: "kind":"thumbnails" keyin "file" (teskari)
+                            if (thumbMatch == null) {
+                                thumbRegex = Regex(""""kind"\s*:\s*"thumbnails"\s*,\s*"file"\s*:\s*"([^"]+)"""")
+                                thumbMatch = thumbRegex.find(unpacked)
+                            }
 
-                            // Oddiy regex - faqat tracks ichidagi jpg ni olish
-                            val thumbRegex = Regex("""(https?://as-cdn\d+\.top/p/[^"]+\.jpg)""")
-                            val thumbMatch = thumbRegex.find(cleaned)
                             if (thumbMatch != null) {
                                 thumbnailUrl = thumbMatch.groupValues[1]
+                                    .replace("\\/", "/")
+                                    .replace("\\", "")
                             }
-
-                            // Agar topilmasa, unclean da ham izlash
-                            if (thumbnailUrl.isEmpty()) {
-                                val rawRegex = Regex("""(https?:\\?/?\\?/?as-cdn\d+\.top\\?/?p\\?/?[^"]+\.jpg)""")
-                                val rawMatch = rawRegex.find(unpacked)
-                                if (rawMatch != null) {
-                                    thumbnailUrl = rawMatch.groupValues[1]
-                                        .replace("\\/", "/")
-                                        .replace("\\\\", "\\")
-                                        .replace("\\", "")
-                                }
-                            }
-
-                            Log.d(TAG, "Thumbnail from unpacked: $thumbnailUrl")
+                            Log.d(TAG, "Thumbnail: $thumbnailUrl")
                         }
-                    }
-                    if (thumbnailUrl.isNotEmpty()) {
-                        allTracks.add(
-                            MegaTrack(
-                                file = thumbnailUrl,
-                                label = "thumbnails",
-                                kind = "thumbnails"
-                            )
-                        )
                     }
                     // getVideo POST
                     val postUrl = "$baseUrl/player/index.php?data=$hash&do=getVideo"
