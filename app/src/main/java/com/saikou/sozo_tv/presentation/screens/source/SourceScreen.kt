@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.database.FirebaseDatabase
 import com.saikou.sozo_tv.R
-import com.saikou.sozo_tv.adapters.GroupedSourceAdapter
+import com.saikou.sozo_tv.adapters.SourceAdapter
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.SubSource
 import com.saikou.sozo_tv.databinding.SourceScreenBinding
@@ -22,7 +22,7 @@ import kotlinx.coroutines.tasks.await
 class SourceScreen : Fragment() {
     private var _binding: SourceScreenBinding? = null
     private val binding get() = _binding!!
-    private lateinit var adapter: GroupedSourceAdapter
+    private lateinit var adapter: SourceAdapter
 
     private val preferenceManager by lazy { PreferenceManager() }
     private var currentSelectedAnimeSource = ""
@@ -50,8 +50,8 @@ class SourceScreen : Fragment() {
     }
 
     private fun initializeAdapter() {
-        adapter = GroupedSourceAdapter(
-            onSourceClick = { sub ->
+        adapter = SourceAdapter(
+            onClick = { sub ->
                 when (sub.sourceType) {
                     "anime" -> {
                         saveData(LocalData.SOURCE, sub.sourceId)
@@ -74,7 +74,11 @@ class SourceScreen : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        binding.sourceRv.adapter = adapter
+        binding.sourceRv.apply {
+            adapter = this@SourceScreen.adapter
+            clipChildren = false
+            clipToPadding = false
+        }
     }
 
     private fun fetchSources() {
@@ -83,13 +87,13 @@ class SourceScreen : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val sources = fetchSourcesFromFirebase()
-                if (isAdded && view != null) { // Check if fragment is still attached
+                if (isAdded && view != null) {
                     showSources(sources)
                     updateDisplayText()
                 }
             } catch (e: Exception) {
                 Log.e("SourceScreen", "Error fetching sources", e)
-                if (isAdded && view != null) { // Check if fragment is still attached
+                if (isAdded && view != null) {
                     showErrorState()
                 }
             }
@@ -109,7 +113,7 @@ class SourceScreen : Fragment() {
 
     @SuppressLint("SetTextI18n")
     private fun showSources(list: List<SubSource>) {
-        if (!isAdded || view == null) return // Check if fragment is still attached
+        if (!isAdded || view == null) return
 
         binding.progressBar.visibility = View.GONE
 
@@ -139,7 +143,7 @@ class SourceScreen : Fragment() {
     }
 
     private fun updateDisplayText() {
-        if (!isAdded || view == null) return // Check if fragment is still attached
+        if (!isAdded || view == null) return
 
         val animeSource = currentSelectedAnimeSource
         val movieSource = currentSelectedMovieSource
@@ -162,7 +166,7 @@ class SourceScreen : Fragment() {
     }
 
     private fun showLoading() {
-        if (!isAdded || view == null) return // Check if fragment is still attached
+        if (!isAdded || view == null) return
 
         binding.progressBar.visibility = View.VISIBLE
         binding.sourcePlaceHolder.root.visibility = View.GONE
@@ -170,7 +174,7 @@ class SourceScreen : Fragment() {
     }
 
     private fun showErrorState() {
-        if (!isAdded || view == null) return // Check if fragment is still attached
+        if (!isAdded || view == null) return
 
         binding.progressBar.visibility = View.GONE
         binding.sourcePlaceHolder.root.visibility = View.VISIBLE
@@ -179,7 +183,6 @@ class SourceScreen : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Clear the binding reference to avoid memory leaks
         _binding = null
     }
 }

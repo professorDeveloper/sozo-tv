@@ -195,7 +195,7 @@ open class StreamWishExtractor : Extractor() {
         override val name = "Uqloads"
         override val mainUrl = "https://uqloads.xyz"
 
-        suspend fun extract(link: String, referer: String): Video {
+        override suspend fun extract(link: String): Video {
             this.referer = referer
             return extract(link)
         }

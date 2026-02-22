@@ -328,7 +328,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="14dp"
-                app:expanded="true"
+                app:expanded="false"
                 app:sectionSubtitle="@string/customize_subtitle_font_color_and_size_tv_friendly"
                 app:sectionTitle="Subtitle Style">
 

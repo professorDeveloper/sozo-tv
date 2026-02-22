@@ -136,7 +136,7 @@ class HiAnime : BaseParser() {
         )
     }
 
-    override suspend fun getEpisodeVideo(id: String, epId: String): List<VideoOption> =
+    override suspend fun getEpisodeVideo(id: String, epId: String, epNum: Int): List<VideoOption> =
         coroutineScope {
 
             Log.d("GGG", "getEpisodeVideo: $id | epId: $epId")

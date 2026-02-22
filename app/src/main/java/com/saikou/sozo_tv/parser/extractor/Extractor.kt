@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.parser.extractor
 
 import android.util.Log
+import com.saikou.sozo_tv.parser.extractor.videasy.VideasyExtractor
 import com.saikou.sozo_tv.parser.models.Video
 
 abstract class Extractor {
@@ -18,6 +19,7 @@ abstract class Extractor {
 
     companion object {
         private val extractors = listOf(
+            VideasyExtractor(),
             VixSrcExtractor(),
             FilemoonExtractor(),
             StreamWishExtractor(),
@@ -39,7 +41,6 @@ abstract class Extractor {
             val urlRegex = Regex("^(https?://)?(www\\.)?")
             val compareUrl = link.lowercase().replace(urlRegex, "")
             for (extractor in extractors) {
-                // Asosiy URL ni tekshirish
                 if (compareUrl.startsWith(extractor.mainUrl.lowercase().replace(urlRegex, ""))) {
                     return extractor.extract(link)
                 }
@@ -50,7 +51,6 @@ abstract class Extractor {
                     }
                 }
 
-                // Rotating domain lar uchun tekshirish
                 for (regex in extractor.rotatingDomain) {
                     if (regex.containsMatchIn(compareUrl)) {
                         return extractor.extract(link)

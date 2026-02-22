@@ -244,7 +244,7 @@ class AnimeSaturnParser : BaseParser() {
         }
     }
 
-    override suspend fun getEpisodeVideo(id: String, epId: String): List<VideoOption> {
+    override suspend fun getEpisodeVideo(id: String, epId: String, epNum: Int): List<VideoOption> {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d(TAG, "Getting video for episode: $epId")

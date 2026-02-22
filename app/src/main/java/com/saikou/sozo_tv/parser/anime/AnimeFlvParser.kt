@@ -228,7 +228,7 @@ class AnimeFlvParser : BaseParser() {
         return episodes.sortedByDescending { it.episode ?: 0 }
     }
 
-    override suspend fun getEpisodeVideo(id: String, epId: String): List<VideoOption> {
+    override suspend fun getEpisodeVideo(id: String, epId: String, epNum: Int): List<VideoOption> {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d(TAG, "Getting video options for episode: $id, epId: $epId")

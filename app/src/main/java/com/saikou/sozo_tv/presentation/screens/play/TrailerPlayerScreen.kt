@@ -72,7 +72,8 @@ class TrailerPlayerScreen : Fragment() {
     @UnstableApi
     @OptIn(UnstableApi::class)
     private fun playVideo() {
-        val videoUrl = args.trailerUrl
+        val videoUrl =
+            "https://one.trueparadise.workers.dev/nightbreeze17.site/file2/PqNOhtgt+x26KaWUUGR6LCMhUbc4XvLk8MNAwfKgyn6u+OkaO7++LJ0xbvyHyNHPW5F~ylsoULMa3U~j4zVdeqofzctnLhUanUob409NZtKDxkpPyGAkbFLG+tCoq1OI59mxThn0Z+iM4dxE76Em2WsQGhPSEnJ07g3BmLBk1Gk=/MTA4MA==/aW5kZXgubTN1OA==.m3u8"
         val mediaItem = MediaItem.Builder().setUri(videoUrl).build()
         val mediaSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
         player.setMediaSource(mediaSource)
@@ -88,11 +89,11 @@ class TrailerPlayerScreen : Fragment() {
             "User-Agent" to "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36",
             "Accept" to "*/*",
             "Accept-Language" to "en-US,en;q=0.9,uz-UZ;q=0.8,uz;q=0.7",
-            "DNT" to "1",
+            "Referer" to "https://www.vidking.net/",
+            "Origin" to "https://www.vidking.net/",
             "Sec-Fetch-Dest" to "empty",
             "Sec-Fetch-Mode" to "cors",
             "Sec-Fetch-Site" to "cross-site",
-            "sec-ch-ua-mobile" to "?1",
         )
 
         val client = OkHttpClient.Builder()

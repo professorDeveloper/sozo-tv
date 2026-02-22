@@ -38,7 +38,7 @@
         app:focusOutEnd="false"
         app:focusOutFront="true"
         tools:ignore="InefficientWeight,RtlSymmetry"
-        tools:listitem="@layout/item_groupped_source" />
+        tools:listitem="@layout/item_source_header" />
 
     <include
         android:id="@+id/sourcePlaceHolder"

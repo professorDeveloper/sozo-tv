@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:focusable="false"
+    android:focusableInTouchMode="false"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="8dp">
+
+    <!-- Kategoriya badge -->
+    <TextView
+        android:id="@+id/tvGroupCategory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_category_badge"
+        android:fontFamily="sans-serif-medium"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="3dp"
+        android:textColor="#FFE50914"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        tools:text="ANIME" />
+
+    <!-- Source provider nomi -->
+    <TextView
+        android:id="@+id/tvGroupTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif-medium"
+        android:maxLines="1"
+        android:textColor="@color/netflix_text_primary"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        tools:text="AnimeFLV" />
+
+    <!-- Soni -->
+    <TextView
+        android:id="@+id/tvSourceCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
+        android:textColor="@color/netflix_text_secondary"
+        android:textSize="13sp"
+        tools:text="7 sources" />
+
+</LinearLayout>

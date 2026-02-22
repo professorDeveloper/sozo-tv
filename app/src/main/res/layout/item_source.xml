@@ -8,16 +8,18 @@
     android:layout_marginHorizontal="12dp"
     android:layout_marginVertical="4dp"
     android:background="@drawable/bg_item_normal"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     android:focusable="true"
-    android:focusableInTouchMode="true"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="12dp">
+    android:padding="14dp">
 
+    <!-- Logo / Letter -->
     <FrameLayout
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginEnd="12dp">
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginEnd="14dp">
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivLogo"
@@ -35,64 +37,56 @@
             android:background="@drawable/bg_circle_letter"
             android:gravity="center"
             android:textColor="@android:color/white"
-            android:textSize="16sp"
+            android:textSize="18sp"
             android:textStyle="bold"
             android:visibility="visible"
             tools:text="V" />
     </FrameLayout>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <!-- Nomi va info -->
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/tvCode"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:fontFamily="sans-serif-medium"
             android:maxLines="1"
-            android:text="VIDZEE"
             android:textColor="@color/netflix_text_primary"
             android:textSize="15sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@id/tvTitle"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            tools:text="VidEasy" />
 
-        <!-- Mamlakat/kod (pastki qatorda) -->
         <TextView
             android:id="@+id/tvCountry"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:maxLines="1"
-            android:text="US"
             android:textColor="@color/netflix_text_secondary"
             android:textSize="13sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvCode" />
+            tools:text="English" />
+    </LinearLayout>
 
-
-        <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/code_background"
-            android:ellipsize="end"
-            android:fontFamily="sans-serif"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="6dp"
-            android:singleLine="true"
-            android:text="Vidzee"
-            android:textColor="@android:color/white"
-            android:textSize="14sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
+    <!-- Badge -->
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/code_background"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif-medium"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="5dp"
+        android:singleLine="true"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        tools:text="VIDEASY" />
 
 </LinearLayout>

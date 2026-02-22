@@ -43,7 +43,8 @@ abstract class BaseParser {
         showUserTextListener?.invoke(showUserText)
     }
 
-    open suspend fun getEpisodeVideo(id: String, epId: String): List<VideoOption> = emptyList()
+    open suspend fun getEpisodeVideo(id: String, epId: String, epNum: Int = -1): List<VideoOption> =
+        emptyList()
 
     open suspend fun loadEpisodes(
         id: String,

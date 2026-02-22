@@ -40,9 +40,8 @@ import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
-import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
-import androidx.media3.exoplayer.source.SingleSampleMediaSource
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerControlView
@@ -241,7 +240,8 @@ class SeriesPlayerScreen : Fragment() {
                     model.lastPosition = 0
 
                     model.getCurrentEpisodeVodAnime(
-                        episodeList[model.currentEpIndex].session.toString(), args.seriesMainId
+                        episodeList[model.currentEpIndex].session.toString(), args.seriesMainId,
+                        episodeNum = episodeList[model.currentEpIndex].episode ?: 0
                     )
 
                     model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
@@ -271,9 +271,16 @@ class SeriesPlayerScreen : Fragment() {
         val renderersFactory =
             DefaultRenderersFactory(requireContext()).setEnableDecoderFallback(true)
                 .setMediaCodecSelector(MediaCodecSelector.DEFAULT).setEnableAudioFloatOutput(false)
+        val trackSelector = DefaultTrackSelector(requireContext()).apply {
+            setParameters(
+                buildUponParameters()
+                    .setPreferredAudioLanguages("hin", "jpn", "eng") // Hindi > Japanese > English
+            )
+        }
 
         player = ExoPlayer.Builder(requireContext(), renderersFactory)
             .setRenderersFactory(renderersFactory)
+            .setTrackSelector(trackSelector)
             .setVideoChangeFrameRateStrategy(C.VIDEO_CHANGE_FRAME_RATE_STRATEGY_ONLY_IF_SEAMLESS)
             .build()
 
@@ -601,7 +608,8 @@ class SeriesPlayerScreen : Fragment() {
                 if (subUrl.isNotBlank()) {
 
                     val client = okHttpClient ?: buildOkHttpClient(lastHeaders)
-                    val tmp = File(requireContext().cacheDir, "sub_${System.currentTimeMillis()}.vtt")
+                    val tmp =
+                        File(requireContext().cacheDir, "sub_${System.currentTimeMillis()}.vtt")
 
                     val request = Request.Builder()
                         .url(subUrl)
@@ -639,7 +647,6 @@ class SeriesPlayerScreen : Fragment() {
         return DefaultMediaSourceFactory(dataSourceFactory)
             .createMediaSource(finalItem)
     }
-
 
 
     @SuppressLint("UnsafeOptInUsageError")
@@ -936,7 +943,10 @@ class SeriesPlayerScreen : Fragment() {
 
                     model.loadWatched(args.id)
                     model.isWatchedLiveData.observe(viewLifecycleOwner) { history ->
-                        model.getCurrentEpisodeVodAnime(args.id, args.seriesMainId, history)
+                        model.getCurrentEpisodeVodAnime(
+                            args.id, args.seriesMainId, history, episodeNum =
+                            episodeList.getOrNull(model.currentEpIndex)?.episode ?: 0
+                        )
                     }
 
                     model.currentEpisodeData.observe(viewLifecycleOwner) { epRes ->
@@ -988,7 +998,8 @@ class SeriesPlayerScreen : Fragment() {
 
                                         model.getCurrentEpisodeVodAnime(
                                             episodeList[position].session.toString(),
-                                            args.seriesMainId
+                                            args.seriesMainId,
+                                            episodeNum = episodeList[position].episode ?: 0
                                         )
 
                                         model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
@@ -1017,7 +1028,9 @@ class SeriesPlayerScreen : Fragment() {
                                         model.doNotAsk = false
                                         model.getCurrentEpisodeVodAnime(
                                             episodeList[model.currentEpIndex].session.toString(),
-                                            args.seriesMainId
+                                            args.seriesMainId,
+                                            episodeNum = episodeList[model.currentEpIndex].episode
+                                                ?: 0
                                         )
 
                                         model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
@@ -1054,7 +1067,9 @@ class SeriesPlayerScreen : Fragment() {
 
                                                 model.getCurrentEpisodeVodAnime(
                                                     episodeList[model.currentEpIndex].session.toString(),
-                                                    args.seriesMainId
+                                                    args.seriesMainId,
+                                                    episodeNum = episodeList[model.currentEpIndex].episode
+                                                        ?: 0
                                                 )
 
                                                 model.currentEpisodeData.observeOnce(

@@ -44,8 +44,7 @@ data class Data(
     val duration: String? = null,
     val edition: String? = null,
     val episode: Int? = null,
-    val
-    episode2: Int? = null,
+    val episode2: Int? = null,
     val filler: Int? = null,
     val id: Int? = null,
     val session: String? = null,

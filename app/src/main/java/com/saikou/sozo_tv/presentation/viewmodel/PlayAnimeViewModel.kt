@@ -160,6 +160,7 @@ class PlayAnimeViewModel(
         episodeId: String,
         mediaId: String,
         isHistory: Boolean = false,
+        episodeNum: Int?
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             currentEpisodeData.postValue(Resource.Loading)
@@ -181,7 +182,11 @@ class PlayAnimeViewModel(
                 activeAnimeSourceKey = sourceKey
                 parser = AnimeSources.getSourceById(sourceKey)
 
-                val options = parser.getEpisodeVideo(epId = episodeId, id = mediaId)
+                val options = parser.getEpisodeVideo(
+                    id = mediaId,
+                    epId = episodeId,
+                    epNum = episodeNum ?: -1
+                )
                 if (options.isEmpty()) throw IllegalStateException("No video options found")
 
                 videoOptionsData.postValue(options)
@@ -218,6 +223,19 @@ class PlayAnimeViewModel(
                     header = option.headers,
                     type = option.mimeTypes,
                     thumbnail = option.tracks.find { it.file.contains("thumbnail") }?.file ?: ""
+                )
+            }
+
+            "anime_lok" -> {
+                Log.d(TAG, "buildVodFromOption:AnimeLok ${option.videoUrl}")
+                VodMovieResponse(
+                    authInfo = "",
+                    subtitleList = arrayListOf(),
+                    urlobj = option.videoUrl,
+                    header = option.headers,
+                    type = MimeTypes.APPLICATION_M3U8,
+                    thumbnail = option.tracks.find { it.file.contains("thumbnail") }?.file ?: "",
+                    language = "hin"
                 )
             }
 

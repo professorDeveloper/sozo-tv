@@ -133,7 +133,7 @@ class AnimePahe : BaseParser() {
     }
 
 
-    override suspend fun getEpisodeVideo(id: String, epId: String): List<VideoOption> {
+    override suspend fun getEpisodeVideo(id: String, epId: String, epNum: Int): List<VideoOption> {
         val headers = getDefaultHeaders()
         val doc = getJsoup("https://animepahe.si/play/${id}/${epId}", headers)
         val videoOptions = getVideoOptions(doc)

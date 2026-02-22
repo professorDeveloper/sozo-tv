@@ -11,6 +11,7 @@ data class VodMovieResponse(
     val urlobj: String,
     val type: String = MimeTypes.APPLICATION_M3U8,
     val thumbnail: String = "",
+    val language: String = "",
 ) : Serializable
 
 
