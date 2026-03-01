@@ -8,6 +8,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavOptions
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
@@ -17,6 +18,13 @@ import java.util.Calendar
 import java.util.Locale
 
 val Int.dp: Float get() = (this / Resources.getSystem().displayMetrics.density)
+
+fun animationTransaction(): NavOptions.Builder {
+    val navBuilder = NavOptions.Builder()
+    navBuilder.setEnterAnim(R.anim.from_right).setExitAnim(R.anim.to_left)
+        .setPopEnterAnim(R.anim.from_left).setPopExitAnim(R.anim.to_right)
+    return navBuilder
+}
 
 fun String.getYearFromDate(): String? {
     return try {

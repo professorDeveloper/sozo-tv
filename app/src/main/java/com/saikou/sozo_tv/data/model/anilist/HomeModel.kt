@@ -11,6 +11,7 @@ data class HomeModel(
     val source: MediaSource,
     val title: Title,
     val isSeries: Boolean = true,
+    val isAnime: Boolean = false
 )
 
 data class Title(

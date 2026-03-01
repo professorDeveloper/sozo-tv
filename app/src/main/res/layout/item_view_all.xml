@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardViewAll"
+    android:layout_width="160dp"
+    android:layout_height="240dp"
+    android:background="@drawable/item_movie_history_bg"
+    android:clickable="true"
+    android:clipToOutline="true"
+    android:focusable="true"
+    android:outlineProvider="background"
+    android:padding="4dp"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/view_all_gradient_bg"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <FrameLayout
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:background="@drawable/circle_icon_bg">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_next"
+                android:tint="@color/netflix_white" />
+        </FrameLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/rubik_regular"
+            android:gravity="center"
+            android:letterSpacing="0.03"
+            android:text="@string/view_all"
+            android:textColor="@color/netflix_text_primary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="24dp"
+            android:layout_height="1.5dp"
+            android:layout_marginTop="6dp"
+            android:background="@color/netflix_red" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:fontFamily="@font/rubik_regular"
+            android:gravity="center"
+            android:text="@string/see_more_movies"
+            android:textColor="@color/netflix_text_secondary"
+            android:textSize="9sp" />
+
+    </LinearLayout>
+</FrameLayout>

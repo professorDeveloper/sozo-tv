@@ -19,6 +19,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.model.GlideUrl
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.app.MyApp
+import com.saikou.sozo_tv.data.model.ViewAllData
 import com.saikou.sozo_tv.databinding.BannerItemBinding
 import com.saikou.sozo_tv.databinding.ContentBannerBinding
 import com.saikou.sozo_tv.databinding.EpisodeItemBinding
@@ -26,6 +27,7 @@ import com.saikou.sozo_tv.databinding.ItemCategoryBinding
 import com.saikou.sozo_tv.databinding.ItemGenreBinding
 import com.saikou.sozo_tv.databinding.ItemMiddleChannelBinding
 import com.saikou.sozo_tv.databinding.ItemMovieBinding
+import com.saikou.sozo_tv.databinding.ItemViewAllBinding
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Category
@@ -60,6 +62,8 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
         const val VIEW_CHANNEL_ITEM = 8
         const val VIEW_HISTORY = 9
         const val VIEW_HISTORY_ITEM = 10
+        const val VIEW_ALL =32
+
     }
 
     /**
@@ -142,6 +146,10 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 if (item is Category) {
                     holder.bind(item)
                 }
+            }
+
+            is ViewAllItemViewHolder -> {
+                if (item is ViewAllData) holder.bind(item)
             }
         }
     }
@@ -254,7 +262,8 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 Glide.with(MyApp.context)
                     .load(GlideUrl("${LocalData.IMDB_BACKDROP_PATH}${item.contentItem.image}"))
                     .diskCacheStrategy(DiskCacheStrategy.ALL).override(400).into(binding.bannerImg)
-            } else {
+            }
+            else {
                 Glide.with(MyApp.context).load(GlideUrl(item.contentItem.image))
                     .diskCacheStrategy(DiskCacheStrategy.ALL).override(400).into(binding.bannerImg)
             }
@@ -485,8 +494,49 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
 
                 setItemSpacing(10)
             }
+
+            val listWithViewAll: List<HomeData> = item.list + ViewAllData(
+                rowId = item.rowId,
+                categoryTitle = item.name
+            )
+
+            binding.hgvCategory.apply {
+                setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+                adapter = HomeAdapter().apply {
+                    submitList(listWithViewAll)
+                }
+                setItemSpacing(10)
+            }
+
         }
     }
+
+
+    /**
+     * "Barchasini ko'rish" kartasi uchun ViewHolder.
+     * Bosilganda CategoryActivity ga o'tadi.
+     */
+    class ViewAllItemViewHolder(private val binding: ItemViewAllBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(item: ViewAllData) {
+            binding.root.apply {
+                setOnFocusChangeListener { _, hasFocus ->
+                    val animation = when {
+                        hasFocus -> AnimationUtils.loadAnimation(context, R.anim.zoom_in)
+                        else -> AnimationUtils.loadAnimation(context, R.anim.zoom_out)
+                    }
+                    startAnimation(animation)
+                    animation.fillAfter = true
+                }
+
+                setOnClickListener {
+                    LocalData.viewAllClickListenerrr.invoke(item)
+                }
+            }
+        }
+    }
+
 
     /**
      * Adapterdagi ma'lumotlarni yangilaydi va o‘zgarishlarni hisoblab chiqaradi.

@@ -19,10 +19,9 @@ import com.saikou.sozo_tv.presentation.activities.LiveTvActivity
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
-import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
-import com.saikou.sozo_tv.utils.toDomain
+import com.saikou.sozo_tv.data.model.toDomain
 import com.saikou.sozo_tv.utils.visible
 import org.koin.androidx.viewmodel.ext.android.viewModel
 

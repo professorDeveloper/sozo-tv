@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.domain.model
 
+import com.saikou.sozo_tv.data.model.RowId
 import com.saikou.sozo_tv.data.model.anilist.HomeModel
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
 import java.io.Serializable
@@ -7,6 +8,7 @@ import java.io.Serializable
 data class Category(
     val name: String,
     val list: List<CategoryDetails>,
+    val rowId: RowId,
     override val viewType: Int = HomeAdapter.VIEW_CATEGORY_FILMS
 ) : HomeAdapter.HomeData
 

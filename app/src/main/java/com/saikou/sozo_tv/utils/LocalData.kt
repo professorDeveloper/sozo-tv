@@ -6,6 +6,7 @@ import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.Channel
 import com.saikou.sozo_tv.data.model.SectionItem
+import com.saikou.sozo_tv.data.model.ViewAllData
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.CategoryDetails
@@ -19,6 +20,11 @@ object LocalData {
     lateinit var historyItemClickListenerr: (WatchHistoryEntity) -> Unit
     fun setHistoryItemClickListener(listener: (WatchHistoryEntity) -> Unit) {
         historyItemClickListenerr = listener
+    }
+
+    lateinit var viewAllClickListenerrr: (ViewAllData) -> Unit
+    fun setViewAllClickListenerf(listener: (ViewAllData) -> Unit) {
+        viewAllClickListenerrr = listener
     }
 
     var trailer: String = ""

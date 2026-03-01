@@ -17,6 +17,7 @@ import com.saikou.sozo_tv.data.repository.ProfileRepositoryImpl
 import com.saikou.sozo_tv.data.repository.SearchRepositoryImpl
 import com.saikou.sozo_tv.data.repository.SharedPrefsSettingsRepository
 import com.saikou.sozo_tv.data.repository.TvPairingRepository
+import com.saikou.sozo_tv.data.repository.ViewAllRepositoryImpl
 import com.saikou.sozo_tv.data.repository.WatchHistoryRepositoryImpl
 import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import com.saikou.sozo_tv.domain.repository.CategoriesRepository
@@ -30,6 +31,7 @@ import com.saikou.sozo_tv.domain.repository.ProfileRepository
 import com.saikou.sozo_tv.domain.repository.SearchRepository
 import com.saikou.sozo_tv.domain.repository.SettingsRepository
 import com.saikou.sozo_tv.domain.repository.TMDBHomeRepository
+import com.saikou.sozo_tv.domain.repository.ViewAllRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.presentation.viewmodel.AdultPlayerViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
@@ -48,6 +50,7 @@ import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SplashViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.TvGardenViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.UpdateViewModel
+import com.saikou.sozo_tv.presentation.viewmodel.ViewAllViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.WrongTitleViewModel
 import com.saikou.sozo_tv.services.FirebaseService
 import org.koin.android.ext.koin.androidApplication
@@ -72,6 +75,9 @@ val koinModule = module {
     }
     single<EpisodeRepository> {
         EpisodeRepositoryImpl(api = get())
+    }
+    single<ViewAllRepository> {
+        ViewAllRepositoryImpl(apollo = get(),api = get())
     }
     single { AuthRepository(prefs = get(), apolloClient = get(), db = get()) }
     single { TvPairingRepository(db = get()) }
@@ -112,6 +118,7 @@ val koinModule = module {
     viewModel { EpisodeViewModel(watchHistoryRepository = get(), repo = get()) }
     viewModel { WrongTitleViewModel() }
     viewModel { UpdateViewModel() }
+    viewModel { ViewAllViewModel(get()) }
     viewModel { SettingsViewModel(get(), profileRepo = get()) }
     viewModel { LiveTvViewModel(dao = get()) }
     viewModel { AdultPlayerViewModel() }

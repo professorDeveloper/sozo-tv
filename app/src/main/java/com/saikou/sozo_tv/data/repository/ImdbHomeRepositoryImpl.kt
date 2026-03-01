@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.data.repository
 
 import com.animestudios.animeapp.type.MediaFormat
 import com.animestudios.animeapp.type.MediaSource
+import com.saikou.sozo_tv.data.model.RowId
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.anilist.HomeModel
 import com.saikou.sozo_tv.data.model.anilist.Title
@@ -61,91 +62,90 @@ class ImdbHomeRepositoryImpl(
     override suspend fun loadCategories(): Result<ArrayList<Category>> = safeExecute {
         val categories = arrayListOf<Category>()
 
-        val trendingResponse = api.getPopularSeries()
-        val trendingList = trendingResponse.body()?.results ?: emptyList()
-
-        val trendingCategory = Category(name = "Trending All", list = trendingList.map {
-            CategoryDetails(
-                content = HomeModel(
-                    id = it.id ?: 0,
-                    idMal = 0,
-                    coverImage = CoverImage(
-                        "${LocalData.IMDB_IMAGE_PATH}${it.poster_path ?: it.backdrop_path}"
-                    ),
-                    format = MediaFormat.MOVIE,
-                    source = MediaSource.NOVEL,
-                    title = Title(it.titleFormat ?: it.name ?: ""),
-                    isSeries = true
-
-                )
-            )
-        })
-
-        categories.add(trendingCategory)
-
-        val topRatedResponse = api.getTopRatedMovies()
-        val topRatedList = topRatedResponse.body()?.results ?: emptyList()
-        val topRatedCategory = Category(name = "Top Rated Movies", list = topRatedList.map {
-            CategoryDetails(
-                content = HomeModel(
-                    id = it.id ?: 0,
-                    idMal = 0,
-                    coverImage = CoverImage(
-                        "${LocalData.IMDB_IMAGE_PATH}${it.poster_path ?: it.backdrop_path}"
-                    ),
-                    format = MediaFormat.MOVIE,
-                    source = MediaSource.NOVEL,
-                    title = Title(it.titleFormat ?: it.name ?: ""),
-                    isSeries = it.media_type == "tv"
-
-                )
-            )
-        })
-        categories.add(topRatedCategory)
-        val trendingMovieResponse = api.getTrendingSeries()
-        val trendingMovieList = trendingMovieResponse.body()?.results ?: emptyList()
-        val trendingMovieCategory =
-            Category(name = "Trending Series", list = trendingMovieList.map {
-                CategoryDetails(
-                    content = HomeModel(
-                        id = it.id ?: 0,
-                        idMal = 0,
-                        coverImage = CoverImage(
-                            "${LocalData.IMDB_IMAGE_PATH}${it.poster_path ?: it.backdrop_path}"
-                        ),
-                        format = MediaFormat.MOVIE,
-                        source = MediaSource.NOVEL,
-                        title = Title(it.titleFormat ?: it.name ?: ""),
-                        isSeries = true
-
+        val trendingList = api.getPopularSeries().body()?.results ?: emptyList()
+        categories.add(
+            Category(
+                name = "Trending All",
+                rowId = RowId.TMDB_TRENDING_ALL,
+                list = trendingList.map {
+                    CategoryDetails(
+                        content = HomeModel(
+                            id = it.id ?: 0,
+                            idMal = 0,
+                            coverImage = CoverImage("${LocalData.IMDB_IMAGE_PATH}${it.poster_path ?: it.backdrop_path}"),
+                            format = MediaFormat.MOVIE,
+                            source = MediaSource.NOVEL,
+                            title = Title(it.titleFormat ?: it.name ?: ""),
+                            isSeries = true
+                        )
                     )
-                )
-            })
-        categories.add(trendingMovieCategory)
-        val randomPage = Random.nextInt(10, 20)
-        val randomRecommendResponse = api.getPopularSeries(page = randomPage)
-
-        val allMovies = randomRecommendResponse.body()?.results ?: emptyList()
-        val randomRecommendCategory = Category(
-            name = "Recommend Series",
-            list = allMovies.map {
-                CategoryDetails(
-                    content = HomeModel(
-                        id = it.id ?: 0,
-                        idMal = 0,
-                        coverImage = CoverImage(
-                            "${LocalData.IMDB_IMAGE_PATH}${it.poster_path ?: it.backdrop_path}"
-                        ),
-                        format = MediaFormat.MOVIE,
-                        source = MediaSource.NOVEL,
-                        title = Title(it.titleFormat ?: it.name ?: ""),
-                        isSeries = true
-                    )
-                )
-            }
+                }
+            )
         )
 
-        categories.add(randomRecommendCategory)
+        val topRatedList = api.getTopRatedMovies().body()?.results ?: emptyList()
+        categories.add(
+            Category(
+                name = "Top Rated Movies",
+                rowId = RowId.TMDB_TOP_RATED,
+                list = topRatedList.map {
+                    CategoryDetails(
+                        content = HomeModel(
+                            id = it.id ?: 0,
+                            idMal = 0,
+                            coverImage = CoverImage("${LocalData.IMDB_IMAGE_PATH}${it.poster_path ?: it.backdrop_path}"),
+                            format = MediaFormat.MOVIE,
+                            source = MediaSource.NOVEL,
+                            title = Title(it.titleFormat ?: it.name ?: ""),
+                            isSeries = it.media_type == "tv"
+                        )
+                    )
+                }
+            )
+        )
+
+        val trendingSeriesList = api.getTrendingSeries().body()?.results ?: emptyList()
+        categories.add(
+            Category(
+                name = "Trending Series",
+                rowId = RowId.TMDB_TRENDING_SERIES,
+                list = trendingSeriesList.map {
+                    CategoryDetails(
+                        content = HomeModel(
+                            id = it.id ?: 0,
+                            idMal = 0,
+                            coverImage = CoverImage("${LocalData.IMDB_IMAGE_PATH}${it.poster_path ?: it.backdrop_path}"),
+                            format = MediaFormat.MOVIE,
+                            source = MediaSource.NOVEL,
+                            title = Title(it.titleFormat ?: it.name ?: ""),
+                            isSeries = true
+                        )
+                    )
+                }
+            )
+        )
+
+        val recommendList =
+            api.getPopularSeries(page = Random.nextInt(10, 20)).body()?.results ?: emptyList()
+        categories.add(
+            Category(
+                name = "Recommend Series",
+                rowId = RowId.TMDB_RECOMMEND_SERIES,
+                list = recommendList.map {
+                    CategoryDetails(
+                        content = HomeModel(
+                            id = it.id ?: 0,
+                            idMal = 0,
+                            coverImage = CoverImage("${LocalData.IMDB_IMAGE_PATH}${it.poster_path ?: it.backdrop_path}"),
+                            format = MediaFormat.MOVIE,
+                            source = MediaSource.NOVEL,
+                            title = Title(it.titleFormat ?: it.name ?: ""),
+                            isSeries = true
+                        )
+                    )
+                }
+            )
+        )
 
         categories
     }

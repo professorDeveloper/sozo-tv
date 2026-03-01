@@ -158,24 +158,26 @@ class HiAnime : BaseParser() {
             val jobs = servers.map { server ->
                 async {
                     val embedUrl = extractor.extractVideoFromServer(server.id)
-                    val (m3u8, tracks) = mega.extractVideoUrl(embedUrl)
-
-                    VideoOption(
-                        videoUrl = m3u8,
-                        fansub = "HiAnime",
-                        resolution = server.label,
-                        mimeTypes = MimeTypes.APPLICATION_M3U8,
-                        audioType = if (server.type == "dub") AudioType.DUB else AudioType.SUB,
-                        quality = "Adaptive",
-                        isActive = true,
-                        fullText = "HiAnime Stream",
-                        tracks = tracks,
-                        headers = headers
-                    )
+                    if (embedUrl != null) {
+                        val (m3u8, tracks) = mega.extractVideoUrl(embedUrl)
+                        VideoOption(
+                            videoUrl = m3u8,
+                            fansub = "HiAnime",
+                            resolution = server.label,
+                            mimeTypes = MimeTypes.APPLICATION_M3U8,
+                            audioType = if (server.type == "dub") AudioType.DUB else AudioType.SUB,
+                            quality = "Adaptive",
+                            isActive = true,
+                            fullText = "HiAnime Stream",
+                            tracks = tracks,
+                            headers = headers
+                        )
+                    } else null
                 }
             }
 
-            jobs.awaitAll()
+            jobs.awaitAll().filterNotNull()
+
         }
 
 

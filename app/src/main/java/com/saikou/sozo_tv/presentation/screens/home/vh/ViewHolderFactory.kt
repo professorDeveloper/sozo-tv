@@ -15,6 +15,7 @@ import com.saikou.sozo_tv.databinding.ItemMovieBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsHeaderBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsSectionBinding
 import com.saikou.sozo_tv.databinding.ItemPlayRecommendedBinding
+import com.saikou.sozo_tv.databinding.ItemViewAllBinding
 import com.saikou.sozo_tv.presentation.screens.detail.CastDetailAdapter
 import com.saikou.sozo_tv.presentation.screens.detail.MovieDetailsAdapter
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
@@ -94,6 +95,11 @@ object ViewHolderFactory {
                     )
                 )
             }
+            HomeAdapter.VIEW_ALL -> {
+                val binding = ItemViewAllBinding.inflate(inflater, parent, false)
+                HomeAdapter.ViewAllItemViewHolder(binding)
+            }
+
 
             HomeAdapter.VIEW_HISTORY -> {
                 val binding = ItemCategoryBinding.inflate(inflater, parent, false)
@@ -114,6 +120,7 @@ object ViewHolderFactory {
                 val binding = ItemMiddleChannelBinding.inflate(inflater, parent, false)
                 HomeAdapter.ChannelItemViewHolder(binding)
             }
+
 
 
             else -> throw IllegalArgumentException("Invalid view type: $viewType")

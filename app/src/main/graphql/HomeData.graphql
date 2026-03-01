@@ -1,5 +1,11 @@
 query getRecommendations($page: Int) {
-    Page(page: $page, perPage: 7) {
+    Page(page: $page, perPage: 7) {  pageInfo {
+        currentPage
+        hasNextPage
+        currentPage
+        lastPage
+        total
+    }
         recommendations(sort: RATING_DESC){
             media {   id
                 idMal
@@ -19,6 +25,13 @@ query getRecommendations($page: Int) {
 
 query getBanner{
     Page(page: 1,perPage: 9){
+        pageInfo {
+            currentPage
+            hasNextPage
+            currentPage
+            lastPage
+            total
+        }
         media(sort: SCORE_DESC, isAdult: false, type: ANIME, countryOfOrigin: "JP") {
             title {
                 userPreferred
@@ -37,6 +50,13 @@ query getBanner{
 
 query getPopular($page: Int) {
     Page(page: $page, perPage: 7) {
+        pageInfo {
+            currentPage
+            hasNextPage
+            currentPage
+            lastPage
+            total
+        }
         media(sort: POPULARITY_DESC){
             id
             idMal
@@ -57,6 +77,13 @@ query getPopular($page: Int) {
 
 query getTrending($page: Int) {
     Page(page: $page, perPage: 7) {
+        pageInfo {
+            currentPage
+            hasNextPage
+            currentPage
+            lastPage
+            total
+        }
         mediaTrends{
             media {   id
                 idMal

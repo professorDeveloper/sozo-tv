@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.parser.extractor
 
+import android.net.Uri
 import android.util.Log
 import com.google.gson.Gson
 import com.saikou.sozo_tv.data.model.hianime.EpisodeServers
@@ -36,10 +37,13 @@ class HiAnimeVideoExtractor {
         }
     }
 
-    fun extractVideoFromServer(serverId: String): String {
+    fun extractVideoFromServer(serverId: String): String? {
         val json = Utils.get("$base/ajax/v2/episode/sources?id=$serverId")
         val source = gson.fromJson(json, ServerResponse::class.java).link
-        return source
+
+        val kValue = Uri.parse(source).getQueryParameter("_k")
+
+        return if (!kValue.isNullOrEmpty()) source else null
     }
 
 }

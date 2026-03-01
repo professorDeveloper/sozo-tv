@@ -161,5 +161,7 @@
     <string name="off">Off</string>
     <string name="on">On</string>
     <string name="subtitles_are_off">Subtitles Are Off</string>
+    <string name="view_all">View All</string>
+    <string name="see_more_movies">See more movie series</string>
 
 </resources>

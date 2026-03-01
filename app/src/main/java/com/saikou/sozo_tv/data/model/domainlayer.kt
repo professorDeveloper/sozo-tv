@@ -1,4 +1,4 @@
-package com.saikou.sozo_tv.utils
+package com.saikou.sozo_tv.data.model
 
 import com.animestudios.animeapp.GetAnimeByGenreQuery
 import com.animestudios.animeapp.GetAnimeByIdQuery
@@ -7,31 +7,45 @@ import com.animestudios.animeapp.GetCharacterDetailQuery
 import com.animestudios.animeapp.GetCharactersAnimeByIdQuery
 import com.animestudios.animeapp.GetRelationsByIdQuery
 import com.animestudios.animeapp.SearchAnimeQuery
+import com.animestudios.animeapp.type.MediaFormat
 import com.animestudios.animeapp.type.MediaSource
 import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.data.local.entity.CharacterEntity
-import com.saikou.sozo_tv.data.model.SubTitle
-import com.saikou.sozo_tv.data.model.SubtitleItem
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
+import com.saikou.sozo_tv.data.model.anilist.HomeModel
+import com.saikou.sozo_tv.data.model.anilist.Title
 import com.saikou.sozo_tv.data.model.jikan.BannerHomeData
 import com.saikou.sozo_tv.data.model.jikan.JikanBannerResponse
 import com.saikou.sozo_tv.data.model.tmdb.MediaDetails
 import com.saikou.sozo_tv.data.model.tmdb.TmdbListItem
+import com.saikou.sozo_tv.data.model.tmdb.TmdbListResponse
 import com.saikou.sozo_tv.domain.model.AiringSchedule
 import com.saikou.sozo_tv.domain.model.BannerItem
 import com.saikou.sozo_tv.domain.model.BannerModel
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.CastAdapterModel
 import com.saikou.sozo_tv.domain.model.CastDetailModel
-import com.saikou.sozo_tv.domain.model.CategoryGenre
-import com.saikou.sozo_tv.domain.model.CategoryGenreItem
+import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.DetailModel
-import com.saikou.sozo_tv.domain.model.GenreModel
 import com.saikou.sozo_tv.domain.model.MainModel
+import com.saikou.sozo_tv.domain.model.PaginatedResult
 import com.saikou.sozo_tv.domain.model.SearchModel
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.Episode
 import com.saikou.sozo_tv.presentation.screens.home.HomeAdapter
+import com.saikou.sozo_tv.utils.LocalData
+
+fun Result<TmdbListResponse>.mapToPaginated(
+    mapper: (TmdbListItem) -> MainModel
+): Result<PaginatedResult> = map { body ->
+    PaginatedResult(
+        page = body.page ?: 1,
+        totalPages = body.total_pages ?: 1,
+        totalResults = body.total_results ?: 0,
+        list = body.results.map(mapper)
+    )
+}
+
 
 fun com.saikou.sozo_tv.data.model.tmdb.cast.Cast.toDomain(): MainModel {
     return MainModel(
@@ -57,7 +71,8 @@ fun TmdbListItem.toDomain(): MainModel {
         null,
         -1,
         -1,
-        isSeries = this.media_type == "tv"
+        isSeries = this.media_type == "tv",
+        isAnime = false
     )
 }
 
@@ -67,6 +82,19 @@ fun Episode.toDomain(): Data {
     )
 
 }
+
+fun HomeModel.toDomain(): MainModel = MainModel(
+    id = this.id,
+    idMal = this.idMal,
+    title = this.title.english,
+    image = this.coverImage.large,
+    genres = arrayListOf(),
+    studios = arrayListOf(),
+    averageScore = 0,
+    meanScore = -1,
+    isSeries = this.isSeries,
+    isAnime = this.isAnime
+)
 
 fun GetRelationsByIdQuery.Media.toDomain(): MainModel {
     return MainModel(
@@ -246,14 +274,6 @@ fun GetCharactersAnimeByIdQuery.Node.toDomain(): Cast {
     )
 }
 
-
-fun List<GenreModel>.toDomain(): CategoryGenre {
-    return CategoryGenre("Genres", this.map {
-        CategoryGenreItem(
-            content = it
-        )
-    })
-}
 
 fun TmdbListItem.toSearchDomain(): SearchModel {
     return SearchModel(

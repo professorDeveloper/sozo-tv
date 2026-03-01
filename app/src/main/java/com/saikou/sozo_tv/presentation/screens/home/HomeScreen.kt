@@ -25,6 +25,7 @@ import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.UiState
+import com.saikou.sozo_tv.utils.animationTransaction
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -71,6 +72,12 @@ class HomeScreen : Fragment() {
             homeAdapter.submitList(state.data)
             LocalData.setFocusedGenreClickListener {
                 (requireActivity() as MainActivity).navigateToCategory(it)
+            }
+            LocalData.setViewAllClickListenerf {
+                findNavController().navigate(
+                    HomeScreenDirections.actionHomeToViewAllScreen(it),
+                    animationTransaction().build()
+                )
             }
             LocalData.setonClickedlistenerItemBanner {
                 if (homeViewModel.preferenceManager.isModeAnimeEnabled()) {

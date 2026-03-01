@@ -15,7 +15,7 @@ import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.characterBookmark
 import com.saikou.sozo_tv.utils.snackString
-import com.saikou.sozo_tv.utils.toDomain
+import com.saikou.sozo_tv.data.model.toDomain
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {

@@ -19,7 +19,7 @@ import com.saikou.sozo_tv.parser.movie.PlayImdb
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.MOVIE_SOURCE
 import com.saikou.sozo_tv.utils.Resource
-import com.saikou.sozo_tv.utils.toDomain
+import com.saikou.sozo_tv.data.model.toDomain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

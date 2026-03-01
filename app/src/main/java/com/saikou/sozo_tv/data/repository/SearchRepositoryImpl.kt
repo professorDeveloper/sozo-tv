@@ -4,11 +4,11 @@ import com.animestudios.animeapp.SearchAnimeQuery
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.data.model.toDomain
 import com.saikou.sozo_tv.data.remote.ImdbService
 import com.saikou.sozo_tv.domain.model.SearchModel
 import com.saikou.sozo_tv.domain.repository.SearchRepository
-import com.saikou.sozo_tv.utils.toDomain
-import com.saikou.sozo_tv.utils.toSearchDomain
+import com.saikou.sozo_tv.data.model.toSearchDomain
 
 class SearchRepositoryImpl(private val apolloClient: ApolloClient, private val api: ImdbService) :
     SearchRepository {

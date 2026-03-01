@@ -9,6 +9,7 @@ import com.animestudios.animeapp.GetTrendingQuery
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.saikou.sozo_tv.app.MyApp
+import com.saikou.sozo_tv.data.model.RowId
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.anilist.HomeModel
 import com.saikou.sozo_tv.data.model.anilist.Title
@@ -52,208 +53,90 @@ class HomeRepositoryImpl(
         }
     }
 
-    override suspend fun loadCategories(): Result<List<Category>> {
-        return try {
-            val categories = mutableListOf<Category>()
+    // AniList
+    override suspend fun loadCategories(): Result<List<Category>> = safeExecute {
+        val categories = mutableListOf<Category>()
 
-            val recommendationData = apolloClient.safeExecute(
-                GetRecommendationsQuery(
-                    page = Optional.present(Random.nextInt(1, 4))
-                )
-            )
-
-            recommendationData?.Page?.recommendations?.let { recommendationMediaList ->
-                val filteredList = recommendationMediaList.filter {
-                    it?.media?.title?.english != null
-                }
-
+        val recommendationData = apolloClient.safeExecute(
+            GetRecommendationsQuery(page = Optional.present(Random.nextInt(1, 4)))
+        )
+        recommendationData?.Page?.recommendations
+            ?.filter { it?.media?.title?.english != null }
+            ?.let { filteredList ->
                 categories.add(
-                    Category(name = "Recommended", list = filteredList.map {
-                        CategoryDetails(
-                            content = HomeModel(
-                                id = it!!.media!!.id,
-                                idMal = it.media!!.idMal!!,
-                                coverImage = CoverImage(
-                                    it.media.coverImage!!.large ?: LocalData.anime404
-                                ),
-                                format = it.media.format!!,
-                                source = it.media.source!!,
-                                title = Title(
-                                    it.media.title?.english ?: ""
-                                )
-                            )
-                        )
-                    })
-                )
-            }
-
-            val trendData = apolloClient.safeExecute(
-                GetTrendingQuery(
-                    page = Optional.present(Random.nextInt(1, 4))
-                )
-            )
-
-            trendData?.Page?.mediaTrends?.let { trendMediaList ->
-                val filteredList = trendMediaList.filter {
-                    it?.media?.title?.english != null || it?.media?.title?.userPreferred != null && it.media.source != null
-                }
-
-                categories.add(
-                    Category(name = "Trending", list = filteredList.map {
-                        CategoryDetails(
-                            content = HomeModel(
-                                id = it!!.media!!.id,
-                                idMal = it.media!!.idMal!!,
-                                coverImage = CoverImage(
-                                    it.media.coverImage!!.large ?: LocalData.anime404
-                                ),
-                                format = it.media.format!!,
-                                source = it.media.source!!,
-                                title = Title(
-                                    it.media.title?.english ?: it.media.title?.userPreferred ?: ""
-                                )
-                            )
-                        )
-                    })
-                )
-            }
-
-            val popularData = apolloClient.safeExecute(
-                GetPopularQuery(
-                    page = Optional.present(Random.nextInt(1, 8))
-                )
-            )
-
-            popularData?.Page?.media?.let { popularMediaList ->
-                val filteredList = popularMediaList.filter {
-                    it?.title?.english != null || it?.title?.userPreferred != null && it.source != null
-                }
-                categories.add(
-                    Category(name = "Popular", list = filteredList.map {
-                        CategoryDetails(
-                            content = HomeModel(
-                                id = it!!.id,
-                                idMal = it.idMal!!,
-                                coverImage = CoverImage(
-                                    it.coverImage!!.large ?: LocalData.anime404
-                                ),
-                                format = it.format!!,
-                                source = it.source!!,
-                                title = Title(
-                                    it.title?.english ?: it.title?.userPreferred ?: ""
-                                )
-                            )
-                        )
-                    })
-                )
-            }
-
-            Result.success(categories)
-        } catch (e: Exception) {
-            Log.d("GGGG", "loadCategories:${e} ")
-            try {
-                val categories = mutableListOf<Category>()
-
-                val recommendationData = apolloClient.safeExecute(
-                    GetRecommendationsQuery(
-                        page = Optional.present(Random.nextInt(1, 4))
-                    )
-                )
-
-                recommendationData?.Page?.recommendations?.let { recommendationMediaList ->
-                    val filteredList = recommendationMediaList.filter {
-                        it?.media?.title?.english != null
-                    }
-
-                    categories.add(
-                        Category(name = "Recommended", list = filteredList.map {
+                    Category(
+                        name = "Recommended",
+                        rowId = RowId.RECOMMENDED,
+                        list = filteredList.map {
                             CategoryDetails(
                                 content = HomeModel(
                                     id = it!!.media!!.id,
                                     idMal = it.media!!.idMal!!,
-                                    coverImage = CoverImage(
-                                        it.media.coverImage!!.large ?: LocalData.anime404
-                                    ),
+                                    coverImage = CoverImage(it.media.coverImage!!.large ?: LocalData.anime404),
                                     format = it.media.format!!,
                                     source = it.media.source!!,
-                                    title = Title(
-                                        it.media.title?.english ?: ""
-                                    )
+                                    title = Title(it.media.title?.english ?: "")
                                 )
                             )
-                        })
-                    )
-                }
-
-                val trendData = apolloClient.safeExecute(
-                    GetTrendingQuery(
-                        page = Optional.present(Random.nextInt(1, 4))
+                        }
                     )
                 )
+            }
 
-                trendData?.Page?.mediaTrends?.let { trendMediaList ->
-                    val filteredList = trendMediaList.filter {
-                        it?.media?.title?.english != null || it?.media?.title?.userPreferred != null && it.media.source != null
-                    }
-
-                    categories.add(
-                        Category(name = "Trending", list = filteredList.map {
+        val trendData = apolloClient.safeExecute(
+            GetTrendingQuery(page = Optional.present(Random.nextInt(1, 4)))
+        )
+        trendData?.Page?.mediaTrends
+            ?.filter { it?.media?.title?.english != null || it?.media?.title?.userPreferred != null && it.media.source != null }
+            ?.let { filteredList ->
+                categories.add(
+                    Category(
+                        name = "Trending",
+                        rowId = RowId.TRENDING,
+                        list = filteredList.map {
                             CategoryDetails(
                                 content = HomeModel(
                                     id = it!!.media!!.id,
                                     idMal = it.media!!.idMal!!,
-                                    coverImage = CoverImage(
-                                        it.media.coverImage!!.large ?: LocalData.anime404
-                                    ),
+                                    coverImage = CoverImage(it.media.coverImage!!.large ?: LocalData.anime404),
                                     format = it.media.format!!,
                                     source = it.media.source!!,
-                                    title = Title(
-                                        it.media.title?.english ?: it.media.title?.userPreferred
-                                        ?: ""
-                                    )
+                                    title = Title(it.media.title?.english ?: it.media.title?.userPreferred ?: "")
                                 )
                             )
-                        })
-                    )
-                }
-
-                val popularData = apolloClient.safeExecute(
-                    GetPopularQuery(
-                        page = Optional.present(Random.nextInt(1, 8))
+                        }
                     )
                 )
+            }
 
-                popularData?.Page?.media?.let { popularMediaList ->
-                    val filteredList = popularMediaList.filter {
-                        it?.title?.english != null || it?.title?.userPreferred != null && it.source != null
-                    }
-                    categories.add(
-                        Category(name = "Popular", list = filteredList.map {
+        val popularData = apolloClient.safeExecute(
+            GetPopularQuery(page = Optional.present(Random.nextInt(1, 8)))
+        )
+        popularData?.Page?.media
+            ?.filter { it?.title?.english != null || it?.title?.userPreferred != null && it.source != null }
+            ?.let { filteredList ->
+                categories.add(
+                    Category(
+                        name = "Popular",
+                        rowId = RowId.POPULAR,
+                        list = filteredList.map {
                             CategoryDetails(
                                 content = HomeModel(
                                     id = it!!.id,
                                     idMal = it.idMal!!,
-                                    coverImage = CoverImage(
-                                        it.coverImage!!.large ?: LocalData.anime404
-                                    ),
+                                    coverImage = CoverImage(it.coverImage!!.large ?: LocalData.anime404),
                                     format = it.format!!,
                                     source = it.source!!,
-                                    title = Title(
-                                        it.title?.english ?: it.title?.userPreferred ?: ""
-                                    )
+                                    title = Title(it.title?.english ?: it.title?.userPreferred ?: "")
                                 )
                             )
-                        })
+                        }
                     )
-                }
-
-                Result.success(categories)
-            } catch (e: Exception) {
-                Result.failure(e)
+                )
             }
-        }
-    }
 
+        categories
+    }
     override suspend fun convertMalId(id: Int): Result<Int> {
         try {
             val data = apolloClient.safeExecute(

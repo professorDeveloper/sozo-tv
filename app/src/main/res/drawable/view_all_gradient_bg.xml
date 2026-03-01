@@ -1,0 +1,16 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="false">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <gradient android:angle="270" android:centerColor="#882F2F2F" android:endColor="#CC141414" android:startColor="#CC1A1A1A" android:type="linear" />
+        </shape>
+    </item>
+
+    <item android:bottom="2dp" android:left="2dp" android:right="2dp" android:state_focused="true" android:top="2dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <stroke android:width="2dp" android:color="@color/netflix_red" />
+            <solid android:color="#14FFFFFF" />
+        </shape>
+    </item>
+</selector>

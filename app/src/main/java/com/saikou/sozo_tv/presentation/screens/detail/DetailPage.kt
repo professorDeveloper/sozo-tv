@@ -33,7 +33,7 @@ import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.loadImage
-import com.saikou.sozo_tv.utils.toDomain
+import com.saikou.sozo_tv.data.model.toDomain
 import com.saikou.sozo_tv.utils.visible
 import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient

@@ -82,11 +82,17 @@ class MovieEpisodeScreen : Fragment() {
                 requireActivity().startActivity(intent)
             }
         } else {
-            val sourceText = "Searching Data By :${PlayImdb::class.java.simpleName}"
+            val sourceText =
+                "Searching Data By :${PlayImdb::class.java.simpleName} | Current Source:${
+                    PreferenceManager().getString(
+                        MOVIE_SOURCE
+                    )
+                }"
             binding.textView6.text = sourceText.highlightPart(
                 PlayImdb::class.java.simpleName,
                 ContextCompat.getColor(requireContext(), R.color.orange)
             )
+
             viewModel.findImdbIdSeries(args.tmdbId.toString(), args.title, args.image, args.isMovie)
             viewModel.dataFound.observe(viewLifecycleOwner) { dataFound ->
                 when (dataFound) {

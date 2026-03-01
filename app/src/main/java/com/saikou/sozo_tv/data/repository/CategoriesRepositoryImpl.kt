@@ -6,11 +6,11 @@ import com.animestudios.animeapp.type.MediaSort
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.data.model.toDomain
 import com.saikou.sozo_tv.data.remote.ImdbService
 import com.saikou.sozo_tv.domain.model.SearchResults
 import com.saikou.sozo_tv.domain.repository.CategoriesRepository
 import com.saikou.sozo_tv.utils.LocalData
-import com.saikou.sozo_tv.utils.toDomain
 
 class CategoriesRepositoryImpl(
     private val apolloClient: ApolloClient,
