@@ -10,10 +10,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide
 import com.saikou.sozo_tv.components.spoiler.SpoilerPlugin
 import com.saikou.sozo_tv.databinding.ActivityUpdateBinding
 import com.saikou.sozo_tv.domain.model.AppUpdate
@@ -29,6 +31,7 @@ class UpdateActivity : AppCompatActivity() {
 
     companion object {
         private const val EXTRA_APP_LINK = "extra_app_link"
+        private const val EXTRA_APP_IMG = "extra_app_img"
         private const val EXTRA_CHANGE_LOG = "extra_change_log"
 
         private const val PV_MIN = 0f
@@ -37,6 +40,8 @@ class UpdateActivity : AppCompatActivity() {
         fun newIntent(context: Context, update: AppUpdate): Intent {
             return Intent(context, UpdateActivity::class.java).apply {
                 putExtra(EXTRA_APP_LINK, update.appLink)
+                putExtra(EXTRA_APP_LINK, update.appLink)
+                putExtra(EXTRA_APP_IMG, update.imageLink)
                 putExtra(EXTRA_CHANGE_LOG, update.changeLog)
             }
         }
@@ -46,6 +51,7 @@ class UpdateActivity : AppCompatActivity() {
     private val vm: UpdateViewModel by viewModel()
 
     private val appLink: String? by lazy { intent.getStringExtra(EXTRA_APP_LINK) }
+    private val appImg: String? by lazy { intent.getStringExtra(EXTRA_APP_IMG) }
     private val changeLog: String? by lazy { intent.getStringExtra(EXTRA_CHANGE_LOG) }
 
     private val askNotif = registerForActivityResult(
@@ -89,7 +95,7 @@ class UpdateActivity : AppCompatActivity() {
         binding.updateBtn.isEnabled = true
         binding.updateBtn.visible()
 
-        renderMarkdown(changeLog)
+        renderMarkdown(changeLog, appImg)
         observeVm()
 
         binding.updateBtn.setOnClickListener {
@@ -178,7 +184,15 @@ class UpdateActivity : AppCompatActivity() {
             .onFailure { snackString("Cannot open settings: ${it.message}") }
     }
 
-    private fun renderMarkdown(md: String?) {
+    private fun renderMarkdown(md: String?, imageUrl: String? = null) {
+        if (!imageUrl.isNullOrEmpty()) {
+            binding.updatePreviewImage.visibility = View.VISIBLE
+            Glide.with(this)
+                .load(imageUrl)
+                .centerCrop()
+                .into(binding.updatePreviewImage)
+        }
+
         val markwon = Markwon.builder(this)
             .usePlugin(HtmlPlugin.create { it.excludeDefaults(true) })
             .usePlugin(SpoilerPlugin())

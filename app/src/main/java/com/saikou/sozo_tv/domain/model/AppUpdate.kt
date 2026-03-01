@@ -5,5 +5,6 @@ data class AppUpdate(
     val releaseDate: Long? = null,
     val isMandatory: Boolean = false,
     val changeLog: String? = null,
-    var appLink: String? = null
+    var appLink: String? = null,
+    val imageLink: String? = null
 )

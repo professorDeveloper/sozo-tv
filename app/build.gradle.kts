@@ -230,7 +230,7 @@ dependencies {
     implementation("io.noties.markwon:ext-strikethrough:$markwon_version")
     implementation("io.noties.markwon:inline-parser:$markwon_version")
     implementation("org.mozilla:rhino:1.7.13")
-
+    implementation("io.noties.markwon:image:4.6.2")
 
     //GraphQL
     val apolloVersion = "3.7.0"
