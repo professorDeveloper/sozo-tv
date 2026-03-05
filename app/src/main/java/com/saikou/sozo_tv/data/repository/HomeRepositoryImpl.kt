@@ -9,6 +9,7 @@ import com.animestudios.animeapp.GetTrendingQuery
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.saikou.sozo_tv.app.MyApp
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.RowId
 import com.saikou.sozo_tv.data.model.anilist.CoverImage
 import com.saikou.sozo_tv.data.model.anilist.HomeModel
@@ -28,11 +29,17 @@ import com.saikou.sozo_tv.utils.saveData
 import kotlin.random.Random
 
 class HomeRepositoryImpl(
-    private val apolloClient: ApolloClient
+    private val apolloClient: ApolloClient,
 ) : HomeRepository {
     override suspend fun getTopBannerAnime(): Result<BannerModel> {
         return try {
-            val response = apolloClient.safeExecute(GetBannerQuery())
+            val response = apolloClient.safeExecute(
+                GetBannerQuery(
+                    isAdult = Optional.present(
+                        PreferenceManager(MyApp.context).isNsfwEnabled()
+                    )
+                )
+            )
             val data = response?.Page?.media ?: arrayListOf()
             val newData = BannerModel(data =
             data.map {
@@ -72,7 +79,9 @@ class HomeRepositoryImpl(
                                 content = HomeModel(
                                     id = it!!.media!!.id,
                                     idMal = it.media!!.idMal!!,
-                                    coverImage = CoverImage(it.media.coverImage!!.large ?: LocalData.anime404),
+                                    coverImage = CoverImage(
+                                        it.media.coverImage!!.large ?: LocalData.anime404
+                                    ),
                                     format = it.media.format!!,
                                     source = it.media.source!!,
                                     title = Title(it.media.title?.english ?: "")
@@ -98,10 +107,15 @@ class HomeRepositoryImpl(
                                 content = HomeModel(
                                     id = it!!.media!!.id,
                                     idMal = it.media!!.idMal!!,
-                                    coverImage = CoverImage(it.media.coverImage!!.large ?: LocalData.anime404),
+                                    coverImage = CoverImage(
+                                        it.media.coverImage!!.large ?: LocalData.anime404
+                                    ),
                                     format = it.media.format!!,
                                     source = it.media.source!!,
-                                    title = Title(it.media.title?.english ?: it.media.title?.userPreferred ?: "")
+                                    title = Title(
+                                        it.media.title?.english ?: it.media.title?.userPreferred
+                                        ?: ""
+                                    )
                                 )
                             )
                         }
@@ -110,7 +124,11 @@ class HomeRepositoryImpl(
             }
 
         val popularData = apolloClient.safeExecute(
-            GetPopularQuery(page = Optional.present(Random.nextInt(1, 8)))
+            GetPopularQuery(
+                page = Optional.present(Random.nextInt(1, 8)),
+                isAdult = Optional.present(PreferenceManager(MyApp.context).isNsfwEnabled())
+
+            )
         )
         popularData?.Page?.media
             ?.filter { it?.title?.english != null || it?.title?.userPreferred != null && it.source != null }
@@ -124,10 +142,14 @@ class HomeRepositoryImpl(
                                 content = HomeModel(
                                     id = it!!.id,
                                     idMal = it.idMal!!,
-                                    coverImage = CoverImage(it.coverImage!!.large ?: LocalData.anime404),
+                                    coverImage = CoverImage(
+                                        it.coverImage!!.large ?: LocalData.anime404
+                                    ),
                                     format = it.format!!,
                                     source = it.source!!,
-                                    title = Title(it.title?.english ?: it.title?.userPreferred ?: "")
+                                    title = Title(
+                                        it.title?.english ?: it.title?.userPreferred ?: ""
+                                    )
                                 )
                             )
                         }
@@ -137,6 +159,7 @@ class HomeRepositoryImpl(
 
         categories
     }
+
     override suspend fun convertMalId(id: Int): Result<Int> {
         try {
             val data = apolloClient.safeExecute(
@@ -169,7 +192,7 @@ class HomeRepositoryImpl(
                 val recommendationData = apolloClient.safeExecute(
                     GetRecommendationsQuery(
                         page = Optional.present(Random.nextInt(1, 4))
-                    )
+                    ,)
                 )
 
                 val genres = ArrayList<GenreModel>()

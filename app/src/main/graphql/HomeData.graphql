@@ -6,8 +6,8 @@ query getRecommendations($page: Int) {
         lastPage
         total
     }
-        recommendations(sort: RATING_DESC){
-            media {   id
+        recommendations(sort: RATING_DESC,){
+            media{   id
                 idMal
                 coverImage {
                     large
@@ -23,8 +23,8 @@ query getRecommendations($page: Int) {
     }
 }
 
-query getBanner{
-    Page(page: 1,perPage: 9){
+query getBanner( $isAdult:Boolean){
+    Page(page: 1,perPage: 9,){
         pageInfo {
             currentPage
             hasNextPage
@@ -32,7 +32,7 @@ query getBanner{
             lastPage
             total
         }
-        media(sort: SCORE_DESC, isAdult: false, type: ANIME, countryOfOrigin: "JP") {
+        media(sort: SCORE_DESC, isAdult: $isAdult, type: ANIME, countryOfOrigin: "JP") {
             title {
                 userPreferred
             }
@@ -48,7 +48,7 @@ query getBanner{
     }
 }
 
-query getPopular($page: Int) {
+query getPopular($page: Int,$isAdult:Boolean) {
     Page(page: $page, perPage: 7) {
         pageInfo {
             currentPage
@@ -57,7 +57,7 @@ query getPopular($page: Int) {
             lastPage
             total
         }
-        media(sort: POPULARITY_DESC){
+        media(sort: POPULARITY_DESC,isAdult: $isAdult){
             id
             idMal
             coverImage {

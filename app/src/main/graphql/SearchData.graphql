@@ -1,11 +1,12 @@
-query searchAnime($search: String) {
+query searchAnime($search: String,$isAdult:Boolean) {
     Page(page: 1, perPage: 5){
-        media(search: $search, type: ANIME) {
+        media(search: $search, type: ANIME,isAdult: $isAdult) {
             id
             idMal
             coverImage {
                 large
             }
+
             title {
                 userPreferred
             }

@@ -181,7 +181,7 @@ object LocalData {
         "Drama",
         "Ecchi",
         "Fantasy",
-//        "Hentai",
+        "Hentai",
         "Horror",
         "Mahou Shoujo",
         "Mecha",
