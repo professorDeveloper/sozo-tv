@@ -3,7 +3,8 @@ query getAnimeByGenre(
     $page: Int
     $mediaSort: MediaSort
     $year: Int
-    $avgScore: Int
+    $avgScore: Int,
+    $isAdult:Boolean,
 ) {
     Page(page: $page, perPage: 50) {
         pageInfo {
@@ -15,7 +16,8 @@ query getAnimeByGenre(
             type: ANIME
             sort: [$mediaSort]
             seasonYear: $year
-            popularity_greater: $avgScore
+            popularity_greater: $avgScore,
+            isAdult: $isAdult
 
         ) {
             id

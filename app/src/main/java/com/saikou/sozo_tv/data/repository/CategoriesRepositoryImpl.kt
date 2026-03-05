@@ -5,6 +5,7 @@ import com.animestudios.animeapp.GetAnimeByOnlGenreQuery
 import com.animestudios.animeapp.type.MediaSort
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
+import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.toDomain
 import com.saikou.sozo_tv.data.remote.ImdbService
@@ -29,6 +30,10 @@ class CategoriesRepositoryImpl(
                     GetAnimeByGenreQuery(
                         genre = Optional.presentIfNotNull(searchResults.genre),
                         page = Optional.present(searchResults.currentPage),
+                        isAdult=Optional.present(
+                            PreferenceManager(
+                                MyApp.context
+                            ).isNsfwEnabled(),),
                         mediaSort = Optional.presentIfNotNull(
                             searchResults.tag.takeIf { it.isNotEmpty() }?.let {
                                 try {
