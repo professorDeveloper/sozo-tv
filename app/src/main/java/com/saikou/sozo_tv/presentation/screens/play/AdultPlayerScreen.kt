@@ -36,6 +36,8 @@ import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.visible
 import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
+import okhttp3.TlsVersion
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.concurrent.TimeUnit
 
@@ -45,6 +47,7 @@ class AdultPlayerScreen : Fragment() {
     private lateinit var mediaSession: MediaSession
 
     private val model: AdultPlayerViewModel by viewModel()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -99,9 +102,7 @@ class AdultPlayerScreen : Fragment() {
                                 playVideo(it.data.source)
                             }
 
-                            else -> {
-
-                            }
+                            else -> {}
                         }
                     }
                 }
@@ -109,7 +110,6 @@ class AdultPlayerScreen : Fragment() {
                 else -> {}
             }
         }
-
     }
 
     @UnstableApi
@@ -146,11 +146,17 @@ class AdultPlayerScreen : Fragment() {
             "sec-ch-ua-platform" to "\"Android\""
         )
 
+        // Force HTTP/1.1 to avoid HTTP/2 PROTOCOL_ERROR (stream reset)
+        // The CDN server advertises HTTP/2 but resets streams with PROTOCOL_ERROR
+        val http1OnlySpec = ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
+            .tlsVersions(TlsVersion.TLS_1_3, TlsVersion.TLS_1_2)
+            .build()
 
         val client = OkHttpClient.Builder()
+            .protocols(listOf(Protocol.HTTP_1_1)) // Disable HTTP/2 entirely
             .connectionSpecs(
                 listOf(
-                    ConnectionSpec.MODERN_TLS,
+                    http1OnlySpec,
                     ConnectionSpec.COMPATIBLE_TLS,
                     ConnectionSpec.CLEARTEXT
                 )
@@ -209,8 +215,10 @@ class AdultPlayerScreen : Fragment() {
             ).build()
             .also { player ->
                 player.setAudioAttributes(
-                    AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
-                        .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
+                    AudioAttributes.Builder()
+                        .setUsage(C.USAGE_MEDIA)
+                        .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+                        .build(),
                     true,
                 )
                 mediaSession = MediaSession.Builder(requireContext(), player).build()
