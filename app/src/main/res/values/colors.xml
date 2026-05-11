@@ -6,6 +6,8 @@
     <color name="netflix_dark_gray">#2F2F2F</color>
     <color name="netflix_gray">#B3B3B3</color>
     <color name="netflix_white">#FFFFFF</color>
+    <color name="white40">#141414</color>
+    <color name="black">#000</color>
     <color name="netflix_red">#E50914</color>
     <color name="netflix_divider">#404040</color>
     <color name="netflix_section">#292828</color>

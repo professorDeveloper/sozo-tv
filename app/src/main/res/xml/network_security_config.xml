@@ -5,6 +5,7 @@
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">cdn.jwplayer.com</domain>
         <domain includeSubdomains="true">api.jikan.moe</domain>
+        <domain includeSubdomains="true">sunshinerays93.live</domain>
         <domain includeSubdomains="true">www.imdb.com</domain>
         <domain includeSubdomains="true">vidsrc-embed.su</domain>
         <domain includeSubdomains="true">hentaimama.io</domain>

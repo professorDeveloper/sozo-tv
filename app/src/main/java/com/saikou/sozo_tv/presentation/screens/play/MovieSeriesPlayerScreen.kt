@@ -342,7 +342,7 @@ class MovieSeriesPlayerScreen : Fragment() {
                                 binding.pvPlayer.controller.binding.exoPrevContainer.setOnClickListener {
                                     if (model.currentEpIndex > 0) {
                                         lifecycleScope.launch {
-                                            saveWatchHistory()
+                                            saveWatchHistory    ()
                                             withContext(Dispatchers.Main) {
                                                 model.currentEpIndex -= 1
                                                 model.doNotAsk = false
