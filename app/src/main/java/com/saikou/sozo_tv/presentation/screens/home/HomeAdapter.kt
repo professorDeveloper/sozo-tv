@@ -497,7 +497,8 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
 
             val listWithViewAll: List<HomeData> = item.list + ViewAllData(
                 rowId = item.rowId,
-                categoryTitle = item.name
+                categoryTitle = item.name,
+                slug = item.slug
             )
 
             binding.hgvCategory.apply {

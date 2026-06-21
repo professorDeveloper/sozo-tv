@@ -24,12 +24,21 @@ class SearchAdapter :
         itemClickeddListener = listener
     }
 
+    private var itemLongClickListener: ((movie: SearchModel) -> Unit)? = null
+    fun setOnItemLongClickListener(listener: (movie: SearchModel) -> Unit) {
+        itemLongClickListener = listener
+    }
+
     inner class MovieViewHolder(private val binding: SearchItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         @SuppressLint("SetTextI18n", "NewApi")
         fun bind(movie: SearchModel) {
             binding.root.setOnClickListener {
                 itemClickeddListener.invoke(movie)
+            }
+            binding.root.setOnLongClickListener {
+                itemLongClickListener?.invoke(movie)
+                itemLongClickListener != null
             }
 
             val mainText = movie.title ?: "Unknown Title"

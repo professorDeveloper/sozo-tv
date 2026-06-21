@@ -120,7 +120,6 @@ class HomeScreen : Fragment() {
                         intent.putExtra("isSeries", it.isSeries)
                         intent.putExtra("isAnime", it.isAnime)
                         requireContext().startActivity(intent)
-                        binding.root.context.startActivity(intent)
                     } else {
                         val intent = Intent(binding.root.context, PlayerActivity::class.java)
                         intent.putExtra("session", it.session)
@@ -134,7 +133,6 @@ class HomeScreen : Fragment() {
                         intent.putExtra("isSeries", it.isSeries)
                         intent.putExtra("currentSource", it.currentSourceName)
                         requireContext().startActivity(intent)
-                        binding.root.context.startActivity(intent)
                     }
                 }
             }

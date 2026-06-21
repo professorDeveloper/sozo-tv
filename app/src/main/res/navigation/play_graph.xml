@@ -19,9 +19,6 @@
         <action
             android:id="@+id/action_detailPage2_to_episodeScreen"
             app:destination="@id/episodeScreen" />
-        <action
-            android:id="@+id/action_detailPage2_to_movieEpisodeScreen"
-            app:destination="@id/movieEpisodeScreen" />
     </fragment>
     <fragment
         android:id="@+id/castDetailScreen"
@@ -68,10 +65,6 @@
         <action
             android:id="@+id/action_episodeScreen_to_seriesPlayerScreen"
             app:destination="@id/seriesPlayerScreen" />
-        <action
-            android:id="@+id/action_episodeScreen_to_adultPlayerScreen"
-            app:destination="@id/adultPlayerScreen" />
-
     </fragment>
     <fragment
         android:id="@+id/seriesPlayerScreen"
@@ -104,82 +97,5 @@
         <argument
             android:name="currentEpisode"
             app:argType="string" />
-    </fragment>
-    <fragment
-        android:id="@+id/adultPlayerScreen"
-        android:name="com.saikou.sozo_tv.presentation.screens.play.AdultPlayerScreen"
-        android:label="AdultPlayerScreen">
-        <argument
-            android:name="link"
-            app:argType="string" />
-        <argument
-            android:name="name"
-            app:argType="string" />
-        <argument
-            android:name="episodeNum"
-            app:argType="string" />
-    </fragment>
-    <fragment
-        android:id="@+id/movieEpisodeScreen"
-        android:name="com.saikou.sozo_tv.presentation.screens.episodes.MovieEpisodeScreen"
-        android:label="MovieEpisodeScreen"
-        tools:layout="@layout/episode_screen">
-        <argument
-            android:name="title"
-            app:argType="string" />
-        <argument
-            android:name="image"
-            app:argType="string" />
-        <argument
-            android:name="isMovie"
-            app:argType="boolean" />
-
-        <argument
-            android:name="tmdbId"
-            app:argType="integer" />
-        <action
-            android:id="@+id/action_movieEpisodeScreen_to_movieSeriesPlayerScreen"
-            app:destination="@id/movieSeriesPlayerScreen" />
-    </fragment>
-    <fragment
-        android:id="@+id/movieSeriesPlayerScreen"
-        android:name="com.saikou.sozo_tv.presentation.screens.play.MovieSeriesPlayerScreen"
-        android:label="MovieSeriesPlayerScreen"
-        tools:layout="@layout/series_player_screen">
-        <argument
-            android:name="tmdbId"
-            app:argType="integer" />
-        <argument
-            android:name="isMovie"
-            app:argType="boolean" />
-        <argument
-            android:name="imdbId"
-            app:argType="string" />
-        <argument
-            android:name="currentPage"
-            app:argType="integer" />
-        <argument
-            android:name="currentIndex"
-            app:argType="integer" />
-
-        <argument
-            android:name="name"
-            app:argType="string" />
-        <argument
-            android:name="image"
-            app:argType="string" />
-
-        <argument
-            android:name="iframeLink"
-            app:argType="string" />
-
-        <argument
-            android:name="currentEp"
-            app:argType="integer" />
-
-        <argument
-            app:argType="string"
-            android:name="currentSource"/>
-
     </fragment>
 </navigation>

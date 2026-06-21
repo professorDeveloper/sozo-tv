@@ -1,202 +1,80 @@
 package com.saikou.sozo_tv.data.repository
 
-import android.annotation.SuppressLint
-import com.animestudios.animeapp.GetAnimeByIdQuery
-import com.animestudios.animeapp.GetCharacterDetailQuery
-import com.animestudios.animeapp.GetCharactersAnimeByIdQuery
-import com.animestudios.animeapp.GetRelationsByIdQuery
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.api.Optional
-import com.saikou.sozo_tv.data.remote.ImdbService
-import com.saikou.sozo_tv.data.remote.safeExecute
+import com.saikou.sozo_tv.data.extensions.ExtDetail
+import com.saikou.sozo_tv.data.extensions.ExtensionContentRegistry
+import com.saikou.sozo_tv.data.extensions.ExtensionEngine
+import com.saikou.sozo_tv.data.extensions.toCast
+import com.saikou.sozo_tv.data.extensions.toDetailModel
+import com.saikou.sozo_tv.data.extensions.toMainModel
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.CastDetailModel
 import com.saikou.sozo_tv.domain.model.DetailModel
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.DetailRepository
-import com.saikou.sozo_tv.utils.LocalData
-import com.saikou.sozo_tv.data.model.toDomain
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
-import kotlin.random.Random
+import java.util.concurrent.ConcurrentHashMap
 
-class DetailRepositoryImpl(private val client: ApolloClient, private val api: ImdbService) :
-    DetailRepository {
-    override suspend fun loadAnimeDetail(id: Int): Result<DetailModel> {
-        try {
-            val result = client.query(
-                GetAnimeByIdQuery(
-                    Optional.present(id)
-                )
-            ).execute()
+/**
+ * Detail/cast/relations all derive from a single `ExtensionEngine.load()` payload.
+ * The synthetic media `id` is resolved back to its `(provider,url)` via
+ * [ExtensionContentRegistry], loaded once, and cached so cast/relations re-use it.
+ */
+class DetailRepositoryImpl(
+    private val engine: ExtensionEngine,
+) : DetailRepository {
 
-            val animeDetail = result.data?.Media?.toDomain()
-            return Result.success(animeDetail!!)
+    private val cache = ConcurrentHashMap<Int, ExtDetail>()
+
+    private suspend fun loadDetail(id: Int): ExtDetail? {
+        cache[id]?.let { return it }
+        val entry = ExtensionContentRegistry.resolve(id) ?: return null
+        val detail = engine.load(entry.provider, entry.url) ?: return null
+        cache[id] = detail
+        return detail
+    }
+
+    private suspend fun detailResult(id: Int): Result<DetailModel> {
+        return try {
+            val detail = loadDetail(id)
+                ?: return Result.failure(IllegalStateException("Content not found for this source."))
+            Result.success(detail.toDetailModel(id))
         } catch (e: Exception) {
-            return Result.failure(e)
+            Result.failure(e)
         }
     }
 
-    override suspend fun loadMovieDetail(id: Int): Result<DetailModel> {
-        try {
-            val movieDetailRequest = api.getMovieDetails(id)
-            if (movieDetailRequest.isSuccessful) {
-                val response = movieDetailRequest.body()!!
-                return Result.success(response.toDomain(false))
-            } else {
-                return Result.failure(Exception(movieDetailRequest.errorBody()?.string()))
-            }
-        } catch (e: Exception) {
-            return Result.failure(e)
-        }
-    }
+    override suspend fun loadAnimeDetail(id: Int): Result<DetailModel> = detailResult(id)
+    override suspend fun loadMovieDetail(id: Int): Result<DetailModel> = detailResult(id)
+    override suspend fun loadSeriesDetail(id: Int): Result<DetailModel> = detailResult(id)
 
-    override suspend fun loadSeriesDetail(id: Int): Result<DetailModel> {
-        try {
-            val movieDetailRequest = api.getTvDetails(id)
-            if (movieDetailRequest.isSuccessful) {
-                val response = movieDetailRequest.body()!!
-                return Result.success(response.toDomain(true))
-            } else {
-                return Result.failure(Exception(movieDetailRequest.errorBody()?.string()))
-            }
-        } catch (e: Exception) {
-            return Result.failure(e)
-        }
-    }
-
-    override suspend fun loadRandomAnime(): Result<List<MainModel>> {
-        try {
-            val result = client.query(
-                GetRelationsByIdQuery(Optional.present(Random.nextInt(7, 21)))
-            ).execute()
-
-            val data = result.data?.Page?.mediaTrends ?: emptyList()
-
-            val resultList = data.map {
-                it?.media?.toDomain()!!
-            }
-
-            return Result.success(resultList)
-        } catch (e: Exception) {
-            return Result.failure(e)
-
-        }
-    }
+    override suspend fun loadRandomAnime(): Result<List<MainModel>> = Result.success(emptyList())
 
     override suspend fun loadCast(id: Int): Result<List<Cast>> {
-        try {
-            val result = client.query(
-                GetCharactersAnimeByIdQuery(Optional.present(id))
-            ).execute()
-
-            val data = result.data?.Media?.characters
-
-            val castList = data?.nodes?.map {
-                it?.toDomain()!!
-            }
-
-            return Result.success(castList!!)
+        return try {
+            val detail = loadDetail(id)
+            Result.success(detail?.cast?.mapIndexed { i, c -> c.toCast(i) } ?: emptyList())
         } catch (e: Exception) {
-            return Result.failure(e)
+            Result.failure(e)
         }
     }
 
-    override suspend fun loadCastMovieSeries(id: Int, isMovie: Boolean): Result<List<Cast>> {
-        return runCatching {
-            val response = if (isMovie) {
-                api.getCreditsForMovie(id = id)
-            } else {
-                api.getCreditsForSeries(series_id = id)
-            }
-
-            if (!response.isSuccessful || response.body() == null) {
-                throw Exception("Failed to load cast: ${response.message()}")
-            }
-
-            response.body()!!.cast.map {
-                Cast(
-                    id = it.id, it.profileImg, it.original_name, it.character, "0"
-                )
-            }
-        }
-    }
-
+    override suspend fun loadCastMovieSeries(id: Int, isMovie: Boolean): Result<List<Cast>> =
+        loadCast(id)
 
     override suspend fun loadAnimeRelations(id: Int): Result<List<MainModel>> {
-        try {
-            val result = client.query(
-                GetRelationsByIdQuery(Optional.present(Random.nextInt(1, 4)))
-            ).execute()
-
-            val data = result.data?.Page?.mediaTrends ?: emptyList()
-
-            val resultList = data.map {
-                it?.media?.toDomain()!!
-            }
-
-            return Result.success(resultList)
-
+        return try {
+            val detail = loadDetail(id)
+            Result.success(detail?.related?.map { it.toMainModel() } ?: emptyList())
         } catch (e: Exception) {
-            return Result.failure(e)
+            Result.failure(e)
         }
     }
 
-    override suspend fun loadMovieOrSeriesRelations(
-        id: Int,
-        isMovie: Boolean
-    ): Result<List<MainModel>> = runCatching {
-        val response = if (isMovie) {
-            api.getRecommendationsForMovie(id)
-        } else {
-            api.getRecommendationsForSeries(id)
-        }
+    override suspend fun loadMovieOrSeriesRelations(id: Int, isMovie: Boolean): Result<List<MainModel>> =
+        loadAnimeRelations(id)
 
-        check(response.isSuccessful && response.body() != null) {
-            "Failed to load relations: ${response.message()}"
-        }
+    override suspend fun characterDetail(id: Int): Result<CastDetailModel> =
+        Result.failure(UnsupportedOperationException("Character details are not available from extensions."))
 
-        response.body()!!.results.map { it.toDomain() }
-    }
-
-
-    override suspend fun characterDetail(id: Int): Result<CastDetailModel> {
-        try {
-            val result = client.query(
-                GetCharacterDetailQuery(Optional.present(id))
-            ).execute()
-
-            val data = result.data?.Character?.toDomain()
-            return Result.success(data!!)
-
-        } catch (e: Exception) {
-            return Result.failure(e)
-        }
-    }
-
-    @SuppressLint("NewApi")
-    override suspend fun creditDetail(id: Int): Result<CastDetailModel> {
-        return safeExecute {
-            val response = api.getPersonDetails(personId = id).body()!!
-            val seriesList = api.getPersonMovieCredits(id)
-                .body()!!.cast.map { it.toDomain() } as ArrayList<MainModel>
-
-            CastDetailModel(
-                "${LocalData.IMDB_IMAGE_PATH}${response.profile_path}",
-                if (response.gender == 2) "Male" else "Female",
-                response.name,
-                role = if (response.also_known_as?.isNotEmpty() == true) response.also_known_as[0] else "Empty",
-                seriesList,
-                response.birthday.let {
-                    val date =
-                        LocalDate.parse(it, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                    val age = ChronoUnit.YEARS.between(date, LocalDate.now()).toInt()
-                    age
-                }.toString(),
-
-                response.popularity.toInt()
-            )
-        }
-    }
+    override suspend fun creditDetail(id: Int): Result<CastDetailModel> =
+        Result.failure(UnsupportedOperationException("Credit details are not available from extensions."))
 }

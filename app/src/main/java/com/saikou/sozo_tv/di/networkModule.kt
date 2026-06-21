@@ -1,13 +1,12 @@
 package com.saikou.sozo_tv.di
 
 import android.annotation.SuppressLint
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.network.okHttpClient
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
-import com.saikou.sozo_tv.data.remote.ApolloAuthInterceptor
-import com.saikou.sozo_tv.data.remote.ImdbService
+import com.saikou.sozo_tv.data.extensions.ExtensionEngine
+import com.saikou.sozo_tv.data.remote.anilist.AniListClient
+import com.saikou.sozo_tv.data.remote.anilist.AniListRepository
 import com.saikou.sozo_tv.domain.preference.EncryptedPreferencesManager
 import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import okhttp3.ConnectionPool
@@ -36,31 +35,16 @@ val NetworkModule = module {
     single { UserPreferenceManager(androidContext()) }
     single { PreferenceManager() }
 
+    // Aniyomi/CloudStream extension engine — the app's content backend.
+    single { ExtensionEngine.shared }
+
     single(named("baseOkHttp")) { createOkHttpClient() }
 
-    single(named("apolloOkHttp")) {
-        val base = get<OkHttpClient>(named("baseOkHttp"))
-        val prefs = get<PreferenceManager>()
-        base.newBuilder()
-            .addInterceptor(ApolloAuthInterceptor(prefs))
-            .build()
-    }
+    // AniList GraphQL (catalog search + list management).
+    single<Gson> { GsonBuilder().create() }
+    single { AniListClient(okHttpClient = get(named("baseOkHttp")), prefs = get()) }
+    single { AniListRepository(client = get(), gson = get(), prefs = get()) }
 
-    single { createRetrofit(get(named("baseOkHttp")), JIKAN_BASE_URL) }
-
-    single(named("tmdbRetrofit")) { createTmdbClient(get(named("baseOkHttp"))) }
-
-    single<ImdbService> {
-        get<Retrofit>(qualifier = named("tmdbRetrofit"))
-            .create(ImdbService::class.java)
-    }
-
-    single {
-        ApolloClient.Builder()
-            .serverUrl(BASE_URL)
-            .okHttpClient(get(named("apolloOkHttp")))
-            .build()
-    }
 }
 
 fun createOkHttpClient(): OkHttpClient {

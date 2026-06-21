@@ -231,44 +231,32 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     override fun onWatchButtonClicked(
         item: DetailCategory, id: Int, url: String, title: String, isFree: Boolean
     ) {
-        Log.d("GGG", "onWatchButtonClicked:${preference.isModeAnimeEnabled()} ")
-        if (preference.isModeAnimeEnabled()) {
-            val isAdult = item.content.isAdult
-            val canWatchAdult = PreferenceManager().isNsfwEnabled()
-            if (isAdult && !canWatchAdult) {
-                val dialog = NfcDisabledDialog()
-                dialog.setYesContinueListener {
-                    dialog.dismiss()
-                    val intent = Intent(binding.root.context, ProfileActivity::class.java)
-                    requireActivity().startActivity(intent)
-                    requireActivity().finish()
-                }
-                dialog.setOnBackPressedListener {
-                    dialog.dismiss()
-                }
-
-                dialog.show(childFragmentManager, "dialog")
-            } else {
-                findNavController().navigate(
-                    DetailPageDirections.actionDetailPage2ToEpisodeScreen(
-                        isAdult = isAdult,
-                        id,
-                        malId = item.content.malId,
-                        title,
-                        isFree,
-                    )
-                )
+        Log.d("GGG", "onWatchButtonClicked id=$id")
+        // All extension content (anime or movie) flows through the existing episode
+        // screen → series player; a movie simply resolves to a single episode.
+        val isAdult = item.content.isAdult
+        val canWatchAdult = PreferenceManager().isNsfwEnabled()
+        if (isAdult && !canWatchAdult) {
+            val dialog = NfcDisabledDialog()
+            dialog.setYesContinueListener {
+                dialog.dismiss()
+                val intent = Intent(binding.root.context, ProfileActivity::class.java)
+                requireActivity().startActivity(intent)
+                requireActivity().finish()
             }
-        } else {
-            findNavController().navigate(
-                DetailPageDirections.actionDetailPage2ToMovieEpisodeScreen(
-                    title = item.content.title,
-                    image = item.content.coverImage.large,
-                    tmdbId = item.content.id,
-                    isMovie = !item.content.isSeries
-                )
-            )
+            dialog.setOnBackPressedListener { dialog.dismiss() }
+            dialog.show(childFragmentManager, "dialog")
+            return
         }
+        findNavController().navigate(
+            DetailPageDirections.actionDetailPage2ToEpisodeScreen(
+                isAdult = isAdult,
+                id,
+                malId = item.content.malId,
+                title,
+                isFree,
+            )
+        )
     }
 
     override fun onTrailerButtonClicked(item: DetailCategory) {

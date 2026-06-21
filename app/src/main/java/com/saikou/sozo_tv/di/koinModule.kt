@@ -8,7 +8,6 @@ import com.saikou.sozo_tv.data.repository.AuthRepository
 import com.saikou.sozo_tv.data.repository.CategoriesRepositoryImpl
 import com.saikou.sozo_tv.data.repository.CharacterBookmarkRepositoryImpl
 import com.saikou.sozo_tv.data.repository.DetailRepositoryImpl
-import com.saikou.sozo_tv.data.repository.EpisodeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.HomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.ImdbHomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.MovieBookmarkRepositoryImpl
@@ -23,7 +22,6 @@ import com.saikou.sozo_tv.domain.preference.UserPreferenceManager
 import com.saikou.sozo_tv.domain.repository.CategoriesRepository
 import com.saikou.sozo_tv.domain.repository.CharacterBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.DetailRepository
-import com.saikou.sozo_tv.domain.repository.EpisodeRepository
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.MyListRepository
@@ -33,7 +31,6 @@ import com.saikou.sozo_tv.domain.repository.SettingsRepository
 import com.saikou.sozo_tv.domain.repository.TMDBHomeRepository
 import com.saikou.sozo_tv.domain.repository.ViewAllRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
-import com.saikou.sozo_tv.presentation.viewmodel.AdultPlayerViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.CategoriesViewModel
@@ -44,7 +41,6 @@ import com.saikou.sozo_tv.presentation.viewmodel.LiveTvViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.MyListViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.NewsViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayAnimeViewModel
-import com.saikou.sozo_tv.presentation.viewmodel.PlayMovieViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SplashViewModel
@@ -71,15 +67,12 @@ val koinModule = module {
     single { PreferenceManager() }
     factory { UserPreferenceManager(androidContext()) }
     single<HomeRepository> {
-        HomeRepositoryImpl(apolloClient = get())
-    }
-    single<EpisodeRepository> {
-        EpisodeRepositoryImpl(api = get())
+        HomeRepositoryImpl(engine = get())
     }
     single<ViewAllRepository> {
-        ViewAllRepositoryImpl(apollo = get(),api = get())
+        ViewAllRepositoryImpl(engine = get())
     }
-    single { AuthRepository(prefs = get(), apolloClient = get(), db = get()) }
+    single { AuthRepository(prefs = get()) }
     single { TvPairingRepository(db = get()) }
 
     single<SettingsRepository> {
@@ -87,10 +80,10 @@ val koinModule = module {
     }
 
     single<MyListRepository> {
-        MyListRepositoryImpl(client = get())
+        MyListRepositoryImpl()
     }
     single<TMDBHomeRepository> {
-        ImdbHomeRepositoryImpl(api = get())
+        ImdbHomeRepositoryImpl(engine = get())
     }
     single<MovieBookmarkRepository> {
         MovieBookmarkRepositoryImpl(dao = get())
@@ -104,30 +97,28 @@ val koinModule = module {
         CharacterBookmarkRepositoryImpl(dao = get())
     }
     single<SearchRepository> {
-        SearchRepositoryImpl(apolloClient = get(), api = get())
+        SearchRepositoryImpl(engine = get())
     }
-    single<ProfileRepository> { ProfileRepositoryImpl(get()) }
+    single<ProfileRepository> { ProfileRepositoryImpl() }
     single<CategoriesRepository> {
-        CategoriesRepositoryImpl(apolloClient = get(), api = get())
+        CategoriesRepositoryImpl(engine = get())
     }
     single<DetailRepository> {
-        DetailRepositoryImpl(client = get(), api = get())
+        DetailRepositoryImpl(engine = get())
     }
     viewModel { HomeViewModel(repo = get(), imdbRepo = get(), historyRepository = get()) }
     viewModel { TvGardenViewModel(get()) }
-    viewModel { EpisodeViewModel(watchHistoryRepository = get(), repo = get()) }
+    viewModel { EpisodeViewModel(watchHistoryRepository = get()) }
     viewModel { WrongTitleViewModel() }
     viewModel { UpdateViewModel() }
     viewModel { ViewAllViewModel(get()) }
     viewModel { SettingsViewModel(get(), profileRepo = get()) }
     viewModel { LiveTvViewModel(dao = get()) }
-    viewModel { AdultPlayerViewModel() }
     viewModel { SplashViewModel(firebaseService = get()) }
-    viewModel { PlayMovieViewModel(watchHistoryRepository = get()) }
     viewModel { PlayAnimeViewModel(watchHistoryRepository = get()) }
     viewModel { DetailViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
-    viewModel { SearchViewModel(repo = get()) }
+    viewModel { SearchViewModel(repo = get(), aniListRepo = get()) }
     viewModel { MyListViewModel(repo = get()) }
     viewModel { CastDetailViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel {

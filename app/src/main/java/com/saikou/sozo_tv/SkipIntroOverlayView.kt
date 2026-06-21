@@ -26,6 +26,7 @@ class SkipIntroOverlayView @JvmOverloads constructor(
     private var currentAlpha = 0f
     private var skipType = "Skip Intro"
 
+    @SuppressLint("UseKtx")
     private val netflixRed = Color.parseColor("#E50914")
     private val netflixDarkGray = Color.parseColor("#1F1F1F")
     private val netflixWhite = Color.parseColor("#FFFFFF")

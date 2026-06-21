@@ -1,58 +1,25 @@
 package com.saikou.sozo_tv.data.repository
 
-import com.animestudios.animeapp.SearchAnimeQuery
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.api.Optional
-import com.saikou.sozo_tv.app.MyApp
-import com.saikou.sozo_tv.data.local.pref.PreferenceManager
-import com.saikou.sozo_tv.data.model.toDomain
-import com.saikou.sozo_tv.data.model.toSearchDomain
-import com.saikou.sozo_tv.data.remote.ImdbService
+import com.saikou.sozo_tv.data.extensions.ExtensionEngine
+import com.saikou.sozo_tv.data.extensions.toSearchModel
 import com.saikou.sozo_tv.domain.model.SearchModel
 import com.saikou.sozo_tv.domain.repository.SearchRepository
 
-class SearchRepositoryImpl(private val apolloClient: ApolloClient, private val api: ImdbService) :
-    SearchRepository {
-    override suspend fun searchAnime(query: String): Result<List<SearchModel>> {
-        try {
-            val searchResponse =
-                apolloClient.query(
-                    SearchAnimeQuery(
-                        search = Optional.present(query), isAdult = Optional.present(
-                            PreferenceManager(
-                                MyApp.context
-                            ).isNsfwEnabled()
-                        )
-                    )
-                ).execute()
-            searchResponse.let {
-                val searchList = arrayListOf<SearchModel>()
-                it.data?.Page?.media?.forEach {
-                    searchList.add(
-                        it?.toDomain()!!
-                    )
-                }
-                return Result.success(searchList)
-            }
+/** Search delegates to the active provider's `search()`. */
+class SearchRepositoryImpl(
+    private val engine: ExtensionEngine,
+) : SearchRepository {
+
+    private suspend fun run(query: String): Result<List<SearchModel>> {
+        return try {
+            val page = engine.search(null, query)
+                ?: return Result.failure(IllegalStateException("No source selected."))
+            Result.success(page.items.map { it.toSearchModel() })
         } catch (e: Exception) {
-            return Result.failure(e)
+            Result.failure(e)
         }
     }
 
-    override suspend fun searchMovie(query: String): Result<List<SearchModel>> {
-        try {
-            val preference = PreferenceManager()
-            val searchResponse =
-                api.searchMoviesByKeyword(query, isAdult = preference.isNsfwEnabled()).body()!!
-            val searchList = arrayListOf<SearchModel>()
-            searchResponse.results.forEach {
-                searchList.add(
-                    it.toSearchDomain()
-                )
-            }
-            return Result.success(searchList)
-        } catch (e: Exception) {
-            return Result.failure(e)
-        }
-    }
+    override suspend fun searchAnime(query: String): Result<List<SearchModel>> = run(query)
+    override suspend fun searchMovie(query: String): Result<List<SearchModel>> = run(query)
 }

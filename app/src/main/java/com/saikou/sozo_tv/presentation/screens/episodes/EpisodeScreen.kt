@@ -21,7 +21,6 @@ import com.saikou.sozo_tv.adapters.EpisodeTabAdapter
 import com.saikou.sozo_tv.adapters.SeriesPageAdapter
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.EpisodeScreenBinding
-import com.saikou.sozo_tv.parser.anime.HentaiMama
 import com.saikou.sozo_tv.parser.models.Part
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.screens.wrong_title.WrongTitleDialog
@@ -58,7 +57,7 @@ class EpisodeScreen : Fragment() {
         binding.seasonalBackground.setTheme(PreferenceManager().getSeasonalTheme())
         addAnimFocus()
         val currentSource = PreferenceManager().getString(SOURCE)
-        if (currentSource == "" && !args.isAdult) {
+        if (currentSource == "") {
             binding.topContainer.gone()
             binding.loadingLayout.gone()
             binding.textView6.gone()
@@ -66,17 +65,15 @@ class EpisodeScreen : Fragment() {
             binding.placeHolder.root.visible()
             binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_source)
             binding.placeHolder.placeholderTxt.text =
-                "No Source Selected \n Please Select Source First from Settings"
+                "No Source Selected \n Please Select a Source first"
             binding.placeHolder.placeHolderBtn.visible()
             binding.placeHolder.placeHolderBtn.setOnClickListener {
                 val intent = Intent(requireActivity(), ProfileActivity::class.java)
                 intent.putExtra("openSettings", true)
                 requireActivity().startActivity(intent)
             }
-        } else if (!args.isAdult) {
-            initializeAnimeSource(currentSource)
         } else {
-            initializeAdultSource()
+            initializeAnimeSource(currentSource)
         }
     }
 
@@ -198,95 +195,6 @@ class EpisodeScreen : Fragment() {
                                             selectedPosition = i
                                         }
                                     }
-                                }
-                            }
-
-                            else -> {}
-                        }
-                    }
-                }
-
-                else -> {}
-            }
-        }
-    }
-
-    private fun initializeAdultSource() {
-        val sourceText = "Current Selected Source:${HentaiMama::class.java.simpleName}"
-        binding.textView6.text = sourceText.highlightPart(
-            HentaiMama::class.java.simpleName,
-            ContextCompat.getColor(requireContext(), R.color.orange)
-        )
-        viewModel.findEpisodes(args.episodeTitle, isAdult = args.isAdult)
-
-        viewModel.dataFound.observe(viewLifecycleOwner) { dataFound ->
-            when (dataFound) {
-                is Resource.Error -> {
-                    binding.placeHolder.root.visible()
-                    binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
-                    binding.placeHolder.placeholderTxt.text = dataFound.throwable.message
-                }
-
-                Resource.Loading -> {
-                    binding.placeHolder.root.gone()
-                    binding.topContainer.gone()
-                    binding.tabRv.gone()
-                    binding.loadingLayout.visible()
-                    binding.loadingText.text = "Media is loading.."
-                }
-
-                is Resource.Success -> {
-                    val mediaText = "Selected Media: ${dataFound.data.name}"
-                    binding.textView7.gone()
-                    val anim = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
-                    binding.textView7.text = mediaText.highlightPart(
-                        dataFound.data.name, ContextCompat.getColor(requireContext(), R.color.red80)
-                    )
-                    binding.textView7.visible()
-                    binding.textView7.startAnimation(anim)
-                    currentMediaId = dataFound.data.link
-                    adapter = SeriesPageAdapter()
-                    binding.wrongTitleContainer.visibility = View.VISIBLE
-                    binding.wrongTitleContainer.startAnimation(anim)
-                    binding.wrongTitleContainer.setOnClickListener { gg ->
-                        showWrongTitleDialog(dataFound.data.name, isAdult = args.isAdult)
-                    }
-
-                    binding.topContainer.adapter = adapter
-                    viewModel.loadAdultEpisodes(currentMediaId, dataFound.data)
-                    binding.placeHolder.root.gone()
-                    binding.loadingLayout.gone()
-                    viewModel.episodeData.observe(viewLifecycleOwner) { result ->
-                        when (result) {
-                            is Resource.Error -> {
-                                binding.placeHolder.root.visible()
-                                binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
-                                binding.placeHolder.placeholderTxt.text = result.throwable.message
-                            }
-
-                            Resource.Loading -> {
-                                binding.placeHolder.root.gone()
-                                binding.loadingLayout.visible()
-                                binding.topContainer.gone()
-                                binding.loadingText.text = "Episodes are loading.."
-                            }
-
-                            is Resource.Success -> {
-                                binding.tabRv.gone()
-                                binding.placeHolder.root.gone()
-                                binding.topContainer.visible()
-                                binding.loadingLayout.gone()
-                                adapter.updateEpisodeItems(
-                                    result.data.data ?: arrayListOf()
-                                )
-                                adapter.setOnItemClickedListener { it, currentIndex ->
-                                    findNavController().navigate(
-                                        EpisodeScreenDirections.actionEpisodeScreenToAdultPlayerScreen(
-                                            it.session ?: "",
-                                            args.episodeTitle,
-                                            it.episode.toString()
-                                        )
-                                    )
                                 }
                             }
 

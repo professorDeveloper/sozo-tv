@@ -1,52 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<!-- Whole Sources screen is one vertical RecyclerView: item 0 is the header (title, tabs,
+     shortcode, provider search), the rest are provider rows. Everything scrolls together and
+     D-pad focus moves between the search field and the rows without getting trapped. -->
+<androidx.recyclerview.widget.RecyclerView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/screenRv"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:background="@color/main_background">
-
-    <TextView
-        android:id="@+id/textView6"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:fontFamily="@font/days"
-        android:paddingVertical="4dp"
-        android:text="@string/sources"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone" />
-
-    <androidx.leanback.widget.VerticalGridView
-        android:id="@+id/sourceRv"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipChildren="false"
-        android:clipToPadding="false"
-        android:visibility="visible"
-        app:focusOutEnd="false"
-        app:focusOutFront="true"
-        tools:ignore="InefficientWeight,RtlSymmetry"
-        tools:listitem="@layout/item_source_header" />
-
-    <include
-        android:id="@+id/sourcePlaceHolder"
-        layout="@layout/bookmark_place_holder"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-</LinearLayout>
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:paddingHorizontal="36dp"
+    android:paddingTop="20dp"
+    android:paddingBottom="24dp"
+    tools:background="@color/main_background"
+    tools:listitem="@layout/item_ext_provider" />

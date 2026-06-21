@@ -1,16 +1,13 @@
-import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.konan.properties.Properties
 import java.io.FileInputStream
-import java.net.URL
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-parcelize")
-    id("org.jetbrains.dokka") version "1.9.20"
     id("androidx.navigation.safeargs.kotlin")
     id("kotlin-kapt")
-    id("com.apollographql.apollo3") version "3.7.0"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
 }
@@ -37,11 +34,6 @@ android {
         useBuildCache = true
     }
 
-    apollo {
-        packageName.set("com.animestudios.animeapp")
-        generateKotlinModels.set(true)
-        excludes.add("**/schema.json.graphql")
-    }
     defaultConfig {
 
         applicationId = "com.saikou.sozo_tv"
@@ -73,11 +65,16 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
+        // Vendored Aniyomi OkHttpExtensions.parseAs uses context receivers.
+        // Skip-metadata: the CloudStream `library` + serialization runtime are
+        // built with a newer Kotlin than this module (1.9) — read their metadata.
+        freeCompilerArgs += listOf("-Xcontext-receivers", "-Xskip-metadata-version-check")
     }
     buildFeatures {
         viewBinding = true
@@ -89,24 +86,47 @@ android {
             version = "3.22.1"
         }
     }
-}
-
-tasks.withType<DokkaTask>().configureEach {
-    dokkaSourceSets {
-        configureEach {
-            moduleName.set("SozoTv")
-            outputDirectory.set(file("$projectDir/docs"))
-            externalDocumentationLink {
-                url.set(URL("https://developer.android.com/reference"))
-                packageListUrl.set(URL("https://developer.android.com/reference/package-list"))
-            }
-            perPackageOption {
-                matchingRegex.set(".*")
-
-            }
+    // CloudStream's `library` pulls okhttp5 + jspecify etc., which collide on some
+    // META-INF resources. Drop the duplicates so packaging succeeds.
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/versions/9/OSGI-INF/MANIFEST.MF",
+                "META-INF/DEPENDENCIES",
+                "META-INF/INDEX.LIST",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/LICENSE.md",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/NOTICE.md",
+                "META-INF/{AL2.0,LGPL2.1}",
+            )
         }
     }
 }
+
+// The CloudStream runtime drags kotlin-stdlib up to 2.3.0 (metadata 2.3.0), which
+// the Room/kapt annotation processor can't read (and which is newer than this
+// module's Kotlin 1.9 compiler). Pin the whole kotlin-stdlib family back to 1.9.x
+// so metadata stays readable and the toolchain stays consistent.
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin" &&
+            requested.name.startsWith("kotlin-stdlib")
+        ) {
+            useVersion("1.9.24")
+        }
+        // Keep coroutines at 1.7.3 — 1.8.x's @InternalForInheritanceCoroutinesApi
+        // breaks the Kotlin 1.9.0 compiler backend.
+        if (requested.group == "org.jetbrains.kotlinx" &&
+            requested.name.startsWith("kotlinx-coroutines")
+        ) {
+            useVersion("1.7.3")
+        }
+    }
+}
+
 dependencies {
 
     implementation("androidx.core:core-ktx:1.9.0")
@@ -133,8 +153,8 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
 
     // DI
-    implementation("com.google.dagger:hilt-android:2.48")
-    kapt("com.google.dagger:hilt-compiler:2.48")
+    implementation("com.google.dagger:hilt-android:2.52")
+    kapt("com.google.dagger:hilt-compiler:2.52")
 
 
     //
@@ -157,7 +177,7 @@ dependencies {
     implementation("androidx.security:security-crypto-ktx:1.1.0-alpha06")
 
     implementation("de.hdodenhof:circleimageview:3.1.0")
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
     // exo player
     val media3_version = "1.9.2"
@@ -196,15 +216,15 @@ dependencies {
 
     //Trailer Plugins
     implementation("com.github.Blatzar:NiceHttp:0.4.4")
-    implementation("org.jsoup:jsoup:1.15.1")
+    implementation("org.jsoup:jsoup:1.18.1")
 
     //
     //Room ORM
     // Room Components
-    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-runtime:2.7.1")
     //noinspection KaptUsageInsteadOfKsp
-    kapt("androidx.room:room-compiler:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.7.1")
+    implementation("androidx.room:room-ktx:2.7.1")
     implementation(
         "org.kamranzafar:jtar:2.0.1"
     )
@@ -232,12 +252,23 @@ dependencies {
     implementation("org.mozilla:rhino:1.7.13")
     implementation("io.noties.markwon:image:4.6.2")
 
-    //GraphQL
-    val apolloVersion = "3.7.0"
-    implementation("com.apollographql.apollo3:apollo-runtime:$apolloVersion")
-
     //Json
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
-
+    // ---- Extension engine (Aniyomi .apk + CloudStream .cs3 runtime) ----
+    // CloudStream provider runtime: MainAPI/APIHolder/`app` HTTP/extractors/BasePlugin.
+    implementation("com.github.recloudstream.cloudstream:library:v4.7.0")
+    // CloudStream plugins/extractors use coroutines on the IO dispatcher.
+    // 1.7.3 (not 1.8.x): 1.8.x adds @InternalForInheritanceCoroutinesApi which
+    // trips the Kotlin 1.9.0 compiler backend.
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    // compileOnly: our clean-room CloudflareKiller implements okhttp3.Interceptor;
+    // okhttp itself is supplied at runtime by the CloudStream `library`.
+    compileOnly("com.squareup.okhttp3:okhttp:4.12.0")
+    // Aniyomi extension runtime supplied to DexClassLoader at load time.
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-okio:1.7.3")
+    implementation("io.reactivex:rxjava:1.3.8")
+    // JS engine for Aniyomi extractors that deobfuscate links (QuickJS).
+    implementation("app.cash.quickjs:quickjs-android:0.9.2")
 }

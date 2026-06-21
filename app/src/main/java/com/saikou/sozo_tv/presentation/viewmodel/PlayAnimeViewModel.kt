@@ -211,6 +211,18 @@ class PlayAnimeViewModel(
         option: VideoOption, sourceKey: String
     ): VodMovieResponse {
         return when (sourceKey) {
+            // Aniyomi/CloudStream: the VideoOption already carries the playable url,
+            // headers, mime type and subtitle tracks (no extraction needed).
+            "extension" -> {
+                VodMovieResponse(
+                    authInfo = "",
+                    subtitleList = option.tracks.map { SubTitle(it.file, it.label ?: "") },
+                    urlobj = option.videoUrl,
+                    header = option.headers,
+                    type = option.mimeTypes.ifEmpty { MimeTypes.APPLICATION_M3U8 },
+                )
+            }
+
             SOURCE_HIANIME -> {
                 VodMovieResponse(
                     authInfo = "",

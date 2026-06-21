@@ -39,7 +39,7 @@ class ViewAllScreen : Fragment() {
         binding.backBtn.setOnClickListener { findNavController().popBackStack() }
         setupRecyclerView()
         setupObservers()
-        viewModel.init(argData.argData.rowId)
+        viewModel.init(argData.argData)
     }
 
     private fun setupRecyclerView() {

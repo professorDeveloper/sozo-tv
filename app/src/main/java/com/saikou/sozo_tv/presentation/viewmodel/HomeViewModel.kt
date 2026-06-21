@@ -87,7 +87,12 @@ class HomeViewModel(
                 val preferenceManager = PreferenceManager()
                 val homeDataList = mutableListOf<HomeAdapter.HomeData>()
                 homeDataList.add(bannerState.data)
-                homeDataList.add(genresState.data)
+                // Only show the Genres row when the active provider actually returns genres.
+                // An empty row renders a bare "Genres" title with an empty list that traps
+                // D-pad focus, so hide it entirely when empty.
+                if (genresState.data.list.isNotEmpty()) {
+                    homeDataList.add(genresState.data)
+                }
                 if (preferenceManager.isChannelEnabled() && channelsData != null) {
                     homeDataList.add(channelsData)
                 }
@@ -96,7 +101,8 @@ class HomeViewModel(
                         historyData
                     )
                 }
-                homeDataList.addAll(categoryState.data)
+                // Same focus-trap guard for content rows: drop any empty category.
+                homeDataList.addAll(categoryState.data.filter { it.list.isNotEmpty() })
                 UiState.Success(homeDataList)
             }
 

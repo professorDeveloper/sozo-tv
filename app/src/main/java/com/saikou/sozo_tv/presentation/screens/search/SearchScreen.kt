@@ -16,19 +16,26 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.SearchAdapter
+import com.saikou.sozo_tv.data.extensions.ExtensionEngine
+import com.saikou.sozo_tv.data.extensions.toSearchModel
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.SearchScreenBinding
+import com.saikou.sozo_tv.domain.model.SearchModel
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
 import com.saikou.sozo_tv.utils.applyFocusedStyle
 import com.saikou.sozo_tv.utils.resetStyle
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.Locale
 
@@ -400,22 +407,108 @@ class SearchScreen : Fragment() {
         searchAdapter = SearchAdapter()
         searchAdapter.setOnItemClickListener { searchModel ->
             Log.d("SearchScreen", "Item clicked: ${searchModel.title}")
-            val intent = Intent(requireActivity(), PlayerActivity::class.java)
-            intent.putExtra("model", searchModel.id)
-            intent.putExtra("isMovie", searchModel.averageScore == 1)
-            requireActivity().startActivity(intent)
+            openOnSelectedProvider(searchModel)
+        }
+        searchAdapter.setOnItemLongClickListener { searchModel ->
+            showAniListManageDialog(searchModel)
         }
 
         binding.vgvSearch.adapter = searchAdapter
     }
 
+    /**
+     * AniList results carry no provider-registry id, so resolve the title against the currently
+     * selected source: search the provider by title, take the best match's stable id, then open
+     * the existing detail/player flow with it.
+     */
+    private fun openOnSelectedProvider(searchModel: SearchModel) {
+        // A provider result already has a registry id — open it directly.
+        searchModel.id?.let { regId ->
+            launchPlayer(regId, searchModel.averageScore == 1)
+            return
+        }
+        val title = searchModel.title?.trim().orEmpty()
+        if (title.isEmpty()) return
+
+        Toast.makeText(requireContext(), "Opening “$title”…", Toast.LENGTH_SHORT).show()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val regId = withContext(Dispatchers.IO) {
+                try {
+                    ExtensionEngine.shared.search(null, title)
+                        ?.items?.firstOrNull()?.toSearchModel()?.id
+                } catch (e: Exception) {
+                    Log.e("SearchScreen", "provider bridge failed: ${e.message}")
+                    null
+                }
+            }
+            if (!isAdded) return@launch
+            if (regId != null && regId != -1) {
+                launchPlayer(regId, false)
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    "“$title” not found on the selected source. Open Sources to pick a provider.",
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
+        }
+    }
+
+    private fun launchPlayer(registryId: Int, isMovie: Boolean) {
+        val intent = Intent(requireActivity(), PlayerActivity::class.java)
+        intent.putExtra("model", registryId)
+        intent.putExtra("isMovie", isMovie)
+        requireActivity().startActivity(intent)
+    }
+
+    /** Long-press a result → add/update it on the signed-in user's AniList list. */
+    private fun showAniListManageDialog(searchModel: SearchModel) {
+        val mediaId = searchModel.aniListId
+        if (mediaId == null) {
+            Toast.makeText(requireContext(), "No AniList entry for this title", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (!model.isAniListLoggedIn()) {
+            Toast.makeText(
+                requireContext(),
+                "Log in to AniList (Account) to manage your list.",
+                Toast.LENGTH_LONG,
+            ).show()
+            return
+        }
+        val labels = arrayOf("Watching", "Plan to watch", "Completed", "Paused", "Dropped")
+        val statuses = arrayOf("CURRENT", "PLANNING", "COMPLETED", "PAUSED", "DROPPED")
+        val checked = statuses.indexOf(searchModel.listStatus)
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(searchModel.title ?: "AniList")
+            .setSingleChoiceItems(labels, checked) { dialog, which ->
+                dialog.dismiss()
+                model.manageOnAniList(mediaId, statuses[which], null) { result ->
+                    if (!isAdded) return@manageOnAniList
+                    result.onSuccess {
+                        Toast.makeText(
+                            requireContext(),
+                            "Saved to AniList: ${labels[which]}",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }.onFailure {
+                        Toast.makeText(
+                            requireContext(),
+                            it.message ?: "AniList update failed",
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
     private fun performSearchImmediate(query: String) {
         if (query.isNotEmpty()) {
-            if (preference.isModeAnimeEnabled()) {
-                model.searchAnime(query.trim())
-            } else {
-                model.searchMovie(query.trim())
-            }
+            // AniList GraphQL drives the catalog; the picked result opens on the selected provider.
+            model.searchAniList(query.trim())
             searchAdapter.setQueryText(query.trim())
             binding.recommendationsTitle.visibility = View.VISIBLE
             binding.recommendationsTitle.text = "Search Results for \"$query\""

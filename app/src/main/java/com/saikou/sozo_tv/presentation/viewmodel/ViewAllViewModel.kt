@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.saikou.sozo_tv.data.model.RowId
+import com.saikou.sozo_tv.data.model.ViewAllData
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.ViewAllRepository
 import com.saikou.sozo_tv.utils.Resource
@@ -21,19 +21,21 @@ class ViewAllViewModel(private val repo: ViewAllRepository) : ViewModel() {
     private val allItems = mutableListOf<MainModel>()
     private var currentPage = 1
     private var totalPages = 1
-    private var currentRowId: RowId? = null
+    private var currentSlug: String? = null
+    private var started = false
     val hasMore get() = currentPage <= totalPages
 
-    fun init(rowId: RowId) {
-        if (currentRowId == rowId) return
-        currentRowId = rowId
+    fun init(data: ViewAllData) {
+        if (started) return
+        started = true
+        currentSlug = data.slug
         currentPage = 1
         allItems.clear()
         loadNextPage()
     }
 
     fun loadNextPage() {
-        val rowId = currentRowId ?: return
+        if (!started) return
         if (!hasMore) return
         if (_loadMoreState.value is Resource.Loading || _state.value is Resource.Loading) return
 
@@ -43,7 +45,7 @@ class ViewAllViewModel(private val repo: ViewAllRepository) : ViewModel() {
             if (isFirstPage) _state.value = Resource.Loading
             else _loadMoreState.value = Resource.Loading
 
-            repo.loadMore(rowId, currentPage)
+            repo.loadMore(currentSlug, currentPage)
                 .onSuccess { paginated ->
                     totalPages = paginated.totalPages
                     currentPage = paginated.page + 1

@@ -256,49 +256,65 @@ class MovieDetailsAdapter(
                     )
                 }
                 descriptionTextView?.isFocusable = false
+                // Field labels — hidden together with their (empty) value containers so
+                // missing extension data leaves no orphan "Country/Language" headings.
+                val labelDate = binding.frame.findViewById<TextView?>(R.id.textView8)
+                val labelCountry = binding.frame.findViewById<TextView?>(R.id.textView4)
+                val labelLanguage = binding.frame.findViewById<TextView?>(R.id.textView9)
+                val labelGenre = binding.frame.findViewById<TextView?>(R.id.labelGenre)
+
                 languageContainer?.removeAllViews()
                 countryContainer?.removeAllViews()
                 yearContainer?.removeAllViews()
                 genresContainer?.removeAllViews()
-                if (currentItem?.content?.studios?.isNotEmpty() == true) {
-                    val countryTextView = createCategoryTextView(
-                        binding.root.context,
-                        currentItem?.content?.studios?.get(0) ?: "Unknown"
-                    )
-                    countryContainer?.addView(countryTextView)
+
+                // Description — hide when the provider gives none.
+                val descriptionTextView2 =
+                    binding.frame.findViewById<TextView?>(R.id.film_description_tv)
+                descriptionTextView2?.isVisible = !item.content.description.isNullOrBlank()
+
+                // Year — the real season/release year, hidden if unknown.
+                val year = item.content.seasonYear
+                if (year != null && year > 0) {
+                    yearContainer?.addView(createCategoryTextView(binding.root.context, year.toString()))
+                    labelDate?.isVisible = true
+                    yearContainer?.isVisible = true
                 } else {
-                    val countryTextView = createCategoryTextView(
-                        binding.root.context,
-                        "Japan"
-                    )
-                    countryContainer?.addView(countryTextView)
-
+                    labelDate?.isVisible = false
+                    yearContainer?.isVisible = false
                 }
-                val textView = createCategoryTextView(
-                    binding.root.context,
-                    text = currentItem?.content?.mediaSource?.name ?: "Unknown"
-                )
-                languageContainer?.addView(textView)
-                val year = createCategoryTextView(
-                    binding.root.context,
-                    LocalData.years[Random.nextInt(0, LocalData.years.size)].title.toYear()
-                )
-                yearContainer?.addView(year)
-                image?.loadImage(item.content.coverImage.large)
 
+                // Studio/Author — real value or hidden (no "Japan" placeholder).
+                val studio = item.content.studios?.firstOrNull { !it.isNullOrBlank() }
+                if (!studio.isNullOrBlank()) {
+                    countryContainer?.addView(createCategoryTextView(binding.root.context, studio))
+                    labelCountry?.isVisible = true
+                    countryContainer?.isVisible = true
+                } else {
+                    labelCountry?.isVisible = false
+                    countryContainer?.isVisible = false
+                }
 
-                if (currentItem?.content?.genres?.isNotEmpty() == true) {
-                    currentItem?.content?.genres?.forEach { category ->
-                        val trimmedCategory = category?.trim()
+                // Source/Language — extensions expose no meaningful value → hide.
+                labelLanguage?.isVisible = false
+                languageContainer?.isVisible = false
 
-                        val genreTextView =
-                            createCategoryTextView(
-                                binding.root.context,
-                                trimmedCategory ?: "Unknown"
-                            )
-                        genresContainer?.addView(genreTextView)
+                // Genres — real genres, hidden if the provider supplies none.
+                val genreList = item.content.genres
+                    ?.filterNotNull()?.map { it.trim() }?.filter { it.isNotEmpty() }
+                    ?: emptyList()
+                if (genreList.isNotEmpty()) {
+                    genreList.forEach {
+                        genresContainer?.addView(createCategoryTextView(binding.root.context, it))
                     }
+                    labelGenre?.isVisible = true
+                    genresContainer?.isVisible = true
+                } else {
+                    labelGenre?.isVisible = false
+                    genresContainer?.isVisible = false
                 }
+
+                image?.loadImage(item.content.coverImage.large)
             }
 
 
@@ -385,60 +401,35 @@ class MovieDetailsAdapter(
                 isPlay = !isPlay
                 interfaceListener.onPauseButtonClicked(isPlay)
             }
-            val genres = if (item.content.genres?.isEmpty() == true) LocalData.genres.subList(
-                0,
-                3
-            ) else item.content.genres ?: emptyList<String>()
-            val date = LocalData.years[Random.nextInt(1, LocalData.years.size)].title.toYear()
+            fun chip(label: String): TextView = TextView(binding.root.context).apply {
+                text = label
+                textSize = 12f
+                setTextColor(Color.WHITE)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { rightMargin = 7 * resources.displayMetrics.density.toInt() }
+                setBackgroundResource(R.drawable.bg_cat_tv)
+                setPadding(18, 10, 18, 10)
+            }
+
+            val genres = item.content.genres
+                ?.filterNotNull()?.map { it.trim() }?.filter { it.isNotEmpty() }
+                ?: emptyList()
 
             val container = binding.categoryContainer
             container.removeAllViews()
-            val textView = TextView(binding.root.context).apply {
-                text = date
-                textSize = 12f
-                setTextColor(Color.WHITE)
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    rightMargin = 7 * resources.displayMetrics.density.toInt()
-                }
-                setBackgroundResource(R.drawable.bg_cat_tv)
-                setPadding(18, 10, 18, 10)
-            }
-            container.addView(textView)
-            genres.forEach { category ->
-                val textViewd = TextView(binding.root.context).apply {
-                    text = category
-                    textSize = 12f
-                    setTextColor(Color.WHITE)
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        rightMargin = 7 * resources.displayMetrics.density.toInt()
-                    }
-                    setBackgroundResource(R.drawable.bg_cat_tv)
-                    setPadding(16, 8, 16, 8)
-                }
-                container.addView(textViewd)
-            }
-            val textViewEp = TextView(binding.root.context).apply {
-                text = "Episodes:" + item.content.episodes.toString()
-                textSize = 12f
-                setTextColor(Color.WHITE)
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    rightMargin = 7 * resources.displayMetrics.density.toInt()
-                }
-                setBackgroundResource(R.drawable.bg_cat_tv)
-                setPadding(18, 10, 18, 10)
-            }
-            container.addView(textViewEp)
+
+            // Real release year — omitted when the provider doesn't supply one.
+            item.content.seasonYear?.let { if (it > 0) container.addView(chip(it.toString())) }
+            genres.forEach { container.addView(chip(it)) }
+            // Episode count — only when known.
+            item.content.episodes?.let { if (it > 0) container.addView(chip("Episodes: $it")) }
+            container.isVisible = container.childCount > 0
+
             binding.filmTitleTv.text = item.content.title
             binding.filmDescriptionTv.text = item.content.description
+            binding.filmDescriptionTv.isVisible = !item.content.description.isNullOrBlank()
 
 
         }

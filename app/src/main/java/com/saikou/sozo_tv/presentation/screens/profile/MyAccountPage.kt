@@ -24,7 +24,6 @@ import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.databinding.MyAccountPageBinding
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
-import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.loadImage
 import com.saikou.sozo_tv.utils.visible
@@ -85,9 +84,6 @@ class MyAccountPage : Fragment() {
         }
         setupLoginButton()
 
-        loadModePreference()
-        setupModeButtons()
-
         setupAppearanceSection()
         setupContentControlsSection()
     }
@@ -102,44 +98,6 @@ class MyAccountPage : Fragment() {
                     .show()
             }
         }
-    }
-
-    private fun setupModeButtons() {
-        binding.apply {
-            animeModeButton.setOnClickListener {
-                setModeAnime(true)
-                updateModeUI(true)
-            }
-
-            movieModeButton.setOnClickListener {
-                setModeAnime(false)
-                updateModeUI(false)
-            }
-        }
-    }
-
-    private fun loadModePreference() {
-        val isAnimeMode = preferenceManager.isModeAnimeEnabled()
-        updateModeUI(isAnimeMode)
-    }
-
-    private fun updateModeUI(isAnimeMode: Boolean) {
-        binding.apply {
-            updateButtonBackground(animeModeButton, isAnimeMode)
-            updateButtonBackground(movieModeButton, !isAnimeMode)
-        }
-    }
-
-    private fun setModeAnime(enabled: Boolean) {
-        preferenceManager.setModeAnime(enabled)
-        LocalData.isAnimeEnabled = enabled
-    }
-
-    private fun updateButtonBackground(button: TextView, isActive: Boolean) {
-        button.setBackgroundResource(
-            if (isActive) R.drawable.switch_selected_background
-            else R.drawable.switch_background
-        )
     }
 
     private fun setupAppearanceSection() {

@@ -9,7 +9,9 @@ import java.io.Serializable
 @Parcelize
 data class ViewAllData(
     val rowId: RowId,
-    val categoryTitle: String
+    val categoryTitle: String,
+    /** Extension section slug used to paginate this row via engine.section(). */
+    val slug: String? = null
 ) : HomeAdapter.HomeData, Parcelable, Serializable {
     override val viewType: Int get() = VIEW_ALL
 }

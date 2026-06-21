@@ -9,6 +9,8 @@ data class Category(
     val name: String,
     val list: List<CategoryDetails>,
     val rowId: RowId,
+    /** Extension section slug for "View all" pagination via engine.section(). */
+    val slug: String? = null,
     override val viewType: Int = HomeAdapter.VIEW_CATEGORY_FILMS
 ) : HomeAdapter.HomeData
 

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hint colour matching tv_field_text: readable mid-grey on the focused white fill. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true" android:color="#5A5F66" />
+    <item android:state_pressed="true" android:color="#5A5F66" />
+    <item android:color="#777777" />
+</selector>
