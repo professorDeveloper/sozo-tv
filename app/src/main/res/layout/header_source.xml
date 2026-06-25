@@ -52,6 +52,20 @@
             android:text="CloudStream"
             android:textColor="#CCCCCC"
             android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/btnTabServer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:background="@drawable/bg_tab_unselected"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingHorizontal="26dp"
+            android:paddingVertical="10dp"
+            android:text="Server"
+            android:textColor="#CCCCCC"
+            android:textSize="16sp" />
     </LinearLayout>
 
     <!-- Install by shortcode -->

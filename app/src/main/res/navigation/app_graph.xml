@@ -68,5 +68,21 @@
             app:argType="com.saikou.sozo_tv.data.model.ViewAllData" />
 
     </fragment>
+    <fragment
+        android:id="@+id/sourceScreen"
+        android:name="com.saikou.sozo_tv.presentation.screens.source.SourceScreen"
+        android:label="SourceScreen">
+        <action
+            android:id="@+id/action_source_to_aniyomi_settings"
+            app:destination="@id/aniyomiSettingsScreen" />
+    </fragment>
+    <fragment
+        android:id="@+id/aniyomiSettingsScreen"
+        android:name="com.saikou.sozo_tv.presentation.screens.source.AniyomiSourceSettingsFragment"
+        android:label="Aniyomi Settings">
+        <argument
+            android:name="provider"
+            app:argType="string" />
+    </fragment>
 
 </navigation>

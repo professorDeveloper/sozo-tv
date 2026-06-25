@@ -19,9 +19,16 @@ data class ExtProvider(
     val icon: String? = null,
     val nsfw: Boolean = false,
     val repo: String? = null,
-    val group: String, // "aniyomi" | "cloudstream"
+    val group: String,
+    val mode: String = "client",
+    val extractorName: String? = null,
+    val extractorScope: String? = null,
 ) {
     val isAniyomi get() = id.startsWith("an:")
+    val isServer get() = mode == "server"
+    val isHybrid get() = mode == "hybrid"
+    val scopesAll get() = extractorScope == "all"
+    val scopesResolveMedia get() = extractorScope == "all" || extractorScope == "resolveMedia"
 }
 
 data class ExtRepo(val url: String, val name: String)
@@ -150,6 +157,7 @@ internal object ExtParser {
         return (0 until arr.length()).mapNotNull { i ->
             val o = arr.optJSONObject(i) ?: return@mapNotNull null
             val id = o.optString("id").ifEmpty { return@mapNotNull null }
+            val extractor = o.optJSONObject("extractor")
             ExtProvider(
                 id = id,
                 name = o.optString("name").ifEmpty { id },
@@ -159,6 +167,9 @@ internal object ExtParser {
                 nsfw = o.optBoolean("nsfw", false),
                 repo = o.strOrNull("repo"),
                 group = o.optString("group").ifEmpty { if (id.startsWith("an:")) "aniyomi" else "cloudstream" },
+                mode = o.optString("mode").ifEmpty { "client" },
+                extractorName = extractor?.strOrNull("name"),
+                extractorScope = extractor?.strOrNull("scope"),
             )
         }
     }

@@ -15,6 +15,11 @@
         android:icon="@drawable/ic_clapper_open"
         android:title="@string/main_menu_tvgarden" />
 
+    <item
+        android:id="@+id/sourceScreen"
+        android:icon="@drawable/ic_round_star_24"
+        android:title="@string/main_menu_sources" />
+
     <!-- My List menu item - visible faqat login qilganda -->
     <item
         android:id="@+id/myList"

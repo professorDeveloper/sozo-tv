@@ -3,6 +3,7 @@ package com.saikou.sozo_tv.engine.aniyomi
 import android.content.Context
 import android.util.Log
 import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
+import eu.kanade.tachiyomi.animesource.ConfigurableAnimeSource
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
 import eu.kanade.tachiyomi.animesource.model.SAnime
@@ -119,6 +120,8 @@ class AniyomiHost(private val context: Context) {
         val apk = ensureApk(meta) ?: return null
         return AniyomiRuntime.source(context, apk.absolutePath, meta.pkg, meta.id)
     }
+
+    fun configurable(id: String): ConfigurableAnimeSource? = sourceFor(id) as? ConfigurableAnimeSource
 
     private fun cardJson(a: SAnime, id: String) = JSONObject().apply {
         put("provider", "an:$id")
@@ -293,8 +296,15 @@ class AniyomiHost(private val context: Context) {
             val videos = try { runBlocking { src.getVideoList(episode) } }
             catch (t: Throwable) { Log.e(TAG, "videos $id: ${t.message}"); emptyList() }
             for (v in videos) {
-                val vu = v.videoUrl ?: continue
-                if (vu.isEmpty() || !seen.add(vu)) continue
+                var vu = v.videoUrl
+                if (vu.isNullOrEmpty()) {
+                    vu = try {
+                        runBlocking { (src as? AnimeHttpSource)?.getVideoUrl(v) }
+                    } catch (t: Throwable) {
+                        Log.e(TAG, "getVideoUrl $id: ${t.message}"); null
+                    }
+                }
+                if (vu.isNullOrEmpty() || !seen.add(vu)) continue
                 val headers = JSONObject()
                 baseHeaders?.forEach { (k, value) -> headers.put(k, value) }
                 v.headers?.forEach { (k, value) -> headers.put(k, value) }

@@ -20,6 +20,7 @@ import com.saikou.sozo_tv.data.extensions.ExtProvider
 class SourceHeaderViews(val root: View) {
     val btnTabAniyomi: TextView = root.findViewById(R.id.btnTabAniyomi)
     val btnTabCloudstream: TextView = root.findViewById(R.id.btnTabCloudstream)
+    val btnTabServer: TextView = root.findViewById(R.id.btnTabServer)
     val etShortcode: EditText = root.findViewById(R.id.etShortcode)
     val btnInstall: TextView = root.findViewById(R.id.btnInstall)
     val chipContainer: LinearLayout = root.findViewById(R.id.chipContainer)
@@ -40,6 +41,7 @@ class SourceHeaderViews(val root: View) {
 class SourceAdapter(
     private val onBindHeader: (SourceHeaderViews) -> Unit,
     private val onProviderClick: (ExtProvider) -> Unit,
+    private val onProviderLongClick: (ExtProvider) -> Boolean = { false },
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val allItems = mutableListOf<ExtProvider>()
@@ -148,6 +150,7 @@ class SourceAdapter(
                 val p = items[position - 1]
                 holder.bind(p, p.id == selectedId)
                 holder.itemView.setOnClickListener { onProviderClick(p) }
+                holder.itemView.setOnLongClickListener { onProviderLongClick(p) }
             }
         }
     }

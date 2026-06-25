@@ -11,8 +11,10 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.extensions.ExtGroup
@@ -76,6 +78,7 @@ class SourceScreen : Fragment() {
         adapter = SourceAdapter(
             onBindHeader = { views -> bindHeader(views) },
             onProviderClick = { provider -> onProviderPicked(provider) },
+            onProviderLongClick = { provider -> openSettings(provider) },
         )
 
         binding.screenRv.apply {
@@ -94,6 +97,7 @@ class SourceScreen : Fragment() {
 
         v.btnTabAniyomi.setOnClickListener { switchTab(ExtGroup.ANIYOMI) }
         v.btnTabCloudstream.setOnClickListener { switchTab(ExtGroup.CLOUDSTREAM) }
+        v.btnTabServer.setOnClickListener { switchTab(ExtGroup.SERVER) }
 
         // Shortcode field — set text before (re)attaching the watcher so it doesn't self-trigger.
         shortcodeWatcher?.let { v.etShortcode.removeTextChangedListener(it) }
@@ -140,9 +144,9 @@ class SourceScreen : Fragment() {
 
     private fun applyTabUi() {
         val v = header ?: return
-        val aniyomiActive = currentGroup == ExtGroup.ANIYOMI
-        styleTab(v.btnTabAniyomi, aniyomiActive)
-        styleTab(v.btnTabCloudstream, !aniyomiActive)
+        styleTab(v.btnTabAniyomi, currentGroup == ExtGroup.ANIYOMI)
+        styleTab(v.btnTabCloudstream, currentGroup == ExtGroup.CLOUDSTREAM)
+        styleTab(v.btnTabServer, currentGroup == ExtGroup.SERVER)
     }
 
     /** Selected tab = white pill with dark text; unselected = outlined with light text. */
@@ -246,6 +250,15 @@ class SourceScreen : Fragment() {
                 binding.screenRv.findViewHolderForAdapterPosition(pos)?.itemView?.requestFocus()
             }
         }
+    }
+
+    private fun openSettings(provider: ExtProvider): Boolean {
+        if (!provider.isAniyomi) return false
+        findNavController().navigate(
+            R.id.action_source_to_aniyomi_settings,
+            bundleOf(AniyomiSourceSettingsFragment.ARG_PROVIDER to provider.id),
+        )
+        return true
     }
 
     private fun onProviderPicked(provider: ExtProvider) {
