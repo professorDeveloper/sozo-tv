@@ -25,6 +25,7 @@ import com.saikou.sozo_tv.presentation.screens.profile.MyAccountPage
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.utils.LocalData.isHistoryItemClicked
 import com.saikou.sozo_tv.utils.LocalData.sectionList
+import com.saikou.sozo_tv.utils.finishDeferred
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -214,7 +215,7 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
     private fun navigateHome() {
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
-        finish()
+        finishDeferred()
     }
 
     companion object {

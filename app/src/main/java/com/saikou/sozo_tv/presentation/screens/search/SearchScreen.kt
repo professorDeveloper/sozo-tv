@@ -507,8 +507,9 @@ class SearchScreen : Fragment() {
 
     private fun performSearchImmediate(query: String) {
         if (query.isNotEmpty()) {
-            // AniList GraphQL drives the catalog; the picked result opens on the selected provider.
-            model.searchAniList(query.trim())
+            // Search the currently-selected extension provider directly, so results
+            // (and their posters) come from that source rather than AniList.
+            model.searchAnime(query.trim())
             searchAdapter.setQueryText(query.trim())
             binding.recommendationsTitle.visibility = View.VISIBLE
             binding.recommendationsTitle.text = "Search Results for \"$query\""

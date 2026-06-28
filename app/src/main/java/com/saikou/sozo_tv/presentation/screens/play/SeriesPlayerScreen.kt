@@ -66,6 +66,7 @@ import com.saikou.sozo_tv.presentation.viewmodel.PlayAnimeViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.VttSpriteThumbnailLoader
+import com.saikou.sozo_tv.utils.finishDeferred
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.observeOnce
 import com.saikou.sozo_tv.utils.visible
@@ -222,7 +223,7 @@ class SeriesPlayerScreen : Fragment() {
         if (LocalData.isHistoryItemClicked) {
             val intent = Intent(context, ProfileActivity::class.java)
             startActivity(intent)
-            activity?.finish()
+            activity?.finishDeferred()
         } else {
             runCatching { findNavController().navigateUp() }.onFailure { it.printStackTrace() }
         }
@@ -606,38 +607,46 @@ class SeriesPlayerScreen : Fragment() {
             if (idx in list.indices) {
                 val subUrl = list[idx].file
                 if (subUrl.isNotBlank()) {
+                    // A failing/unreachable subtitle (HTTP 4xx, network error, bad body) must NOT
+                    // crash playback — skip the subtitle and play the video without it.
+                    try {
+                        val client = okHttpClient ?: buildOkHttpClient(lastHeaders)
+                        val tmp =
+                            File(requireContext().cacheDir, "sub_${System.currentTimeMillis()}.vtt")
 
-                    val client = okHttpClient ?: buildOkHttpClient(lastHeaders)
-                    val tmp =
-                        File(requireContext().cacheDir, "sub_${System.currentTimeMillis()}.vtt")
+                        val request = Request.Builder()
+                            .url(subUrl)
+                            .header("User-Agent", "Mozilla/5.0")
+                            .build()
 
-                    val request = Request.Builder()
-                        .url(subUrl)
-                        .header("User-Agent", "Mozilla/5.0")
-                        .build()
-
-                    client.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
-                        response.body!!.byteStream().use { input ->
-                            tmp.outputStream().use { output -> input.copyTo(output) }
+                        client.newCall(request).execute().use { response ->
+                            if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+                            response.body!!.byteStream().use { input ->
+                                tmp.outputStream().use { output -> input.copyTo(output) }
+                            }
                         }
+
+                        val text = tmp.readText()
+
+                        val fixedFile = if (!text.startsWith("WEBVTT")) {
+                            tmp.writeText("WEBVTT\n\n$text")
+                            tmp
+                        } else tmp
+
+                        val subConfig = MediaItem.SubtitleConfiguration.Builder(
+                            Uri.fromFile(fixedFile)
+                        )
+                            .setMimeType(MimeTypes.TEXT_VTT)
+                            .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+                            .build()
+
+                        mediaItemBuilder.setSubtitleConfigurations(listOf(subConfig))
+                    } catch (e: Exception) {
+                        android.util.Log.e(
+                            "SeriesPlayerScreen",
+                            "subtitle fetch failed, playing without it: ${e.message}"
+                        )
                     }
-
-                    val text = tmp.readText()
-
-                    val fixedFile = if (!text.startsWith("WEBVTT")) {
-                        tmp.writeText("WEBVTT\n\n$text")
-                        tmp
-                    } else tmp
-
-                    val subConfig = MediaItem.SubtitleConfiguration.Builder(
-                        Uri.fromFile(fixedFile)
-                    )
-                        .setMimeType(MimeTypes.TEXT_VTT)
-                        .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-                        .build()
-
-                    mediaItemBuilder.setSubtitleConfigurations(listOf(subConfig))
                 }
             }
         }

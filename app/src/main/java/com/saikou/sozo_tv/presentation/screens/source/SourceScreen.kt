@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.source
 
+import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -7,6 +8,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -16,6 +18,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.extensions.ExtGroup
 import com.saikou.sozo_tv.data.extensions.ExtProvider
@@ -31,8 +34,7 @@ import org.koin.android.ext.android.inject
  * Extension source manager (TV-focusable).
  *
  *  - Two tabs: Aniyomi (default) / CloudStream — both engines usable.
- *  - Install repos by **shortcode** (curated suggestion chips + free-text field),
- *    resolved to a repo URL via [ShortcodeRegistry].
+ *  - Search the installed providers (field pinned at the top of the header).
  *  - Pick the active provider that Home / Search / Categories pull from.
  *
  * The whole screen is one [androidx.recyclerview.widget.RecyclerView] (header item + provider
@@ -50,18 +52,20 @@ class SourceScreen : Fragment() {
 
     /** Live reference to the currently-bound header (null while it is scrolled out / recycled). */
     private var header: SourceHeaderViews? = null
-    private var shortcodeWatcher: TextWatcher? = null
     private var searchWatcher: TextWatcher? = null
 
     // --- Persisted header state (re-applied whenever the header re-binds) ---
     private var currentGroup: String = ExtGroup.ANIYOMI
-    private var shortcodeText: String = ""
     private var searchText: String = ""
+    private var selectedRepo: String? = null   // null = all repos
     private var statusText: String? = null
     private var progressVisible: Boolean = false
     private var emptyText: String? = null
     private var loadError: String? = null
     private var pendingScrollToSelected: Boolean = true
+
+    /** Groups whose curated default repos we've already tried to auto-install this session. */
+    private val bootstrappedGroups = mutableSetOf<String>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -82,7 +86,7 @@ class SourceScreen : Fragment() {
         )
 
         binding.screenRv.apply {
-            layoutManager = LinearLayoutManager(requireContext())
+            layoutManager = FocusGuardLayoutManager(requireContext())
             adapter = this@SourceScreen.adapter
             itemAnimator = null
             setHasFixedSize(false)
@@ -97,21 +101,8 @@ class SourceScreen : Fragment() {
 
         v.btnTabAniyomi.setOnClickListener { switchTab(ExtGroup.ANIYOMI) }
         v.btnTabCloudstream.setOnClickListener { switchTab(ExtGroup.CLOUDSTREAM) }
-        v.btnTabServer.setOnClickListener { switchTab(ExtGroup.SERVER) }
 
-        // Shortcode field — set text before (re)attaching the watcher so it doesn't self-trigger.
-        shortcodeWatcher?.let { v.etShortcode.removeTextChangedListener(it) }
-        v.etShortcode.setText(shortcodeText)
-        v.etShortcode.setSelection(shortcodeText.length)
-        shortcodeWatcher = afterTextChanged { shortcodeText = it }
-        v.etShortcode.addTextChangedListener(shortcodeWatcher)
-
-        v.btnInstall.setOnClickListener {
-            val code = shortcodeText.trim()
-            if (code.isEmpty()) toast("Enter a shortcode") else install(code)
-        }
-
-        // Provider search field.
+        // Provider search field — set text before (re)attaching the watcher so it doesn't self-trigger.
         searchWatcher?.let { v.etSearchProvider.removeTextChangedListener(it) }
         v.etSearchProvider.setText(searchText)
         v.etSearchProvider.setSelection(searchText.length)
@@ -122,23 +113,74 @@ class SourceScreen : Fragment() {
         }
         v.etSearchProvider.addTextChangedListener(searchWatcher)
 
+        v.etSearchProvider.onFocusChangeListener =
+            View.OnFocusChangeListener { fv, hasFocus -> if (!hasFocus) hideIme(fv) }
+        // On TV the keyboard isn't reliably raised on focus; raise it on click (D-pad center).
+        v.etSearchProvider.setOnClickListener { showIme(it) }
+
         applyTabUi()
-        renderChips()
+        renderRepoChips()
         applyHeaderState()
+    }
+
+    /** Build the repo filter chips ("All" + one per installed repo) for the current tab. */
+    private fun renderRepoChips() {
+        val container = header?.repoFilterContainer ?: return
+        container.removeAllViews()
+        val repos = adapter.repos()
+        // Only worth showing when there's more than one repo to choose between.
+        if (repos.size < 2) {
+            container.visibility = View.GONE
+            return
+        }
+        container.visibility = View.VISIBLE
+        addRepoChip(container, "All", null)
+        repos.forEach { addRepoChip(container, it, it) }
+    }
+
+    private fun addRepoChip(container: LinearLayout, label: String, repo: String?) {
+        val selected = selectedRepo == repo
+        val chip = TextView(requireContext()).apply {
+            text = label
+            textSize = 13f
+            gravity = Gravity.CENTER
+            isFocusable = true
+            isClickable = true
+            setPadding(34, 16, 34, 16)
+            setBackgroundResource(
+                if (selected) R.drawable.bg_tab_selected else R.drawable.bg_tab_unselected
+            )
+            setTextColor((if (selected) 0xFF111417 else 0xFFCCCCCC).toInt())
+            setOnClickListener {
+                if (selectedRepo != repo) {
+                    selectedRepo = repo
+                    adapter.setRepoFilter(repo)
+                    refreshEmptyState()
+                    renderRepoChips()
+                }
+            }
+        }
+        val lp = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        ).apply { marginEnd = 14 }
+        container.addView(chip, lp)
     }
 
     private fun switchTab(group: String) {
         if (group == currentGroup) return
         currentGroup = group
         searchText = ""
+        selectedRepo = null
         header?.let { v ->
             searchWatcher?.let { v.etSearchProvider.removeTextChangedListener(it) }
             v.etSearchProvider.setText("")
             searchWatcher?.let { v.etSearchProvider.addTextChangedListener(it) }
         }
         adapter.filter("")
+        adapter.setRepoFilter(null)
         applyTabUi()
-        renderChips()
+        renderRepoChips()
         loadProviders()
     }
 
@@ -146,7 +188,6 @@ class SourceScreen : Fragment() {
         val v = header ?: return
         styleTab(v.btnTabAniyomi, currentGroup == ExtGroup.ANIYOMI)
         styleTab(v.btnTabCloudstream, currentGroup == ExtGroup.CLOUDSTREAM)
-        styleTab(v.btnTabServer, currentGroup == ExtGroup.SERVER)
     }
 
     /** Selected tab = white pill with dark text; unselected = outlined with light text. */
@@ -157,98 +198,74 @@ class SourceScreen : Fragment() {
         tab.setTextColor((if (selected) 0xFF111417 else 0xFFCCCCCC).toInt())
     }
 
-    /** Curated shortcode suggestion chips for the active group. */
-    private fun renderChips() {
-        val container = header?.chipContainer ?: return
-        container.removeAllViews()
-        for (entry in ShortcodeRegistry.entries(currentGroup)) {
-            val chip = TextView(requireContext()).apply {
-                text = "${entry.name}  (${entry.code})"
-                setTextColor(0xFFFFFFFF.toInt())
-                textSize = 13f
-                gravity = Gravity.CENTER
-                setBackgroundResource(R.drawable.bg_tab_unselected)
-                isFocusable = true
-                isClickable = true
-                setPadding(36, 18, 36, 18)
-                setOnClickListener { install(entry.code) }
-            }
-            val lp = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-            ).apply { marginEnd = 18 }
-            container.addView(chip, lp)
-        }
-    }
-
-    private fun install(code: String) {
-        val url = ShortcodeRegistry.resolve(currentGroup, code)
-        if (url == null) {
-            toast("Unknown shortcode: $code")
-            return
-        }
-        progressVisible = true
-        statusText = "Installing $code…"
-        applyHeaderState()
-        viewLifecycleOwner.lifecycleScope.launch {
-            val count = try {
-                engine.addRepo(currentGroup, url) { current, total ->
-                    binding.root.post {
-                        if (_binding != null) {
-                            statusText = "Installing $code… $current / $total"
-                            header?.tvStatus?.let { it.text = statusText; it.isVisible = true }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                -1
-            }
-            progressVisible = false
-            if (count > 0) {
-                statusText = "Installed $count source(s) from $code"
-                shortcodeText = ""
-                header?.let { v ->
-                    shortcodeWatcher?.let { v.etShortcode.removeTextChangedListener(it) }
-                    v.etShortcode.setText("")
-                    shortcodeWatcher?.let { v.etShortcode.addTextChangedListener(it) }
-                }
-                loadProviders()
-            } else {
-                statusText = "Nothing installed for $code (check the repo)"
-            }
-            applyHeaderState()
-        }
-    }
-
     private fun loadProviders() {
         progressVisible = true
         loadError = null
         applyHeaderState()
         viewLifecycleOwner.lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO) { runCatching { engine.providers(currentGroup) } }
+            var result = withContext(Dispatchers.IO) { runCatching { engine.providers(currentGroup) } }
+            // The manual shortcode installer was removed, so auto-install the curated
+            // default repos. We install any default repo that isn't already present (once
+            // per session) — this seeds a fresh install AND adds newly-shipped defaults
+            // (e.g. CSX) for users who already have other providers.
+            if (bootstrappedGroups.add(currentGroup)) {
+                val installed = withContext(Dispatchers.IO) {
+                    runCatching { engine.listRepos(currentGroup).map { it.url }.toSet() }
+                        .getOrDefault(emptySet())
+                }
+                val missing = ShortcodeRegistry.entries(currentGroup)
+                    .filter { it.url !in installed }
+                if (missing.isNotEmpty()) {
+                    statusText = "Setting up sources… please wait"
+                    applyHeaderState()
+                    withContext(Dispatchers.IO) {
+                        missing.forEachIndexed { index, entry ->
+                            runCatching {
+                                engine.addRepo(currentGroup, entry.url) { current, total ->
+                                    binding.root.post {
+                                        if (_binding == null) return@post
+                                        statusText = "Setting up ${entry.name} " +
+                                            "(${index + 1}/${missing.size})" +
+                                            if (total > 0) " · $current/$total" else "…"
+                                        header?.tvStatus?.let { it.text = statusText; it.isVisible = true }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    result = withContext(Dispatchers.IO) { runCatching { engine.providers(currentGroup) } }
+                    statusText = null
+                }
+            }
+            // First run: activate the first provider if none is active yet, so Home/Search work
+            // immediately without the user having to pick one manually.
+            if (engine.getActiveProvider() == null) {
+                result.getOrNull()?.firstOrNull()?.let {
+                    engine.setActiveProvider(it.id, it.group, it.name)
+                }
+            }
             progressVisible = false
             loadError = result.exceptionOrNull()?.message
             adapter.submit(result.getOrDefault(emptyList()), engine.getActiveProvider())
+            renderRepoChips()
             refreshEmptyState()
             applyHeaderState()
             scrollToSelectedIfPending()
         }
     }
 
-    /** On first open, bring the already-selected provider into view (and focus it). */
+    /**
+     * On first open, make sure the top of the list is visible. The active provider is
+     * already pinned to the top, so we DON'T steal focus onto it (the user navigates down
+     * into the list themselves).
+     */
     private fun scrollToSelectedIfPending() {
         if (!pendingScrollToSelected) return
-        val pos = adapter.selectedAdapterPosition()
-        if (pos < 0) return
         pendingScrollToSelected = false
         binding.screenRv.post {
             if (_binding == null) return@post
             (binding.screenRv.layoutManager as? LinearLayoutManager)
-                ?.scrollToPositionWithOffset(pos, 0)
-            binding.screenRv.post {
-                if (_binding == null) return@post
-                binding.screenRv.findViewHolderForAdapterPosition(pos)?.itemView?.requestFocus()
-            }
+                ?.scrollToPositionWithOffset(0, 0)
         }
     }
 
@@ -262,7 +279,7 @@ class SourceScreen : Fragment() {
     }
 
     private fun onProviderPicked(provider: ExtProvider) {
-        engine.setActiveProvider(provider.id, provider.group)
+        engine.setActiveProvider(provider.id, provider.group, provider.name)
         // The episode screen / series player read the active source via SourceManager
         // (LocalData.SOURCE); the sentinel routes them to the ExtensionParser.
         com.saikou.sozo_tv.data.local.pref.PreferenceManager()
@@ -276,7 +293,7 @@ class SourceScreen : Fragment() {
         emptyText = when {
             adapter.providerCount() > 0 -> null
             loadError != null -> "Couldn't load providers: $loadError"
-            searchText.isBlank() -> "No providers yet. Install a shortcode above."
+            searchText.isBlank() -> "No providers available."
             else -> "No providers match “$searchText”."
         }
         applyHeaderState()
@@ -304,10 +321,49 @@ class SourceScreen : Fragment() {
         if (isAdded) Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
     }
 
+    private fun hideIme(view: View) {
+        val imm = requireContext()
+            .getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
+    }
+
+    private fun showIme(view: View) {
+        view.requestFocus()
+        val imm = requireContext()
+            .getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private class FocusGuardLayoutManager(context: Context) : LinearLayoutManager(context) {
+        // Pre-lay out one extra screenful of rows in each direction so the next/prev
+        // row is already attached when D-pad focus moves to it. Without this, fast
+        // scrolling leaves focus stuck on the old row (findViewByPosition == null)
+        // while the list scrolls underneath it — the reported TV focus lag.
+        override fun calculateExtraLayoutSpace(state: RecyclerView.State, extraLayoutSpace: IntArray) {
+            val extra = height
+            extraLayoutSpace[0] = extra
+            extraLayoutSpace[1] = extra
+        }
+
+        override fun onInterceptFocusSearch(focused: View, direction: Int): View? {
+            if (direction != View.FOCUS_DOWN && direction != View.FOCUS_UP) {
+                return super.onInterceptFocusSearch(focused, direction)
+            }
+            val current = findContainingItemView(focused)
+                ?: return super.onInterceptFocusSearch(focused, direction)
+            val curPos = getPosition(current)
+            if (curPos == RecyclerView.NO_POSITION || curPos == 0) {
+                return super.onInterceptFocusSearch(focused, direction)
+            }
+            val nextPos = if (direction == View.FOCUS_DOWN) curPos + 1 else curPos - 1
+            if (nextPos < 0 || nextPos >= itemCount) return focused
+            return findViewByPosition(nextPos) ?: run { scrollToPosition(nextPos); focused }
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         header = null
-        shortcodeWatcher = null
         searchWatcher = null
         _binding = null
     }

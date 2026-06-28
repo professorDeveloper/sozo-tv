@@ -19,23 +19,25 @@ import androidx.navigation.fragment.navArgs
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.EpisodeTabAdapter
 import com.saikou.sozo_tv.adapters.SeriesPageAdapter
+import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.EpisodeScreenBinding
 import com.saikou.sozo_tv.parser.models.Part
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
-import com.saikou.sozo_tv.presentation.screens.wrong_title.WrongTitleDialog
 import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.SOURCE
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.visible
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class EpisodeScreen : Fragment() {
     private var _binding: EpisodeScreenBinding? = null
     private val binding get() = _binding!!
     private val viewModel: EpisodeViewModel by viewModel()
+    private val engine: ExtensionEngine by inject()
     private val args: EpisodeScreenArgs by navArgs()
     private lateinit var adapter: SeriesPageAdapter
     private lateinit var categoriesAdapter: EpisodeTabAdapter
@@ -78,15 +80,19 @@ class EpisodeScreen : Fragment() {
     }
 
     private fun initializeAnimeSource(currentSource: String) {
-        val sourceText = "Current Selected Source: $currentSource"
+        // Show the real provider name (e.g. "AnimeOnsen"), not the "extension" sentinel
+        // that is persisted under LocalData.SOURCE to route through the ExtensionParser.
+        val displayName = engine.getActiveProviderName()?.takeIf { it.isNotBlank() } ?: currentSource
+        val sourceText = "Current Selected Source: $displayName"
         binding.textView6.text = sourceText.highlightPart(
-            currentSource, ContextCompat.getColor(requireContext(), R.color.orange)
+            displayName, ContextCompat.getColor(requireContext(), R.color.orange)
         )
 
-        viewModel.findEpisodes(args.episodeTitle)
+        viewModel.loadMedia(args.mediaId, args.episodeTitle)
         viewModel.dataFound.observe(viewLifecycleOwner) { dataFound ->
             when (dataFound) {
                 is Resource.Error -> {
+                    binding.loadingLayout.gone()
                     binding.placeHolder.root.visible()
                     binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
                     binding.placeHolder.placeholderTxt.text = dataFound.throwable.message
@@ -111,11 +117,8 @@ class EpisodeScreen : Fragment() {
                     binding.textView7.startAnimation(anim)
                     currentMediaId = dataFound.data.link
                     adapter = SeriesPageAdapter(localEpisode = viewModel.epListFromLocal)
-                    binding.wrongTitleContainer.visibility = View.VISIBLE
-                    binding.wrongTitleContainer.startAnimation(anim)
-                    binding.wrongTitleContainer.setOnClickListener { gg ->
-                        showWrongTitleDialog(dataFound.data.name, args.isAdult)
-                    }
+                    // "Wrong Title?" search removed — the exact selected media is loaded directly.
+                    binding.wrongTitleContainer.gone()
 
                     binding.topContainer.adapter = adapter
                     viewModel.loadEpisodeByPage(1, currentMediaId, dataFound.data)
@@ -124,6 +127,7 @@ class EpisodeScreen : Fragment() {
                     viewModel.episodeData.observe(viewLifecycleOwner) { result ->
                         when (result) {
                             is Resource.Error -> {
+                                binding.loadingLayout.gone()
                                 binding.placeHolder.root.visible()
                                 binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
                                 binding.placeHolder.placeholderTxt.text = result.throwable.message
@@ -137,12 +141,14 @@ class EpisodeScreen : Fragment() {
                             }
 
                             is Resource.Success -> {
+                                // Always clear the loader/placeholder once episodes resolve —
+                                // the multi-page branch below previously left the spinner up.
+                                binding.loadingLayout.gone()
+                                binding.placeHolder.root.gone()
                                 if (result.data.last_page != null && result.data.data != null) {
                                     if (result.data.last_page == 1) {
                                         binding.tabRv.gone()
-                                        binding.placeHolder.root.gone()
                                         binding.topContainer.visible()
-                                        binding.loadingLayout.gone()
 
                                         adapter.updateEpisodeItems(result.data.data)
                                         adapter.setOnItemClickedListener { it, currentIndex ->
@@ -208,20 +214,6 @@ class EpisodeScreen : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun showWrongTitleDialog(animeTitle: String, isAdult: Boolean = false) {
-        val dialog: WrongTitleDialog =
-            WrongTitleDialog.newInstance(animeTitle = animeTitle, isAdult = isAdult)
-        dialog.onWrongTitleChanged = {
-            dialog.dismiss()
-            viewModel.loadEpisodeByPage(1, it.link, showResponse = it)
-            currentMediaId = it.link
-            binding.textView7.text = "Selected Media: ${it.name}"
-
-        }
-        dialog.show(parentFragmentManager, "FilterDialog")
-    }
-
     private fun addAnimFocus() {
         binding.backBtn.setOnFocusChangeListener { _, hasFocus ->
             val animation = when {
@@ -236,20 +228,6 @@ class EpisodeScreen : Fragment() {
             binding.backBtn.startAnimation(animation)
             animation.fillAfter = true
         }
-        binding.wrongTitleContainer.setOnFocusChangeListener { _, hasFocus ->
-            val animation = when {
-                hasFocus -> AnimationUtils.loadAnimation(
-                    binding.root.context, R.anim.zoom_in
-                )
-
-                else -> AnimationUtils.loadAnimation(
-                    binding.root.context, R.anim.zoom_out
-                )
-            }
-            binding.wrongTitleContainer.startAnimation(animation)
-            animation.fillAfter = true
-        }
-
     }
 
     private fun String.highlightPart(

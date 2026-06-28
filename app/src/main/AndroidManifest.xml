@@ -64,7 +64,8 @@
             android:keepScreenOn="true" />
         <activity
             android:name=".presentation.activities.ProfileActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".presentation.activities.QrLoginActivity"
             android:exported="false" />
@@ -74,7 +75,8 @@
             android:exported="false" />
         <activity
             android:name=".presentation.activities.MainActivity"
-            android:exported="false">
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
 

@@ -17,6 +17,7 @@ import com.saikou.sozo_tv.databinding.ActivityMainBinding
 import com.saikou.sozo_tv.databinding.ContentHeaderMenuMainTvBinding
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.finishDeferred
 import com.saikou.sozo_tv.utils.loadImage
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -67,7 +68,7 @@ class MainActivity : FragmentActivity() {
             }
 
             when (destination.id) {
-                R.id.search, R.id.home, R.id.categories, R.id.contact, R.id.tvgarden, R.id.myList, R.id.sourceScreen ->
+                R.id.search, R.id.home, R.id.categories, R.id.contact, R.id.tvgarden, R.id.myList ->
                     binding.navMain.visibility = View.VISIBLE
 
                 else -> binding.navMain.visibility = View.GONE
@@ -101,7 +102,7 @@ class MainActivity : FragmentActivity() {
     private fun navigateProfile() {
         val intent = Intent(this@MainActivity, ProfileActivity::class.java)
         startActivity(intent)
-        finish()
+        finishDeferred()
     }
 
     fun navigateToCategory(it: String) {

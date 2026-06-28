@@ -142,6 +142,7 @@ class SkipIntroOverlayView @JvmOverloads constructor(
 
     fun showSkipButton(
         type: String = "Skip Intro",
+
         onSkip: (() -> Unit)? = null
     ) {
         if (isAnimating) return

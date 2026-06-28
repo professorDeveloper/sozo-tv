@@ -65,7 +65,8 @@ fun ExtCard.toSearchModel(): SearchModel {
         image = thumbnail ?: LocalData.anime404,
         studios = null,
         genres = null,
-        averageScore = 0,
+        // SearchScreen.openOnSelectedProvider reads averageScore == 1 as the "is movie" flag.
+        averageScore = if (isMovie()) 1 else 0,
     )
 }
 

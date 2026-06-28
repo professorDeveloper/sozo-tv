@@ -362,7 +362,6 @@ class MovieDetailsAdapter(
             binding.backBtn.setOnClickListener {
                 interfaceListener.onCancelButtonClicked()
             }
-            binding.trailerWatchButton.isVisible = trailer.isNotEmpty()
             binding.bookmark.setOnClickListener {
                 interfaceListener.onBookMarkClicked(item, bookmark)
             }
@@ -383,9 +382,6 @@ class MovieDetailsAdapter(
             }
             binding.filmDescriptionTv.text =
                 item.content.description + " " + item.content.description + " " + item.content.description
-            binding.trailerWatchButton.setOnClickListener {
-                interfaceListener.onTrailerButtonClicked(item)
-            }
             binding.buttonSound.setOnClickListener {
                 if (!isOn) binding.iconSound.setImageResource(R.drawable.ic_sound) else binding.iconSound.setImageResource(
                     R.drawable.ic_no_sound

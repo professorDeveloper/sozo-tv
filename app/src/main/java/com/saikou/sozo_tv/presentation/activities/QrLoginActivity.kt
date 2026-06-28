@@ -10,6 +10,7 @@ import com.saikou.sozo_tv.data.repository.AuthRepository
 import com.saikou.sozo_tv.data.repository.TvPairingRepository
 import com.saikou.sozo_tv.databinding.ActivityLoginWebBinding
 import com.saikou.sozo_tv.utils.QrCodeUtil
+import com.saikou.sozo_tv.utils.finishDeferred
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -86,7 +87,7 @@ class QrLoginActivity : AppCompatActivity() {
                     setLoading(false, "Connected ")
                     val intent = Intent(this@QrLoginActivity, ProfileActivity::class.java)
                     startActivity(intent)
-                    finish()
+                    finishDeferred()
                 }
 
                 is AuthRepository.Result.Error -> {

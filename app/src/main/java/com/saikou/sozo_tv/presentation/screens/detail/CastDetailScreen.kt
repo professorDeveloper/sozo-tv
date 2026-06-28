@@ -14,6 +14,7 @@ import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.characterBookmark
+import com.saikou.sozo_tv.utils.finishDeferred
 import com.saikou.sozo_tv.utils.snackString
 import com.saikou.sozo_tv.data.model.toDomain
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -54,7 +55,7 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
                 intent.putExtra("model", it.id)
                 intent.putExtra("isMovie", !it.isSeries)
                 requireActivity().startActivity(intent)
-                requireActivity().finish()
+                requireActivity().finishDeferred()
             }
             val headerData = CastAdapterModel(
                 image = it.image,

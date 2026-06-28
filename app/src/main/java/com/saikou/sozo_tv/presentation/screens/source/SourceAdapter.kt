@@ -20,13 +20,10 @@ import com.saikou.sozo_tv.data.extensions.ExtProvider
 class SourceHeaderViews(val root: View) {
     val btnTabAniyomi: TextView = root.findViewById(R.id.btnTabAniyomi)
     val btnTabCloudstream: TextView = root.findViewById(R.id.btnTabCloudstream)
-    val btnTabServer: TextView = root.findViewById(R.id.btnTabServer)
-    val etShortcode: EditText = root.findViewById(R.id.etShortcode)
-    val btnInstall: TextView = root.findViewById(R.id.btnInstall)
-    val chipContainer: LinearLayout = root.findViewById(R.id.chipContainer)
     val tvStatus: TextView = root.findViewById(R.id.tvStatus)
     val progressBar: ProgressBar = root.findViewById(R.id.progressBar)
     val etSearchProvider: EditText = root.findViewById(R.id.etSearchProvider)
+    val repoFilterContainer: LinearLayout = root.findViewById(R.id.repoFilterContainer)
     val tvEmpty: TextView = root.findViewById(R.id.tvEmpty)
 }
 
@@ -48,6 +45,14 @@ class SourceAdapter(
     private val items = mutableListOf<ExtProvider>()
     private var selectedId: String? = null
     private var query: String = ""
+    private var repoFilter: String? = null
+
+    init {
+        setHasStableIds(true)
+    }
+
+    override fun getItemId(position: Int): Long =
+        if (position == 0) Long.MIN_VALUE else items[position - 1].id.hashCode().toLong()
 
     fun submit(list: List<ExtProvider>, selected: String?) {
         allItems.clear()
@@ -61,6 +66,16 @@ class SourceAdapter(
         query = text.trim()
         applyFilter()
     }
+
+    /** Restrict the list to one repo (null = all repos). Combined with the text [filter]. */
+    fun setRepoFilter(repo: String?) {
+        repoFilter = repo
+        applyFilter()
+    }
+
+    /** Distinct repo names across all loaded providers, in first-seen order. */
+    fun repos(): List<String> =
+        allItems.mapNotNull { it.repo?.takeIf { r -> r.isNotBlank() } }.distinct()
 
     fun setSelected(id: String?) {
         val old = selectedId
@@ -87,16 +102,19 @@ class SourceAdapter(
     }
 
     private fun applyFilter() {
-        val newItems = if (query.isEmpty()) {
-            allItems.toList()
-        } else {
-            val q = query.lowercase()
-            allItems.filter {
+        val q = query.lowercase()
+        var seq = allItems.asSequence()
+        repoFilter?.let { repo -> seq = seq.filter { it.repo == repo } }
+        if (q.isNotEmpty()) {
+            seq = seq.filter {
                 it.name.lowercase().contains(q) ||
                     (it.lang?.lowercase()?.contains(q) == true) ||
                     (it.repo?.lowercase()?.contains(q) == true)
             }
         }
+        // Pin the active provider to the top so the current pick is always first (stable sort
+        // keeps the rest in their original order).
+        val newItems = seq.toList().sortedByDescending { it.id == selectedId }
 
         val old = items.toList()
         val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {

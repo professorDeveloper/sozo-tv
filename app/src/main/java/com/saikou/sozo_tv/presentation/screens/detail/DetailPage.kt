@@ -31,6 +31,7 @@ import com.saikou.sozo_tv.presentation.screens.profile.NfcDisabledDialog
 import com.saikou.sozo_tv.presentation.viewmodel.DetailViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
+import com.saikou.sozo_tv.utils.finishDeferred
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.loadImage
 import com.saikou.sozo_tv.data.model.toDomain
@@ -124,7 +125,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
                 intent.putExtra("model", it.id)
                 intent.putExtra("isMovie", !it.isSeries)
                 requireActivity().startActivity(intent)
-                requireActivity().finish()
+                requireActivity().finishDeferred()
             }
             detailModel.isBookmark.observe(viewLifecycleOwner) {
                 detailsAdapter.updateBookmark(it)
@@ -242,7 +243,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
                 dialog.dismiss()
                 val intent = Intent(binding.root.context, ProfileActivity::class.java)
                 requireActivity().startActivity(intent)
-                requireActivity().finish()
+                requireActivity().finishDeferred()
             }
             dialog.setOnBackPressedListener { dialog.dismiss() }
             dialog.show(childFragmentManager, "dialog")

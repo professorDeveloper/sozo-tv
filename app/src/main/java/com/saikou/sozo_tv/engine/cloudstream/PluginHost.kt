@@ -6,6 +6,7 @@ import android.content.res.Resources
 import android.util.Log
 import com.lagradost.cloudstream3.APIHolder
 import com.lagradost.cloudstream3.AnimeLoadResponse
+import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.Episode
 import com.lagradost.cloudstream3.MainAPI
 import com.lagradost.cloudstream3.MainPageRequest
@@ -15,6 +16,7 @@ import com.lagradost.cloudstream3.TvSeriesLoadResponse
 import com.lagradost.cloudstream3.plugins.BasePlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.nicehttp.ignoreAllSSLErrors
 import dalvik.system.PathClassLoader
 import org.json.JSONArray
 import org.json.JSONObject
@@ -41,6 +43,12 @@ import java.io.File
 class PluginHost(private val appContext: Context) {
 
     companion object { private const val TAG = "CloudStreamHost" }
+
+    init {
+        runCatching {
+            app.baseClient = app.baseClient.newBuilder().ignoreAllSSLErrors().build()
+        }
+    }
 
     private val loaded = HashMap<String, BasePlugin>()
     // internalName -> the MainAPI provider names it registered (for unload + dedup).
@@ -395,7 +403,10 @@ class PluginHost(private val appContext: Context) {
                         }
                     },
                     callback = { link: ExtractorLink ->
-                        if (link.url.isNotEmpty() && seenUrls.add(link.url)) {
+                        // Only accept absolute http(s) URLs. Some extractors emit relative links
+                        // (e.g. "dl.php?id=…") which ExoPlayer treats as a local file and fails
+                        // with a Source error — skipping them lets a valid source play instead.
+                        if (link.url.startsWith("http", ignoreCase = true) && seenUrls.add(link.url)) {
                             val headers = JSONObject(link.headers as Map<*, *>)
                             if (link.referer.isNotEmpty()) headers.put("Referer", link.referer)
                             // quality is a resolution int (e.g. 1080) or a Qualities

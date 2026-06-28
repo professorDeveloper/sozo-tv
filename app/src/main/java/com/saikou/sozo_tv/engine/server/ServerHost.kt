@@ -21,11 +21,12 @@ class ServerHost(
     private val meta = LinkedHashMap<String, Meta>()
 
     fun ensureLoaded() {
-        if (meta.isEmpty()) providersJson()
+        if (meta.isEmpty()) runCatching { providersJson() }
     }
 
     fun providersJson(): String {
-        val body = client.get("/contents/providers") ?: return "[]"
+        val body = client.get("/contents/providers")
+            ?: throw IllegalStateException("Server unreachable — check your connection")
         val arr = parseArray(body)
         val out = JSONArray()
         for (i in 0 until arr.length()) {
@@ -156,7 +157,7 @@ class ServerHost(
         (m?.scope == "all" || m?.scope == "resolveMedia") && !m.extractorName.isNullOrEmpty()
 
     private fun ensureMeta() {
-        if (meta.isEmpty()) providersJson()
+        if (meta.isEmpty()) runCatching { providersJson() }
     }
 
     private fun translateHome(soplay: String?, bareProvider: String): String {

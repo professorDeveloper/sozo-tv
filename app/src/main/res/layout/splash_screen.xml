@@ -22,4 +22,20 @@
         android:layout_gravity="center"
         android:visibility="gone" />
 
+    <TextView
+        android:id="@+id/setupStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="48dp"
+        android:fontFamily="@font/days"
+        android:gravity="center"
+        android:paddingHorizontal="24dp"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:visibility="gone"
+        tools:ignore="HardcodedText"
+        tools:text="Setting up sources…"
+        tools:visibility="visible" />
+
 </FrameLayout>

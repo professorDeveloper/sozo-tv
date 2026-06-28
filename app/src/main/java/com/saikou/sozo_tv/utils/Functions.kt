@@ -3,6 +3,8 @@ package com.saikou.sozo_tv.utils
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.graphics.Paint
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.RoundRectShape
@@ -27,6 +29,19 @@ import java.io.FileOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
+
+/**
+ * Finish this activity on the next main-loop tick instead of synchronously right after a
+ * `startActivity()` call. A synchronous `finish()` races the framework's
+ * `TopResumedActivityChangeItem` transaction for the activity being launched, which on some
+ * Android builds throws `IllegalArgumentException: Activity client record must not be null`.
+ * Deferring the finish by one tick lets that transaction complete first.
+ */
+fun Activity.finishDeferred() {
+    Handler(Looper.getMainLooper()).post {
+        if (!isFinishing && !isDestroyed) finish()
+    }
+}
 
 fun <T> Response<T>.toResult(): Result<T> {
     return when {

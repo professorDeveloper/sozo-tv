@@ -113,5 +113,10 @@ class ExtensionParser : BaseParser() {
         // never appears in URLs / mediaRefs, so the split is collision-free. Built
         // from the char code to avoid an invisible control char in the source file.
         private val SEP: String = Char(1).toString()
+
+        /** Build the provider-encoded content link that [loadEpisodes] decodes, so a
+         *  caller holding an exact (provider, url) can open it directly without a search. */
+        fun encodeLink(provider: String, url: String): String =
+            if (provider.isEmpty()) url else "$provider$SEP$url"
     }
 }

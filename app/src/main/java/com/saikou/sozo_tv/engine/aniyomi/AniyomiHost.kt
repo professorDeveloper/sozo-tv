@@ -304,7 +304,8 @@ class AniyomiHost(private val context: Context) {
                         Log.e(TAG, "getVideoUrl $id: ${t.message}"); null
                     }
                 }
-                if (vu.isNullOrEmpty() || !seen.add(vu)) continue
+                // Skip relative/scheme-less URLs — ExoPlayer would treat them as a local file.
+                if (vu.isNullOrEmpty() || !vu.startsWith("http", true) || !seen.add(vu)) continue
                 val headers = JSONObject()
                 baseHeaders?.forEach { (k, value) -> headers.put(k, value) }
                 v.headers?.forEach { (k, value) -> headers.put(k, value) }

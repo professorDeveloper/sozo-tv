@@ -22,6 +22,8 @@ object ShortcodeRegistry {
     val cloudstream: List<Entry> = listOf(
         Entry("phisher", "Phisher Extensions", "https://raw.githubusercontent.com/phisher98/cloudstream-extensions-phisher/refs/heads/builds/repo.json", recommended = true),
         Entry("redowan", "Redowan CloudStream", "https://raw.githubusercontent.com/redowan99/Redowan-CloudStream/master/repo.json", recommended = true),
+        Entry("netmirror", "NetMirror", "https://raw.githubusercontent.com/Sushan64/NetMirror-Extension/refs/heads/builds/Netflix.json", recommended = true),
+        Entry("csx", "CSX", "https://raw.githubusercontent.com/SaurabhKaperwan/CSX/builds/CS.json", recommended = true),
     )
 
     fun entries(group: String): List<Entry> = when (group) {

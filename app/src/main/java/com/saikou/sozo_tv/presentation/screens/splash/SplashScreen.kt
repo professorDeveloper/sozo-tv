@@ -20,6 +20,7 @@ import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.databinding.SplashScreenBinding
 import com.saikou.sozo_tv.domain.model.AppUpdate
 import com.saikou.sozo_tv.presentation.activities.MainActivity
@@ -27,10 +28,12 @@ import com.saikou.sozo_tv.presentation.activities.UpdateActivity
 import com.saikou.sozo_tv.presentation.viewmodel.SplashViewModel
 import com.saikou.sozo_tv.utils.DialogUtils
 import com.saikou.sozo_tv.utils.Resource
+import com.saikou.sozo_tv.utils.finishDeferred
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.visible
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 @SuppressLint("CustomSplashScreen")
@@ -40,6 +43,7 @@ class SplashScreen : Fragment() {
     private lateinit var exoPlayer: ExoPlayer
     private lateinit var loadingDialog: Dialog
     private val viewModel: SplashViewModel by viewModel()
+    private val engine: ExtensionEngine by inject()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -131,13 +135,7 @@ class SplashScreen : Fragment() {
             is Resource.Loading -> loadingDialog.show()
             is Resource.Success -> {
                 loadingDialog.dismiss()
-                startActivity(Intent(requireContext(), MainActivity::class.java).apply {
-                    val options = ActivityOptions.makeCustomAnimation(
-                        requireContext(), R.anim.fade_in, R.anim.fade_out
-                    )
-                    startActivity(this, options.toBundle())
-                })
-                requireActivity().finish()
+                runFirstLaunchSetupThenEnter()
             }
 
             is Resource.Error -> {
@@ -148,6 +146,45 @@ class SplashScreen : Fragment() {
 
             else -> {}
         }
+    }
+
+    /**
+     * First-launch only: if no source is active yet, auto-install the default repos behind a
+     * "Setting up sources…" indicator so Home has content without the user visiting Sources.
+     * If a source is already active, enter Home immediately.
+     */
+    private fun runFirstLaunchSetupThenEnter() {
+        if (engine.hasActiveProvider()) {
+            navigateToMain()
+            return
+        }
+        binding.loadingIndicator.visible()
+        binding.setupStatus.visible()
+        binding.setupStatus.text = "Setting up sources…"
+        val root = binding.root
+        lifecycleScope.launch {
+            runCatching {
+                engine.ensureDefaultsInstalled { name, current, total ->
+                    root.post {
+                        val b = _binding ?: return@post
+                        b.setupStatus.text = if (total > 0) "Setting up $name… $current/$total"
+                        else "Setting up $name…"
+                    }
+                }
+            }
+            navigateToMain()
+        }
+    }
+
+    private fun navigateToMain() {
+        if (!isAdded) return
+        startActivity(Intent(requireContext(), MainActivity::class.java).apply {
+            val options = ActivityOptions.makeCustomAnimation(
+                requireContext(), R.anim.fade_in, R.anim.fade_out
+            )
+            startActivity(this, options.toBundle())
+        })
+        requireActivity().finishDeferred()
     }
 
 //    private fun showUpdateDialog(appUpdate: AppUpdate) {
@@ -203,7 +240,7 @@ class SplashScreen : Fragment() {
                 appUpdate
             )
         )
-        requireActivity().finish()
+        requireActivity().finishDeferred()
     }
 
     override fun onDestroyView() {

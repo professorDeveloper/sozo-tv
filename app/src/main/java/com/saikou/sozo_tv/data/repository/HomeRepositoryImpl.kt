@@ -24,7 +24,12 @@ class HomeRepositoryImpl(
     override suspend fun getTopBannerAnime(): Result<BannerModel> {
         return try {
             val home = engine.home() ?: return Result.failure(noSource())
-            val items = home.banner.map { BannerItem(contentItem = it.toBannerData()) }
+            // The banner must never be blank: if the source returns no dedicated banner,
+            // fall back to the first non-empty section's items so the hero is always filled.
+            val cards = home.banner.ifEmpty {
+                home.sections.firstOrNull { it.items.isNotEmpty() }?.items.orEmpty()
+            }.take(12)
+            val items = cards.map { BannerItem(contentItem = it.toBannerData()) }
             Result.success(BannerModel(data = items))
         } catch (e: Exception) {
             Result.failure(e)
@@ -34,6 +39,9 @@ class HomeRepositoryImpl(
     override suspend fun loadCategories(): Result<List<Category>> {
         return try {
             val home = engine.home() ?: return Result.failure(noSource())
+            if (home.sections.isEmpty() && home.banner.isEmpty()) {
+                return Result.failure(IllegalStateException("This source returned no home content"))
+            }
             Result.success(home.sections.map { it.toCategory() })
         } catch (e: Exception) {
             Result.failure(e)
