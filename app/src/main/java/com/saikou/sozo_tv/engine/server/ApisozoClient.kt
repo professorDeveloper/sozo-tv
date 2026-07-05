@@ -26,6 +26,8 @@ class ApisozoClient(private val baseUrl: String = BuildConfig.APISOZO_BASE_URL) 
                 null
             }
         } catch (t: Throwable) {
+            // Concise failure breadcrumb (no body/URL spam) to help diagnose a down/blocked server.
+            android.util.Log.w("ApisozoClient", "GET $path failed: ${t.javaClass.simpleName}")
             null
         }
     }

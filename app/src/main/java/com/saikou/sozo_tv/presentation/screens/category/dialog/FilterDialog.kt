@@ -43,6 +43,9 @@ class FilterDialog : DialogFragment() {
         if (selectedYear != null) binding.yearFilter.hint = "Selected Year: ${selectedYear}"
         if (selectedSort != null) binding.sortFilter.hint =
             "Selected Sort: $selectedSort"
+        // Land initial D-pad focus on the Sort spinner, not the close (X) which is the first
+        // focusable descendant and would dismiss the dialog on an immediate DPAD_CENTER.
+        binding.sortFilter.post { binding.sortFilter.requestFocus() }
         binding.sortFilter.apply {
             setSpinnerAdapter(CustomSpinnerAdapter(-1, this).apply {
                 this.setOnSpinnerItemSelectedListen {

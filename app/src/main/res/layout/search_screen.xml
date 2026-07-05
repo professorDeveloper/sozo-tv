@@ -119,12 +119,15 @@
 
         </LinearLayout>
 
-        <include
-            android:id="@+id/voiceListeningOverlay"
-            layout="@layout/voice_listening_overlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone" />
     </LinearLayout>
+
+    <!-- Voice-listening overlay is a direct child of the FrameLayout root so it floats on top
+         of the content, instead of collapsing the weighted content as a LinearLayout sibling. -->
+    <include
+        android:id="@+id/voiceListeningOverlay"
+        layout="@layout/voice_listening_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 
 </com.saikou.sozo_tv.components.SeasonalBackgroundLayout>

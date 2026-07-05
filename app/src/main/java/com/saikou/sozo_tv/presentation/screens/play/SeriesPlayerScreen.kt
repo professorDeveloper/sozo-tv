@@ -149,6 +149,10 @@ class SeriesPlayerScreen : Fragment() {
                 val resp = chain.proceed(req)
                 resp
             }.connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS)
+            // Share the global WebView cookie store so the cf_clearance / session cookies that
+            // NativeFetch + CloudflareInterceptor solved during resolveMedia are replayed on the
+            // stream request — fixes the broad Cloudflare 403 class on the video fetch.
+            .cookieJar(eu.kanade.tachiyomi.network.AndroidCookieJar())
             .ignoreAllSSLErrors().build()
     }
 
@@ -160,6 +164,34 @@ class SeriesPlayerScreen : Fragment() {
         val okFactory = OkHttpDataSource.Factory(okHttpClient!!)
 
         dataSourceFactory = DefaultDataSource.Factory(requireContext(), okFactory)
+    }
+
+    // Loopback HLS proxy for IP/cookie-bound + RC4-signed CDNs (uzmovi/uzdown). Uses its own
+    // OkHttp client sharing the global WebView cookie jar so every upstream socket (manifest,
+    // variants, segments, keys) carries the same IP + cf_clearance + signed headers.
+    @OptIn(UnstableApi::class)
+    private val hlsProxy by lazy {
+        com.saikou.sozo_tv.engine.player.LocalHlsProxy(
+            OkHttpClient.Builder()
+                .followRedirects(true).followSslRedirects(true)
+                .cookieJar(eu.kanade.tachiyomi.network.AndroidCookieJar())
+                .connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS)
+                .ignoreAllSSLErrors().build()
+        )
+    }
+
+    /** If the active source is flagged useLocalProxy, return the loopback URL; else the original. */
+    private fun effectiveStreamUrl(originalUrl: String): String {
+        val vod = model.seriesResponse ?: return originalUrl
+        if (!vod.useLocalProxy) return originalUrl
+        return runCatching {
+            hlsProxy.register(
+                upstreamUrl = originalUrl,
+                headers = vod.header,
+                localProxy = vod.localProxyJson?.let { org.json.JSONObject(it) } ?: org.json.JSONObject(),
+                requestTransform = vod.requestTransformJson?.let { org.json.JSONObject(it) } ?: org.json.JSONObject(),
+            )
+        }.getOrDefault(originalUrl)
     }
 
 
@@ -319,7 +351,7 @@ class SeriesPlayerScreen : Fragment() {
 
                         runCatching {
                             skipIntroView = SkipIntroView(
-                                binding.pvPlayer.controller.binding.root,
+                                binding.pvPlayer,
                                 player,
                                 model,
                                 handler,
@@ -372,9 +404,57 @@ class SeriesPlayerScreen : Fragment() {
     }
 
 
+    private var currentResizeIdx = 0
+    private var currentSpeedIdx = 2
+
+    /** Wire the ⚙ settings button → screen-size (resize mode) + playback-speed menus. */
+    @OptIn(UnstableApi::class)
+    private fun setupPlayerSettings() {
+        binding.pvPlayer.controller.binding.exoSettings.setOnClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Player settings")
+                .setItems(arrayOf("Screen size", "Playback speed")) { _, which ->
+                    if (which == 0) showResizeDialog() else showSpeedDialog()
+                }
+                .show()
+        }
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun showResizeDialog() {
+        val labels = arrayOf("Fit (letterbox)", "Fill (zoom)", "Stretch")
+        val modes = intArrayOf(
+            androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT,
+            androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
+            androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FILL,
+        )
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Screen size")
+            .setSingleChoiceItems(labels, currentResizeIdx) { d, i ->
+                currentResizeIdx = i
+                binding.pvPlayer.resizeMode = modes[i]
+                d.dismiss()
+            }
+            .show()
+    }
+
+    private fun showSpeedDialog() {
+        val speeds = floatArrayOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
+        val labels = speeds.map { if (it == 1f) "Normal (1x)" else "${it}x" }.toTypedArray()
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Playback speed")
+            .setSingleChoiceItems(labels, currentSpeedIdx) { d, i ->
+                currentSpeedIdx = i
+                player.setPlaybackSpeed(speeds[i])
+                d.dismiss()
+            }
+            .show()
+    }
+
     private fun bindQualityObserversOnce() {
         if (qualityObserversBound) return
         qualityObserversBound = true
+        setupPlayerSettings()
 
         model.videoOptionsData.observe(viewLifecycleOwner) { videoOptions ->
             binding.pvPlayer.controller.binding.exoQuality.setOnClickListener {
@@ -415,7 +495,7 @@ class SeriesPlayerScreen : Fragment() {
 
     @OptIn(UnstableApi::class)
     private fun createMediaSource(url: String, mimeType: String?): MediaSource {
-        val mime = mimeType ?: MimeTypes.APPLICATION_MP4
+        val mime = resolveMime(url, mimeType) ?: MimeTypes.APPLICATION_MP4
         val item = MediaItem.Builder().setUri(url).setMimeType(mime).setTag(args.name).build()
 
         return if (mime == MimeTypes.APPLICATION_M3U8) {
@@ -424,6 +504,28 @@ class SeriesPlayerScreen : Fragment() {
             ProgressiveMediaSource.Factory(dataSourceFactory)
                 .setContinueLoadingCheckIntervalBytes(1024 * 1024).createMediaSource(item)
         }
+    }
+
+    /**
+     * Choose the ExoPlayer container from the URL first, declared type second. Cloud providers
+     * often omit `type`, which upstream defaulted to "hls" — forcing the HLS parser on a plain
+     * .mp4/direct URL threw "Input does not start with #EXTM3U". Trust the URL extension; only
+     * when it's unknown AND the declared type is a manifest that the URL contradicts do we drop
+     * to null so ExoPlayer sniffs the real content instead of forcing a wrong parser.
+     */
+    private fun resolveMime(url: String, declared: String?): String? {
+        val u = url.substringBefore('?').lowercase()
+        val resolved = when {
+            u.contains(".m3u8") -> MimeTypes.APPLICATION_M3U8
+            u.contains(".mpd") -> MimeTypes.APPLICATION_MPD
+            u.contains(".mp4") -> MimeTypes.VIDEO_MP4
+            u.contains(".mkv") || u.contains(".webm") -> MimeTypes.VIDEO_WEBM
+            // Declared a manifest but the URL is clearly not one → let ExoPlayer sniff.
+            declared == MimeTypes.APPLICATION_M3U8 || declared == MimeTypes.APPLICATION_MPD -> null
+            else -> declared
+        }
+        android.util.Log.i("PlayerSrc", "mime: url=$u declared=$declared -> $resolved")
+        return resolved
     }
 
 
@@ -442,7 +544,7 @@ class SeriesPlayerScreen : Fragment() {
         player.clearMediaItems()
 
         val mime = model.videoOptions.getOrNull(model.currentSelectedVideoOptionIndex)?.mimeTypes
-        val mediaSource = createMediaSource(videoUrl, mime)
+        val mediaSource = createMediaSource(effectiveStreamUrl(videoUrl), mime)
 
         player.setMediaSource(mediaSource)
         player.prepare()
@@ -463,7 +565,7 @@ class SeriesPlayerScreen : Fragment() {
         player.clearMediaItems()
 
         val mediaSource = createMediaSource(
-            videoUrl,
+            effectiveStreamUrl(videoUrl),
             mimeType
                 ?: model.seriesResponse?.type
         )
@@ -478,7 +580,7 @@ class SeriesPlayerScreen : Fragment() {
         lifecycleScope.launch {
             val vod = model.seriesResponse ?: return@launch
 
-            val videoUrl = vod.urlobj
+            val videoUrl = effectiveStreamUrl(vod.urlobj)
             val subtitles = vod.subtitleList.orEmpty()
             var isSubtitleHave = subtitles.isNotEmpty()
             val useSubtitles = isSubtitleHave
@@ -593,7 +695,7 @@ class SeriesPlayerScreen : Fragment() {
     ): MediaSource {
 
         val vod = model.seriesResponse
-        val mime = vod?.type
+        val mime = resolveMime(videoUrl, vod?.type)
 
         val mediaItemBuilder = MediaItem.Builder()
             .setUri(videoUrl)

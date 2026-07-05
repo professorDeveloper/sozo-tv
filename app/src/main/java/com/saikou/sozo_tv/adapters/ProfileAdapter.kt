@@ -16,6 +16,7 @@ import com.saikou.sozo_tv.databinding.AccountTypeItemBinding
 import com.saikou.sozo_tv.databinding.ProfileSectionItemBinding
 import com.saikou.sozo_tv.databinding.ProfileTopItemBinding
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
+import com.saikou.sozo_tv.utils.applyTvFocusScale
 import com.saikou.sozo_tv.utils.loadImage
 
 class ProfileAdapter(
@@ -25,11 +26,15 @@ class ProfileAdapter(
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var accounType = ""
-    private lateinit var exitItemListener: () -> Unit
+    // Safe default: the Exit row is shown whenever a token exists, but the real listener is
+    // only wired after the profile fetch succeeds. A no-op default prevents a crash (was
+    // lateinit -> UninitializedPropertyAccessException) if Exit is pressed before/without it.
+    private var exitItemListener: () -> Unit = {}
     private lateinit var itemListener: () -> Unit
     private lateinit var onSectionClick: (SectionItem, Int) -> Unit
 
     private var selectedSectionIndex: Int = RecyclerView.NO_POSITION
+    private var pendingNav: Runnable? = null
 
     fun setOnExitClickListener(listener: () -> Unit) {
         exitItemListener = listener
@@ -109,18 +114,17 @@ class ProfileAdapter(
             binding.root.isFocusable = true
             binding.root.isFocusableInTouchMode = true
 
-            binding.root.setOnFocusChangeListener { _, hasFocus ->
+            binding.root.applyTvFocusScale(scale = 1.06f) { _, hasFocus ->
                 if (hasFocus) {
                     setSectionSelected(sectionPosition)
-                    onSectionClick(section, sectionPosition)
+                    // Debounce: passing focus THROUGH rail items must not load every screen
+                    // (each navigate() instantiates a fragment, some of which fetch network data).
+                    // Only the item focus settles on for 300ms actually navigates.
+                    pendingNav?.let { recyclerView.removeCallbacks(it) }
+                    val r = Runnable { onSectionClick(section, sectionPosition) }
+                    pendingNav = r
+                    recyclerView.postDelayed(r, 300)
                 }
-                val animation = if (hasFocus) {
-                    AnimationUtils.loadAnimation(binding.root.context, R.anim.zoom_in)
-                } else {
-                    AnimationUtils.loadAnimation(binding.root.context, R.anim.zoom_out)
-                }
-                binding.root.startAnimation(animation)
-                animation.fillAfter = true
             }
 
             val token = PreferenceManager().getString(

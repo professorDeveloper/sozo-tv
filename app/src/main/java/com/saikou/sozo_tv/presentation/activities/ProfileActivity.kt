@@ -84,9 +84,9 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
     private fun focusRecyclerViewToPosition(position: Int) {
         viewBinding.apply {
             profileRv.post {
-                profileRv.requestFocusFromTouch()
+                profileRv.requestFocus()
                 profileRv.smoothScrollToPosition(position)
-                profileRv.requestFocusFromTouch()
+                profileRv.requestFocus()
             }
         }
     }
@@ -131,10 +131,10 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
         if (!isHistoryItemClicked) {
             viewBinding.apply {
                 profileRv.post {
-                    profileRv.requestFocusFromTouch()
+                    profileRv.requestFocus()
                     val sectionPosition = accountList.size + 2
                     profileRv.smoothScrollToPosition(sectionPosition)
-                    profileRv.requestFocusFromTouch()
+                    profileRv.requestFocus()
                 }
             }
             focusRecyclerViewToPosition(accountList.size + 2)
@@ -142,10 +142,10 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
             focusRecyclerViewToPosition(accountList.size + 4)
             viewBinding.apply {
                 profileRv.post {
-                    profileRv.requestFocusFromTouch()
+                    profileRv.requestFocus()
                     val sectionPosition = accountList.size + 4
                     profileRv.smoothScrollToPosition(sectionPosition)
-                    profileRv.requestFocusFromTouch()
+                    profileRv.requestFocus()
                 }
             }
 

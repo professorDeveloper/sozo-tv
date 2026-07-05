@@ -47,5 +47,57 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:listitem="@layout/item_play_details_header" />
 
+    <!-- Loading skeleton (replaces the black screen while the detail loads). -->
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmerDetail"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/main_background">
+
+        <include layout="@layout/shimmer_detail_skeleton" />
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+    <!-- Error / retry state (shown on load failure or timeout so loading never hangs forever). -->
+    <LinearLayout
+        android:id="@+id/detailErrorLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/main_background"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/detailErrorText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:fontFamily="@font/days"
+            android:gravity="center"
+            android:text="@string/detail_load_failed"
+            android:textColor="@color/lb_tv_white"
+            android:textSize="18sp" />
+
+        <LinearLayout
+            android:id="@+id/btnRetry"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:background="@drawable/background_button"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingHorizontal="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:duplicateParentState="true"
+                android:fontFamily="@font/days"
+                android:text="@string/retry"
+                android:textColor="@color/login_button_text_color"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </LinearLayout>
+
 </com.saikou.sozo_tv.components.SeasonalBackgroundLayout>
 

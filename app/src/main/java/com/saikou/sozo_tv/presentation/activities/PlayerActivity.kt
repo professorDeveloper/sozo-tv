@@ -69,10 +69,14 @@ class PlayerActivity : AppCompatActivity() {
                     startDestinationArgs = CastDetailScreenArgs(character).toBundle()
                 )
             } else {
-                detailViewModel.loadAnimeById(id = categoryDetails)
-                detailViewModel.loadCast(id = categoryDetails)
-                detailViewModel.loadRelations(id = categoryDetails)
-                detailViewModel.checkBookmark(id = categoryDetails)
+                val loadDetail = {
+                    detailViewModel.loadAnimeById(id = categoryDetails)
+                    detailViewModel.loadCast(id = categoryDetails)
+                    detailViewModel.loadRelations(id = categoryDetails)
+                    detailViewModel.checkBookmark(id = categoryDetails)
+                }
+                detailViewModel.setRetry(loadDetail)
+                loadDetail()
             }
         }
 

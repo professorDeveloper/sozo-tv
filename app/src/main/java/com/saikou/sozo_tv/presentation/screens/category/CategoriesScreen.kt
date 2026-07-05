@@ -15,6 +15,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.CategoriesScreenBinding
+import com.saikou.sozo_tv.domain.model.CategoryChip
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.SearchResults
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
@@ -69,39 +70,9 @@ class CategoriesScreen : Fragment() {
         }
         binding.topContainer.adapter = pageAdapter
         binding.topContainer.setupGridLayoutForCategories(pageAdapter)
-        if (preference.isModeAnimeEnabled()) {
-            if (notSet) {
-                notSet = false
-                model.searchResults = SearchResults(
-                    true,
-                    1,
-                    if (LocalData.currentCategory != "") LocalData.currentCategory else "Action",
-                    results = null
-                )
-                binding.isLoadingContainer.gIsLoadingRetry.isGone = true
-                binding.isLoadingContainer.root.isVisible = true
-                model.loadCategories(model.searchResults)
-            }
-        } else {
-            if (notSet) {
-                notSet = false
-                model.searchResults = SearchResults(
-                    true,
-                    1,
-                    if (LocalData.currentCategory != "") LocalData.currentCategory else "Action",
-                    results = null
-                )
-                binding.isLoadingContainer.gIsLoadingRetry.isGone = true
-                binding.isLoadingContainer.root.isVisible = true
-                model.loadCategoriesMovie(model.searchResults)
-            }
-        }
-
-        if (preference.isModeAnimeEnabled()) {
-            pageAdapter.updateTabs(LocalData.genres)
-        } else {
-            pageAdapter.updateTabs(LocalData.genreTmdb.map { it.title.toString() } as ArrayList<String>)
-        }
+        // Initial content + chips are provider-driven and load asynchronously (see the
+        // genreChips observer below), so nothing is fetched here anymore. Eagerly searching
+        // "Action" returned nothing for server (sv:) providers and left the grid empty.
         pageAdapter.setClickDetail {
             val intent = Intent(binding.root.context, PlayerActivity::class.java)
             intent.putExtra("model", it.id)
@@ -130,47 +101,22 @@ class CategoriesScreen : Fragment() {
             pageAdapter.updateCategories((it?.results ?: arrayListOf()) as ArrayList<MainModel>)
         }
 
-        binding.tabRv.adapter =
-            CategoryTabAdapter(isFiltered = preference.isModeAnimeEnabled()).apply {
-                if (preference.isModeAnimeEnabled()) {
-                    submitList(LocalData.genres)
-                } else {
-                    submitList(LocalData.genreTmdb.map { it.title.toString() } as ArrayList<String>)
-                }
-                setFocusedItemListener { categoryTabItem, _ ->
-                    model.searchResults.currentPage = 1
-                    model.searchResults.genre = categoryTabItem
-                    binding.isLoadingContainer.gIsLoadingRetry.isGone = true
-                    binding.isLoadingContainer.root.isVisible = true
-                    pageAdapter.updateCategoriesAll(arrayListOf())
-                    if (preference.isModeAnimeEnabled()) {
-                        model.loadCategories(model.searchResults)
-                    } else {
-                        model.loadCategoriesMovie(model.searchResults)
-                    }
-                }
-                if (preference.isModeAnimeEnabled()) {
-                    val pos = if (LocalData.currentCategory != "") LocalData.genres.indexOf(
-                        LocalData.currentCategory
-                    ) + 1 else 1
-                    binding.tabRv.scrollToPosition(
-                        pos
-                    )
-                    setSelectedPosition(
-                        pos
-                    )
-                    setLastItemClickListener { showFilterDialog() }
-                } else {
-                    val pos =
-                        if (LocalData.currentCategory != "") LocalData.genreTmdb.indexOf(LocalData.genreTmdb.find { it.title == LocalData.currentCategory }!!) else 0
-                    binding.tabRv.scrollToPosition(
-                        pos
-                    )
-                    setSelectedPosition(
-                        pos
-                    )
-                }
-            }
+        // Chips + the initial grid are driven by the active provider's real catalog. The
+        // fetch is fired once (notSet guard). setupTabs() runs on EVERY chip emission so the
+        // tab row + grid are rebuilt whenever the view is recreated: the retained ViewModel's
+        // genreChips LiveData redelivers its cached value on re-observe (return-from-backstack),
+        // preserving the original "rebuild tabRv every onViewCreated" behavior. Guarding
+        // setupTabs itself with notSet would leave tabRv adapterless (dead focus + stuck
+        // spinner) on the second onViewCreated of the same Fragment instance.
+        model.genreChips.observe(viewLifecycleOwner) { chips ->
+            setupTabs(chips ?: emptyList())
+        }
+        if (notSet) {
+            notSet = false
+            binding.isLoadingContainer.gIsLoadingRetry.isGone = true
+            binding.isLoadingContainer.root.isVisible = true
+            model.loadGenreChips()
+        }
 
 
         model.updateFilter.observe(viewLifecycleOwner) { state ->
@@ -228,6 +174,79 @@ class CategoriesScreen : Fragment() {
             }
         })
     }
+
+    /**
+     * Builds the chip row and fires the content load once chips have resolved. Runs on every
+     * genreChips emission (see the observer). [providerChips] come from the active provider's
+     * real catalog (engine.genres -> home sections); when empty we fall back to the hardcoded
+     * local lists so the default AniList / TMDB experience is preserved.
+     */
+    @SuppressLint("SetTextI18n")
+    private fun setupTabs(providerChips: List<CategoryChip>) {
+        val preference = PreferenceManager()
+        val isAnime = preference.isModeAnimeEnabled()
+        // Screen owns blank-filtering so chip positions line up with finalChips indices.
+        val finalChips = providerChips.ifEmpty { buildFallbackChips(isAnime) }
+            .filter { it.name.isNotBlank() }
+
+        if (finalChips.isEmpty()) {
+            binding.isLoadingContainer.root.isVisible = false
+            binding.topContainer.gone()
+            binding.placeHolder.root.visible()
+            binding.placeHolder.placeholderTxt.text = "No categories available for this source"
+            binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_place_holder_search)
+            return
+        }
+
+        // Anime prepends a "Filter" chip at position 0, so real chips start at index 1.
+        val dataOffset = if (isAnime) 1 else 0
+        val remembered = finalChips.indexOfFirst { it.name == LocalData.currentCategory }
+        val selectedDataIndex = if (remembered >= 0) remembered else 0
+        val selectedPos = selectedDataIndex + dataOffset
+
+        binding.tabRv.adapter = CategoryTabAdapter(isFiltered = isAnime).apply {
+            submitList(ArrayList(finalChips.map { it.name }))
+            setFocusedItemListener { name, position ->
+                val chip = finalChips.getOrNull(position - dataOffset)
+                LocalData.currentCategory = name
+                model.searchResults.currentPage = 1
+                model.searchResults.genre = name
+                model.searchResults.slug = chip?.slug
+                binding.placeHolder.root.gone()
+                binding.topContainer.visible()
+                binding.isLoadingContainer.gIsLoadingRetry.isGone = true
+                binding.isLoadingContainer.root.isVisible = true
+                pageAdapter.updateCategoriesAll(arrayListOf())
+                if (isAnime) model.loadCategories(model.searchResults)
+                else model.loadCategoriesMovie(model.searchResults)
+            }
+            if (isAnime) setLastItemClickListener { showFilterDialog() }
+            setSelectedPosition(selectedPos)
+        }
+        binding.tabRv.scrollToPosition(selectedPos)
+
+        // Initial load for the selected chip, now that we know its real slug.
+        val initial = finalChips[selectedDataIndex]
+        model.searchResults = SearchResults(
+            hasNextPage = true,
+            currentPage = 1,
+            genre = initial.name,
+            results = null,
+            slug = initial.slug,
+        )
+        binding.isLoadingContainer.gIsLoadingRetry.isGone = true
+        binding.isLoadingContainer.root.isVisible = true
+        if (isAnime) model.loadCategories(model.searchResults)
+        else model.loadCategoriesMovie(model.searchResults)
+
+        // Guarantee an initial D-pad focus target: the grid loads async, so the tab row is
+        // the first focusable view and must claim focus once it's populated.
+        _binding?.tabRv?.post { _binding?.tabRv?.requestFocus() }
+    }
+
+    private fun buildFallbackChips(isAnime: Boolean): List<CategoryChip> =
+        if (isAnime) LocalData.genres.map { CategoryChip(it, null) }
+        else LocalData.genreTmdb.map { CategoryChip(it.title.toString(), null) }
 
     private fun applyFilters(country: String?, year: String?, rating: String?) {
         model.searchResults.currentPage = 1

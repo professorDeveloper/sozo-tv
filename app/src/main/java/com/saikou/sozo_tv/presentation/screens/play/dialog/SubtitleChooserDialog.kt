@@ -76,8 +76,9 @@ class SubtitleChooserDialog : DialogFragment() {
         binding.rvSubtitles.layoutManager = LinearLayoutManager(requireContext())
         binding.rvSubtitles.adapter = adapter
 
-        // ON/OFF initial state
-        setEnabledState(subtitlesEnabled, updateFocus = false)
+        // ON/OFF initial state — request initial focus so the dialog opens with a visible
+        // D-pad highlight on the subtitle list / OFF toggle instead of the tiny close "X".
+        setEnabledState(subtitlesEnabled, updateFocus = true)
 
         binding.subtitleToggleOff.setOnClickListener { setEnabledState(false) }
         binding.subtitleToggleOn.setOnClickListener { setEnabledState(true) }
@@ -98,7 +99,7 @@ class SubtitleChooserDialog : DialogFragment() {
 
         // Subtitle yo‘q bo‘lsa:
         if (subtitles.isEmpty()) {
-            setEnabledState(false, updateFocus = false)
+            setEnabledState(false, updateFocus = true)
             binding.subtitleToggleOn.isEnabled = false
             binding.subtitleStyleBtn.isEnabled = true // style baribir o‘zgarsa ham bo‘ladi
         }

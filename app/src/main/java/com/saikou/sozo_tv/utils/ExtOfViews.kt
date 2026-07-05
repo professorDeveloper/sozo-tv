@@ -92,6 +92,7 @@ fun ImageView.loadImage(url: String?) {
         .apply(
             RequestOptions()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .placeholder(R.drawable.bg_shimmer_block)
         )
         .error(fallbackRequest)
         .into(this)

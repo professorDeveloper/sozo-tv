@@ -95,7 +95,7 @@ class EpisodeScreen : Fragment() {
                     binding.loadingLayout.gone()
                     binding.placeHolder.root.visible()
                     binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
-                    binding.placeHolder.placeholderTxt.text = dataFound.throwable.message
+                    binding.placeHolder.placeholderTxt.text = getString(R.string.xatolik)
                 }
 
                 Resource.Loading -> {
@@ -130,7 +130,7 @@ class EpisodeScreen : Fragment() {
                                 binding.loadingLayout.gone()
                                 binding.placeHolder.root.visible()
                                 binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
-                                binding.placeHolder.placeholderTxt.text = result.throwable.message
+                                binding.placeHolder.placeholderTxt.text = getString(R.string.xatolik)
                             }
 
                             Resource.Loading -> {

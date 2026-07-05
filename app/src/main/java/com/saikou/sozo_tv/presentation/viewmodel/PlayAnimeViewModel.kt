@@ -214,12 +214,38 @@ class PlayAnimeViewModel(
             // Aniyomi/CloudStream: the VideoOption already carries the playable url,
             // headers, mime type and subtitle tracks (no extraction needed).
             "extension" -> {
+                var url = option.videoUrl
+                var headers = option.headers
+                var mime = option.mimeTypes.ifEmpty { MimeTypes.APPLICATION_M3U8 }
+
+                // Cloud providers (e.g. asilmedia) resolve to an HTML content page as videoUrl —
+                // ExoPlayer can't parse a page. Sniff the real .m3u8/.mp4 out of a headless WebView
+                // (its JS builds the signed stream url) and play THAT with the captured headers.
+                if (com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.needsExtraction(url)) {
+                    val sniffed = com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.extract(
+                        context = com.saikou.sozo_tv.app.MyApp.context,
+                        pageUrl = url,
+                        pageHeaders = option.headers,
+                    )
+                    if (sniffed != null) {
+                        url = sniffed.url
+                        headers = option.headers + sniffed.headers
+                        mime = if (sniffed.playType == "hls") MimeTypes.APPLICATION_M3U8
+                        else MimeTypes.VIDEO_MP4
+                    }
+                }
+
                 VodMovieResponse(
                     authInfo = "",
                     subtitleList = option.tracks.map { SubTitle(it.file, it.label ?: "") },
-                    urlobj = option.videoUrl,
-                    header = option.headers,
-                    type = option.mimeTypes.ifEmpty { MimeTypes.APPLICATION_M3U8 },
+                    urlobj = url,
+                    header = headers,
+                    type = mime,
+                    // VTT seek-preview sprite url (forwarded from the extension's resolveMedia).
+                    thumbnail = option.thumbnail ?: "",
+                    useLocalProxy = option.useLocalProxy,
+                    localProxyJson = option.localProxy,
+                    requestTransformJson = option.requestTransform,
                 )
             }
 

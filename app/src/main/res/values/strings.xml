@@ -70,6 +70,7 @@
     <string name="message_page">Get Messages</string>
     <string name="exit">Exit Account</string>
     <string name="place_holder_text">There is no movie or serial here right now</string>
+    <string name="cast_details_unavailable">Cast details aren\'t available for this source</string>
     <string name="amallar">Amallar</string>
     <string name="ha_o_chirish">Ha, o\'chirish</string>
     <string name="yo_q_yopish">Yo\'q, yopish</string>
@@ -111,6 +112,7 @@
     <string name="channel_list">Home Page Channels</string>
     <string name="live_tv">LIVE TV</string>
     <string name="retry">Retry</string>
+    <string name="detail_load_failed">Ma\'lumot yuklanmadi. Qayta urinib ko\'ring.</string>
     <string name="guest">Guest</string>
     <string name="episode">%1$s - Episode %2$d</string>
     <string name="episode_is_loading">Episode %1$s is loading…</string>

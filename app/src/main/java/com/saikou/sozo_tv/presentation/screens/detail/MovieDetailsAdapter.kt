@@ -138,20 +138,21 @@ class MovieDetailsAdapter(
 
     class ItemPlayDetailsThirdViewHolder(private val binding: ItemPlayRecommendedBinding) :
         RecyclerView.ViewHolder(binding.root) {
+        private val recommendedAdapter = CategoriesPageAdapter(isDetail = true)
         fun bind() {
-            val adapter = CategoriesPageAdapter(isDetail = true)
-            adapter.setClickDetail {
+            recommendedAdapter.setClickDetail {
                 LocalData.focusChangedListenerPlayerg.invoke(it)
             }
-            Log.d("REcommmended List", "updateTextViews:${recommendedMovies} ")
-            adapter.updateCategoriesAll(recommendedMovies as ArrayList<MainModel>)
-            adapter.setCategoriesPageInterface(object :
+            recommendedAdapter.updateCategoriesAll(recommendedMovies as ArrayList<MainModel>)
+            recommendedAdapter.setCategoriesPageInterface(object :
                 CategoriesPageAdapter.CategoriesPageInterface {
                 override fun onCategorySelected(category: MainModel, position: Int) {
                 }
 
             })
-            binding.recommendedRv.adapter = adapter
+            // Reuse one adapter so async notifyItemChanged / recycling doesn't reset the
+            // recommended row's scroll + focus.
+            if (binding.recommendedRv.adapter !== recommendedAdapter) binding.recommendedRv.adapter = recommendedAdapter
             if (recommendedMovies.isEmpty()) {
                 binding.textView5.gone()
             } else {
@@ -256,8 +257,7 @@ class MovieDetailsAdapter(
                     )
                 }
                 descriptionTextView?.isFocusable = false
-                // Field labels — hidden together with their (empty) value containers so
-                // missing extension data leaves no orphan "Country/Language" headings.
+                // Legacy "About Movie" metadata grid labels.
                 val labelDate = binding.frame.findViewById<TextView?>(R.id.textView8)
                 val labelCountry = binding.frame.findViewById<TextView?>(R.id.textView4)
                 val labelLanguage = binding.frame.findViewById<TextView?>(R.id.textView9)
@@ -273,46 +273,19 @@ class MovieDetailsAdapter(
                     binding.frame.findViewById<TextView?>(R.id.film_description_tv)
                 descriptionTextView2?.isVisible = !item.content.description.isNullOrBlank()
 
-                // Year — the real season/release year, hidden if unknown.
-                val year = item.content.seasonYear
-                if (year != null && year > 0) {
-                    yearContainer?.addView(createCategoryTextView(binding.root.context, year.toString()))
-                    labelDate?.isVisible = true
-                    yearContainer?.isVisible = true
-                } else {
-                    labelDate?.isVisible = false
-                    yearContainer?.isVisible = false
-                }
-
-                // Studio/Author — real value or hidden (no "Japan" placeholder).
-                val studio = item.content.studios?.firstOrNull { !it.isNullOrBlank() }
-                if (!studio.isNullOrBlank()) {
-                    countryContainer?.addView(createCategoryTextView(binding.root.context, studio))
-                    labelCountry?.isVisible = true
-                    countryContainer?.isVisible = true
-                } else {
-                    labelCountry?.isVisible = false
-                    countryContainer?.isVisible = false
-                }
-
-                // Source/Language — extensions expose no meaningful value → hide.
+                // Release Year / Studio / Category / Language are ALREADY rendered as chips in the
+                // header (categoryContainer). Re-rendering them here produced a second metadata
+                // layer that overlapped the header chips (faint "Studio"/"Category" labels ghosting
+                // behind "Action / Adventure / Comedy"). Hide the whole duplicate grid so only the
+                // header chips remain.
+                labelDate?.isVisible = false
+                yearContainer?.isVisible = false
+                labelCountry?.isVisible = false
+                countryContainer?.isVisible = false
                 labelLanguage?.isVisible = false
                 languageContainer?.isVisible = false
-
-                // Genres — real genres, hidden if the provider supplies none.
-                val genreList = item.content.genres
-                    ?.filterNotNull()?.map { it.trim() }?.filter { it.isNotEmpty() }
-                    ?: emptyList()
-                if (genreList.isNotEmpty()) {
-                    genreList.forEach {
-                        genresContainer?.addView(createCategoryTextView(binding.root.context, it))
-                    }
-                    labelGenre?.isVisible = true
-                    genresContainer?.isVisible = true
-                } else {
-                    labelGenre?.isVisible = false
-                    genresContainer?.isVisible = false
-                }
+                labelGenre?.isVisible = false
+                genresContainer?.isVisible = false
 
                 image?.loadImage(item.content.coverImage.large)
             }
@@ -355,6 +328,7 @@ class MovieDetailsAdapter(
         RecyclerView.ViewHolder(binding.root) {
         private var isOn = false
         private var isPlay = true
+        private var initialFocusDone = false
 
         @SuppressLint("SetTextI18n")
         fun bind(item: DetailCategory, interfaceListener: DetailsInterface) {
@@ -427,28 +401,42 @@ class MovieDetailsAdapter(
             binding.filmDescriptionTv.text = item.content.description
             binding.filmDescriptionTv.isVisible = !item.content.description.isNullOrBlank()
 
-
+            // Land initial D-pad focus on Watch, not the Back button (leanback would otherwise
+            // pick backBtn as the first focusable descendant). One-shot so bookmark toggles
+            // (notifyItemChanged(0)) don't steal focus back to Watch every time.
+            if (!initialFocusDone) {
+                initialFocusDone = true
+                binding.watchButton.post {
+                    if (!binding.root.hasFocus()) binding.watchButton.requestFocus()
+                }
+            }
         }
     }
 
 
     class ItemPlayCastViewHolder(private val binding: ItemPlayCastBinding) :
         RecyclerView.ViewHolder(binding.root) {
+        private val castAdapter = CastAdapter()
         @SuppressLint("SetTextI18n")
         fun bind(castREsponse: List<Cast>, interfaceListener: DetailsInterface) {
-            binding.root.visible()
-            val castAdapter = CastAdapter()
             castAdapter.setOnItemClickListener {
                 interfaceListener.onCastItemClicked(it)
             }
+            // Always clear the spinner once cast has resolved (empty OR not). Some providers —
+            // notably the extension sources — don't expose character data, so an empty list is a
+            // valid terminal state, not "still loading". Collapse the row instead of spinning.
+            binding.castProgress.gone()
             if (castREsponse.isEmpty()) {
-                binding.castRv.visibility = View.INVISIBLE
+                binding.castRv.gone()
+                binding.root.gone()
             } else {
+                binding.root.visible()
                 binding.castRv.visible()
-                binding.castProgress.gone()
             }
             castAdapter.submitCast(castREsponse)
-            binding.castRv.adapter = castAdapter
+            // Reuse one adapter so async notifyItemChanged / row recycling doesn't reset the
+            // cast row's horizontal scroll + focused cell.
+            if (binding.castRv.adapter !== castAdapter) binding.castRv.adapter = castAdapter
         }
     }
 

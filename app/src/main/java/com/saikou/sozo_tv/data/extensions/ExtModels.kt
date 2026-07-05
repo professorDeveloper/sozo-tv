@@ -109,6 +109,9 @@ data class ExtVideoSource(
     val host: String?,
     val isDefault: Boolean,
     val headers: Map<String, String>,
+    val useLocalProxy: Boolean = false,
+    val localProxy: String? = null,        // raw JSON
+    val requestTransform: String? = null,  // raw JSON
 )
 
 data class ExtSubtitle(val label: String, val file: String, val default: Boolean)
@@ -119,6 +122,7 @@ data class ExtMedia(
     val headers: Map<String, String>,
     val sources: List<ExtVideoSource>,
     val subtitles: List<ExtSubtitle>,
+    val thumbnails: String? = null,
 )
 
 // ---------- parsing ----------
@@ -274,6 +278,9 @@ internal object ExtParser {
                 host = s.strOrNull("host"),
                 isDefault = s.optBoolean("isDefault", i == 0),
                 headers = s.headersMap("headers"),
+                useLocalProxy = s.optBoolean("useLocalProxy", false),
+                localProxy = s.optJSONObject("localProxy")?.toString(),
+                requestTransform = s.optJSONObject("requestTransform")?.toString(),
             )
         }
         val subArr = o.optJSONArray("subtitles")
@@ -282,12 +289,21 @@ internal object ExtParser {
             val file = s.optString("file").ifEmpty { return@mapNotNull null }
             ExtSubtitle(s.optString("label").ifEmpty { "Subtitle" }, file, s.optBoolean("default", false))
         }
+        // Seek-preview thumbnails: soplay emits a bare VTT url String or a {url,type,template,...}
+        // object. Forward the url so the player's VttSpriteThumbnailLoader can render it again.
+        val thumb = o.opt("thumbnails")
+        val thumbUrl = when (thumb) {
+            is String -> thumb.ifEmpty { null }
+            is JSONObject -> thumb.strOrNull("url") ?: thumb.strOrNull("template")
+            else -> null
+        }
         return ExtMedia(
             videoUrl = o.strOrNull("videoUrl"),
             type = o.strOrNull("type"),
             headers = o.headersMap("headers"),
             sources = sources,
             subtitles = subs,
+            thumbnails = thumbUrl,
         )
     }
 }

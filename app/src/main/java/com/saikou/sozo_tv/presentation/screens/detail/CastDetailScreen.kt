@@ -15,7 +15,8 @@ import com.saikou.sozo_tv.presentation.viewmodel.CastDetailViewModel
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.characterBookmark
 import com.saikou.sozo_tv.utils.finishDeferred
-import com.saikou.sozo_tv.utils.snackString
+import com.saikou.sozo_tv.utils.gone
+import com.saikou.sozo_tv.utils.visible
 import com.saikou.sozo_tv.data.model.toDomain
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -45,10 +46,22 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
         binding.vgvMovieDetails.adapter = adapter
         model.loadDetail(args.castId)
         model.checkBookmark(args.castId)
+        // Register the bookmark observer once here, not inside the castDetail observer (which
+        // would re-register it on every emission and cause redundant header rebinds).
+        model.isBookmark.observe(viewLifecycleOwner) { adapter.updateBookmark(it) }
         model.error.observe(viewLifecycleOwner) {
-            snackString(it ?: "", requireActivity())
+            // Extension/server providers don't expose character/credit detail. Instead of the
+            // old black snackbar, show a clean in-screen placeholder (icon + friendly message).
+            binding.vgvMovieDetails.gone()
+            binding.castPlaceholder.visible()
+            // Defer the focus request until after the layout pass, otherwise requestFocus() can
+            // return false on the just-revealed view and leave D-pad focus nowhere.
+            binding.castPlaceholder.post { binding.castPlaceholder.requestFocus() }
         }
         model.castDetail.observe(viewLifecycleOwner) {
+            // Real detail arrived (non-extension source) — hide the placeholder, show the grid.
+            binding.castPlaceholder.gone()
+            binding.vgvMovieDetails.visible()
             LocalData.setFocusChangedListenerPlayer {
                 val intent =
                     Intent(binding.root.context, PlayerActivity::class.java)
@@ -92,10 +105,6 @@ class CastDetailScreen : Fragment(), CastDetailAdapter.DetailsInterface {
             adapter.submitRecommendedMovies(
                 it.media
             )
-            model.isBookmark.observe(viewLifecycleOwner) { isBookmark ->
-                adapter.updateBookmark(isBookmark)
-
-            }
         }
     }
 

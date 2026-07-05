@@ -18,9 +18,11 @@ class HistoryAdapter : RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder>() 
         setItemHistoryListener = listener
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun submitList(newList: List<WatchHistoryEntity>) {
         this.list.clear()
         this.list.addAll(newList)
+        notifyDataSetChanged()
     }
 
     inner class HistoryViewHolder(private val itemBinding: ItemMovieHistoryBinding) :

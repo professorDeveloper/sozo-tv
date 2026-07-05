@@ -40,6 +40,7 @@ import com.saikou.sozo_tv.domain.model.HistoryHome
 import com.saikou.sozo_tv.domain.model.HistoryHomeItem
 import com.saikou.sozo_tv.presentation.screens.home.vh.ViewHolderFactory
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.applyTvFocusScale
 import com.saikou.sozo_tv.utils.loadImage
 import com.saikou.sozo_tv.utils.visible
 
@@ -296,20 +297,16 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
 
     class GenreViewHolder(private val binding: ItemCategoryBinding) :
         RecyclerView.ViewHolder(binding.root) {
+        private val childAdapter = HomeAdapter()
         fun bind(item: CategoryGenre) {
             binding.tvCategoryTitle.text = item.name
             binding.hgvCategory.apply {
                 setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
 
-                adapter = HomeAdapter().apply {
-                    submitList(item.list)
-                }
-
-//                HomeFakeDAta.setFocusChangedListenerPlayer {
-//                    HomeFakeDAta.categoryItemClicked.invoke(
-//                        item, it
-//                    )
-//                }
+                // Reuse ONE child adapter so the row keeps its horizontal scroll/focus
+                // position across recycling; only submitList (DiffUtil) on rebind.
+                if (adapter !== childAdapter) adapter = childAdapter
+                childAdapter.submitList(item.list)
 
                 setItemSpacing(10)
             }
@@ -347,14 +344,14 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
 
     class ChannelViewHolder(private val binding: ItemCategoryBinding) :
         RecyclerView.ViewHolder(binding.root) {
+        private val childAdapter = HomeAdapter()
         fun bind(item: CategoryChannel) {
             binding.tvCategoryTitle.text = item.name
             binding.hgvCategory.apply {
                 setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
 
-                adapter = HomeAdapter().apply {
-                    submitList(item.list)
-                }
+                if (adapter !== childAdapter) adapter = childAdapter
+                childAdapter.submitList(item.list)
 
                 setItemSpacing(10)
             }
@@ -364,13 +361,13 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
 
     class HistoryViewHolder(private val binding: ItemCategoryBinding) :
         RecyclerView.ViewHolder(binding.root) {
+        private val childAdapter = HomeAdapter()
         fun bind(item: HistoryHome) {
             binding.tvCategoryTitle.text = item.name
             binding.hgvCategory.apply {
                 setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
-                adapter = HomeAdapter().apply {
-                    submitList(item.list)
-                }
+                if (adapter !== childAdapter) adapter = childAdapter
+                childAdapter.submitList(item.list)
 
                 setItemSpacing(10)
             }
@@ -392,19 +389,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 } else {
                     "Episode ${getLocalEp.epIndex + 1}"
                 }
-                binding.root.setOnFocusChangeListener { _, hasFocus ->
-                    val animation = when {
-                        hasFocus -> AnimationUtils.loadAnimation(
-                            binding.root.context, R.anim.zoom_in
-                        )
-
-                        else -> AnimationUtils.loadAnimation(
-                            binding.root.context, R.anim.zoom_out
-                        )
-                    }
-                    binding.root.startAnimation(animation)
-                    animation.fillAfter = true
-                }
+                binding.root.applyTvFocusScale()
                 binding.root.setOnClickListener {
                     LocalData.historyItemClickListenerr.invoke(getLocalEp)
                 }
@@ -424,20 +409,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             binding.root.setOnClickListener {
                 LocalData.channnelItemClickListener.invoke(item.content)
             }
-            binding.root.setOnFocusChangeListener { view, hasFocus ->
-                val animation = when {
-                    hasFocus -> AnimationUtils.loadAnimation(
-                        binding.root.context, R.anim.zoom_in
-                    )
-
-                    else -> AnimationUtils.loadAnimation(
-                        binding.root.context, R.anim.zoom_out
-                    )
-                }
-                binding.root.startAnimation(animation)
-                animation.fillAfter = true
-
-            }
+            binding.root.applyTvFocusScale()
 
         }
     }
@@ -483,17 +455,9 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
      */
     class ItemCategoryViewHolder(private val binding: ItemCategoryBinding) :
         RecyclerView.ViewHolder(binding.root) {
+        private val childAdapter = HomeAdapter()
         fun bind(item: Category) {
             binding.tvCategoryTitle.text = item.name
-
-            binding.hgvCategory.apply {
-                setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
-                adapter = HomeAdapter().apply {
-                    submitList(item.list)
-                }
-
-                setItemSpacing(10)
-            }
 
             val listWithViewAll: List<HomeData> = item.list + ViewAllData(
                 rowId = item.rowId,
@@ -503,12 +467,10 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
 
             binding.hgvCategory.apply {
                 setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
-                adapter = HomeAdapter().apply {
-                    submitList(listWithViewAll)
-                }
+                if (adapter !== childAdapter) adapter = childAdapter
+                childAdapter.submitList(listWithViewAll)
                 setItemSpacing(10)
             }
-
         }
     }
 

@@ -3,6 +3,8 @@ package com.saikou.sozo_tv.presentation.screens.detail
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -49,6 +51,8 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     private var player: ExoPlayer? = null
     private val preference by lazy { PreferenceManager() }
     private var trailerUrlPlayer: String? = null
+    private val loadTimeoutHandler = Handler(Looper.getMainLooper())
+    private var loadTimeoutRunnable: Runnable? = null
     private val detailsAdapter = MovieDetailsAdapter(detailsButtonListener = this)
     private val playerListener = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
@@ -87,6 +91,11 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         binding.seasonalBackground.setTheme(seasonalTheme)
         initializeAdapter()
         initializePlayer()
+        showDetailLoading()
+        binding.btnRetry.setOnClickListener {
+            showDetailLoading()
+            detailModel.retry()
+        }
 
         detailModel.relationsData.observe(viewLifecycleOwner) {
             detailsAdapter.submitRecommendedMovies(it)
@@ -106,6 +115,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
             detailsAdapter.updateBookmark(it)
         }
         detailModel.detailData.observe(viewLifecycleOwner) { details ->
+            hideDetailLoading()
             detailModel.checkBookmark(details.content.id)
             if (preference.isModeAnimeEnabled()) {
                 detailModel.loadTrailer(details.content.id)
@@ -127,14 +137,13 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
                 requireActivity().startActivity(intent)
                 requireActivity().finishDeferred()
             }
-            detailModel.isBookmark.observe(viewLifecycleOwner) {
-                detailsAdapter.updateBookmark(it)
-            }
         }
 
 
         detailModel.errorData.observe(viewLifecycleOwner) {
-            Toast.makeText(requireActivity(), it, Toast.LENGTH_SHORT).show()
+            // Only show the full error/retry state if the detail itself never loaded; secondary
+            // loads (cast / recommendations) can fail without blocking the whole screen.
+            if (detailModel.detailData.value == null) showDetailError()
         }
     }
 
@@ -198,6 +207,38 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         }
         binding.root.requestFocus()
 
+    }
+
+    private fun showDetailLoading() {
+        cancelLoadTimeout()
+        binding.detailErrorLayout.gone()
+        binding.shimmerDetail.visible()
+        binding.shimmerDetail.startShimmer()
+        // If neither data nor an error arrives in time, stop loading and show Retry so the
+        // screen never hangs on an endless shimmer/spinner.
+        loadTimeoutRunnable = Runnable {
+            if (_binding != null && detailModel.detailData.value == null) showDetailError()
+        }.also { loadTimeoutHandler.postDelayed(it, 15_000) }
+    }
+
+    private fun hideDetailLoading() {
+        cancelLoadTimeout()
+        binding.shimmerDetail.stopShimmer()
+        binding.shimmerDetail.gone()
+        binding.detailErrorLayout.gone()
+    }
+
+    private fun showDetailError() {
+        cancelLoadTimeout()
+        binding.shimmerDetail.stopShimmer()
+        binding.shimmerDetail.gone()
+        binding.detailErrorLayout.visible()
+        binding.detailErrorLayout.post { binding.btnRetry.requestFocus() }
+    }
+
+    private fun cancelLoadTimeout() {
+        loadTimeoutRunnable?.let { loadTimeoutHandler.removeCallbacks(it) }
+        loadTimeoutRunnable = null
     }
 
 
@@ -281,6 +322,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        cancelLoadTimeout()
         _binding = null
         LocalData.bookmark = false
         detailModel.cancelTrailerLoading()

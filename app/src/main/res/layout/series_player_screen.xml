@@ -28,7 +28,7 @@
             app:show_next_button="true"
             app:show_previous_button="true"
             app:show_subtitle_button="true"
-            app:show_timeout="2000"
+            app:show_timeout="5000"
             app:show_vr_button="true" />
         <LinearLayout
             android:id="@+id/loading_layout"
@@ -132,9 +132,7 @@
             android:id="@+id/episodeRv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:descendantFocusability="blocksDescendants"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
+            android:descendantFocusability="afterDescendants"
             android:focusedByDefault="false"
             android:nextFocusDown="@id/btn_hide_menu_right"
             android:nextFocusUp="@id/btn_hide_menu_right"

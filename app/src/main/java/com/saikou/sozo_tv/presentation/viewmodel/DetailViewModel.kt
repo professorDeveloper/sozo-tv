@@ -27,6 +27,17 @@ class DetailViewModel(
     val errorData = MutableLiveData<String>()
 
     private var trailerJob: Job? = null
+    private var retryAction: (() -> Unit)? = null
+
+    /** Sets the action re-run by the detail screen's Retry button (reloads detail + cast + relations). */
+    fun setRetry(action: () -> Unit) {
+        retryAction = action
+    }
+
+    /** Re-runs the last detail load (used by the detail screen's Retry button). */
+    fun retry() {
+        retryAction?.invoke()
+    }
 
     fun cancelTrailerLoading() {
         trailerJob?.cancel()
@@ -111,16 +122,17 @@ class DetailViewModel(
     fun loadCast(id: Int) {
         viewModelScope.launch {
             val result = repo.loadCast(id)
-            if (result.isSuccess) castResponseData.postValue(result.getOrNull().orEmpty())
-            else errorData.postValue(result.exceptionOrNull()?.message)
+            // Post an empty list (not errorData) on failure so the cast row terminates its loader
+            // and collapses. Cast is non-critical and unsupported by extension providers — treating
+            // a miss as a hard error is what left the spinner running forever.
+            castResponseData.postValue(if (result.isSuccess) result.getOrNull().orEmpty() else emptyList())
         }
     }
 
     fun loadCastSeriesOrMovie(id: Int, isMovie: Boolean) {
         viewModelScope.launch {
             val result = repo.loadCastMovieSeries(id, isMovie)
-            if (result.isSuccess) castResponseData.postValue(result.getOrNull().orEmpty())
-            else errorData.postValue(result.exceptionOrNull()?.message)
+            castResponseData.postValue(if (result.isSuccess) result.getOrNull().orEmpty() else emptyList())
         }
     }
 

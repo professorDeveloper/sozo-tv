@@ -45,7 +45,9 @@ class SearchAdapter :
             val spannableString = SpannableString(mainText)
 
             if (query.isNotEmpty()) {
-                val start = mainText.lowercase().indexOf(query.lowercase())
+                // Compute the offset against the SAME string we span. Using a lowercased copy
+                // can shift indices (e.g. 'İ' -> 2 UTF-16 units) and overflow -> setSpan crash.
+                val start = mainText.indexOf(query, ignoreCase = true)
                 if (start != -1) {
                     val end = start + query.length
                     spannableString.setSpan(

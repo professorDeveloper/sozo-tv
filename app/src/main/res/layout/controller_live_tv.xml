@@ -92,7 +92,7 @@
 
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:nextFocusDown="@id/exo_play_paused"
+            android:nextFocusDown="@id/exo_play_pause_container"
             app:layout_constraintBottom_toTopOf="@id/exo_bottom_bar"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

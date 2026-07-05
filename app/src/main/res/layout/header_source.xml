@@ -28,7 +28,7 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/btnTabAniyomi"
+            android:id="@+id/btnTabServer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_tab_selected"
@@ -37,8 +37,24 @@
             android:nextFocusDown="@id/etSearchProvider"
             android:paddingHorizontal="26dp"
             android:paddingVertical="10dp"
-            android:text="Aniyomi"
+            android:text="Sozo"
             android:textColor="#111417"
+            android:textSize="16sp"
+            tools:ignore="HardcodedText" />
+
+        <TextView
+            android:id="@+id/btnTabAniyomi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:background="@drawable/bg_tab_unselected"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusDown="@id/etSearchProvider"
+            android:paddingHorizontal="26dp"
+            android:paddingVertical="10dp"
+            android:text="Aniyomi"
+            android:textColor="#CCCCCC"
             android:textSize="16sp" />
 
         <TextView
@@ -71,8 +87,8 @@
         android:imeOptions="actionSearch"
         android:inputType="text"
         android:maxLines="1"
-        android:nextFocusUp="@id/btnTabAniyomi"
-        android:nextFocusLeft="@id/btnTabAniyomi"
+        android:nextFocusUp="@id/btnTabServer"
+        android:nextFocusLeft="@id/btnTabServer"
         android:nextFocusRight="@id/btnTabCloudstream"
         android:paddingHorizontal="16dp"
         android:paddingVertical="9dp"

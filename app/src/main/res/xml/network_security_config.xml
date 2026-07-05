@@ -3,6 +3,9 @@
 
 
     <domain-config cleartextTrafficPermitted="true">
+        <!-- LocalHlsProxy loopback server (ExoPlayer fetches http://127.0.0.1:PORT/hls/...). -->
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
         <domain includeSubdomains="true">cdn.jwplayer.com</domain>
         <domain includeSubdomains="true">api.jikan.moe</domain>
         <domain includeSubdomains="true">sunshinerays93.live</domain>

@@ -120,6 +120,10 @@ class HomeViewModel(
             val result = repo.convertMalId(id)
             if (result.isSuccess) {
                 aniId.value = Resource.Success(result.getOrNull()!!)
+            } else {
+                aniId.value = Resource.Error(
+                    result.exceptionOrNull() ?: Exception("Failed to resolve title")
+                )
             }
         }
     }

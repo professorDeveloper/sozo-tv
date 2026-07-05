@@ -1,6 +1,8 @@
 <resources>
 
-    <style name="Theme.Tv" parent="@style/Theme.MaterialComponents.DayNight.NoActionBar">
+    <!-- App is dark-by-design: use a non-DayNight dark Material theme so component surfaces
+         (dialogs, buttons, cards) stay dark even if the TV is set to Light mode. -->
+    <style name="Theme.Tv" parent="@style/Theme.MaterialComponents.NoActionBar">
         <item name="android:textColor">@color/lb_tv_white</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
     </style>

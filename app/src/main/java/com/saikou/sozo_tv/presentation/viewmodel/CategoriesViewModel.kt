@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.saikou.sozo_tv.domain.model.CategoryChip
 import com.saikou.sozo_tv.domain.model.SearchResults
 import com.saikou.sozo_tv.domain.repository.CategoriesRepository
 import com.saikou.sozo_tv.utils.UiState
@@ -13,8 +14,19 @@ class CategoriesViewModel(private val repo: CategoriesRepository) : ViewModel() 
     val result: MutableLiveData<SearchResults?> = MutableLiveData()
     val nextPageResult: MutableLiveData<SearchResults?> = MutableLiveData()
     val updateFilter: MutableLiveData<UiState<SearchResults>?> = MutableLiveData()
+    val genreChips: MutableLiveData<List<CategoryChip>> = MutableLiveData()
     lateinit var searchResults: SearchResults
 
+    /**
+     * Loads the filter-row chips from the active provider's real catalog
+     * (genres -> home sections -> empty for the local fallback). Posts to [genreChips].
+     */
+    fun loadGenreChips() {
+        viewModelScope.launch {
+            val res = repo.loadGenres()
+            genreChips.postValue(res.getOrNull().orEmpty())
+        }
+    }
 
     fun loadCategories(r: SearchResults) {
         viewModelScope.launch {

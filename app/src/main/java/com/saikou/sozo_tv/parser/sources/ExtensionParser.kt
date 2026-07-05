@@ -102,6 +102,10 @@ class ExtensionParser : BaseParser() {
                 // with the per-source ones (source overrides). Using only s.headers dropped the
                 // media-level headers and caused HTTP 403 on hosts that gate on Referer.
                 headers = media.headers + s.headers,
+                thumbnail = media.thumbnails,
+                useLocalProxy = s.useLocalProxy,
+                localProxy = s.localProxy,
+                requestTransform = s.requestTransform,
             )
         }
     }

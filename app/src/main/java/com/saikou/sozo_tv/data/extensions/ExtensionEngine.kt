@@ -81,9 +81,20 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
      * (repo name, current, total) while a repo downloads.
      */
     suspend fun ensureDefaultsInstalled(
-        groups: List<String> = listOf(ExtGroup.ANIYOMI, ExtGroup.CLOUDSTREAM),
+        groups: List<String> = listOf(ExtGroup.SERVER, ExtGroup.ANIYOMI, ExtGroup.CLOUDSTREAM),
         progress: ((name: String, current: Int, total: Int) -> Unit)? = null,
     ): Unit = withContext(Dispatchers.IO) {
+        // Activate a source as early as possible so Home has content instantly. Our own server
+        // catalog (SERVER) needs no repo download — it comes straight from /contents/providers —
+        // so trying it first gives a working Home immediately (like soplay), before the heavier
+        // CloudStream/Aniyomi repos finish installing.
+        if (getActiveProvider() == null) {
+            groups.firstNotNullOfOrNull { group ->
+                runCatching { providers(group).firstOrNull() }.getOrNull()
+            }?.let { setActiveProvider(it.id, it.group, it.name) }
+        }
+        // Install the curated default repos for any repo-backed group missing them. SERVER has
+        // no repos (empty ShortcodeRegistry entries) so it's a no-op there.
         for (group in groups) {
             val installed = runCatching { listRepos(group).map { it.url }.toSet() }
                 .getOrDefault(emptySet())
@@ -95,6 +106,7 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
                     }
                 }
         }
+        // Fallback: if the server was unreachable, activate the first provider that did install.
         if (getActiveProvider() == null) {
             groups.firstNotNullOfOrNull { group ->
                 runCatching { providers(group).firstOrNull() }.getOrNull()

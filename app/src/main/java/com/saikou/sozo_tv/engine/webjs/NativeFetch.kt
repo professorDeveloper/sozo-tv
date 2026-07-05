@@ -1,53 +1,59 @@
 package com.saikou.sozo_tv.engine.webjs
 
-import okhttp3.Cookie
-import okhttp3.CookieJar
-import okhttp3.HttpUrl
+import android.content.Context
+import eu.kanade.tachiyomi.network.AndroidCookieJar
+import eu.kanade.tachiyomi.network.interceptor.CloudflareInterceptor
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
-class NativeFetch {
+/**
+ * The HTTP bridge the JS extractors call through `window.dartFetch`. Mirrors soplay's DartFetch:
+ * a shared cookie jar plus a transparent Cloudflare solver so a challenged content site is bypassed
+ * inside the single fetch (the extractor JS only ever sees real HTML/JSON, never a challenge page).
+ */
+class NativeFetch(context: Context) {
 
-    private val cookies = ConcurrentHashMap<String, MutableList<Cookie>>()
+    // Global WebView CookieManager — shared with CloudflareInterceptor's solver WebView so a solved
+    // cf_clearance is automatically sent on the retried/subsequent requests.
+    private val cookieJar = AndroidCookieJar()
 
     private val client = OkHttpClient.Builder()
         .followRedirects(true)
         .followSslRedirects(true)
         .connectTimeout(20, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
-        .cookieJar(object : CookieJar {
-            override fun saveFromResponse(url: HttpUrl, list: List<Cookie>) {
-                val store = cookies.getOrPut(url.host) { mutableListOf() }
-                list.forEach { c ->
-                    store.removeAll { it.name == c.name }
-                    store.add(c)
-                }
-            }
-
-            override fun loadForRequest(url: HttpUrl): List<Cookie> = cookies[url.host] ?: emptyList()
-        })
+        .writeTimeout(20, TimeUnit.SECONDS)
+        // Bound a single stalled response so one stuck fetch can't consume the whole provider budget.
+        .callTimeout(45, TimeUnit.SECONDS)
+        .cookieJar(cookieJar)
+        .addInterceptor(CloudflareInterceptor(context.applicationContext, cookieJar) { UA })
         .build()
 
     fun execute(reqJson: String): String {
+        var loggedUrl = ""
         return try {
             val req = JSONObject(reqJson)
             val url = req.optString("url")
+            loggedUrl = url
             if (url.isEmpty()) return errorJson()
             val method = req.optString("method", "GET").uppercase()
             val headers = req.optJSONObject("headers")
             val builder = Request.Builder().url(url)
             var contentType: String? = null
+            var hasUa = false
             headers?.keys()?.forEach { k ->
                 val v = headers.optString(k)
                 builder.header(k, v)
                 if (k.equals("content-type", true)) contentType = v
+                if (k.equals("user-agent", true)) hasUa = true
             }
+            // Many sites block requests with no UA; give a browser one when the extractor omits it.
+            if (!hasUa) builder.header("User-Agent", UA)
             val bodyRaw = if (req.isNull("body")) null else req.opt("body")
             val body = when {
                 bodyRaw == null -> null
@@ -62,6 +68,7 @@ class NativeFetch {
             }
             client.newCall(builder.build()).execute().use { resp ->
                 val text = resp.body?.string() ?: ""
+                android.util.Log.i("NativeFetch", "$method $url -> ${resp.code} (${text.length}b)")
                 val respHeaders = JSONObject()
                 resp.headers.names().forEach { n ->
                     respHeaders.put(n.lowercase(), resp.headers.values(n).joinToString(","))
@@ -74,6 +81,7 @@ class NativeFetch {
                 }.toString()
             }
         } catch (t: Throwable) {
+            android.util.Log.w("NativeFetch", "fetch $loggedUrl failed: ${t.javaClass.simpleName}: ${t.message}")
             errorJson()
         }
     }
@@ -94,4 +102,9 @@ class NativeFetch {
         put("data", JSONObject.NULL)
         put("headers", JSONObject())
     }.toString()
+
+    companion object {
+        private const val UA =
+            "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+    }
 }

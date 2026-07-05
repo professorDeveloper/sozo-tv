@@ -7,6 +7,8 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ItemTvCategoryBinding
+import com.saikou.sozo_tv.utils.applyTvFocusScale
+import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.visible
 
 class CategoryTabAdapter(private var isFiltered: Boolean = true) :
@@ -36,6 +38,7 @@ class CategoryTabAdapter(private var isFiltered: Boolean = true) :
             binding.title.setTextColor(if (isSelected) selectedColor else defaultTextColor)
             if (isFiltered) {
                 if (position != 0) {
+                    binding.filterIcon.gone()
                     binding.root.setBackgroundResource(if (isSelected) R.drawable.background_item_tv_category_tv_selected else R.drawable.background_item_tv_category_tv)
                 } else {
                     binding.filterIcon.visible()
@@ -44,19 +47,7 @@ class CategoryTabAdapter(private var isFiltered: Boolean = true) :
             } else {
                 binding.root.setBackgroundResource(if (isSelected) R.drawable.background_item_tv_category_tv_selected else R.drawable.background_item_tv_category_tv)
             }
-            binding.root.setOnFocusChangeListener { _, hasFocus ->
-                val animation = when {
-                    hasFocus -> AnimationUtils.loadAnimation(
-                        binding.root.context, R.anim.zoom_in
-                    )
-
-                    else -> AnimationUtils.loadAnimation(
-                        binding.root.context, R.anim.zoom_out
-                    )
-                }
-                binding.root.startAnimation(animation)
-                animation.fillAfter = true
-            }
+            binding.root.applyTvFocusScale()
             binding.root.setOnClickListener {
                 if (isFiltered) {
                     if (position == 0) {
@@ -93,7 +84,8 @@ class CategoryTabAdapter(private var isFiltered: Boolean = true) :
     fun submitList(newList: ArrayList<String>) {
         list.clear()
         if (isFiltered) list.add(0, "Filter")
-        list.addAll(newList)
+        // Drop blank labels so no empty chip renders (BUG B).
+        list.addAll(newList.filter { it.isNotBlank() })
         notifyDataSetChanged()
     }
 

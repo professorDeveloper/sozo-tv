@@ -59,6 +59,7 @@ class ServerHost(
         val b = bare(provider)
         ensureMeta()
         val m = meta[b]
+        android.util.Log.i("ServerHost", "getMainPage $b via ${if (usesJsCatalog(m)) "JS(${m?.extractorName})" else "REST"}")
         val soplay = if (usesJsCatalog(m)) {
             webjs.callProvider(m!!.extractorName!!, m.extractorVersion, "getHome", JSONArray())
         } else {
@@ -88,6 +89,7 @@ class ServerHost(
         val b = bare(provider)
         ensureMeta()
         val m = meta[b]
+        android.util.Log.i("ServerHost", "search $b via ${if (usesJsCatalog(m)) "JS(${m?.extractorName})" else "REST"}")
         val soplay = if (usesJsCatalog(m)) {
             webjs.callProvider(m!!.extractorName!!, m.extractorVersion, "search", JSONArray().put(query).put(1))
         } else {
@@ -121,6 +123,7 @@ class ServerHost(
         val m = meta[b]
         val detail: String?
         val episodes: String?
+        android.util.Log.i("ServerHost", "load $b via ${if (usesJsCatalog(m)) "JS(${m?.extractorName})" else "REST"}")
         if (usesJsCatalog(m)) {
             detail = webjs.callProvider(m!!.extractorName!!, m.extractorVersion, "getDetail", JSONArray().put(url))
             episodes = webjs.callProvider(m.extractorName!!, m.extractorVersion, "getEpisodes", JSONArray().put(url))
@@ -135,9 +138,18 @@ class ServerHost(
     }
 
     suspend fun loadLinksJson(provider: String, data: String): String {
+        // Movie streams already resolved in the episodes response and embedded by translateDetail.
+        if (data.startsWith("direct::")) {
+            val json = runCatching {
+                String(android.util.Base64.decode(data.removePrefix("direct::"), android.util.Base64.NO_WRAP), Charsets.UTF_8)
+            }.getOrNull()
+            android.util.Log.i("ServerHost", "loadLinks direct:: (${json?.length ?: 0} chars)")
+            return translateMedia(json)
+        }
         val b = bare(provider)
         ensureMeta()
         val m = meta[b]
+        android.util.Log.i("ServerHost", "loadLinks $b via ${if (usesJsResolve(m)) "JS(${m?.extractorName})" else "REST"}")
         val soplay = if (usesJsResolve(m)) {
             webjs.callProvider(
                 m!!.extractorName!!,
@@ -146,7 +158,7 @@ class ServerHost(
                 JSONArray().put(data).put(JSONObject().put("lang", "sub")),
             )
         } else {
-            client.get("/contents/media", mapOf("provider" to b, "ref" to data))
+            client.get("/contents/media", mapOf("provider" to b, "ref" to data, "lang" to "sub"))
         }
         return translateMedia(soplay)
     }
@@ -199,13 +211,18 @@ class ServerHost(
         val d = parseObject(detail ?: return "{}")
         val ep = parseObject(episodes ?: "{}")
         val epsIn = ep.optJSONArray("episodes") ?: d.optJSONArray("episodes") ?: JSONArray()
+        // A movie's /contents/episodes response resolves the streams at top level
+        // (videoSources/playerSrc), while the per-episode mediaRef is only the unplayable content
+        // page. When present, use those resolved streams (as a direct:: ref) for the episode(s)
+        // instead of the page — otherwise loadLinks re-resolves the page into an iframe.
+        val movieSources = if (!ep.optBoolean("isSerial", false)) encodeDirectRef(ep) else null
         val epsOut = JSONArray()
         for (i in 0 until epsIn.length()) {
             val e = epsIn.optJSONObject(i) ?: continue
             epsOut.put(JSONObject().apply {
                 put("episode", e.optInt("episode", i + 1))
                 put("label", e.optString("label"))
-                put("mediaRef", e.optString("mediaRef"))
+                put("mediaRef", movieSources ?: e.optString("mediaRef"))
                 put("image", e.optString("image"))
                 put("overview", e.optString("overview"))
                 put("airdate", e.optString("airdate"))
@@ -214,10 +231,14 @@ class ServerHost(
         }
         val isSerial = d.optBoolean("isSerial", false) || ep.optBoolean("isSerial", false) || epsOut.length() > 1
         if (epsOut.length() == 0) {
+            // Movie: the /contents/episodes response ALREADY carries the resolved streams
+            // (videoSources + playerSrc). Embed them in the mediaRef as a "direct::" payload so
+            // playback uses them straight — re-resolving via /contents/media returns an unplayable
+            // iframe page for these providers (asilmedia etc.). Mirrors soplay's _playMovieDirect.
             epsOut.put(JSONObject().apply {
                 put("episode", 1)
                 put("label", "Movie")
-                put("mediaRef", url)
+                put("mediaRef", movieSources ?: url)
             })
         }
         val castIn = d.optJSONArray("cast") ?: JSONArray()
@@ -260,6 +281,10 @@ class ServerHost(
                 put("type", s.optString("type"))
                 put("isDefault", s.optBoolean("isDefault", i == 0))
                 put("headers", s.optJSONObject("headers") ?: JSONObject())
+                // Loopback-proxy directives (IP/cookie-bound + RC4-signed CDNs like uzmovi) — forward raw.
+                if (s.optBoolean("useLocalProxy", false)) put("useLocalProxy", true)
+                s.optJSONObject("localProxy")?.let { put("localProxy", it) }
+                s.optJSONObject("requestTransform")?.let { put("requestTransform", it) }
             })
         }
         val subIn = o.optJSONArray("subtitles") ?: JSONArray()
@@ -279,6 +304,9 @@ class ServerHost(
             put("headers", o.optJSONObject("headers") ?: JSONObject())
             put("videoSources", srcOut)
             put("subtitles", subOut)
+            // Forward the seek-preview thumbnails (VTT sprite sheet). soplay emits it as a bare
+            // VTT url String or a {url,type,...} object — pass it through raw so downstream can read it.
+            o.opt("thumbnails")?.takeIf { it != JSONObject.NULL }?.let { put("thumbnails", it) }
         }.toString()
     }
 
@@ -299,6 +327,22 @@ class ServerHost(
             })
         }
         return out
+    }
+
+    /** Encode a movie's already-resolved streams (from the episodes response) into a mediaRef so
+     *  loadLinks replays them directly instead of re-resolving into an iframe page. */
+    private fun encodeDirectRef(ep: JSONObject): String? {
+        val vs = ep.optJSONArray("videoSources") ?: return null
+        if (vs.length() == 0) return null
+        val payload = JSONObject().apply {
+            put("videoSources", vs)
+            put("headers", ep.optJSONObject("headers") ?: JSONObject())
+            put("type", ep.optString("type"))
+            put("subtitles", ep.optJSONArray("subtitles") ?: JSONArray())
+        }
+        return "direct::" + android.util.Base64.encodeToString(
+            payload.toString().toByteArray(Charsets.UTF_8), android.util.Base64.NO_WRAP,
+        )
     }
 
     private fun bare(provider: String) = provider.removePrefix("sv:")

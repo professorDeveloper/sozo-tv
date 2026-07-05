@@ -368,8 +368,15 @@ class SearchScreen : Fragment() {
         }
     }
 
-    private fun clearSearchResults() {
+    private fun hideResultsGrid() {
+        // Move focus back to the search field before hiding the grid; setting a currently-focused
+        // view GONE strands D-pad focus and Android teleports it to an arbitrary first focusable.
+        if (binding.vgvSearch.hasFocus()) binding.searchEdt.requestFocus()
         binding.vgvSearch.visibility = View.GONE
+    }
+
+    private fun clearSearchResults() {
+        hideResultsGrid()
         binding.placeHolder.root.visibility = View.GONE
         searchAdapter.updateData(emptyList())
     }
@@ -386,7 +393,7 @@ class SearchScreen : Fragment() {
                 binding.recommendationsTitle.text =
                     getString(R.string.search_results_for, binding.searchEdt.text.toString().trim())
             } else {
-                binding.vgvSearch.visibility = View.GONE
+                hideResultsGrid()
                 binding.placeHolder.root.visibility = View.VISIBLE
                 binding.placeHolder.placeholderTxt.text = "No results found"
                 binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_place_holder_search)
@@ -395,7 +402,7 @@ class SearchScreen : Fragment() {
 
         lifecycleScope.launch {
             model.errorData.observe(viewLifecycleOwner) { errorMessage ->
-                binding.vgvSearch.visibility = View.GONE
+                hideResultsGrid()
                 binding.placeHolder.root.visibility = View.VISIBLE
                 binding.placeHolder.placeholderTxt.text = errorMessage
                 binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)

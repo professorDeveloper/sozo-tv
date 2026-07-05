@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -146,6 +147,16 @@ class HomeScreen : Fragment() {
                         binding.root.context.startActivity(intent)
                     }
 
+                    is Resource.Error -> {
+                        WaitDialog.dismiss(requireActivity())
+                        homeViewModel.aniId.postValue(Resource.Idle)
+                        Toast.makeText(
+                            requireContext(),
+                            "Couldn't open this title. Please try again.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
                     else -> {}
                 }
             }
@@ -160,6 +171,7 @@ class HomeScreen : Fragment() {
 
         is UiState.Loading -> {
             binding.isLoading.gIsLoadingRetry.isGone = true
+            binding.isLoading.pbIsLoading.isVisible = true
             binding.isLoading.root.isVisible = true
         }
 
@@ -167,7 +179,8 @@ class HomeScreen : Fragment() {
             Log.d("GGG", "handleHomeDataState:${state.message} ")
             binding.isLoading.gIsLoadingRetry.isVisible = true
             binding.isLoading.root.isVisible = true
-            binding.isLoading.tvIsLoadingError.text = state.message
+            binding.isLoading.tvIsLoadingError.text =
+                getString(R.string.xatolik)
             binding.isLoading.pbIsLoading.isVisible = false
             binding.isLoading.btnIsLoadingRetry.requestFocus()
             binding.isLoading.btnIsLoadingRetry.setOnClickListener {
@@ -186,6 +199,8 @@ class HomeScreen : Fragment() {
                 stateRestorationPolicy =
                     RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
             }
+            // Preserve each row's horizontal scroll/focus column when the outer grid recycles rows.
+            setSaveChildrenPolicy(androidx.leanback.widget.BaseGridView.SAVE_ALL_CHILD)
             setItemSpacing(resources.getDimension(R.dimen.home_spacing).toInt() * 2)
         }
         binding.root.requestFocus()

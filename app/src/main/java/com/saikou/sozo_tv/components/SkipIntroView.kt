@@ -10,7 +10,7 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
+import android.view.ViewGroup
 import androidx.media3.exoplayer.ExoPlayer
 import com.google.android.material.card.MaterialCardView
 import com.saikou.sozo_tv.R
@@ -24,7 +24,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class SkipIntroView(
-    private val controller: ConstraintLayout,
+    // Container the skip overlay is attached to. Must NOT be the auto-hiding transport
+    // controller (cl_exo_controller_tv), or the Skip button disappears with it after
+    // show_timeout. Pass the PlayerView itself (a FrameLayout) so the overlay stays visible.
+    private val controller: ViewGroup,
     private val player: ExoPlayer,
     private val viewModel: PlayAnimeViewModel,
     private val handler: Handler,

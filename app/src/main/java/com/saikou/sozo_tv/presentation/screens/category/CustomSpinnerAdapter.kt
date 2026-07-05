@@ -80,21 +80,10 @@ class CustomSpinnerAdapter(
         fun bind(item: MySpinnerItem, isSelected: Boolean) {
             titleText.text = item.title
 
-            itemView.setBackgroundColor(
-                if (isSelected) if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    itemView.context.getColor(
-                        R.color.white40
-                    )
-                } else {
-                    ContextCompat.getColor(itemView.context, R.color.white40)
-                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    itemView.context.getColor(
-                        R.color.spinner_color
-                    )
-                } else {
-                    ContextCompat.getColor(itemView.context, R.color.spinner_color)
-                }
-            )
+            // Don't flatten the focus-aware ColorStateList with setBackgroundColor: let the
+            // CardView's cardBackgroundColor (@color/spinner_color) brighten to white on D-pad
+            // focus, and mark the current selection via the activated state.
+            itemView.isActivated = isSelected
 
 
             itemView.isFocusable = true

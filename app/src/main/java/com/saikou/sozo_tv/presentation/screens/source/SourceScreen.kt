@@ -58,6 +58,7 @@ class SourceScreen : Fragment() {
     private var currentGroup: String = ExtGroup.ANIYOMI
     private var searchText: String = ""
     private var selectedRepo: String? = null   // null = all repos
+    private var selectedMode: String? = null   // server tab: null = all modes
     private var statusText: String? = null
     private var progressVisible: Boolean = false
     private var emptyText: String? = null
@@ -99,6 +100,7 @@ class SourceScreen : Fragment() {
     private fun bindHeader(v: SourceHeaderViews) {
         header = v
 
+        v.btnTabServer.setOnClickListener { switchTab(ExtGroup.SERVER) }
         v.btnTabAniyomi.setOnClickListener { switchTab(ExtGroup.ANIYOMI) }
         v.btnTabCloudstream.setOnClickListener { switchTab(ExtGroup.CLOUDSTREAM) }
 
@@ -123,10 +125,26 @@ class SourceScreen : Fragment() {
         applyHeaderState()
     }
 
-    /** Build the repo filter chips ("All" + one per installed repo) for the current tab. */
+    /**
+     * Build the header filter chips for the current tab. On the Sozo (server) tab these filter
+     * by delivery mode (All / Cloud / Hybrid / Local); on the extension tabs they filter by the
+     * installed repo each provider came from.
+     */
     private fun renderRepoChips() {
         val container = header?.repoFilterContainer ?: return
         container.removeAllViews()
+        if (currentGroup == ExtGroup.SERVER) {
+            val modes = adapter.modes()
+            // Only worth showing when there's more than one mode to choose between.
+            if (modes.size < 2) {
+                container.visibility = View.GONE
+                return
+            }
+            container.visibility = View.VISIBLE
+            addChip(container, "All", selectedMode == null) { selectMode(null) }
+            modes.forEach { m -> addChip(container, modeLabel(m), selectedMode == m) { selectMode(m) } }
+            return
+        }
         val repos = adapter.repos()
         // Only worth showing when there's more than one repo to choose between.
         if (repos.size < 2) {
@@ -134,12 +152,35 @@ class SourceScreen : Fragment() {
             return
         }
         container.visibility = View.VISIBLE
-        addRepoChip(container, "All", null)
-        repos.forEach { addRepoChip(container, it, it) }
+        addChip(container, "All", selectedRepo == null) { selectRepo(null) }
+        repos.forEach { r -> addChip(container, r, selectedRepo == r) { selectRepo(r) } }
     }
 
-    private fun addRepoChip(container: LinearLayout, label: String, repo: String?) {
-        val selected = selectedRepo == repo
+    private fun selectRepo(repo: String?) {
+        if (selectedRepo == repo) return
+        selectedRepo = repo
+        adapter.setRepoFilter(repo)
+        refreshEmptyState()
+        renderRepoChips()
+    }
+
+    private fun selectMode(mode: String?) {
+        if (selectedMode == mode) return
+        selectedMode = mode
+        adapter.setModeFilter(mode)
+        refreshEmptyState()
+        renderRepoChips()
+    }
+
+    /** Friendly label for a server provider's delivery mode. */
+    private fun modeLabel(mode: String): String = when (mode) {
+        "server" -> "Cloud"
+        "hybrid" -> "Hybrid"
+        "client" -> "Local"
+        else -> mode.replaceFirstChar { it.uppercase() }
+    }
+
+    private fun addChip(container: LinearLayout, label: String, selected: Boolean, onClick: () -> Unit) {
         val chip = TextView(requireContext()).apply {
             text = label
             textSize = 13f
@@ -151,14 +192,7 @@ class SourceScreen : Fragment() {
                 if (selected) R.drawable.bg_tab_selected else R.drawable.bg_tab_unselected
             )
             setTextColor((if (selected) 0xFF111417 else 0xFFCCCCCC).toInt())
-            setOnClickListener {
-                if (selectedRepo != repo) {
-                    selectedRepo = repo
-                    adapter.setRepoFilter(repo)
-                    refreshEmptyState()
-                    renderRepoChips()
-                }
-            }
+            setOnClickListener { onClick() }
         }
         val lp = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -172,6 +206,7 @@ class SourceScreen : Fragment() {
         currentGroup = group
         searchText = ""
         selectedRepo = null
+        selectedMode = null
         header?.let { v ->
             searchWatcher?.let { v.etSearchProvider.removeTextChangedListener(it) }
             v.etSearchProvider.setText("")
@@ -179,6 +214,7 @@ class SourceScreen : Fragment() {
         }
         adapter.filter("")
         adapter.setRepoFilter(null)
+        adapter.setModeFilter(null)
         applyTabUi()
         renderRepoChips()
         loadProviders()
@@ -186,6 +222,7 @@ class SourceScreen : Fragment() {
 
     private fun applyTabUi() {
         val v = header ?: return
+        styleTab(v.btnTabServer, currentGroup == ExtGroup.SERVER)
         styleTab(v.btnTabAniyomi, currentGroup == ExtGroup.ANIYOMI)
         styleTab(v.btnTabCloudstream, currentGroup == ExtGroup.CLOUDSTREAM)
     }

@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ItemCastBinding
 import com.saikou.sozo_tv.domain.model.Cast
+import com.saikou.sozo_tv.utils.applyTvFocusScale
 import com.saikou.sozo_tv.utils.loadImage
 
 class CastAdapter : RecyclerView.Adapter<CastAdapter.CastVh>() {
@@ -27,21 +28,7 @@ class CastAdapter : RecyclerView.Adapter<CastAdapter.CastVh>() {
             binding.root.setOnClickListener {
                 itemClickkedListener.invoke(cast)
             }
-            binding.root.setOnFocusChangeListener { _, hasFocus ->
-                val animation = when {
-                    hasFocus -> AnimationUtils.loadAnimation(
-                        binding.root.context,
-                        R.anim.zoom_in
-                    )
-
-                    else -> AnimationUtils.loadAnimation(
-                        binding.root.context,
-                        R.anim.zoom_out
-                    )
-                }
-                binding.root.startAnimation(animation)
-                animation.fillAfter = true
-            }
+            binding.root.applyTvFocusScale()
         }
     }
 

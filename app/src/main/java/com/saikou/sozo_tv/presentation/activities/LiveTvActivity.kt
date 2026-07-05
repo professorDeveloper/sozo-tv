@@ -36,6 +36,7 @@ class LiveTvActivity : AppCompatActivity() {
     private lateinit var player: ExoPlayer
     private lateinit var dataSourceFactory: DefaultHttpDataSource.Factory
     private val model: LiveTvViewModel by viewModel()
+    private var hasBeenReady = false
     private val PlayerControlView.binding
         @OptIn(UnstableApi::class) get() = ControllerLiveTvBinding.bind(this.findViewById(R.id.cl_exo_controller))
 
@@ -89,11 +90,18 @@ class LiveTvActivity : AppCompatActivity() {
                     super.onPlaybackStateChanged(playbackState)
                     when (playbackState) {
                         Player.STATE_BUFFERING -> {
-                            binding.progressBar.visibility = View.VISIBLE
-                            binding.pvPlayer.visibility = View.GONE
+                            // Only take over the whole screen for the INITIAL load. For mid-stream
+                            // re-buffering keep the player (and its focusable D-pad controls) on
+                            // screen and let PlayerView's own spinner (show_buffering="always") show,
+                            // otherwise focus is dropped on every stall of a live HLS stream.
+                            if (!hasBeenReady) {
+                                binding.progressBar.visibility = View.VISIBLE
+                                binding.pvPlayer.visibility = View.GONE
+                            }
                         }
 
                         Player.STATE_READY -> {
+                            hasBeenReady = true
                             binding.progressBar.visibility = View.GONE
                             binding.pvPlayer.visibility = View.VISIBLE
                             binding.errorLayout.visibility = View.GONE

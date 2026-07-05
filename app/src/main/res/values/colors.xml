@@ -6,7 +6,10 @@
     <color name="netflix_dark_gray">#2F2F2F</color>
     <color name="netflix_gray">#B3B3B3</color>
     <color name="netflix_white">#FFFFFF</color>
-    <color name="white40">#141414</color>
+    <!-- Legacy-named light text/spinner color shown on dark surfaces (was #141414 = invisible on dark) -->
+    <color name="white40">#CCFFFFFF</color>
+    <!-- Intentional dark background for the SELECTED spinner-dropdown row (CustomSpinnerAdapter) -->
+    <color name="spinner_selected_bg">#141414</color>
     <color name="black">#000</color>
     <color name="netflix_red">#E50914</color>
     <color name="netflix_divider">#404040</color>

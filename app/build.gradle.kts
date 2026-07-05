@@ -169,6 +169,9 @@ dependencies {
     // preference
     implementation("androidx.preference:preference-ktx:1.2.1")
 
+    // Loopback HLS proxy server (LocalHlsProxy) — com.sun.net.httpserver isn't on Android.
+    implementation("org.nanohttpd:nanohttpd:2.3.1")
+
     //REST - APIService
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")

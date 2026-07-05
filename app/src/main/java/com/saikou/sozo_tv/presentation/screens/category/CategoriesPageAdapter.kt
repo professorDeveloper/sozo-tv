@@ -9,6 +9,7 @@ import com.bumptech.glide.Glide
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ItemMovieBinding
 import com.saikou.sozo_tv.domain.model.MainModel
+import com.saikou.sozo_tv.utils.loadImage
 
 class CategoriesPageAdapter(val isDetail: Boolean = false) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -78,7 +79,9 @@ class CategoriesPageAdapter(val isDetail: Boolean = false) :
     fun updateCategories(newCategories: ArrayList<MainModel>) {
         val startPosition = categoryList.size
         categoryList.addAll(newCategories)
-        notifyItemRangeInserted(startPosition + 1, newCategories.size)
+        // startPosition is captured BEFORE addAll, so it is the index of the first appended
+        // item; the range must start there (a +1 desyncs the adapter -> RecyclerView crash).
+        notifyItemRangeInserted(startPosition, newCategories.size)
         isUpdated = false
     }
 
@@ -87,7 +90,7 @@ class CategoriesPageAdapter(val isDetail: Boolean = false) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(data: MainModel) {
             binding.apply {
-                Glide.with(binding.root.context).load(data.image).into(binding.itemImg)
+                binding.itemImg.loadImage(data.image)
                 binding.topContainer.text = data.title
                 binding.root.setOnClickListener {
                     if (isDetail) {

@@ -42,7 +42,13 @@ class VideoQualityDialog(private val list: List<VideoOption>, private var curren
             dismiss()
         }
         binding.videOptionRv.adapter = adapter
-        binding.videOptionRv.scrollToPosition(currentIndex)
         adapter.setDefaultSelected(currentIndex)
+        // On a leanback VerticalGridView, scrollToPosition does NOT move the D-pad selection;
+        // setSelectedPosition puts the focus highlight on the current quality and requestFocus
+        // makes the grid acquire focus so the dialog is immediately navigable.
+        binding.videOptionRv.post {
+            binding.videOptionRv.setSelectedPosition(currentIndex)
+            binding.videOptionRv.requestFocus()
+        }
     }
 }

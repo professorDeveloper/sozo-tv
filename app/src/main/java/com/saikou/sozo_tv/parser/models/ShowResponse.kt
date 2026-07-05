@@ -24,7 +24,11 @@ data class VideoOption(
     val mimeTypes: String = "",
     val fullText: String,
     var tracks: List<MegaTrack> = arrayListOf(),
-    var headers: Map<String, String> = mapOf()
+    var headers: Map<String, String> = mapOf(),
+    var thumbnail: String? = null,
+    var useLocalProxy: Boolean = false,
+    var localProxy: String? = null,
+    var requestTransform: String? = null,
 )
 
 

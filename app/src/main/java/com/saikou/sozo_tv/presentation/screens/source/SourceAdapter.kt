@@ -14,10 +14,12 @@ import androidx.recyclerview.widget.ListUpdateCallback
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.data.extensions.ExtGroup
 import com.saikou.sozo_tv.data.extensions.ExtProvider
 
 /** Findable views inside [R.layout.header_source]; the fragment wires the listeners. */
 class SourceHeaderViews(val root: View) {
+    val btnTabServer: TextView = root.findViewById(R.id.btnTabServer)
     val btnTabAniyomi: TextView = root.findViewById(R.id.btnTabAniyomi)
     val btnTabCloudstream: TextView = root.findViewById(R.id.btnTabCloudstream)
     val tvStatus: TextView = root.findViewById(R.id.tvStatus)
@@ -46,6 +48,7 @@ class SourceAdapter(
     private var selectedId: String? = null
     private var query: String = ""
     private var repoFilter: String? = null
+    private var modeFilter: String? = null   // server tab: null = all, else "server"/"hybrid"/"client"
 
     init {
         setHasStableIds(true)
@@ -73,9 +76,18 @@ class SourceAdapter(
         applyFilter()
     }
 
+    /** Restrict server providers to one delivery mode (null = all). Combined with [filter]. */
+    fun setModeFilter(mode: String?) {
+        modeFilter = mode
+        applyFilter()
+    }
+
     /** Distinct repo names across all loaded providers, in first-seen order. */
     fun repos(): List<String> =
         allItems.mapNotNull { it.repo?.takeIf { r -> r.isNotBlank() } }.distinct()
+
+    /** Distinct delivery modes (server/hybrid/client) across loaded providers, first-seen order. */
+    fun modes(): List<String> = allItems.map { it.mode }.distinct()
 
     fun setSelected(id: String?) {
         val old = selectedId
@@ -105,6 +117,7 @@ class SourceAdapter(
         val q = query.lowercase()
         var seq = allItems.asSequence()
         repoFilter?.let { repo -> seq = seq.filter { it.repo == repo } }
+        modeFilter?.let { m -> seq = seq.filter { it.mode == m } }
         if (q.isNotEmpty()) {
             seq = seq.filter {
                 it.name.lowercase().contains(q) ||
@@ -185,7 +198,16 @@ class SourceAdapter(
 
         fun bind(p: ExtProvider, isSelected: Boolean) {
             name.text = p.name
-            meta.text = listOfNotNull(p.group, p.lang, p.repo)
+            // For our own server catalog, surface the delivery mode (Cloud / Hybrid / Local)
+            // instead of the raw "server" group so the three flavours are distinguishable.
+            val groupLabel = if (p.group == ExtGroup.SERVER) {
+                when (p.mode) {
+                    "server" -> "Cloud"
+                    "hybrid" -> "Hybrid"
+                    else -> "Local"
+                }
+            } else p.group
+            meta.text = listOfNotNull(groupLabel, p.lang, p.repo)
                 .filter { it.isNotBlank() }
                 .joinToString(" · ")
             selected.isVisible = isSelected

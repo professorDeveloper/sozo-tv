@@ -28,11 +28,20 @@ class WebJsRuntime(
     private val codeCache = ConcurrentHashMap<String, String>()
     private val results = ConcurrentHashMap<String, CompletableDeferred<JsResult>>()
     private val ids = AtomicLong(0)
-    private val nativeFetch = NativeFetch()
+    private val nativeFetch = NativeFetch(context)
+
+    // The runtime WebView is created programmatically and never attached to a window, so
+    // View.post{} is parked in its HandlerActionQueue forever (only flushed on attach). Post
+    // fetch results to the main Looper directly instead. fetchResults holds the (possibly large)
+    // response body so we can pull it via take() rather than inlining it into an
+    // evaluateJavascript string literal, which WebView silently drops past a size limit.
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val fetchResults = ConcurrentHashMap<String, String>()
 
     private data class JsResult(val value: String?, val error: String?)
 
     suspend fun callProvider(name: String, version: Int, fn: String, args: JSONArray): String? {
+        android.util.Log.i("WebJs", "callProvider $name@$version fn=$fn")
         ensureReady()
         ensureRuntime()
         ensureExtractor(name, version)
@@ -42,9 +51,16 @@ class WebJsRuntime(
         evalOnMain("window.__callProvider(${q(id)}, ${q(fn)}, ${q(args.toString())});")
         val result = withTimeoutOrNull(45000) { deferred.await() }
         results.remove(id)
-        if (result == null) return null
-        result.error?.let { throw RuntimeException(it) }
+        if (result == null) {
+            android.util.Log.w("WebJs", "$name.$fn -> TIMEOUT (45s)")
+            return null
+        }
+        result.error?.let {
+            android.util.Log.e("WebJs", "$name.$fn -> error: $it")
+            throw RuntimeException(it)
+        }
         val v = result.value
+        android.util.Log.i("WebJs", "$name.$fn -> ${v?.length ?: 0} chars")
         return if (v.isNullOrEmpty() || v == "null") null else v
     }
 
@@ -62,6 +78,15 @@ class WebJsRuntime(
                 if (!loaded.isCompleted) loaded.complete(Unit)
             }
         }
+        wv.webChromeClient = object : android.webkit.WebChromeClient() {
+            override fun onConsoleMessage(cm: android.webkit.ConsoleMessage): Boolean {
+                android.util.Log.i(
+                    "WebJsConsole",
+                    "[${cm.messageLevel()}] ${cm.message()} (${cm.sourceId()}:${cm.lineNumber()})",
+                )
+                return true
+            }
+        }
         wv.loadDataWithBaseURL("https://sozo.local/", BOOTSTRAP_HTML, "text/html", "utf-8", null)
         webView = wv
         loaded.await()
@@ -71,6 +96,7 @@ class WebJsRuntime(
     private suspend fun ensureRuntime() {
         if (runtimeLoaded) return
         val code = fetchCode("__runtime__") { client.get("/extractors/runtime") }
+        android.util.Log.i("WebJs", "runtime code: ${code.length} chars")
         if (code.isNotEmpty()) {
             evalOnMain(code)
             runtimeLoaded = true
@@ -80,6 +106,7 @@ class WebJsRuntime(
     private suspend fun ensureExtractor(name: String, version: Int) {
         if (activeExtractor == name && activeVersion == version) return
         val code = fetchCode("$name@$version") { client.get("/extractors/$name") }
+        android.util.Log.i("WebJs", "extractor $name code: ${code.length} chars")
         if (code.isEmpty()) throw RuntimeException("Extractor $name is empty")
         val wrapped = buildString {
             append("(function(){try{delete globalThis.Provider;}catch(e){}\n")
@@ -109,12 +136,17 @@ class WebJsRuntime(
         @JavascriptInterface
         fun fetch(id: String, reqJson: String) {
             Thread {
-                val res = nativeFetch.execute(reqJson)
-                webView?.post {
-                    webView?.evaluateJavascript("window.__fetchResolve(${q(id)}, ${q(res)});", null)
+                fetchResults[id] = nativeFetch.execute(reqJson)
+                mainHandler.post {
+                    webView?.evaluateJavascript("window.__fetchResolve(${q(id)});", null)
                 }
             }.start()
         }
+
+        /** JS pulls the response body here (avoids a giant evaluateJavascript literal). */
+        @JavascriptInterface
+        fun take(id: String): String =
+            fetchResults.remove(id) ?: """{"status":0,"data":null,"headers":{}}"""
     }
 
     private inner class ResultBridge {
@@ -141,9 +173,9 @@ window.dartFetch = function(req){
     catch(e){ resolve({status:0,data:null,headers:{}}); }
   });
 };
-window.__fetchResolve = function(id, json){
+window.__fetchResolve = function(id){
   var cb = window.__fetchCbs[id];
-  if(cb){ delete window.__fetchCbs[id]; try{ cb(JSON.parse(json)); }catch(e){ cb({status:0,data:null,headers:{}}); } }
+  if(cb){ delete window.__fetchCbs[id]; try{ cb(JSON.parse(AndroidFetch.take(id))); }catch(e){ cb({status:0,data:null,headers:{}}); } }
 };
 window.__callProvider = function(callId, fn, argsJson){
   Promise.resolve().then(function(){

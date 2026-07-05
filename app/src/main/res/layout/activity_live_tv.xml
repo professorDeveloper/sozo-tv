@@ -18,11 +18,11 @@
         android:visibility="visible"
         app:controller_layout_id="@layout/controller_live_tv"
         app:resize_mode="fit"
-        app:show_buffering="when_playing"
+        app:show_buffering="always"
         app:show_next_button="false"
         app:show_previous_button="false"
         app:show_subtitle_button="true"
-        app:show_timeout="2000"
+        app:show_timeout="5000"
         app:use_controller="true"
         tools:visibility="visible" />
 
