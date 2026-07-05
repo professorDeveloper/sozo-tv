@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Loading skeleton mirroring item_play_details_header: left content column (title, genre
+     chips, status, description, watch/bookmark buttons), right-side sound/play circles, and a
+     cast/recommended row at the bottom. Shown inside a ShimmerFrameLayout while the detail loads. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingStart="44dp"
+    android:paddingTop="52dp"
+    android:paddingEnd="44dp">
+
+    <!-- Back chip -->
+    <View
+        android:id="@+id/sk_back"
+        android:layout_width="80dp"
+        android:layout_height="36dp"
+        android:background="@drawable/bg_shimmer_block"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Title (two big bars) -->
+    <View
+        android:id="@+id/sk_title1"
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:layout_marginTop="30dp"
+        android:background="@drawable/bg_shimmer_block"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sk_back"
+        app:layout_constraintWidth_percent="0.42" />
+
+    <View
+        android:id="@+id/sk_title2"
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_shimmer_block"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sk_title1"
+        app:layout_constraintWidth_percent="0.30" />
+
+    <!-- Genre chips row -->
+    <LinearLayout
+        android:id="@+id/sk_chips"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sk_title2">
+
+        <View android:layout_width="66dp" android:layout_height="28dp" android:layout_marginEnd="8dp" android:background="@drawable/bg_shimmer_block" />
+        <View android:layout_width="80dp" android:layout_height="28dp" android:layout_marginEnd="8dp" android:background="@drawable/bg_shimmer_block" />
+        <View android:layout_width="62dp" android:layout_height="28dp" android:layout_marginEnd="8dp" android:background="@drawable/bg_shimmer_block" />
+        <View android:layout_width="74dp" android:layout_height="28dp" android:layout_marginEnd="8dp" android:background="@drawable/bg_shimmer_block" />
+        <View android:layout_width="90dp" android:layout_height="28dp" android:layout_marginEnd="8dp" android:background="@drawable/bg_shimmer_block" />
+        <View android:layout_width="70dp" android:layout_height="28dp" android:background="@drawable/bg_shimmer_block" />
+    </LinearLayout>
+
+    <!-- Status line -->
+    <View
+        android:id="@+id/sk_status"
+        android:layout_width="120dp"
+        android:layout_height="18dp"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/bg_shimmer_block"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sk_chips" />
+
+    <!-- Description (four lines) -->
+    <View
+        android:id="@+id/sk_d1"
+        android:layout_width="0dp"
+        android:layout_height="13dp"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/bg_shimmer_block"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sk_status"
+        app:layout_constraintWidth_percent="0.42" />
+
+    <View
+        android:id="@+id/sk_d2"
+        android:layout_width="0dp"
+        android:layout_height="13dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_shimmer_block"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sk_d1"
+        app:layout_constraintWidth_percent="0.42" />
+
+    <View
+        android:id="@+id/sk_d3"
+        android:layout_width="0dp"
+        android:layout_height="13dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_shimmer_block"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sk_d2"
+        app:layout_constraintWidth_percent="0.42" />
+
+    <View
+        android:id="@+id/sk_d4"
+        android:layout_width="0dp"
+        android:layout_height="13dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_shimmer_block"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sk_d3"
+        app:layout_constraintWidth_percent="0.32" />
+
+    <!-- Watch button + bookmark -->
+    <View
+        android:id="@+id/sk_watch"
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/bg_shimmer_block"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sk_d4"
+        app:layout_constraintWidth_percent="0.20" />
+
+    <View
+        android:id="@+id/sk_bookmark"
+        android:layout_width="48dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="10dp"
+        android:background="@drawable/bg_shimmer_block"
+        app:layout_constraintStart_toEndOf="@id/sk_watch"
+        app:layout_constraintTop_toTopOf="@id/sk_watch" />
+
+    <!-- Right-side sound / play circles -->
+    <View
+        android:id="@+id/sk_play"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_shimmer_circle"
+        app:layout_constraintBottom_toBottomOf="@id/sk_watch"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/sk_watch" />
+
+    <View
+        android:id="@+id/sk_sound"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="14dp"
+        android:background="@drawable/bg_shimmer_circle"
+        app:layout_constraintBottom_toBottomOf="@id/sk_watch"
+        app:layout_constraintEnd_toStartOf="@id/sk_play"
+        app:layout_constraintTop_toTopOf="@id/sk_watch" />
+
+    <!-- Cast / recommended row — anchored BELOW the watch button (not floating at the bottom of
+         parent) so it never rides up and overlaps the content on shorter TV panels. -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="34dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/sk_watch"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <View android:layout_width="128dp" android:layout_height="150dp" android:layout_marginEnd="16dp" android:background="@drawable/bg_shimmer_block" />
+        <View android:layout_width="128dp" android:layout_height="150dp" android:layout_marginEnd="16dp" android:background="@drawable/bg_shimmer_block" />
+        <View android:layout_width="128dp" android:layout_height="150dp" android:layout_marginEnd="16dp" android:background="@drawable/bg_shimmer_block" />
+        <View android:layout_width="128dp" android:layout_height="150dp" android:layout_marginEnd="16dp" android:background="@drawable/bg_shimmer_block" />
+        <View android:layout_width="128dp" android:layout_height="150dp" android:background="@drawable/bg_shimmer_block" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
