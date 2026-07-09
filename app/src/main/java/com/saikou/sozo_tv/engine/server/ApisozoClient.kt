@@ -26,8 +26,15 @@ class ApisozoClient(private val baseUrl: String = BuildConfig.APISOZO_BASE_URL) 
                 null
             }
         } catch (t: Throwable) {
-            // Concise failure breadcrumb (no body/URL spam) to help diagnose a down/blocked server.
-            android.util.Log.w("ApisozoClient", "GET $path failed: ${t.javaClass.simpleName}")
+            // Failure breadcrumb. Carry the message and the root cause: the exception type alone
+            // cannot distinguish a dead server from a TLS/route problem, which is the whole
+            // question when this fires.
+            val root = generateSequence(t) { it.cause }.last()
+            android.util.Log.w(
+                "ApisozoClient",
+                "GET $path failed: ${t.javaClass.simpleName}: ${t.message}" +
+                        if (root !== t) " <- ${root.javaClass.simpleName}: ${root.message}" else ""
+            )
             null
         }
     }
