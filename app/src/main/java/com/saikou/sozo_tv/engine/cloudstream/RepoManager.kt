@@ -212,6 +212,12 @@ class RepoManager(private val context: Context, private val host: PluginHost) {
                 all.add(PluginRef(url, internalName, version, iconUrl))
             }
         }
+        // Don't pay for plugins we already know cannot load here (see PluginHost.UNSUPPORTED).
+        val skipped = all.filter { it.internalName in PluginHost.UNSUPPORTED }
+        if (skipped.isNotEmpty()) {
+            all.removeAll(skipped)
+            Log.i(TAG, "skipping ${skipped.size} unsupported plugin(s): ${skipped.map { it.internalName }}")
+        }
 
         val total = all.size
         val repoName = info.name ?: fallbackName(repoUrl)

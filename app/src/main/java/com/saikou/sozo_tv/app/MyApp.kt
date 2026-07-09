@@ -3,18 +3,22 @@ package com.saikou.sozo_tv.app
 //import com.ipsat.ipsat_tv.di.NetworkModule
 //import com.ipsat.ipsat_tv.di.firebaseModule
 //import com.ipsat.ipsat_tv.di.koinModule
+import android.app.Activity
 import android.app.Application
 import android.content.Context
+import android.os.Bundle
 import com.bugsnag.android.Bugsnag
 import com.bugsnag.android.performance.BugsnagPerformance
 import com.google.firebase.FirebaseApp
 import com.jakewharton.threetenabp.AndroidThreeTen
+import com.lagradost.cloudstream3.CloudStreamApp
 import com.saikou.sozo_tv.di.NetworkModule
 import com.saikou.sozo_tv.di.firebaseModule
 import com.saikou.sozo_tv.di.koinModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
+import java.lang.ref.WeakReference
 
 /**
  * Main activity for SozoTv app.
@@ -31,12 +35,37 @@ class MyApp : Application() {
         AndroidThreeTen.init(this)
         FirebaseApp.initializeApp(this)
         BugsnagPerformance.start(this)
+        CloudStreamApp.attach(this)
+        trackForegroundActivity()
         startKoin {
             androidContext(this@MyApp)
             androidLogger()
             modules(NetworkModule, koinModule, firebaseModule)
         }
 
+    }
+
+    /**
+     * CloudStream hands a `.cs3`'s `load()` the foreground activity, and several plugins cast
+     * that argument straight to `AppCompatActivity`. We load plugins from background work with
+     * no activity in hand, so keep track of the resumed one for [PluginHost] to pass along.
+     */
+    private fun trackForegroundActivity() {
+        registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
+            override fun onActivityResumed(activity: Activity) {
+                current = WeakReference(activity)
+            }
+
+            override fun onActivityDestroyed(activity: Activity) {
+                if (current?.get() === activity) current = null
+            }
+
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
+            override fun onActivityStarted(activity: Activity) = Unit
+            override fun onActivityPaused(activity: Activity) = Unit
+            override fun onActivityStopped(activity: Activity) = Unit
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
+        })
     }
 
     companion object {
@@ -47,5 +76,13 @@ class MyApp : Application() {
         @JvmStatic
         val context: Context
             get() = instance
+
+        @Volatile
+        private var current: WeakReference<Activity>? = null
+
+        /** The resumed activity, or null while no screen is in the foreground. */
+        @JvmStatic
+        val currentActivity: Activity?
+            get() = current?.get()
     }
 }

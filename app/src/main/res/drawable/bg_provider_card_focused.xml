@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TV focus affordance: a white ring plus a small lift in fill, the way Netflix marks the
+     focused row. Brand red stays reserved for the ACTIVE badge. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/netflix_card_focused" />
+    <stroke
+        android:width="2dp"
+        android:color="@color/netflix_text_primary" />
+    <corners android:radius="4dp" />
+</shape>

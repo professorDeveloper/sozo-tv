@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.res.AssetManager
 import android.content.res.Resources
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import com.saikou.sozo_tv.app.MyApp
 import com.lagradost.cloudstream3.APIHolder
 import com.lagradost.cloudstream3.AnimeLoadResponse
 import com.lagradost.cloudstream3.app
@@ -42,7 +44,27 @@ import java.io.File
  */
 class PluginHost(private val appContext: Context) {
 
-    companion object { private const val TAG = "CloudStreamHost" }
+    companion object {
+        private const val TAG = "CloudStreamHost"
+
+        /**
+         * Plugins that cannot run against the embedded `library` artifact because they call into
+         * CloudStream's **app** module, which we do not vendor. Skipped before download so
+         * first-launch setup spends neither bandwidth nor dex verification on them.
+         *
+         * Drop an entry here the day the class it needs exists on our classpath.
+         */
+        val UNSUPPORTED: Set<String> = setOf(
+            // Drives PluginManager/RepositoryManager to install and unload other plugins —
+            // that is CloudStream's own extension system, not ours.
+            "Ultima",
+            // syncproviders.SyncRepo + AccountManager.aniListApi: CloudStream's account sync.
+            // This app has its own AniList integration, so the feature is redundant here.
+            "StreamPlay",
+            "TorraStream",
+            "CineStream",
+        )
+    }
 
     init {
         runCatching {
@@ -51,6 +73,11 @@ class PluginHost(private val appContext: Context) {
     }
 
     private val loaded = HashMap<String, BasePlugin>()
+    // Plugins that threw during load(). A few upstream .cs3 files reach into CloudStream's app
+    // module (sync providers, plugin management) which our embedded `library` doesn't ship, so
+    // they can never load here. Remember them: without this, every apiByName() retries the
+    // DexClassLoader and reprints the stack trace.
+    private val failed = HashSet<String>()
     // internalName -> the MainAPI provider names it registered (for unload + dedup).
     private val pluginProviders = HashMap<String, List<String>>()
     // MainAPI.name -> plugin iconUrl (from plugins.json) for nicer provider icons.
@@ -99,10 +126,20 @@ class PluginHost(private val appContext: Context) {
         )
     }
 
+    /**
+     * The context a plugin's `load()` receives. CloudStream's own PluginManager passes the
+     * foreground `AppCompatActivity`, and plugins such as Aniworld/Jellyfin/ShowBox cast the
+     * argument to it directly — handing them the Application throws ClassCastException. The
+     * app context is only a fallback for the window where no activity is resumed.
+     */
+    private fun pluginLoadContext(): Context =
+        MyApp.currentActivity as? AppCompatActivity ?: appContext
+
     /** Load a downloaded .cs3; returns the provider names it registered. */
     fun loadCs3(file: File, internalName: String, iconUrl: String? = null, repo: String? = null): List<String> {
         // Already loaded this process → don't register twice (avoids duplicates).
         loaded[internalName]?.let { return pluginProviders[internalName] ?: emptyList() }
+        if (internalName in failed) return emptyList()
         return try {
             try { file.setReadOnly() } catch (_: Throwable) {}
             val loader = PathClassLoader(file.absolutePath, appContext.classLoader)
@@ -127,7 +164,7 @@ class PluginHost(private val appContext: Context) {
                     assets, appContext.resources.displayMetrics, appContext.resources.configuration
                 )
             }
-            if (instance is Plugin) instance.load(appContext) else instance.load()
+            if (instance is Plugin) instance.load(pluginLoadContext()) else instance.load()
             loaded[internalName] = instance
 
             val added = APIHolder.allProviders.map { it.name }.filter { it !in before }
@@ -137,6 +174,7 @@ class PluginHost(private val appContext: Context) {
             Log.i(TAG, "loaded ${file.name}: providers=$added")
             added
         } catch (t: Throwable) {
+            failed.add(internalName)
             Log.e(TAG, "failed to load ${file.name}: ${Log.getStackTraceString(t)}")
             emptyList()
         }

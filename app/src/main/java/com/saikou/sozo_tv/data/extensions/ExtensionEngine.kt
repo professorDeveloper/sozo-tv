@@ -8,7 +8,11 @@ import com.saikou.sozo_tv.engine.cloudstream.PluginHost
 import com.saikou.sozo_tv.engine.cloudstream.RepoManager
 import com.saikou.sozo_tv.engine.server.ServerHost
 import eu.kanade.tachiyomi.animesource.ConfigurableAnimeSource
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -34,6 +38,10 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
 
     private val homeMutex = Mutex()
     @Volatile private var homeCache: Pair<String, ExtHome>? = null
+
+    // First-launch repo installation must survive the splash finishing — see installDefaultsAsync.
+    private val installScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    @Volatile private var defaultsInstall: Deferred<Unit>? = null
 
     fun getActiveGroup(): String = prefs.getString(KEY_GROUP, ExtGroup.ANIYOMI) ?: ExtGroup.ANIYOMI
 
@@ -113,6 +121,20 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
             }?.let { setActiveProvider(it.id, it.group, it.name) }
         }
     }
+
+    /**
+     * Start — or join — the single first-launch installation, running on a scope that outlives
+     * whatever screen kicked it off. Each HTTP call inside [ensureDefaultsInstalled] is capped,
+     * but the aggregate (3 groups x N repos x M plugins) runs for minutes on a slow link, so no
+     * UI may block on the whole of it. Await the returned [Deferred] with a timeout: abandoning
+     * the await leaves the installation running instead of cancelling it.
+     */
+    fun installDefaultsAsync(progress: ((String, Int, Int) -> Unit)? = null): Deferred<Unit> =
+        defaultsInstall ?: synchronized(this) {
+            defaultsInstall ?: installScope
+                .async { ensureDefaultsInstalled(progress = progress) }
+                .also { defaultsInstall = it }
+        }
 
     /** True once a source has been picked — used to decide whether first-launch setup is needed. */
     fun hasActiveProvider(): Boolean = getActiveProvider() != null

@@ -15,7 +15,7 @@ import org.json.JSONObject
 /**
  * Minimal AniList GraphQL transport. POSTs `{query, variables}` to https://graphql.anilist.co/,
  * attaches the user's Bearer token when present (required for `mediaListEntry` and mutations),
- * and returns the `data` object — or a failure carrying the first GraphQL error message.
+ * and returns the `data` object — or a failure carrying the first GraphQL erroisr message.
  */
 class AniListClient(
     private val okHttpClient: OkHttpClient,

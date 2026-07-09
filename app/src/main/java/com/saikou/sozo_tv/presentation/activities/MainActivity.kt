@@ -7,7 +7,7 @@ import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.widget.ImageViewCompat
-import androidx.fragment.app.FragmentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.components.navigation.setupWithNavController
@@ -21,7 +21,10 @@ import com.saikou.sozo_tv.utils.finishDeferred
 import com.saikou.sozo_tv.utils.loadImage
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class MainActivity : FragmentActivity() {
+// AppCompatActivity (not FragmentActivity): CloudStream plugins cast the context handed to
+// `Plugin.load()` to AppCompatActivity, and this is the screen in the foreground while the
+// extension engine loads them. `Theme.Tv` descends from Theme.MaterialComponents, so it qualifies.
+class MainActivity : AppCompatActivity() {
     private val model: SettingsViewModel by viewModel()
     private var _binding: ActivityMainBinding? = null
     private var headerBinding: ContentHeaderMenuMainTvBinding? = null
