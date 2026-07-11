@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.engine.webjs
 
 import android.content.Context
+import com.lagradost.nicehttp.ignoreAllSSLErrors
 import eu.kanade.tachiyomi.network.AndroidCookieJar
 import eu.kanade.tachiyomi.network.interceptor.CloudflareInterceptor
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -31,6 +32,13 @@ class NativeFetch(context: Context) {
         // Bound a single stalled response so one stuck fetch can't consume the whole provider budget.
         .callTimeout(45, TimeUnit.SECONDS)
         .cookieJar(cookieJar)
+        // Content CDNs like uzmovi.net serve an incomplete cert chain (missing intermediate);
+        // Android's OkHttp doesn't AIA-fetch it, so the page GET dies with "chain validation
+        // failed" and the extractor sees no HTML → "no playable HLS source". The player/proxy
+        // clients already trust-all for the same reason; the resolver fetch must match, or
+        // on-device resolution (uzmovi/uzdown) never even reaches the proxy. Mirrors soplay's
+        // DartFetch, whose Dio accepts any cert.
+        .ignoreAllSSLErrors()
         .addInterceptor(CloudflareInterceptor(context.applicationContext, cookieJar) { UA })
         .build()
 
