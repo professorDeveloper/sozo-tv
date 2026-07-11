@@ -215,6 +215,11 @@ class SourceScreen : Fragment() {
         adapter.filter("")
         adapter.setRepoFilter(null)
         adapter.setModeFilter(null)
+        // Drop the previous tab's rows and its "Setting up sources…" status now: leaving them on
+        // screen while the new group loads shows e.g. CloudStream providers under the Sozo tab.
+        adapter.submit(emptyList(), engine.getActiveProvider())
+        statusText = null
+        emptyText = null
         applyTabUi()
         renderRepoChips()
         loadProviders()
@@ -235,32 +240,45 @@ class SourceScreen : Fragment() {
         tab.setTextColor((if (selected) 0xFF111417 else 0xFFCCCCCC).toInt())
     }
 
+    /**
+     * Load the providers of the current tab.
+     *
+     * A load can run for a long time (the first visit to a group also downloads its curated
+     * default repos), so the user can switch tabs while one is in flight. Every load is therefore
+     * pinned to the [group] it started with and refuses to touch the UI if the tab moved on
+     * underneath it. Without that, the slower CloudStream load lands last and fills the list with
+     * CloudStream providers while the Sozo tab is the one highlighted. A superseded load is not
+     * cancelled — it may be part-way through downloading a repo, which we want to finish.
+     */
     private fun loadProviders() {
+        val group = currentGroup
         progressVisible = true
         loadError = null
         applyHeaderState()
         viewLifecycleOwner.lifecycleScope.launch {
-            var result = withContext(Dispatchers.IO) { runCatching { engine.providers(currentGroup) } }
+            var result = withContext(Dispatchers.IO) { runCatching { engine.providers(group) } }
             // The manual shortcode installer was removed, so auto-install the curated
             // default repos. We install any default repo that isn't already present (once
             // per session) — this seeds a fresh install AND adds newly-shipped defaults
             // (e.g. CSX) for users who already have other providers.
-            if (bootstrappedGroups.add(currentGroup)) {
+            if (bootstrappedGroups.add(group)) {
                 val installed = withContext(Dispatchers.IO) {
-                    runCatching { engine.listRepos(currentGroup).map { it.url }.toSet() }
+                    runCatching { engine.listRepos(group).map { it.url }.toSet() }
                         .getOrDefault(emptySet())
                 }
-                val missing = ShortcodeRegistry.entries(currentGroup)
+                val missing = ShortcodeRegistry.entries(group)
                     .filter { it.url !in installed }
                 if (missing.isNotEmpty()) {
-                    statusText = "Setting up sources… please wait"
-                    applyHeaderState()
+                    if (group == currentGroup) {
+                        statusText = "Setting up sources… please wait"
+                        applyHeaderState()
+                    }
                     withContext(Dispatchers.IO) {
                         missing.forEachIndexed { index, entry ->
                             runCatching {
-                                engine.addRepo(currentGroup, entry.url) { current, total ->
+                                engine.addRepo(group, entry.url) { current, total ->
                                     binding.root.post {
-                                        if (_binding == null) return@post
+                                        if (_binding == null || group != currentGroup) return@post
                                         statusText = "Setting up ${entry.name} " +
                                             "(${index + 1}/${missing.size})" +
                                             if (total > 0) " · $current/$total" else "…"
@@ -270,10 +288,13 @@ class SourceScreen : Fragment() {
                             }
                         }
                     }
-                    result = withContext(Dispatchers.IO) { runCatching { engine.providers(currentGroup) } }
-                    statusText = null
+                    result = withContext(Dispatchers.IO) { runCatching { engine.providers(group) } }
+                    if (group == currentGroup) statusText = null
                 }
             }
+            // The tab moved on while we were loading — this result belongs to a tab the user
+            // is no longer looking at, and the newer load owns the UI now.
+            if (group != currentGroup) return@launch
             // First run: activate the first provider if none is active yet, so Home/Search work
             // immediately without the user having to pick one manually.
             if (engine.getActiveProvider() == null) {
