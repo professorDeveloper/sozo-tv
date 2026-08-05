@@ -7,8 +7,6 @@ import android.view.animation.AnimationUtils
 import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
-import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
-import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.SectionItem
 import com.saikou.sozo_tv.data.model.anilist.Profile
 import com.saikou.sozo_tv.databinding.AccountItemBinding
@@ -22,11 +20,13 @@ import com.saikou.sozo_tv.utils.loadImage
 class ProfileAdapter(
     private val accounts: MutableList<Profile>,
     private val sectionList: List<SectionItem>,
-    private val recyclerView: RecyclerView
+    private val recyclerView: RecyclerView,
+    /** Only decides whether the trailing Exit row is treated as an Exit row. */
+    private val isSignedIn: Boolean = false
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var accounType = ""
-    // Safe default: the Exit row is shown whenever a token exists, but the real listener is
+    // Safe default: the Exit row is shown whenever the TV is linked, but the real listener is
     // only wired after the profile fetch succeeds. A no-op default prevents a crash (was
     // lateinit -> UninitializedPropertyAccessException) if Exit is pressed before/without it.
     private var exitItemListener: () -> Unit = {}
@@ -70,8 +70,10 @@ class ProfileAdapter(
             binding.userNameTxt.isSelected = true
             binding.userNameTxt.visibility = View.VISIBLE
             binding.phoneTxt.text = account.name
-            if (account.id != -1) {
-
+            // Keyed on the avatar, not on a guest id sentinel: a linked account may have no photo,
+            // and loadImage() paints the 404 wallpaper for a blank URL — which would read as a
+            // broken avatar rather than the tinted placeholder this view already shows.
+            if (!account.avatarUrl.isNullOrBlank()) {
                 ImageViewCompat.setImageTintList(binding.accountImg, null)
                 binding.accountImg.loadImage(account.avatarUrl)
             }
@@ -94,6 +96,17 @@ class ProfileAdapter(
 
     inner class SectionViewHolder(private val binding: ProfileSectionItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
+
+        // Captured before any bind touches them: the exit row overrides the layout's own vertical
+        // margins, and this holder gets recycled into ordinary rows afterwards.
+        private val defaultTopMargin: Int
+        private val defaultBottomMargin: Int
+
+        init {
+            val params = binding.root.layoutParams as ViewGroup.MarginLayoutParams
+            defaultTopMargin = params.topMargin
+            defaultBottomMargin = params.bottomMargin
+        }
 
         fun bind(section: SectionItem) {
             binding.sectionTxt.text = section.sectionTitle
@@ -127,32 +140,28 @@ class ProfileAdapter(
                 }
             }
 
-            val token = PreferenceManager().getString(
-                AuthPrefKeys.ANILIST_TOKEN
-            )
-            if (token.isNotEmpty()) {
-                if (sectionList[sectionList.size - 1] != section) {
-                    binding.spaceVw1.visibility = View.GONE
-                    binding.spaceVw2.visibility = View.GONE
-                    binding.root.setBackgroundResource(R.drawable.background_button)
-                } else {
-                    binding.spaceVw1.visibility = View.VISIBLE
-                    binding.spaceVw2.visibility = View.VISIBLE
-                    binding.root.setBackgroundResource(R.drawable.background_button_exit)
-                    val context = binding.root.context
-                    val layoutParams = binding.root.layoutParams as ViewGroup.MarginLayoutParams
-                    layoutParams.topMargin =
-                        context.resources.getDimensionPixelSize(R.dimen.exit_margin_top)
-                    layoutParams.bottomMargin =
-                        context.resources.getDimensionPixelSize(R.dimen.exit_margin_bottom)
-                    binding.root.layoutParams = layoutParams
-                    binding.root.setOnClickListener {
-                        if (section.sectionTitle.equals("Exit Account", ignoreCase = true)) {
-                            exitItemListener.invoke()
-                        }
-                    }
-
-                }
+            val isExitRow = isSignedIn && section.sectionImg == R.drawable.ic_exit
+            if (!isExitRow) {
+                binding.spaceVw1.visibility = View.GONE
+                binding.spaceVw2.visibility = View.GONE
+                binding.root.setBackgroundResource(R.drawable.background_button)
+                val layoutParams = binding.root.layoutParams as ViewGroup.MarginLayoutParams
+                layoutParams.topMargin = defaultTopMargin
+                layoutParams.bottomMargin = defaultBottomMargin
+                binding.root.layoutParams = layoutParams
+                binding.root.setOnClickListener(null)
+            } else {
+                binding.spaceVw1.visibility = View.VISIBLE
+                binding.spaceVw2.visibility = View.VISIBLE
+                binding.root.setBackgroundResource(R.drawable.background_button_exit)
+                val context = binding.root.context
+                val layoutParams = binding.root.layoutParams as ViewGroup.MarginLayoutParams
+                layoutParams.topMargin =
+                    context.resources.getDimensionPixelSize(R.dimen.exit_margin_top)
+                layoutParams.bottomMargin =
+                    context.resources.getDimensionPixelSize(R.dimen.exit_margin_bottom)
+                binding.root.layoutParams = layoutParams
+                binding.root.setOnClickListener { exitItemListener.invoke() }
             }
 
         }
@@ -230,9 +239,19 @@ class ProfileAdapter(
     }
 
 
-    fun addAccount(account: Profile = Profile(-1, "Guest", null, "")) {
-        accounts.add(account)
-        notifyItemInserted(accounts.size)
+    /**
+     * Replaces the rail's single account rather than appending. profileData is a LiveData that
+     * replays its last value to every new observer, so an append would add a duplicate row on
+     * each configuration change.
+     */
+    fun setAccount(account: Profile = Profile(-1, "Guest", null, "")) {
+        if (accounts.isEmpty()) {
+            accounts.add(account)
+            notifyItemInserted(accounts.size)
+            return
+        }
+        accounts[0] = account
+        notifyItemChanged(1)
     }
 
     fun setSectionSelected(index: Int) {

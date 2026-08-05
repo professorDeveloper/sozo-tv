@@ -15,8 +15,7 @@ import androidx.navigation.findNavController
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.ProfileAdapter
 import com.saikou.sozo_tv.app.MyApp
-import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
-import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.data.repository.DeviceAuthRepository
 import com.saikou.sozo_tv.data.model.SectionItem
 import com.saikou.sozo_tv.data.model.anilist.Profile
 import com.saikou.sozo_tv.databinding.ActivityProfileBinding
@@ -27,15 +26,20 @@ import com.saikou.sozo_tv.utils.LocalData.isHistoryItemClicked
 import com.saikou.sozo_tv.utils.LocalData.sectionList
 import com.saikou.sozo_tv.utils.finishDeferred
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
     private lateinit var viewBinding: ActivityProfileBinding
     private var backPressCount = 0
     private val model: SettingsViewModel by viewModel()
+    private val deviceAuth: DeviceAuthRepository by inject()
 
     private lateinit var profileAdapter: ProfileAdapter
     private var isSettingsOpen = false
+
+    /** The sign-in state the rail was built for; see [onStart]. */
+    private var builtSignedIn = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityProfileBinding.inflate(layoutInflater)
@@ -81,6 +85,15 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
 
     }
 
+    override fun onStart() {
+        super.onStart()
+        // The rail is built once, in onCreate. Linking normally relaunches this activity with
+        // CLEAR_TASK, but any other return path from the login screen — Back during the
+        // "signed in as" dwell, for instance — would otherwise strand a linked user on the guest
+        // rail with no Exit row.
+        if (builtSignedIn != deviceAuth.isSignedIn()) recreate()
+    }
+
     private fun focusRecyclerViewToPosition(position: Int) {
         viewBinding.apply {
             profileRv.post {
@@ -93,7 +106,11 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
 
     private fun setUpRv() {
         model.profileData.observe(this) {
-            profileAdapter.addAccount(it)
+            // profileData now emits for guests too (it used to be gated on a token that was never
+            // set). The signed-out rail is built synchronously below, so taking this branch as a
+            // guest would add a second account row on top of it.
+            if (!deviceAuth.isSignedIn()) return@observe
+            profileAdapter.setAccount(it)
             profileAdapter.updateAccountType("Basic")
             profileAdapter.setOnExitClickListener {
                 val dialog = ExitDialog(
@@ -116,16 +133,19 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
 
         val accountList = arrayListOf<Profile>()
         val newSectionList = sectionList
-        if (PreferenceManager().getString(AuthPrefKeys.ANILIST_TOKEN)
-                .isNotEmpty()
-            && sectionList.find { it.sectionImg == R.drawable.ic_exit } == null
-        ) newSectionList.add(
+        val isSignedIn = deviceAuth.isSignedIn()
+        builtSignedIn = isSignedIn
+        // LocalData.sectionList is process-global, so this has to be idempotent in BOTH directions:
+        // rebuilt after a sign-out the Exit row would otherwise linger and do nothing.
+        newSectionList.removeAll { it.sectionImg == R.drawable.ic_exit }
+        if (isSignedIn) newSectionList.add(
             SectionItem(MyApp.context.getString(R.string.exit), R.drawable.ic_exit)
         )
         profileAdapter = ProfileAdapter(
             accounts = accountList,
             sectionList = newSectionList,
-            recyclerView = viewBinding.profileRv
+            recyclerView = viewBinding.profileRv,
+            isSignedIn = isSignedIn
         ).also { viewBinding.profileRv.adapter = it }
 
         if (!isHistoryItemClicked) {
@@ -150,11 +170,9 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
             }
 
         }
-        val preference = PreferenceManager()
-        val token = preference.getString(AuthPrefKeys.ANILIST_TOKEN)
-        if (token.isEmpty()) {
+        if (!isSignedIn) {
             profileAdapter.updateAccountType("Guest")
-            profileAdapter.addAccount()
+            profileAdapter.setAccount()
         }
 
         profileAdapter.setSectionSelected(if (isSettingsOpen) 3 else 0)
@@ -223,7 +241,7 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
     }
 
     override fun openLogin() {
-        val intent = Intent(this, QrLoginActivity::class.java)
+        val intent = Intent(this, DeviceLoginActivity::class.java)
         startActivity(intent)
     }
 }

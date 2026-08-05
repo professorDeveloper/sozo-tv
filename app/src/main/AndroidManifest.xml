@@ -67,8 +67,9 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".presentation.activities.QrLoginActivity"
-            android:exported="false" />
+            android:name=".presentation.activities.DeviceLoginActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
 
         <activity
             android:name=".presentation.activities.NoInternetActivity"

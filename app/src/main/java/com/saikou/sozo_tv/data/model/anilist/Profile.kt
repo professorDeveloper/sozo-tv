@@ -5,5 +5,6 @@ data class Profile(
     val name: String,
     val avatarUrl: String?,
     val bannerImg: String,
-    val unreadNotificationCount: Int = 0
+    val unreadNotificationCount: Int = 0,
+    val email: String? = null,
 )

@@ -24,6 +24,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
+import com.saikou.sozo_tv.data.repository.DeviceAuthRepository
 import com.saikou.sozo_tv.databinding.SplashScreenBinding
 import com.saikou.sozo_tv.domain.model.AppUpdate
 import com.saikou.sozo_tv.presentation.activities.MainActivity
@@ -34,8 +35,10 @@ import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.finishDeferred
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.visible
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -49,6 +52,7 @@ class SplashScreen : Fragment() {
     private lateinit var loadingDialog: Dialog
     private val viewModel: SplashViewModel by viewModel()
     private val engine: ExtensionEngine by inject()
+    private val deviceAuth: DeviceAuthRepository by inject()
 
     // The splash must never become a dead end, and each of the three ways out of the intro
     // (video ended, video failed, watchdog fired) can race the others. Both hand-offs are
@@ -223,59 +227,25 @@ class SplashScreen : Fragment() {
     private fun navigateToMain() {
         if (navigated || !isAdded) return
         navigated = true
-        val options = ActivityOptions.makeCustomAnimation(
-            requireContext(), R.anim.fade_in, R.anim.fade_out
-        )
-        startActivity(Intent(requireContext(), MainActivity::class.java), options.toBundle())
-        requireActivity().finishDeferred()
+        // Refresh (or, on a terminal 401/403, discard) the stored session before any signed-in
+        // surface renders. We wait on a job the repository owns rather than calling bootstrap()
+        // under a timeout: giving up on the *wait* must not cancel a rotation the server has
+        // already committed, and a timeout could not interrupt the blocking call anyway.
+        lifecycleScope.launch {
+            withTimeoutOrNull(BOOTSTRAP_WAIT_MS) {
+                // Resolved off the main thread: this is the first touch of DeviceSessionStore, and
+                // its EncryptedSharedPreferences.create() is a blocking AndroidKeyStore call.
+                withContext(Dispatchers.IO) { deviceAuth.bootstrapAsync() }.join()
+            }
+            if (!isAdded) return@launch
+            val options = ActivityOptions.makeCustomAnimation(
+                requireContext(), R.anim.fade_in, R.anim.fade_out
+            )
+            startActivity(Intent(requireContext(), MainActivity::class.java), options.toBundle())
+            requireActivity().finishDeferred()
+        }
     }
 
-//    private fun showUpdateDialog(appUpdate: AppUpdate) {
-//        startActivity(
-//            UpdateActivity.newIntent(
-//                requireActivity(),
-//                appUpdate
-//            )
-//        )
-//        requireActivity().finish()
-//    }
-
-//    private fun handleUserState(state: Resource<SubscriptionResponse>) {
-//        when (state) {
-//            is Resource.Loading -> loadingDialog.show()
-//            is Resource.Success -> {
-//                loadingDialog.dismiss()
-//                startActivity(Intent(requireContext(), MainActivity::class.java).apply {
-//                    val options = ActivityOptions.makeCustomAnimation(
-//                        requireContext(), R.anim.fade_in, R.anim.fade_out
-//                    )
-//                    startActivity(this, options.toBundle())
-//                })
-//                requireActivity().finish()
-//            }
-//
-//            is Resource.Error -> {
-//                loadingDialog.dismiss()
-//                Toast.makeText(requireContext(), state.throwable.message, Toast.LENGTH_SHORT).show()
-//                findNavController().navigate(R.id.phoneScreen, null, navOptions())
-//                Log.e("SplashScreen", "Subscription error", state.throwable)
-//            }
-//
-//            else -> {}
-//        }
-//    }
-
-//    private val openLoginObserver = androidx.lifecycle.Observer<Unit> {
-//        findNavController().navigate(R.id.phoneScreen, null, navOptions())
-//    }
-
-    //    private fun navOptions(): NavOptions = NavOptions.Builder()
-//        .setPopUpTo(R.id.splashScreen, true)
-//        .setEnterAnim(R.anim.fade_in)
-//        .setExitAnim(R.anim.fade_out)
-//        .setPopEnterAnim(R.anim.fade_in)
-//        .setPopExitAnim(R.anim.fade_out)
-//        .build()
     private fun showUpdateDialog(appUpdate: AppUpdate) {
         startActivity(
             UpdateActivity.newIntent(
@@ -298,6 +268,9 @@ class SplashScreen : Fragment() {
 
         /** How long the splash waits for first-launch setup to produce a usable source. */
         const val SETUP_WAIT_MS = 20_000L
+
+        /** Cap on the token-refresh hop; the app works anonymously, so this is best-effort. */
+        const val BOOTSTRAP_WAIT_MS = 2_000L
         const val SETUP_POLL_MS = 250L
     }
 }

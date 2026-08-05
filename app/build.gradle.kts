@@ -16,14 +16,20 @@ if (localPropsFile.exists()) {
     localProps.load(FileInputStream(localPropsFile))
 }
 
-fun readLocalProperty(name: String): String {
+fun readLocalProperty(name: String, default: String = ""): String {
     val props = Properties()
     val localPropsFile = rootProject.file("local.properties")
     if (localPropsFile.exists()) {
         localPropsFile.inputStream().use { props.load(it) }
     }
-    return props.getProperty(name, "")
+    return props.getProperty(name).orEmpty().ifBlank { default }
 }
+
+// local.properties holds only sdk.dir on a fresh checkout, so every one of these MUST carry a
+// working default — APISOZO_BASE_URL already compiles to "" for exactly that reason, which is
+// why ApisozoClient ends up building relative URLs.
+val sozoApiBaseUrl = readLocalProperty("SOZO_API_BASE_URL", "https://apisozo.azamov.me/api/")
+val sozoLinkBaseUrl = readLocalProperty("SOZO_LINK_BASE_URL", "https://sozo.azamov.me/link/")
 
 android {
     namespace = "com.saikou.sozo_tv"
@@ -55,6 +61,8 @@ android {
             buildConfigField(
                 "String", "APISOZO_BASE_URL", "\"${readLocalProperty("APISOZO_BASE_URL")}\""
             )
+            buildConfigField("String", "SOZO_API_BASE_URL", "\"$sozoApiBaseUrl\"")
+            buildConfigField("String", "SOZO_LINK_BASE_URL", "\"$sozoLinkBaseUrl\"")
 
         }
         release {
@@ -66,6 +74,8 @@ android {
             buildConfigField(
                 "String", "APISOZO_BASE_URL", "\"${readLocalProperty("APISOZO_BASE_URL")}\""
             )
+            buildConfigField("String", "SOZO_API_BASE_URL", "\"$sozoApiBaseUrl\"")
+            buildConfigField("String", "SOZO_LINK_BASE_URL", "\"$sozoLinkBaseUrl\"")
 
         }
     }

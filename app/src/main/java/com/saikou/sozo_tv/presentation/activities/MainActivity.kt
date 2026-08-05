@@ -84,6 +84,9 @@ class MainActivity : AppCompatActivity() {
     private fun handleUserDataState(header: ContentHeaderMenuMainTvBinding) {
         model.profileData.observe(this) { profile ->
             header.tvNavigationHeaderTitle.text = profile.name
+            // A guest has no avatar, and loadImage() falls back to the 404 wallpaper for a blank
+            // URL — leave the tinted placeholder icon in place instead.
+            if (profile.avatarUrl.isNullOrBlank()) return@observe
             ImageViewCompat.setImageTintList(header.ivNavigationHeaderIcon, null)
             header.ivNavigationHeaderIcon.loadImage(profile.avatarUrl)
         }
