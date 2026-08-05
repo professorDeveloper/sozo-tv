@@ -10,7 +10,6 @@ import com.saikou.sozo_tv.data.repository.DetailRepositoryImpl
 import com.saikou.sozo_tv.data.repository.HomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.ImdbHomeRepositoryImpl
 import com.saikou.sozo_tv.data.repository.MovieBookmarkRepositoryImpl
-import com.saikou.sozo_tv.data.repository.MyListRepositoryImpl
 import com.saikou.sozo_tv.data.repository.ProfileRepositoryImpl
 import com.saikou.sozo_tv.data.repository.SearchRepositoryImpl
 import com.saikou.sozo_tv.data.repository.SharedPrefsSettingsRepository
@@ -21,7 +20,6 @@ import com.saikou.sozo_tv.domain.repository.CharacterBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.DetailRepository
 import com.saikou.sozo_tv.domain.repository.HomeRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
-import com.saikou.sozo_tv.domain.repository.MyListRepository
 import com.saikou.sozo_tv.domain.repository.ProfileRepository
 import com.saikou.sozo_tv.domain.repository.SearchRepository
 import com.saikou.sozo_tv.domain.repository.SettingsRepository
@@ -36,7 +34,6 @@ import com.saikou.sozo_tv.presentation.viewmodel.DeviceLoginViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.LiveTvViewModel
-import com.saikou.sozo_tv.presentation.viewmodel.MyListViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.NewsViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.PlayAnimeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SearchViewModel
@@ -70,9 +67,6 @@ val koinModule = module {
     }
     single<SettingsRepository> {
         SharedPrefsSettingsRepository(get())
-    }
-    single<MyListRepository> {
-        MyListRepositoryImpl()
     }
     single<TMDBHomeRepository> {
         ImdbHomeRepositoryImpl(engine = get())
@@ -111,7 +105,6 @@ val koinModule = module {
     viewModel { DetailViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
     viewModel { SearchViewModel(repo = get()) }
-    viewModel { MyListViewModel(repo = get()) }
     viewModel { DeviceLoginViewModel(repo = get()) }
     viewModel { CastDetailViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel {

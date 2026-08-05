@@ -49,10 +49,6 @@ android {
         versionName = "10.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        externalNativeBuild {
-            cmake {}
-        }
-
     }
     buildTypes {
         debug {
@@ -94,12 +90,6 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
-    }
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-            version = "3.22.1"
-        }
     }
     // CloudStream's `library` pulls okhttp5 + jspecify etc., which collide on some
     // META-INF resources. Drop the duplicates so packaging succeeds.
@@ -152,7 +142,6 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.9")
     implementation("com.google.firebase:firebase-database:21.0.0")
     implementation("androidx.palette:palette-ktx:1.0.0")
-    implementation("com.google.ai.edge.litert:litert-support-api:1.4.0")
     kapt("com.github.bumptech.glide:compiler:4.15.1")
 
     // Koin
@@ -173,9 +162,6 @@ dependencies {
     // qr
     implementation("com.google.zxing:core:3.5.2")
 
-    // websocket
-    implementation("org.java-websocket:Java-WebSocket:1.5.3")
-
     // preference
     implementation("androidx.preference:preference-ktx:1.2.1")
 
@@ -185,7 +171,6 @@ dependencies {
     //REST - APIService
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation("com.google.code.gson:gson:2.10.1")
 
     // secure
@@ -216,14 +201,9 @@ dependencies {
     implementation("com.google.android.exoplayer:exoplayer-smoothstreaming:2.18.7")
 
 
-    //Blur
-    implementation("jp.wasabeef:glide-transformations:4.3.0")
-
     //FacebookShimmmer
     implementation("com.facebook.shimmer:shimmer:0.5.0")
 
-    //Jwt Token
-    implementation("com.auth0.android:jwtdecode:2.0.0")
     implementation("androidx.activity:activity:1.10.0")
 
     /// Spinner
@@ -248,7 +228,6 @@ dependencies {
     implementation("com.kongzue.dialogx:DialogX:${dialogx_version}")
     implementation("org.apache.commons:commons-compress:1.21")
     implementation("com.bugsnag:bugsnag-android:6.+")
-    implementation("com.github.skydoves:balloon:1.6.0")
     implementation("com.bugsnag:bugsnag-android-performance:1.+")
     implementation("com.jakewharton.threetenabp:threetenabp:1.4.4")
     implementation("com.github.skydoves:androidribbon:1.0.4")

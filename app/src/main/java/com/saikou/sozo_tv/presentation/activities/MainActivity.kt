@@ -11,8 +11,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.components.navigation.setupWithNavController
-import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
-import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.ActivityMainBinding
 import com.saikou.sozo_tv.databinding.ContentHeaderMenuMainTvBinding
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
@@ -29,7 +27,6 @@ class MainActivity : AppCompatActivity() {
     private var _binding: ActivityMainBinding? = null
     private var headerBinding: ContentHeaderMenuMainTvBinding? = null
     private val binding get() = _binding!!
-    private val preferenceManager by lazy { PreferenceManager() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,14 +68,12 @@ class MainActivity : AppCompatActivity() {
             }
 
             when (destination.id) {
-                R.id.search, R.id.home, R.id.categories, R.id.contact, R.id.tvgarden, R.id.myList ->
+                R.id.search, R.id.home, R.id.categories, R.id.contact, R.id.tvgarden ->
                     binding.navMain.visibility = View.VISIBLE
 
                 else -> binding.navMain.visibility = View.GONE
             }
         }
-
-        updateMyListMenuVisibility()
     }
 
     private fun handleUserDataState(header: ContentHeaderMenuMainTvBinding) {
@@ -90,19 +85,6 @@ class MainActivity : AppCompatActivity() {
             ImageViewCompat.setImageTintList(header.ivNavigationHeaderIcon, null)
             header.ivNavigationHeaderIcon.loadImage(profile.avatarUrl)
         }
-    }
-
-    private fun updateMyListMenuVisibility() {
-        val isLoggedIn = preferenceManager.getString(AuthPrefKeys.ANILIST_TOKEN).isNotEmpty()
-        val menu = binding.navMain.menu
-        val myListMenuItem = menu.findItem(R.id.myList)
-
-        myListMenuItem?.isVisible = isLoggedIn
-
-        Log.d(
-            "MainActivity",
-            "User logged in: $isLoggedIn, My List visible: ${myListMenuItem?.isVisible}"
-        )
     }
 
     private fun navigateProfile() {
@@ -117,11 +99,6 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(binding.navMainFragment.id) as NavHostFragment
         val navController = navHostFragment.navController
         navController.navigate(R.id.categories)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        updateMyListMenuVisibility()
     }
 
     override fun onDestroy() {
