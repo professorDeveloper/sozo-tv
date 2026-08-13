@@ -106,6 +106,8 @@ class ExtensionParser : BaseParser() {
                 useLocalProxy = s.useLocalProxy,
                 localProxy = s.localProxy,
                 requestTransform = s.requestTransform,
+                useWebViewSniff = s.useWebViewSniff,
+                sniff = s.sniff,
             )
         }
     }
