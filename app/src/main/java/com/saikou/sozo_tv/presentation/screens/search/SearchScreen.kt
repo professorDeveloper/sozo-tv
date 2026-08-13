@@ -17,7 +17,6 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.saikou.sozo_tv.R
@@ -68,6 +67,7 @@ class SearchScreen : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         setupCustomKeyboard()
+        setupSearchScopeToggle()
         initializeSearch()
         observeViewModel()
         setupTVFocusHandling()
@@ -416,17 +416,13 @@ class SearchScreen : Fragment() {
             Log.d("SearchScreen", "Item clicked: ${searchModel.title}")
             openOnSelectedProvider(searchModel)
         }
-        searchAdapter.setOnItemLongClickListener { searchModel ->
-            showAniListManageDialog(searchModel)
-        }
-
         binding.vgvSearch.adapter = searchAdapter
     }
 
     /**
-     * AniList results carry no provider-registry id, so resolve the title against the currently
-     * selected source: search the provider by title, take the best match's stable id, then open
-     * the existing detail/player flow with it.
+     * A result without a provider-registry id is resolved against the currently selected source:
+     * search the provider by title, take the best match's stable id, then open the existing
+     * detail/player flow with it.
      */
     private fun openOnSelectedProvider(searchModel: SearchModel) {
         // A provider result already has a registry id — open it directly.
@@ -468,58 +464,34 @@ class SearchScreen : Fragment() {
         requireActivity().startActivity(intent)
     }
 
-    /** Long-press a result → add/update it on the signed-in user's AniList list. */
-    private fun showAniListManageDialog(searchModel: SearchModel) {
-        val mediaId = searchModel.aniListId
-        if (mediaId == null) {
-            Toast.makeText(requireContext(), "No AniList entry for this title", Toast.LENGTH_SHORT).show()
-            return
-        }
-        if (!model.isAniListLoggedIn()) {
-            Toast.makeText(
-                requireContext(),
-                "Log in to AniList (Account) to manage your list.",
-                Toast.LENGTH_LONG,
-            ).show()
-            return
-        }
-        val labels = arrayOf("Watching", "Plan to watch", "Completed", "Paused", "Dropped")
-        val statuses = arrayOf("CURRENT", "PLANNING", "COMPLETED", "PAUSED", "DROPPED")
-        val checked = statuses.indexOf(searchModel.listStatus)
+    /** false = active source only (default), true = every installed source. */
+    private var searchAllSources = false
 
-        AlertDialog.Builder(requireContext())
-            .setTitle(searchModel.title ?: "AniList")
-            .setSingleChoiceItems(labels, checked) { dialog, which ->
-                dialog.dismiss()
-                model.manageOnAniList(mediaId, statuses[which], null) { result ->
-                    if (!isAdded) return@manageOnAniList
-                    result.onSuccess {
-                        Toast.makeText(
-                            requireContext(),
-                            "Saved to AniList: ${labels[which]}",
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                    }.onFailure {
-                        Toast.makeText(
-                            requireContext(),
-                            it.message ?: "AniList update failed",
-                            Toast.LENGTH_LONG,
-                        ).show()
-                    }
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+    private fun setupSearchScopeToggle() {
+        binding.searchScopeToggle.setOnClickListener {
+            searchAllSources = !searchAllSources
+            binding.searchScopeToggle.text =
+                if (searchAllSources) "All sources" else "This source"
+            // Re-run the text already on screen so flipping the scope shows its
+            // effect immediately instead of waiting for the next keystroke.
+            val current = lastSearchQuery.ifEmpty { binding.searchEdt.text?.toString().orEmpty() }
+            if (current.trim().length >= 2) performSearchImmediate(current)
+        }
     }
 
     private fun performSearchImmediate(query: String) {
         if (query.isNotEmpty()) {
-            // Search the currently-selected extension provider directly, so results
-            // (and their posters) come from that source rather than AniList.
-            model.searchAnime(query.trim())
-            searchAdapter.setQueryText(query.trim())
+            val q = query.trim()
+            // Active provider by default; "All sources" fans out across every
+            // installed one (bounded + failure-tolerant in ExtensionEngine).
+            if (searchAllSources) model.searchAllSources(q) else model.searchAnime(q)
+            searchAdapter.setQueryText(q)
             binding.recommendationsTitle.visibility = View.VISIBLE
-            binding.recommendationsTitle.text = "Search Results for \"$query\""
+            binding.recommendationsTitle.text = if (searchAllSources) {
+                "All sources — \"$query\""
+            } else {
+                "Search Results for \"$query\""
+            }
         }
     }
 

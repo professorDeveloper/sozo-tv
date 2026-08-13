@@ -4,11 +4,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bugsnag.android.Bugsnag
-import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
-import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.data.local.pref.DeviceSession
 import com.saikou.sozo_tv.data.model.ContentMode
 import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.data.model.anilist.Profile
+import com.saikou.sozo_tv.data.repository.DeviceAuthRepository
 import com.saikou.sozo_tv.domain.repository.ProfileRepository
 import com.saikou.sozo_tv.domain.repository.SettingsRepository
 import com.saikou.sozo_tv.utils.LocalData
@@ -19,7 +19,8 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
-    private val profileRepo: ProfileRepository
+    private val profileRepo: ProfileRepository,
+    private val deviceAuth: DeviceAuthRepository,
 ) : ViewModel() {
 
     val contentMode: StateFlow<ContentMode> =
@@ -30,6 +31,8 @@ class SettingsViewModel(
         settingsRepository.seasonalTheme
             .stateIn(viewModelScope, SharingStarted.Eagerly, SeasonalTheme.DEFAULT)
 
+    /** Lets login-aware surfaces flip the moment the TV links or unlinks, without a rebuild. */
+    val deviceSession: StateFlow<DeviceSession?> get() = deviceAuth.session
 
     val profileData = MutableLiveData<Profile>()
 
@@ -42,16 +45,12 @@ class SettingsViewModel(
     }
 
     fun loadProfile() {
-        val preference = PreferenceManager()
         viewModelScope.launch {
-            val token = preference.getString(AuthPrefKeys.ANILIST_TOKEN)
-            if (token.isNotEmpty()) {
-                val result = profileRepo.getCurrentProfileId()
-                result.onSuccess { profile ->
-                    profileData.postValue(profile)
-                }.onFailure {
-                    Bugsnag.notify(it)
-                }
+            val result = profileRepo.getCurrentProfileId()
+            result.onSuccess { profile ->
+                profileData.postValue(profile)
+            }.onFailure {
+                Bugsnag.notify(it)
             }
         }
     }
@@ -59,10 +58,12 @@ class SettingsViewModel(
     fun setContentMode(mode: ContentMode) = settingsRepository.setContentMode(mode)
 
     fun setSeasonalTheme(theme: SeasonalTheme) = settingsRepository.setSeasonalTheme(theme)
+
+    /** Revokes only THIS device's session — the user's phone and other TVs stay signed in. */
     fun exitUser() {
-        val preference = PreferenceManager()
-        viewModelScope.launch {
-            preference.putString(AuthPrefKeys.ANILIST_TOKEN, "")
-        }
+        // Runs on the repository's scope, not viewModelScope: the Exit dialog relaunches
+        // MainActivity with CLEAR_TASK in the same handler, which tears this ViewModel down and
+        // would abandon the revocation call mid-flight, leaving the session alive server-side.
+        deviceAuth.logoutAsync()
     }
 }

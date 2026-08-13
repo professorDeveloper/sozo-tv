@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  TV search keyboard.
+
+  QWERTY, not alphabetical: the muscle memory every user already has beats
+  A-Z ordering on a D-pad, where each extra row/column traversal is a click.
+
+  The symbols page exists because search matches titles EXACTLY, and titles
+  carry apostrophes, colons and hyphens. Without it those shows are unreachable.
+
+  Letter/digit keys keep their original @id/key_<char> names, so the id-based
+  wiring in CustomTVKeyboard.kt keeps working unchanged. Symbol keys carry NO
+  id on purpose — they are bound by walking the container and reading each
+  key's own text, so adding a symbol here needs no Kotlin change.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -8,313 +21,538 @@
     android:padding="4dp">
 
     <LinearLayout
+        android:id="@+id/letters_page"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="4dp">
-
-        <!-- Increased key size from 32dp to 38dp for better TV visibility -->
-        <TextView
-            android:id="@+id/key_a"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="a" />
-
-        <TextView
-            android:id="@+id/key_b"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="b" />
-
-        <TextView
-            android:id="@+id/key_c"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="c" />
-
-        <TextView
-            android:id="@+id/key_d"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="d" />
-
-        <TextView
-            android:id="@+id/key_e"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="e" />
-
-        <TextView
-            android:id="@+id/key_f"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="f" />
-
-    </LinearLayout>
+        android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:layout_gravity="center_horizontal"
         android:layout_marginBottom="4dp">
-
-        <TextView
-            android:id="@+id/key_g"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="g" />
-
-        <TextView
-            android:id="@+id/key_h"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="h" />
-
-        <TextView
-            android:id="@+id/key_i"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="i" />
-
-        <TextView
-            android:id="@+id/key_j"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="j" />
-
-        <TextView
-            android:id="@+id/key_k"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="k" />
-
-        <TextView
-            android:id="@+id/key_l"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="l" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="4dp">
-
-        <TextView
-            android:id="@+id/key_m"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="m" />
-
-        <TextView
-            android:id="@+id/key_n"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="n" />
-
-        <TextView
-            android:id="@+id/key_o"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="o" />
-
-        <TextView
-            android:id="@+id/key_p"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="p" />
-
-        <TextView
-            android:id="@+id/key_q"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="q" />
-
-        <TextView
-            android:id="@+id/key_r"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="r" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="4dp">
-
-        <TextView
-            android:id="@+id/key_s"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="s" />
-
-        <TextView
-            android:id="@+id/key_t"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="t" />
-
-        <TextView
-            android:id="@+id/key_u"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="u" />
-
-        <TextView
-            android:id="@+id/key_v"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="v" />
-
-        <TextView
-            android:id="@+id/key_w"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="w" />
-
-        <TextView
-            android:id="@+id/key_x"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="x" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="4dp">
-
-        <TextView
-            android:id="@+id/key_y"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="y" />
-
-        <TextView
-            android:id="@+id/key_z"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="z" />
 
         <TextView
             android:id="@+id/key_1"
             style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:layout_margin="2dp"
             android:textSize="14sp"
             android:text="1" />
-
         <TextView
             android:id="@+id/key_2"
             style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:layout_margin="2dp"
             android:textSize="14sp"
             android:text="2" />
-
         <TextView
             android:id="@+id/key_3"
             style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:layout_margin="2dp"
             android:textSize="14sp"
             android:text="3" />
-
         <TextView
             android:id="@+id/key_4"
             style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:layout_margin="2dp"
             android:textSize="14sp"
             android:text="4" />
+        <TextView
+            android:id="@+id/key_5"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="5" />
+        <TextView
+            android:id="@+id/key_6"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="6" />
+        <TextView
+            android:id="@+id/key_7"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="7" />
+        <TextView
+            android:id="@+id/key_8"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="8" />
+        <TextView
+            android:id="@+id/key_9"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="9" />
+        <TextView
+            android:id="@+id/key_0"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="0" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="4dp">
+
+        <TextView
+            android:id="@+id/key_q"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="q" />
+        <TextView
+            android:id="@+id/key_w"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="w" />
+        <TextView
+            android:id="@+id/key_e"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="e" />
+        <TextView
+            android:id="@+id/key_r"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="r" />
+        <TextView
+            android:id="@+id/key_t"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="t" />
+        <TextView
+            android:id="@+id/key_y"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="y" />
+        <TextView
+            android:id="@+id/key_u"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="u" />
+        <TextView
+            android:id="@+id/key_i"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="i" />
+        <TextView
+            android:id="@+id/key_o"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="o" />
+        <TextView
+            android:id="@+id/key_p"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="p" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="4dp">
+
+        <TextView
+            android:id="@+id/key_a"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="a" />
+        <TextView
+            android:id="@+id/key_s"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="s" />
+        <TextView
+            android:id="@+id/key_d"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="d" />
+        <TextView
+            android:id="@+id/key_f"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="f" />
+        <TextView
+            android:id="@+id/key_g"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="g" />
+        <TextView
+            android:id="@+id/key_h"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="h" />
+        <TextView
+            android:id="@+id/key_j"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="j" />
+        <TextView
+            android:id="@+id/key_k"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="k" />
+        <TextView
+            android:id="@+id/key_l"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="l" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="4dp">
+
+        <TextView
+            android:id="@+id/key_z"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="z" />
+        <TextView
+            android:id="@+id/key_x"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="x" />
+        <TextView
+            android:id="@+id/key_c"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="c" />
+        <TextView
+            android:id="@+id/key_v"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="v" />
+        <TextView
+            android:id="@+id/key_b"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="b" />
+        <TextView
+            android:id="@+id/key_n"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="n" />
+        <TextView
+            android:id="@+id/key_m"
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="m" />
+    </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/symbols_page"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="4dp">
+
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="&#39;" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="&quot;" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text=":" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text=";" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="-" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="_" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="." />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="," />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="4dp">
+
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="!" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="?" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="(" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text=")" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="[" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="]" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="&amp;" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="#" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="4dp">
+
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="@" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="+" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="*" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="=" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="%" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="$" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="/" />
+        <TextView
+            style="@style/KeyboardKey"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="2dp"
+            android:textSize="14sp"
+            android:text="~" />
+    </LinearLayout>
 
     </LinearLayout>
 
@@ -322,90 +560,32 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="6dp">
+        android:layout_gravity="center_horizontal">
 
         <TextView
-            android:id="@+id/key_5"
+            android:id="@+id/key_toggle"
             style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
+            android:layout_width="64dp"
+            android:layout_height="36dp"
             android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="5" />
-
-        <TextView
-            android:id="@+id/key_6"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="6" />
-
-        <TextView
-            android:id="@+id/key_7"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="7" />
-
-        <TextView
-            android:id="@+id/key_8"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="8" />
-
-        <TextView
-            android:id="@+id/key_9"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="9" />
-
-        <TextView
-            android:id="@+id/key_0"
-            style="@style/KeyboardKey"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_margin="2dp"
-            android:textSize="14sp"
-            android:text="0" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <!-- Increased space bar and backspace button sizes for better TV usability -->
+            android:textSize="13sp"
+            android:text="123#" />
         <TextView
             android:id="@+id/key_space"
             style="@style/KeyboardKey"
-            android:text="SPACE"
-            android:layout_width="160dp"
-            android:layout_height="38dp"
+            android:layout_width="152dp"
+            android:layout_height="36dp"
             android:layout_margin="2dp"
-            android:gravity="center"
-            android:textSize="12sp"
-            android:textAllCaps="true" />
-
+            android:textSize="13sp"
+            android:text="SPACE" />
         <TextView
             android:id="@+id/key_backspace"
-            style="@style/KeyboardControlKey"
-            android:text="⌫"
-            android:layout_width="80dp"
-            android:layout_height="38dp"
+            style="@style/KeyboardKey"
+            android:layout_width="64dp"
+            android:layout_height="36dp"
             android:layout_margin="2dp"
-            android:textSize="14sp" />
-
+            android:textSize="13sp"
+            android:text="DEL" />
     </LinearLayout>
 
 </LinearLayout>

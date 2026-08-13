@@ -15,13 +15,6 @@
         android:icon="@drawable/ic_clapper_open"
         android:title="@string/main_menu_tvgarden" />
 
-    <!-- My List menu item - visible faqat login qilganda -->
-    <item
-        android:id="@+id/myList"
-        android:icon="@drawable/ic_bookmark"
-        android:title="@string/main_menu_my_list"
-        android:visible="false" />
-
     <item
         android:id="@+id/search"
         android:icon="@drawable/ic_menu_search"

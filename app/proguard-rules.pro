@@ -20,11 +20,6 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-# JNI orqali chaqiriladigan klassni himoya qilamiz
--keep class com.saikou.sozo_tv.utils.Security {
-    public *;
-}
-
 #-keep  com.saikou.sozo_tv
 # Barcha native methodlarni saqlaymiz
 -keepclasseswithmembernames class * {
@@ -50,6 +45,9 @@
 # an all-defaults object rather than an error.
 -keep class com.saikou.sozo_tv.domain.model.** { *; }
 -keep class com.saikou.sozo_tv.data.model.** { *; }
+# Device-pairing DTOs: several fields map by name only, and an obfuscated accessToken/refreshToken
+# would deserialize to null — a sign-in that silently produces no session.
+-keep class com.saikou.sozo_tv.data.remote.device.** { *; }
 -keepclassmembers class * {
     @com.google.firebase.database.PropertyName <methods>;
     @com.google.firebase.database.PropertyName <fields>;

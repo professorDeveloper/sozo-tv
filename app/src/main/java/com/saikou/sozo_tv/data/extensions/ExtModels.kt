@@ -112,6 +112,15 @@ data class ExtVideoSource(
     val useLocalProxy: Boolean = false,
     val localProxy: String? = null,        // raw JSON
     val requestTransform: String? = null,  // raw JSON
+    /**
+     * Server-set capability flag: this source's real manifest only exists after
+     * the page's own JS runs, so play it by sniffing a headless WebView rather
+     * than handing the url to ExoPlayer. Never branch on the provider id — any
+     * source carrying this flag takes the same path, so a new site like it is a
+     * backend-only change.
+     */
+    val useWebViewSniff: Boolean = false,
+    val sniff: String? = null,             // raw JSON: patterns/timeoutMs/headers/blockHosts
 )
 
 data class ExtSubtitle(val label: String, val file: String, val default: Boolean)
@@ -279,6 +288,10 @@ internal object ExtParser {
                 isDefault = s.optBoolean("isDefault", i == 0),
                 headers = s.headersMap("headers"),
                 useLocalProxy = s.optBoolean("useLocalProxy", false),
+                // Fall back to the media-level flag: a provider may declare the
+                // capability once for the whole payload rather than per source.
+                useWebViewSniff = s.optBoolean("useWebViewSniff", o.optBoolean("useWebViewSniff", false)),
+                sniff = (s.optJSONObject("sniff") ?: o.optJSONObject("sniff"))?.toString(),
                 localProxy = s.optJSONObject("localProxy")?.toString(),
                 requestTransform = s.optJSONObject("requestTransform")?.toString(),
             )

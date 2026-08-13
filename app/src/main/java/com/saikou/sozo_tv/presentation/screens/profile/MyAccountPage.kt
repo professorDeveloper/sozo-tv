@@ -19,7 +19,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.saikou.sozo_tv.R
-import com.saikou.sozo_tv.data.local.pref.AuthPrefKeys
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.databinding.MyAccountPageBinding
@@ -68,18 +67,29 @@ class MyAccountPage : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         preferenceManager = PreferenceManager()
-        if (preferenceManager.getString(AuthPrefKeys.ANILIST_TOKEN)
-                .isBlank()
-        ) binding.loginButton.visibility = View.VISIBLE else binding.loginButton.visibility =
-            View.GONE
+        // Observed rather than read once: linking happens on another screen, and this fragment
+        // is not rebuilt when the user comes back from it.
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsViewModel.deviceSession.collect { session ->
+                    binding.loginButton.visibility =
+                        if (session == null) View.VISIBLE else View.GONE
+                }
+            }
+        }
         settingsViewModel.profileData.observe(viewLifecycleOwner) {
             binding.profileNameTextView.text = it.name
-            binding.accountType.text = getString(R.string.anilist_id, it.id)
-            binding.realAvatar.background = null
-            binding.avatarInitials.gone()
-            binding.avatarImageView.visible()
-            binding.bannerImageView.loadImage(it.bannerImg)
-            binding.avatarImageView.loadImage(it.avatarUrl)
+            binding.accountType.text = it.email ?: getString(R.string.guest_account)
+            // Only swap the initials placeholder for a real image when there IS one: loadImage()
+            // paints the 404 wallpaper on a blank URL, which a guest would otherwise get as both
+            // their avatar and their banner.
+            if (!it.avatarUrl.isNullOrBlank()) {
+                binding.realAvatar.background = null
+                binding.avatarInitials.gone()
+                binding.avatarImageView.visible()
+                binding.avatarImageView.loadImage(it.avatarUrl)
+            }
+            if (it.bannerImg.isNotBlank()) binding.bannerImageView.loadImage(it.bannerImg)
             binding.unreadCount.text = it.unreadNotificationCount.toString()
         }
         setupLoginButton()

@@ -124,10 +124,21 @@
     <string name="choose_subtitle">Choose Subtitle</string>
     <string name="enable_or_disable_subtitles">Enable or disable subtitles</string>
     <string name="refresh_qr_code">Refresh QR Code</string>
-    <string name="waiting_for_mobile">Waiting for mobile...</string>
+    <string name="waiting_for_mobile">Waiting for approval on your phone…</string>
     <string name="sign_in_with_qr_code">Sign in with QR code</string>
-    <string name="open_the_mobile_app_login_then_scan_this_qr_to_connect_your_account">Open the mobile app, login, then scan this QR to connect your account.</string>
-    <string name="anilist_id">Anilist ID: %1$s</string>
+
+    <!-- Device login (RFC-8628 pairing screen) -->
+    <string name="device_login_subtitle">Scan the code with your phone, or open Sozo → Profile → Link a TV and type the code below.</string>
+    <string name="device_login_code_label">Your code</string>
+    <string name="device_login_expires_in">Expires in %1$d:%2$02d</string>
+    <string name="device_login_creating">Getting your code…</string>
+    <string name="device_login_expired">Code expired. Press Refresh for a new one.</string>
+    <string name="device_login_reconnecting">Reconnecting…</string>
+    <string name="device_login_signed_in_as">Signed in as %1$s</string>
+    <string name="device_login_failed">Sign-in failed. Press Refresh to try again.</string>
+    <string name="device_login_back">Back</string>
+    <string name="device_login_no_internet">No internet connection</string>
+    <string name="device_login_rate_limited">Too many attempts. Try again in a moment.</string>
     <string name="notifications">Notifications</string>
     <string name="my_account">My Account</string>
     <string name="manage_your_profile_and_preferences">Manage your profile and preferences</string>
@@ -159,7 +170,6 @@
     <string name="current_selected_anime_source">Anime: %s</string>
     <string name="current_selected_movie_source">Movie: %s</string>
     <string name="current_selected_both">Anime: %1$s, Movie: %2$s</string>
-    <string name="main_menu_my_list">My AniList</string>
     <string name="style">Subtitle Style</string>
     <string name="off">Off</string>
     <string name="on">On</string>
