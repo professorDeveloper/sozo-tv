@@ -22,4 +22,13 @@ class SearchRepositoryImpl(
 
     override suspend fun searchAnime(query: String): Result<List<SearchModel>> = run(query)
     override suspend fun searchMovie(query: String): Result<List<SearchModel>> = run(query)
+
+    // No "no source selected" failure here on purpose: a global search does not
+    // depend on one being active, and an empty corpus is an empty RESULT, not an
+    // error the UI should render as a crash banner.
+    override suspend fun searchAllSources(query: String): Result<List<SearchModel>> = try {
+        Result.success(engine.searchAll(query).map { it.toSearchModel() })
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }

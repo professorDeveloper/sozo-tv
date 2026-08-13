@@ -44,6 +44,34 @@ class SearchViewModel(
         }
     }
 
+    /**
+     * "All sources" search. Kept separate from [searchAnime]/[searchMovie]
+     * rather than folded in behind a flag, because the screen has to be able to
+     * re-run the SAME query in the other mode — sharing `lastQuery` de-dup with
+     * them would swallow that second run as a no-op.
+     */
+    fun searchAllSources(query: String) {
+        if (lastGlobalQuery == query) return
+        viewModelScope.launch {
+            _loading.value = true
+            repo.searchAllSources(query)
+                .onSuccess {
+                    _loading.value = false
+                    _searchResults.value = it
+                    lastGlobalQuery = query
+                    // Let a later single-source search of the same text still run.
+                    lastQuery = ""
+                }
+                .onFailure {
+                    _loading.value = false
+                    errorData.value = it.message
+                    _searchResults.value = emptyList()
+                }
+        }
+    }
+
+    private var lastGlobalQuery = ""
+
     fun searchMovie(query: String) {
         if (lastQuery != query) {
             viewModelScope.launch {

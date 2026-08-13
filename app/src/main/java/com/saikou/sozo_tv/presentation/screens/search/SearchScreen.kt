@@ -67,6 +67,7 @@ class SearchScreen : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         setupCustomKeyboard()
+        setupSearchScopeToggle()
         initializeSearch()
         observeViewModel()
         setupTVFocusHandling()
@@ -463,14 +464,34 @@ class SearchScreen : Fragment() {
         requireActivity().startActivity(intent)
     }
 
+    /** false = active source only (default), true = every installed source. */
+    private var searchAllSources = false
+
+    private fun setupSearchScopeToggle() {
+        binding.searchScopeToggle.setOnClickListener {
+            searchAllSources = !searchAllSources
+            binding.searchScopeToggle.text =
+                if (searchAllSources) "All sources" else "This source"
+            // Re-run the text already on screen so flipping the scope shows its
+            // effect immediately instead of waiting for the next keystroke.
+            val current = lastSearchQuery.ifEmpty { binding.searchEdt.text?.toString().orEmpty() }
+            if (current.trim().length >= 2) performSearchImmediate(current)
+        }
+    }
+
     private fun performSearchImmediate(query: String) {
         if (query.isNotEmpty()) {
-            // Search the currently-selected extension provider directly, so results
-            // (and their posters) come from that source.
-            model.searchAnime(query.trim())
-            searchAdapter.setQueryText(query.trim())
+            val q = query.trim()
+            // Active provider by default; "All sources" fans out across every
+            // installed one (bounded + failure-tolerant in ExtensionEngine).
+            if (searchAllSources) model.searchAllSources(q) else model.searchAnime(q)
+            searchAdapter.setQueryText(q)
             binding.recommendationsTitle.visibility = View.VISIBLE
-            binding.recommendationsTitle.text = "Search Results for \"$query\""
+            binding.recommendationsTitle.text = if (searchAllSources) {
+                "All sources — \"$query\""
+            } else {
+                "Search Results for \"$query\""
+            }
         }
     }
 

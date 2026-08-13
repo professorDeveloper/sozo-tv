@@ -213,6 +213,50 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
         ExtParser.page(b.searchJson(p, query))
     }
 
+    /**
+     * "All sources": search every installed provider across all three groups
+     * instead of only the active one.
+     *
+     * Three bounds, all load-bearing — a CloudStream repo alone can install
+     * dozens of providers, and a naive fan-out would hang the screen on the
+     * slowest dead mirror:
+     *   - [maxProviders] caps how many are queried at all,
+     *   - [perProviderTimeoutMs] caps each one INDEPENDENTLY, so one stalled
+     *     source costs its own slot and nothing else,
+     *   - a throwing/empty source is dropped rather than failing the search.
+     *
+     * The active provider is queried FIRST so its hits lead the merged list —
+     * that is the source the user already chose. Results are deduped on
+     * (provider, contentUrl): the same title legitimately appears on several
+     * sources and each is separately playable, so only exact repeats collapse.
+     */
+    suspend fun searchAll(
+        query: String,
+        maxProviders: Int = MAX_GLOBAL_PROVIDERS,
+        perProviderTimeoutMs: Long = GLOBAL_SEARCH_TIMEOUT_MS,
+    ): List<ExtCard> = withContext(Dispatchers.IO) {
+        val q = query.trim()
+        if (q.isEmpty()) return@withContext emptyList()
+
+        val active = getActiveProvider()
+        val candidates = listOf(ExtGroup.SERVER, ExtGroup.ANIYOMI, ExtGroup.CLOUDSTREAM)
+            .flatMap { g -> runCatching { providers(g) }.getOrDefault(emptyList()) }
+            .distinctBy { it.id }
+            .sortedByDescending { it.id == active }
+            .take(maxProviders)
+
+        val pages = candidates.map { p ->
+            async {
+                withTimeoutOrNull(perProviderTimeoutMs) {
+                    runCatching { search(p.id, q)?.items }.getOrNull().orEmpty()
+                }.orEmpty()
+            }
+        }.map { it.await() }
+
+        val seen = HashSet<String>()
+        pages.flatten().filter { seen.add("${it.provider}|${it.contentUrl}") }
+    }
+
     suspend fun load(provider: String, url: String): ExtDetail? = withContext(Dispatchers.IO) {
         val b = backendForProvider(provider) ?: return@withContext null
         b.ensureLoaded()
@@ -237,6 +281,10 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
         private const val KEY_PROVIDER = "active_provider"
         private const val KEY_PROVIDER_NAME = "active_provider_name"
         private const val HOME_TIMEOUT_MS = 25_000L
+
+        /** Global-search bounds — see [searchAll]. */
+        private const val MAX_GLOBAL_PROVIDERS = 12
+        private const val GLOBAL_SEARCH_TIMEOUT_MS = 12_000L
 
         val shared: ExtensionEngine by lazy { ExtensionEngine() }
     }
