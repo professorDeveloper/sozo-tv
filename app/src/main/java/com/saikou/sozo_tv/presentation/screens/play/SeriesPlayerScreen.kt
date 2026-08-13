@@ -229,7 +229,12 @@ class SeriesPlayerScreen : Fragment() {
 
     private fun showNextEpisodeCountdown() {
         binding.apply {
-            if (!LocalData.isHistoryItemClicked && !countdownShown) {
+            // Runs for history playback too. The history intent carries the same
+            // (page, epIndex) the normal path uses, so `episodeList` is fully
+            // populated either way — there was never a data reason to stop the
+            // run at one episode, and stopping it is what users hit as "History
+            // won't continue to the next episode".
+            if (!countdownShown) {
                 val nextEpisodeIndex = model.currentEpIndex + 1
                 if (nextEpisodeIndex < episodeList.size) {
                     countdownShown = true
@@ -339,10 +344,10 @@ class SeriesPlayerScreen : Fragment() {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 when (playbackState) {
                     Player.STATE_READY -> {
-                        if (!LocalData.isHistoryItemClicked) {
-                            resetCountdownState()
-                            startProgressTracking()
-                        }
+                        // Unconditional: the countdown/auto-advance tracker is what
+                        // drives "next episode", and history playback needs it too.
+                        resetCountdownState()
+                        startProgressTracking()
 
                         val dur = player.duration
                         if (::skipIntroView.isInitialized) {
@@ -370,7 +375,7 @@ class SeriesPlayerScreen : Fragment() {
                     }
 
                     Player.STATE_ENDED -> {
-                        if (!LocalData.isHistoryItemClicked && player.duration > 0) {
+                        if (player.duration > 0) {
                             stopProgressTracking()
                             if (!isCountdownActive) playNextEpisodeAutomatically()
                         }
@@ -587,15 +592,13 @@ class SeriesPlayerScreen : Fragment() {
 
             val lastPosition = model.getWatchedHistoryEntity?.lastPosition ?: 0L
 
-            if (LocalData.isHistoryItemClicked) {
-                binding.pvPlayer.controller.binding.exoNextContainer.gone()
-                binding.pvPlayer.controller.binding.exoPrevContainer.gone()
-                binding.pvPlayer.controller.binding.epListContainer.gone()
-            } else {
-                binding.pvPlayer.controller.binding.exoNextContainer.visible()
-                binding.pvPlayer.controller.binding.exoPrevContainer.visible()
-                binding.pvPlayer.controller.binding.epListContainer.visible()
-            }
+            // Episode controls are shown for history playback as well. Hiding
+            // them was the second half of the same restriction: a user who
+            // resumed from History could neither auto-advance nor reach the
+            // episode list, so a resumed show was a dead end.
+            binding.pvPlayer.controller.binding.exoNextContainer.visible()
+            binding.pvPlayer.controller.binding.exoPrevContainer.visible()
+            binding.pvPlayer.controller.binding.epListContainer.visible()
 
             setupOrUpdatePreviewThumbnails(vod.thumbnail, vod.header)
 
