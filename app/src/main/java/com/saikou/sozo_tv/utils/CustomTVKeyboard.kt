@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.saikou.sozo_tv.R
@@ -56,6 +57,53 @@ class CustomTVKeyboard @JvmOverloads constructor(
             updateKeyFocus(it)
         }
 
+        setupSymbols()
+    }
+
+    /**
+     * Symbol keys carry no ids — each one is bound from its OWN text, so adding a
+     * symbol to `custom_tv_keyboard.xml` needs no change here. The page toggle
+     * swaps which grid is visible and moves focus with it, because on a remote a
+     * hidden-but-focused key strands the D-pad with nothing highlighted.
+     */
+    private fun setupSymbols() {
+        val letters = findViewById<View>(R.id.letters_page) ?: return
+        val symbols = findViewById<View>(R.id.symbols_page) ?: return
+        val toggle = findViewById<TextView>(R.id.key_toggle) ?: return
+
+        bindTextKeys(symbols)
+
+        toggle.setOnClickListener {
+            val showSymbols = symbols.visibility != View.VISIBLE
+            symbols.visibility = if (showSymbols) View.VISIBLE else View.GONE
+            letters.visibility = if (showSymbols) View.GONE else View.VISIBLE
+            toggle.text = if (showSymbols) LABEL_LETTERS else LABEL_SYMBOLS
+            updateKeyFocus(it)
+            (if (showSymbols) symbols else letters).let(::focusFirstKey)
+        }
+    }
+
+    /** Every TextView under [root] emits its own text when clicked. */
+    private fun bindTextKeys(root: View) {
+        forEachKey(root) { key ->
+            key.setOnClickListener {
+                onKeyClickListener?.invoke(key.text.toString())
+                updateKeyFocus(it)
+            }
+        }
+    }
+
+    private fun focusFirstKey(root: View) {
+        var first: TextView? = null
+        forEachKey(root) { if (first == null) first = it }
+        first?.requestFocus()
+    }
+
+    private fun forEachKey(root: View, action: (TextView) -> Unit) {
+        when (root) {
+            is TextView -> action(root)
+            is ViewGroup -> for (i in 0 until root.childCount) forEachKey(root.getChildAt(i), action)
+        }
     }
 
     private fun updateKeyFocus(clickedView: View) {
@@ -83,5 +131,12 @@ class CustomTVKeyboard @JvmOverloads constructor(
 
     fun setOnClearClickListener(listener: () -> Unit) {
         onClearClickListener = listener
+    }
+
+    private companion object {
+        // NOT "?123": a value starting with '?' is read by AAPT as a theme
+        // attribute reference (?attr/123) and fails resource linking.
+        const val LABEL_SYMBOLS = "123#"
+        const val LABEL_LETTERS = "ABC"
     }
 }
