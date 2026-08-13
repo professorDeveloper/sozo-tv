@@ -29,6 +29,8 @@ data class VideoOption(
     var useLocalProxy: Boolean = false,
     var localProxy: String? = null,
     var requestTransform: String? = null,
+    var useWebViewSniff: Boolean = false,
+    var sniff: String? = null,
 )
 
 

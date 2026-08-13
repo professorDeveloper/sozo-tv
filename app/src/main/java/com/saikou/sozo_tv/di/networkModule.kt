@@ -6,7 +6,9 @@ import com.saikou.sozo_tv.BuildConfig
 import com.saikou.sozo_tv.data.local.pref.DeviceSessionStore
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.data.remote.device.DeviceAuthClient
+import com.saikou.sozo_tv.data.remote.lists.UserListsClient
 import com.saikou.sozo_tv.data.repository.DeviceAuthRepository
+import com.saikou.sozo_tv.data.repository.UserListsRepository
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
@@ -32,6 +34,20 @@ val NetworkModule = module {
         )
     }
     single { DeviceAuthRepository(client = get(), store = get()) }
+
+    // Curated lists (Watch Later / Watched) — the first authenticated API the TV
+    // calls. Shares the auth client (platform TLS, no body logging) because it
+    // sends a bearer token; the token is read per-request through
+    // DeviceAuthRepository so refreshes are picked up mid-session.
+    single {
+        UserListsClient(
+            okHttpClient = get(named("authOkHttp")),
+            gson = get(),
+            baseUrl = BuildConfig.SOZO_API_BASE_URL,
+            tokenProvider = { get<DeviceAuthRepository>().accessToken() },
+        )
+    }
+    single { UserListsRepository(context = androidContext(), client = get()) }
 
 }
 

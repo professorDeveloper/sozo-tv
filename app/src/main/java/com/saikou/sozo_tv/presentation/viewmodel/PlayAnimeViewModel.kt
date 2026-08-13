@@ -218,14 +218,24 @@ class PlayAnimeViewModel(
                 var headers = option.headers
                 var mime = option.mimeTypes.ifEmpty { MimeTypes.APPLICATION_M3U8 }
 
-                // Cloud providers (e.g. asilmedia) resolve to an HTML content page as videoUrl —
-                // ExoPlayer can't parse a page. Sniff the real .m3u8/.mp4 out of a headless WebView
-                // (its JS builds the signed stream url) and play THAT with the captured headers.
-                if (com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.needsExtraction(url)) {
+                // Some sources resolve to an HTML page, not a stream — ExoPlayer can't parse a
+                // page. Sniff the real .m3u8/.mp4 out of a headless WebView (the page's own JS
+                // builds the signed url) and play THAT with the captured headers.
+                //
+                // Two ways in, and the ORDER matters. The server-set `useWebViewSniff` flag is
+                // authoritative: it is how a backend declares "this source needs a browser"
+                // without the app knowing which site it is, so adding another such provider
+                // never ships an app update. `needsExtraction` stays only as the legacy
+                // heuristic for sources that predate the flag (it sniffs the URL for
+                // .html/.php/-style paths and cannot see an extensionless /embed/<token>).
+                if (option.useWebViewSniff ||
+                    com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.needsExtraction(url)
+                ) {
                     val sniffed = com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.extract(
                         context = com.saikou.sozo_tv.app.MyApp.context,
                         pageUrl = url,
                         pageHeaders = option.headers,
+                        timeoutMs = sniffTimeoutMs(option.sniff),
                     )
                     if (sniffed != null) {
                         url = sniffed.url
@@ -318,6 +328,22 @@ class PlayAnimeViewModel(
                 )
             }
         }
+    }
+
+    /**
+     * `sniff.timeoutMs` from the server's directive, clamped.
+     *
+     * Clamped rather than trusted: this value decides how long playback sits on a
+     * spinner, and a bad/hostile payload must not be able to hang the player. The
+     * default matches WebViewStreamExtractor's own.
+     */
+    private fun sniffTimeoutMs(sniffJson: String?): Long {
+        val fallback = 20_000L
+        if (sniffJson.isNullOrBlank()) return fallback
+        return runCatching {
+            val v = org.json.JSONObject(sniffJson).optLong("timeoutMs", fallback)
+            v.coerceIn(5_000L, 45_000L)
+        }.getOrDefault(fallback)
     }
 
     private fun asException(t: Throwable): Exception = (t as? Exception) ?: Exception(t)

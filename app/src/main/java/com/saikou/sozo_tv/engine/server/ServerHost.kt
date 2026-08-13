@@ -285,6 +285,13 @@ class ServerHost(
                 if (s.optBoolean("useLocalProxy", false)) put("useLocalProxy", true)
                 s.optJSONObject("localProxy")?.let { put("localProxy", it) }
                 s.optJSONObject("requestTransform")?.let { put("requestTransform", it) }
+                // Headless-WebView sniff directive (embed pages whose manifest is
+                // only produced by the page's own JS) — forward raw, per source
+                // or inherited from the media level.
+                if (s.optBoolean("useWebViewSniff", o.optBoolean("useWebViewSniff", false))) {
+                    put("useWebViewSniff", true)
+                }
+                (s.optJSONObject("sniff") ?: o.optJSONObject("sniff"))?.let { put("sniff", it) }
             })
         }
         val subIn = o.optJSONArray("subtitles") ?: JSONArray()
@@ -304,6 +311,11 @@ class ServerHost(
             put("headers", o.optJSONObject("headers") ?: JSONObject())
             put("videoSources", srcOut)
             put("subtitles", subOut)
+            // Media-level capability flag. Forwarded as well as per-source so a
+            // provider that declares it once for the whole payload still reaches
+            // ExtParser's media-level fallback.
+            if (o.optBoolean("useWebViewSniff", false)) put("useWebViewSniff", true)
+            o.optJSONObject("sniff")?.let { put("sniff", it) }
             // Forward the seek-preview thumbnails (VTT sprite sheet). soplay emits it as a bare
             // VTT url String or a {url,type,...} object — pass it through raw so downstream can read it.
             o.opt("thumbnails")?.takeIf { it != JSONObject.NULL }?.let { put("thumbnails", it) }
