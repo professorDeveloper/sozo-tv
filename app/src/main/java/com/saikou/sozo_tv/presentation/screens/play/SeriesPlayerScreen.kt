@@ -147,6 +147,16 @@ class SeriesPlayerScreen : Fragment() {
 
                 val req = b.build()
                 val resp = chain.proceed(req)
+                if (!resp.isSuccessful) {
+                    // The player only reports ERROR_CODE_IO_BAD_HTTP_STATUS, which says nothing
+                    // about WHY a CDN refused. Log what we actually sent so a 403 is diagnosable
+                    // from one logcat instead of a guess.
+                    Log.w(
+                        "PlayerHttp",
+                        "${resp.code} ${req.url}\n  sent: ${req.headers.names().sorted()}" +
+                            "\n  got: ${resp.headers}"
+                    )
+                }
                 resp
             }.connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS)
             // Share the global WebView cookie store so the cf_clearance / session cookies that
