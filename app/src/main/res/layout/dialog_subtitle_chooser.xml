@@ -111,12 +111,19 @@
         android:textSize="13sp"
         android:visibility="gone" />
 
-    <androidx.recyclerview.widget.RecyclerView
+    <!-- VerticalGridView, not a plain RecyclerView: the quality picker uses one and it is
+         what gives setSelectedPosition()/requestFocus() their meaning on a D-pad. A plain
+         RecyclerView marked focusable="true" took focus ONTO ITSELF, so opening the dialog
+         highlighted nothing and the first remote press went nowhere. descendantFocusability
+         keeps the container out of the focus order entirely. -->
+    <androidx.leanback.widget.VerticalGridView
         android:id="@+id/rv_subtitles"
         android:layout_width="match_parent"
         android:layout_height="280dp"
-        android:focusable="true"
-        android:orientation="vertical"
-        android:overScrollMode="never" />
+        android:clipToPadding="false"
+        android:descendantFocusability="afterDescendants"
+        android:focusable="false"
+        android:overScrollMode="never"
+        android:scrollbars="none" />
 
 </LinearLayout>
