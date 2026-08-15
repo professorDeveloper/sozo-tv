@@ -147,6 +147,16 @@ class SeriesPlayerScreen : Fragment() {
 
                 val req = b.build()
                 val resp = chain.proceed(req)
+                if (!resp.isSuccessful) {
+                    // The player only reports ERROR_CODE_IO_BAD_HTTP_STATUS, which says nothing
+                    // about WHY a CDN refused. Log what we actually sent so a 403 is diagnosable
+                    // from one logcat instead of a guess.
+                    Log.w(
+                        "PlayerHttp",
+                        "${resp.code} ${req.url}\n  sent: ${req.headers.names().sorted()}" +
+                            "\n  got: ${resp.headers}"
+                    )
+                }
                 resp
             }.connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS)
             // Share the global WebView cookie store so the cf_clearance / session cookies that
@@ -478,9 +488,19 @@ class SeriesPlayerScreen : Fragment() {
 
         model.currentQualityEpisode.observe(viewLifecycleOwner) { resource ->
             when (resource) {
-                Resource.Loading -> Unit
+                // Resolving a new quality is a network round-trip that can take
+                // several seconds. This used to be `Unit`: the picker closed and
+                // nothing else happened, so the switch read as "the button did
+                // nothing" until the stream eventually swapped. Reuse the same
+                // full-screen loading overlay an episode switch already shows.
+                Resource.Loading -> {
+                    binding.loadingLayout.visible()
+                    binding.loadingText.text = getString(R.string.quality_is_loading)
+                }
+
                 is Resource.Success -> {
                     ignoreNextEpisodeSuccess = false
+                    binding.loadingLayout.gone()
                     val vod = resource.data
                     playQualityVideo(
                         videoUrl = vod.urlobj, headers = vod.header, mimeType = vod.type
@@ -488,8 +508,17 @@ class SeriesPlayerScreen : Fragment() {
                     setupOrUpdatePreviewThumbnails(vod.thumbnail, vod.header)
                 }
 
+                // A failed switch was swallowed entirely — the overlay would have
+                // stayed up forever and the user was never told why. Drop back to
+                // the stream that is still playing and say so.
                 is Resource.Error -> {
                     ignoreNextEpisodeSuccess = false
+                    binding.loadingLayout.gone()
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.quality_switch_failed),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
 
                 else -> Unit
@@ -1044,9 +1073,29 @@ class SeriesPlayerScreen : Fragment() {
 
         binding.pvPlayer.controller.binding.frameBackButton.setOnClickListener { navigateBack() }
 
+        // BACK closes the topmost overlay before it leaves the player.
+        //
+        // It used to go straight to navigateBack(), so pressing BACK with the episode
+        // drawer open — the obvious way to dismiss it with a remote — tore the whole
+        // player down instead. The drawer's only other dismissal is the small X in its
+        // corner, and the next-episode countdown had no cancel path on BACK at all.
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() = navigateBack()
+                override fun handleOnBackPressed() {
+                    if (binding.sidebarRight.isVisible) {
+                        toggleSidebarRight(false)
+                        return
+                    }
+                    if (isCountdownActive) {
+                        // stopCountdown() only hides the view; it does not run the
+                        // onCancelled callback, so undo the same state here.
+                        binding.countdownOverlay.stopCountdown()
+                        isCountdownActive = false
+                        if (::player.isInitialized) player.play()
+                        return
+                    }
+                    navigateBack()
+                }
             })
         bindQualityObserversOnce()
 

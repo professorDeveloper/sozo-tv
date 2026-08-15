@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
+import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -21,6 +22,7 @@ import com.saikou.sozo_tv.databinding.ActivityUpdateBinding
 import com.saikou.sozo_tv.domain.model.AppUpdate
 import com.saikou.sozo_tv.presentation.viewmodel.UpdateViewModel
 import com.saikou.sozo_tv.utils.gone
+import com.saikou.sozo_tv.utils.requestInitialFocus
 import com.saikou.sozo_tv.utils.snackString
 import com.saikou.sozo_tv.utils.visible
 import io.noties.markwon.Markwon
@@ -33,6 +35,7 @@ class UpdateActivity : AppCompatActivity() {
         private const val EXTRA_APP_LINK = "extra_app_link"
         private const val EXTRA_APP_IMG = "extra_app_img"
         private const val EXTRA_CHANGE_LOG = "extra_change_log"
+        private const val EXTRA_MANDATORY = "extra_mandatory"
 
         private const val PV_MIN = 0f
         private const val PV_MAX = 1000f
@@ -40,9 +43,11 @@ class UpdateActivity : AppCompatActivity() {
         fun newIntent(context: Context, update: AppUpdate): Intent {
             return Intent(context, UpdateActivity::class.java).apply {
                 putExtra(EXTRA_APP_LINK, update.appLink)
-                putExtra(EXTRA_APP_LINK, update.appLink)
                 putExtra(EXTRA_APP_IMG, update.imageLink)
                 putExtra(EXTRA_CHANGE_LOG, update.changeLog)
+                // Carried through so the screen knows whether it may be declined. It was never
+                // passed before, which made every update effectively mandatory.
+                putExtra(EXTRA_MANDATORY, update.isMandatory)
             }
         }
     }
@@ -53,6 +58,7 @@ class UpdateActivity : AppCompatActivity() {
     private val appLink: String? by lazy { intent.getStringExtra(EXTRA_APP_LINK) }
     private val appImg: String? by lazy { intent.getStringExtra(EXTRA_APP_IMG) }
     private val changeLog: String? by lazy { intent.getStringExtra(EXTRA_CHANGE_LOG) }
+    private val isMandatory: Boolean by lazy { intent.getBooleanExtra(EXTRA_MANDATORY, false) }
 
     private val askNotif = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -72,7 +78,10 @@ class UpdateActivity : AppCompatActivity() {
 
     private val askInstall =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) finish()
+            if (result.resultCode == Activity.RESULT_OK) {
+                setResult(Activity.RESULT_OK)
+                finish()
+            }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,6 +103,8 @@ class UpdateActivity : AppCompatActivity() {
         binding.updateTxt.text = "Update Now"
         binding.updateBtn.isEnabled = true
         binding.updateBtn.visible()
+
+        setupDeclinePath()
 
         renderMarkdown(changeLog, appImg)
         observeVm()
@@ -156,8 +167,36 @@ class UpdateActivity : AppCompatActivity() {
     private fun startDownload() {
         val link = appLink ?: return
         binding.progressView1.visible()
-        binding.updateBtn.gone()
+        // Disabled, NOT gone. This is the only focusable view on the screen; hiding it
+        // left the window with nothing focused, and since targetSdk 26 Android does not
+        // reassign focus when the focused view disappears. The button then came back
+        // unhighlighted and OK did nothing.
+        binding.updateBtn.isEnabled = false
+        binding.updateTxt.text = "Downloading…"
         vm.startDownload(this, link)
+    }
+
+    /**
+     * Gives an optional update a way out.
+     *
+     * The splash finishes itself before launching this screen, so BACK here used to finish the
+     * only activity left in the task: declining an update meant closing the app, and there was
+     * no on-screen control to decline with in the first place. A non-mandatory update now shows
+     * a focusable "Later" button, and BACK does the same thing; RESULT_CANCELED tells the splash
+     * to resume its normal boot path.
+     */
+    private fun setupDeclinePath() {
+        if (isMandatory) return
+
+        binding.laterBtn.visible()
+        binding.laterBtn.setOnClickListener { declineUpdate() }
+
+        onBackPressedDispatcher.addCallback(this) { declineUpdate() }
+    }
+
+    private fun declineUpdate() {
+        setResult(Activity.RESULT_CANCELED)
+        finish()
     }
 
     private fun canInstallUnknownApps(): Boolean {
@@ -234,12 +273,14 @@ class UpdateActivity : AppCompatActivity() {
                     binding.bottomSheerCustomTitle.text = "Update Available"
                     binding.updateBtn.isEnabled = true
                     binding.updateTxt.text = "Update Now"
+                    binding.updateBtn.requestInitialFocus()
                     binding.updateBtn.visible()
                 }
 
                 is UpdateViewModel.UiState.Downloading -> {
                     binding.progressView1.visible()
-                    binding.updateBtn.gone()
+                    binding.updateBtn.isEnabled = false
+                    binding.updateTxt.text = "Downloading…"
                     setProgressUi(st.progress1000)
                 }
 
@@ -249,6 +290,7 @@ class UpdateActivity : AppCompatActivity() {
                     binding.updateBtn.visible()
                     binding.updateBtn.isEnabled = true
                     binding.updateTxt.text = "Install Now"
+                    binding.updateBtn.requestInitialFocus()
 
                     if (!canInstallUnknownApps()) {
                         snackString("Please allow 'Install unknown apps' for Sozo TV")
@@ -264,6 +306,7 @@ class UpdateActivity : AppCompatActivity() {
                     binding.updateBtn.visible()
                     binding.updateBtn.isEnabled = true
                     binding.updateTxt.text = "Try Again"
+                    binding.updateBtn.requestInitialFocus()
                     snackString("Download failed: ${st.error}")
                 }
             }

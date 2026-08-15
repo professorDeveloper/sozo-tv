@@ -40,6 +40,21 @@ object WebViewStreamExtractor {
     // What we sniff for in the WebView's network traffic (first match wins).
     private val STREAM_PATS = listOf(".m3u8", ".mpd", ".mp4")
 
+    /**
+     * Captured request headers that must NOT be replayed to ExoPlayer.
+     *
+     * `range` is the dangerous one: the page often probes a stream with a partial-range request,
+     * and replaying that range makes ExoPlayer fetch a truncated manifest. `accept-encoding` lets
+     * OkHttp negotiate its own compression - a stale value yields a body it will not decode.
+     * The rest are connection-scoped or browser-only; `sec-fetch-*` in particular describes a
+     * fetch that is not the one being made, and some CDNs reject the mismatch.
+     */
+    private val DROP_HEADERS = setOf(
+        "range", "accept-encoding", "host", "content-length", "connection",
+        "sec-fetch-dest", "sec-fetch-mode", "sec-fetch-site", "sec-fetch-user",
+        "upgrade-insecure-requests", "x-requested-with",
+    )
+
     // Tracker/ad noise to swallow so the page settles faster.
     private val BLOCK = listOf(
         "mc.yandex.ru", "yastatic.net", "yandex.net", "google-analytics.com",
@@ -79,8 +94,16 @@ object WebViewStreamExtractor {
             }
         }
         val uri = Uri.parse(pageUrl)
+        // Referer for LOADING the embed: whatever sent us here (the catalog page).
         val referer = pageHeaders.entries.firstOrNull { it.key.equals("Referer", true) }?.value
             ?: "${uri.scheme}://${uri.host}/"
+
+        // Referer for REPLAYING the stream: the embed page itself, because the embed's own JS is
+        // what fetches the manifest. Reusing the incoming Referer sent the catalog's address on a
+        // request the catalog never made, and CDNs that check it answered 403.
+        val streamReferer = pageUrl
+        // Origin carries no path and no trailing slash, unlike Referer.
+        val streamOrigin = "${uri.scheme}://${uri.host}"
 
         android.util.Log.i("StreamExtract", "sniffing page: $pageUrl")
 
@@ -120,13 +143,23 @@ object WebViewStreamExtractor {
                     main.removeCallbacks(timeout)
 
                     val headers = buildMap {
-                        request.requestHeaders?.forEach { (k, v) -> put(k, v) }
+                        request.requestHeaders
+                            ?.filterKeys { it.lowercase() !in DROP_HEADERS }
+                            ?.forEach { (k, v) -> put(k, v) }
                         pageHeaders.forEach { (k, v) -> putIfAbsent(k, v) }
                         putIfAbsent("User-Agent", MOBILE_UA)
-                        putIfAbsent("Referer", referer)
+                        // put, not putIfAbsent: pageHeaders carries the Referer that led to the
+                        // embed, and for the stream that value is simply wrong.
+                        put("Referer", streamReferer)
+                        // The page fetched this stream as a cross-origin XHR, so the browser also
+                        // sent an Origin. WebResourceRequest.requestHeaders does not expose it -
+                        // the network stack adds it after this callback - so replaying only a
+                        // Referer produced a request no browser would ever make.
+                        putIfAbsent("Origin", streamOrigin)
                     }
                     val playType = if (lower.substringBefore('?').contains(".mp4")) "mp4" else "hls"
                     android.util.Log.i("StreamExtract", "captured $playType: $url")
+                    android.util.Log.i("StreamExtract", "replaying headers: ${headers.keys.sorted()}")
                     cleanup()
                     if (cont.isActive) cont.resume(ExtractedStream(url, headers, playType))
                     // Swallow so a single-use token isn't consumed before ExoPlayer opens it.

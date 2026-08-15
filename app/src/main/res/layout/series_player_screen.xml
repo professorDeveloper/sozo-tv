@@ -124,7 +124,7 @@
                 android:padding="8dp"
                 android:text="Episode List"
                 android:textColor="#FFFFFF"
-                android:textSize="14sp"
+                android:textSize="@dimen/tv_text_body"
                 android:textStyle="bold" />
         </FrameLayout>
 

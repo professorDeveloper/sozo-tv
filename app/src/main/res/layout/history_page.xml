@@ -59,7 +59,7 @@
             android:paddingVertical="8dp"
             android:text="Clear"
             android:textColor="@color/color_item_tv_category_tv"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             tools:text="Clear" />
 
 

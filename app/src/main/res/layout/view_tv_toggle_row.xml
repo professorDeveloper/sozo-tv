@@ -29,7 +29,7 @@
                 android:layout_marginBottom="4dp"
                 android:fontFamily="sans-serif-medium"
                 android:textColor="@color/netflix_white"
-                android:textSize="16sp"
+                android:textSize="@dimen/tv_text_subtitle"
                 tools:text="Home Page Channels" />
 
             <TextView
@@ -38,7 +38,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif"
                 android:textColor="@color/netflix_gray"
-                android:textSize="13sp"
+                android:textSize="@dimen/tv_text_body"
                 tools:text="Enable or disable channel content visibility" />
         </LinearLayout>
 
@@ -77,7 +77,7 @@
             android:fontFamily="sans-serif"
             android:text="Disabled"
             android:textColor="@color/netflix_gray"
-            android:textSize="12sp" />
+            android:textSize="@dimen/tv_text_label" />
     </LinearLayout>
 
 </merge>

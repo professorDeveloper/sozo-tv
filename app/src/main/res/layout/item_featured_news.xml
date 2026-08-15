@@ -43,7 +43,7 @@
             android:fontFamily="sans-serif-medium"
             android:text="Watchlist Update"
             android:textColor="@color/notification_title_color"
-            android:textSize="16sp"
+            android:textSize="@dimen/tv_text_subtitle"
             android:textStyle="normal" />
 
         <TextView
@@ -54,7 +54,7 @@
             android:lineSpacingExtra="2dp"
             android:text="Your watchlist has been updated with 5 new releases. Don't miss out on the latest content."
             android:textColor="@color/notification_description_color"
-            android:textSize="14sp" />
+            android:textSize="@dimen/tv_text_body" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -72,7 +72,7 @@
                 android:gravity="center_vertical"
                 android:text="5 hours ago"
                 android:textColor="@color/notification_time_color"
-                android:textSize="12sp" />
+                android:textSize="@dimen/tv_text_label" />
 
             <TextView
                 android:id="@+id/actionButton"
@@ -83,7 +83,7 @@
                 android:paddingVertical="6dp"
                 android:text="update"
                 android:textColor="@color/notification_action_color"
-                android:textSize="12sp" />
+                android:textSize="@dimen/tv_text_label" />
 
         </LinearLayout>
 

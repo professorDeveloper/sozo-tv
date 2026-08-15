@@ -32,7 +32,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
+            android:textSize="@dimen/tv_text_subtitle"
             tools:text="AnimeWorld" />
 
         <TextView
@@ -42,7 +42,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="#999999"
-            android:textSize="12sp"
+            android:textSize="@dimen/tv_text_label"
             tools:text="aniyomi · en" />
     </LinearLayout>
 
@@ -56,7 +56,7 @@
         android:paddingVertical="4dp"
         android:text="ACTIVE"
         android:textColor="#FFFFFF"
-        android:textSize="11sp"
+        android:textSize="@dimen/tv_text_label"
         android:visibility="gone"
         tools:visibility="visible" />
 </LinearLayout>

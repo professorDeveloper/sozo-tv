@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.HistoryAdapter
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.HistoryPageBinding
@@ -66,7 +67,6 @@ class HistoryPage : Fragment() {
 //                        LocalData.itemMovieWatch = it
 //                        LocalData.isSeries = true
                             requireContext().startActivity(intent)
-                            binding.root.context.startActivity(intent)
                         } else {
                             val intent = Intent(binding.root.context, PlayerActivity::class.java)
                             intent.putExtra("session", it.session)
@@ -80,14 +80,12 @@ class HistoryPage : Fragment() {
                             intent.putExtra("currentSource", it.currentSourceName)
                             intent.putExtra("isSeries", it.isSeries)
                             requireContext().startActivity(intent)
-                            binding.root.context.startActivity(intent)
                         }
                     }
                 }
 
             } else {
-                binding.placeHolder.root.visibility = View.VISIBLE
-                binding.historyGroup.visibility = View.GONE
+                showEmptyState()
             }
         }
         binding.clearHistoryBtn.setOnClickListener {
@@ -114,9 +112,21 @@ class HistoryPage : Fragment() {
                 binding.placeHolder.root.visibility = View.GONE
                 historyAdapter.submitList(watchHistoryList)
             } else {
-                binding.placeHolder.root.visibility = View.VISIBLE
-                binding.historyGroup.visibility = View.GONE
+                showEmptyState()
             }
         }
+    }
+
+    /**
+     * historyGroup references clearHistoryBtn as well as the list, so hiding it took away every
+     * focusable view on the page: after clearing history the highlight simply disappeared and
+     * the D-pad had nothing to move between. Focus goes back to the profile section rail that
+     * owns this page.
+     */
+    private fun showEmptyState() {
+        if (!isAdded) return
+        binding.placeHolder.root.visibility = View.VISIBLE
+        binding.historyGroup.visibility = View.GONE
+        requireActivity().findViewById<View>(R.id.profileRv)?.requestFocus()
     }
 }

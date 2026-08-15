@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.presentation.screens.play.dialog
 
-import android.annotation.SuppressLint
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,12 +8,27 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.SubtitleAdapter
 import com.saikou.sozo_tv.data.model.SubTitle
 import com.saikou.sozo_tv.databinding.DialogSubtitleChooserBinding
 
+/**
+ * Subtitle track picker.
+ *
+ * Behaves like [com.saikou.sozo_tv.presentation.screens.play.VideoQualityDialog]: choosing an
+ * entry applies it and closes. It previously did not, and that was the whole of the reported
+ * "subtitles don't work on TV":
+ *
+ * - Clicking a track only mutated local state. The selection was handed to the player solely
+ *   by the small "X" button, so pressing OK on a track appeared to do nothing at all.
+ * - BACK — the natural way to leave a dialog with a remote — dismissed without ever calling
+ *   the listener, silently discarding the choice.
+ * - The list was a plain RecyclerView marked `focusable="true"`, so `requestFocus()` focused
+ *   the *container*: no row highlighted, and the first D-pad press went nowhere.
+ * - Every selection ran `notifyDataSetChanged()`, rebinding all rows and destroying the
+ *   focused view, so the highlight jumped back to the top.
+ */
 class SubtitleChooserDialog : DialogFragment() {
 
     private var subtitles: List<SubTitle> = emptyList()
@@ -47,7 +61,7 @@ class SubtitleChooserDialog : DialogFragment() {
         onSelected = listener
     }
 
-    /** Agar player subtitleView ga style ni real-time qo‘llamoqchi bo‘lsangiz */
+    /** Lets the player re-apply subtitle styling live while this dialog is open. */
     fun setOnSubtitleStyleChangedListener(listener: () -> Unit) {
         onStyleChanged = listener
     }
@@ -59,50 +73,49 @@ class SubtitleChooserDialog : DialogFragment() {
         return binding.root
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupDialogWindow()
 
-        // Adapter (sizdagi adapter bilan ishlaydi)
         adapter = SubtitleAdapter(subtitles, currentSelected) { selectedSub ->
-            currentSelected = selectedSub
-            // subtitle tanlansa, avtomatik ON qilib qo‘yamiz (qulay UX)
-            setEnabledState(true)
-            adapter.selected = selectedSub
-            adapter.notifyDataSetChanged()
+            adapter.setSelectedIndex(subtitles.indexOf(selectedSub))
+            commit(selectedSub)
         }
 
-        binding.rvSubtitles.layoutManager = LinearLayoutManager(requireContext())
+        // No layoutManager assignment: VerticalGridView owns its own, and replacing it
+        // breaks the focus and scrolling behaviour that makes it usable with a remote.
         binding.rvSubtitles.adapter = adapter
 
-        // ON/OFF initial state — request initial focus so the dialog opens with a visible
-        // D-pad highlight on the subtitle list / OFF toggle instead of the tiny close "X".
         setEnabledState(subtitlesEnabled, updateFocus = true)
 
-        binding.subtitleToggleOff.setOnClickListener { setEnabledState(false) }
+        // OFF is a real choice — apply it instead of waiting for a separate confirm.
+        binding.subtitleToggleOff.setOnClickListener { commit(null) }
+        // ON only reveals the list; it picks no track, so it must not commit.
         binding.subtitleToggleOn.setOnClickListener { setEnabledState(true) }
 
         binding.subtitleStyleBtn.setOnClickListener {
             SubtitleStyleDialog.newInstance().apply {
-                setOnStyleChangedListener {
-                    onStyleChanged?.invoke()
-                }
+                setOnStyleChangedListener { onStyleChanged?.invoke() }
             }.show(parentFragmentManager, "subtitle_style")
         }
 
-        binding.close.setOnClickListener {
-            val result: SubTitle? = if (subtitlesEnabled) currentSelected else null
-            onSelected?.invoke(result)
-            dismiss()
-        }
+        // Plain cancel: any real choice has already been applied by the time the user
+        // reaches this button, so closing must not re-apply or revert anything.
+        binding.close.setOnClickListener { dismiss() }
 
-        // Subtitle yo‘q bo‘lsa:
         if (subtitles.isEmpty()) {
             setEnabledState(false, updateFocus = true)
             binding.subtitleToggleOn.isEnabled = false
-            binding.subtitleStyleBtn.isEnabled = true // style baribir o‘zgarsa ham bo‘ladi
+            binding.subtitleStyleBtn.isEnabled = true
         }
+    }
+
+    /** Applies [choice] to the player and closes. Null means "subtitles off". */
+    private fun commit(choice: SubTitle?) {
+        subtitlesEnabled = choice != null
+        currentSelected = choice
+        onSelected?.invoke(choice)
+        dismiss()
     }
 
     private fun setEnabledState(enabled: Boolean, updateFocus: Boolean = true) {
@@ -114,19 +127,25 @@ class SubtitleChooserDialog : DialogFragment() {
         binding.rvSubtitles.isVisible = enabled
         binding.subtitleOffHint.isVisible = !enabled
 
-        // ON bo‘lsa lekin hech narsa tanlanmagan bo‘lsa, birinchisini default qilamiz
         if (enabled && currentSelected == null && subtitles.isNotEmpty()) {
             currentSelected = subtitles.first()
-            adapter.selected = currentSelected
-            adapter.notifyDataSetChanged()
+            adapter.setSelectedIndex(0)
         }
 
-        if (updateFocus) {
-            if (!enabled) binding.subtitleToggleOff.requestFocus()
-            else {
-                // list ko‘rinsin va fokus tushsin
-                binding.rvSubtitles.post { binding.rvSubtitles.requestFocus() }
+        if (!updateFocus) return
+        if (!enabled) {
+            binding.subtitleToggleOff.requestFocus()
+            return
+        }
+        // Land the highlight on the track that is actually playing. setSelectedPosition is
+        // what moves a VerticalGridView's D-pad cursor; requestFocus on its own would leave
+        // the cursor at row 0 no matter which track is active.
+        binding.rvSubtitles.post {
+            if (_binding == null) return@post
+            if (subtitles.isNotEmpty()) {
+                binding.rvSubtitles.selectedPosition = adapter.selectedIndex.coerceAtLeast(0)
             }
+            binding.rvSubtitles.requestFocus()
         }
     }
 

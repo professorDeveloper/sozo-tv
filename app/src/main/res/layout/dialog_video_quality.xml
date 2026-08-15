@@ -49,7 +49,7 @@
                 android:maxWidth="520dp"
                 android:text="Choose your preferred video quality and audio type for the best viewing experience."
                 android:textColor="#9ca3af"
-                android:textSize="15sp" />
+                android:textSize="@dimen/tv_text_subtitle" />
 
         </LinearLayout>
 

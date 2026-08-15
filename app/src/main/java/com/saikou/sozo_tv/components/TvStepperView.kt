@@ -64,14 +64,26 @@ class TvStepperView @JvmOverloads constructor(
         l(_value)
     }
 
+    /**
+     * Consumes LEFT/RIGHT only when the value actually moved.
+     *
+     * Returning `true` unconditionally made this a focus trap: at min (or max) the key was
+     * still swallowed, so the D-pad could never leave the stepper horizontally and the user
+     * had to find a vertical escape. Falling through to `super` at the limits lets normal
+     * focus traversal continue, which is what every other control on the screen does.
+     */
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         return when (keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> {
-                decrement(); true
+                val before = _value
+                decrement()
+                if (_value != before) true else super.onKeyDown(keyCode, event)
             }
 
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                increment(); true
+                val before = _value
+                increment()
+                if (_value != before) true else super.onKeyDown(keyCode, event)
             }
 
             else -> super.onKeyDown(keyCode, event)

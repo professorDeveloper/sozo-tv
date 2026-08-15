@@ -44,7 +44,7 @@
                 android:fontFamily="@font/days"
                 android:text="@string/back"
                 android:textColor="@color/login_button_text_color"
-                android:textSize="13sp" />
+                android:textSize="@dimen/tv_text_body" />
         </LinearLayout>
 
 
@@ -93,7 +93,7 @@
             android:minLines="4"
             android:text="Joker filmining davomi (2019). Film nomiga kiritilgan folie à deux atamasi psixiatrik sindromni bildiradi, unda ikki shaxsda bir xil mazmundagi delusional g'oyalar kuzatiladi. Film Arkham boshpanasida bo'lib o'tadi, u erda Xarli Joker laqabini olgan jinoyatchi Artur Flek bilan uchrashadi."
             android:textColor="#fff"
-            android:textSize="16sp"
+            android:textSize="@dimen/tv_text_subtitle"
             app:layout_constraintEnd_toStartOf="@+id/guideline27"
             app:layout_constraintStart_toStartOf="@+id/guideline25"
             app:layout_constraintTop_toBottomOf="@id/categoryContainer" />
@@ -132,7 +132,7 @@
                     android:fontFamily="@font/days"
                     android:text="@string/filmni_ko_rish"
                     android:textColor="@color/login_button_text_color"
-                    android:textSize="13sp" />
+                    android:textSize="@dimen/tv_text_body" />
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:layout_width="20dp"

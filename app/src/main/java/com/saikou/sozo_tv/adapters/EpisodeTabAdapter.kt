@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
@@ -44,12 +43,13 @@ class EpisodeTabAdapter(private var isFiltered: Boolean = false) :
                 animation.fillAfter = true
             }
 
-            val context = binding.root.context
-            val selectedColor = ContextCompat.getColor(context, R.color.selected_category_color)
-            val defaultTextColor =
-                ContextCompat.getColor(context, R.color.color_item_tv_category_tv)
             val isSelected = (position == selectedPosition)
-            binding.title.setTextColor(if (isSelected) selectedColor else defaultTextColor)
+            // Drive the label through the view's state, not a flat colour. The layout already
+            // points title at the @color/color_item_tv_category_tv state list and marks it
+            // duplicateParentState, so setting isSelected here is enough - and setTextColor(int)
+            // would replace that list outright, which is why a focused tab used to render white
+            // text on its white focused background.
+            binding.root.isSelected = isSelected
             if (isFiltered) {
                 if (position != 0) {
                     binding.root.setBackgroundResource(if (isSelected) R.drawable.background_item_tv_category_tv_selected else R.drawable.background_item_tv_category_tv)
@@ -90,12 +90,20 @@ class EpisodeTabAdapter(private var isFiltered: Boolean = false) :
         )
     }
 
-    @SuppressLint("NotifyDataSetChanged")
+    /**
+     * Targeted notifies, never notifyDataSetChanged: a full rebind destroys and recreates every
+     * row, including the one the remote is sitting on, so the highlight vanished every time the
+     * caller re-asserted the selection.
+     */
     fun setSelectedPosition(position: Int) {
+        if (position == selectedPosition) return
+        val previous = selectedPosition
         selectedPosition = position
-        notifyDataSetChanged()
+        if (previous in list.indices) notifyItemChanged(previous)
+        if (selectedPosition in list.indices) notifyItemChanged(selectedPosition)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun submitList(newList: ArrayList<Part>) {
         list.clear()
         if (isFiltered) list.add(0, Part("Filter", -1))

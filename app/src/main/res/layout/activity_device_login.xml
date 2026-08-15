@@ -32,7 +32,7 @@
             android:layout_marginTop="8dp"
             android:text="@string/device_login_subtitle"
             android:textColor="@color/netflix_text_secondary"
-            android:textSize="16sp"
+            android:textSize="@dimen/tv_text_subtitle"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvTitle" />
@@ -75,7 +75,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/device_login_code_label"
                 android:textColor="@color/netflix_text_secondary"
-                android:textSize="16sp" />
+                android:textSize="@dimen/tv_text_subtitle" />
 
             <!-- The primary affordance: a phone camera often cannot focus on a backlit panel,
                  and the code alphabet deliberately excludes I/O/0/1 so it can be typed by hand. -->
@@ -106,7 +106,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:textColor="@color/netflix_text_secondary"
-                android:textSize="16sp"
+                android:textSize="@dimen/tv_text_subtitle"
                 tools:text="Expires in 9:58" />
 
             <TextView
@@ -117,7 +117,7 @@
                 android:fontFamily="@font/inter_bold"
                 android:text="@string/waiting_for_mobile"
                 android:textColor="@color/netflix_text_primary"
-                android:textSize="16sp" />
+                android:textSize="@dimen/tv_text_subtitle" />
 
             <ProgressBar
                 android:id="@+id/progress"
@@ -145,7 +145,7 @@
                     android:fontFamily="@font/inter_bold"
                     android:text="@string/refresh_qr_code"
                     android:textColor="@color/color_item_tv_category_tv"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/tv_text_body" />
             </LinearLayout>
 
             <LinearLayout
@@ -167,7 +167,7 @@
                     android:fontFamily="@font/inter_bold"
                     android:text="@string/device_login_back"
                     android:textColor="@color/color_item_tv_category_tv"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/tv_text_body" />
             </LinearLayout>
         </LinearLayout>
 

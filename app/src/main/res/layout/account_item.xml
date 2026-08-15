@@ -50,7 +50,7 @@
             android:singleLine="true"
             android:text="Account"
             android:textColor="@color/color_black_white_text"
-            android:textSize="11sp"
+            android:textSize="@dimen/tv_text_label"
             tools:text="@string/eshonov_fakhriyor" />
 
         <TextView
@@ -63,7 +63,7 @@
             android:fontFamily="@font/rubik_regular"
             android:gravity="center_vertical"
             android:textColor="@color/color_black_white_text"
-            android:textSize="10sp"
+            android:textSize="@dimen/tv_text_caption"
             tools:ignore="SmallSp"
             tools:text="+998 99 280 38 09" />
 

@@ -20,7 +20,7 @@
         android:gravity="center"
         android:text="16sp"
         android:textColor="@color/netflix_white"
-        android:textSize="14sp"
+        android:textSize="@dimen/tv_text_body"
         android:fontFamily="sans-serif-medium" />
 
     <TextView

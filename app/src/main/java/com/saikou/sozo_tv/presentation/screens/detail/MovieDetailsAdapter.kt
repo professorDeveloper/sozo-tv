@@ -24,7 +24,6 @@ import com.saikou.sozo_tv.databinding.ItemPlayDetailsHeaderBinding
 import com.saikou.sozo_tv.databinding.ItemPlayDetailsSectionBinding
 import com.saikou.sozo_tv.databinding.ItemPlayRecommendedBinding
 import com.saikou.sozo_tv.domain.model.Cast
-import com.saikou.sozo_tv.domain.model.CategoryDetails
 import com.saikou.sozo_tv.domain.model.DetailCategory
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
@@ -454,17 +453,19 @@ class MovieDetailsAdapter(
                 val oldItem = itemList[oldItemPosition]
                 val newItem = list[newItemPosition]
 
-                return when {
-                    oldItem is CategoryDetails && newItem is CategoryDetails && oldItem.viewType == DETAILS_ITEM_HEADER && newItem.viewType == DETAILS_ITEM_HEADER -> {
+                // The list holds DetailCategory (DetailViewModel builds them); the type
+                // tested here used to be CategoryDetails, an unrelated class that never
+                // appears in this adapter. Both branches were therefore unreachable and
+                // this always returned false, so DiffUtil saw every item as
+                // removed-and-reinserted: a full teardown on every submitList, which drops
+                // D-pad focus — returning from Episodes or Cast landed the highlight on
+                // Back instead of Watch.
+                //
+                // Comparing viewType generally (rather than against two specific constants)
+                // also covers DETAILS_ITEM_THIRD, which is DetailCategory's default.
+                return oldItem is DetailCategory && newItem is DetailCategory &&
+                        oldItem.viewType == newItem.viewType &&
                         oldItem.content.id == newItem.content.id
-                    }
-
-                    oldItem is CategoryDetails && newItem is CategoryDetails && oldItem.viewType == DETAILS_ITEM_SECTION && newItem.viewType == DETAILS_ITEM_SECTION -> {
-                        oldItem.content.id == newItem.content.id
-                    }
-
-                    else -> false
-                }
             }
 
             /**

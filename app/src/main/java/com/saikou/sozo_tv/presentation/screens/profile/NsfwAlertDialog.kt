@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.addCallback
 import androidx.fragment.app.DialogFragment
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.NsfwDialogBinding
@@ -45,9 +44,13 @@ class NsfwAlertDialog : DialogFragment() {
         binding.btnConfirm.setOnClickListener {
             yesContinueListener.invoke()
         }
-        requireActivity().onBackPressedDispatcher.addCallback {
-            onbackPressedListener.invoke()
-        }
+        // BACK on a DialogFragment is consumed by the dialog's own window, so an
+        // activity-level callback never fires for it. Worse, this one was registered with
+        // no LifecycleOwner: it stayed on the activity's dispatcher after the dialog was
+        // gone and — callbacks being LIFO — permanently outranked ProfileActivity's own
+        // BACK handler, so BACK stopped working on the whole screen afterwards.
+        // setOnCancelListener is the callback that actually runs when BACK dismisses it.
+        dialog?.setOnCancelListener { onbackPressedListener.invoke() }
 
     }
 

@@ -49,7 +49,7 @@
             android:paddingVertical="2dp"
             android:text="Almost finish"
             android:textColor="#fff"
-            android:textSize="10sp"
+            android:textSize="@dimen/tv_text_caption"
             android:textStyle="bold" />
 
         <LinearLayout
@@ -70,7 +70,7 @@
                 android:paddingStart="10dp"
                 android:text="2020 \u2022 Detektiv \u2022 Ispaniya"
                 android:textColor="#fff"
-                android:textSize="8sp"
+                android:textSize="@dimen/tv_text_caption"
                 android:textStyle="bold" />
 
             <androidx.core.widget.ContentLoadingProgressBar
@@ -103,7 +103,7 @@
         android:maxLines="1"
         android:text="Hokkeynie papi"
         android:textColor="#ffffff"
-        android:textSize="14sp"
+        android:textSize="@dimen/tv_text_label"
         app:layout_constraintEnd_toEndOf="@+id/cardView"
         app:layout_constraintStart_toStartOf="@+id/cardView"
         app:layout_constraintTop_toBottomOf="@+id/cardView" />
@@ -116,7 +116,7 @@
         android:fontFamily="@font/rubik_regular"
         android:text="01:15:27 daqiqada to’xtatildi"
         android:textColor="@color/lb_grey"
-        android:textSize="10sp"
+        android:textSize="@dimen/tv_text_caption"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="@+id/movieTitle"
         app:layout_constraintStart_toStartOf="@+id/movieTitle"
@@ -143,7 +143,7 @@
             android:fontFamily="@font/rubik_regular"
             android:text="Play"
             android:textColor="@color/color_item_tv_category_tv"
-            android:textSize="13sp" />
+            android:textSize="@dimen/tv_text_label" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="16dp"

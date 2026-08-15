@@ -5,6 +5,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.WindowManager
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.DialogFragment
@@ -45,7 +46,13 @@ class WrongTitleDialog : DialogFragment() {
         val title = arguments?.getString("animeTitle")
         val isAdult = arguments?.getBoolean("isAdult")
         binding.inputAnimeName.setText(arguments?.getString("animeTitle"))
+        // Pre-selected, so the first keypress replaces the wrong title instead of appending to
+        // it - the caret sat at position 0 and the user had to clear the field by hand first.
+        binding.inputAnimeName.selectAll()
         binding.inputAnimeName.requestFocus()
+        // A focused EditText does not raise the leanback IME on its own; the dialog window has
+        // to ask. Without this the field looked ready to type into and swallowed every key.
+        dialog?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
         binding.inputAnimeName.apply {
             setOnEditorActionListener { _, actionId, _ ->
                 if (actionId in listOf(
@@ -68,8 +75,10 @@ class WrongTitleDialog : DialogFragment() {
             }
         }
         model.findEpisodes(title.toString(), isAdult = isAdult ?: false)
-        dialog!!.window?.setWindowAnimations(R.style.DialogAnimation)
-        dialog!!.window?.setBackgroundDrawable(ColorDrawable(0))
+        dialog?.window?.apply {
+            setWindowAnimations(R.style.DialogAnimation)
+            setBackgroundDrawable(ColorDrawable(0))
+        }
         binding.searchBtn.setOnClickListener {
             model.findEpisodes(binding.inputAnimeName.text.toString(), isAdult = isAdult ?: false)
         }

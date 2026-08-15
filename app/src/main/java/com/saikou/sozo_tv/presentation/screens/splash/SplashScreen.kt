@@ -22,6 +22,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.activity.result.contract.ActivityResultContracts
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.data.repository.DeviceAuthRepository
@@ -156,6 +157,13 @@ class SplashScreen : Fragment() {
         exoPlayer.prepare()
     }
 
+    private val updateFlow = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        // The user declined an optional update (Later, or BACK). Pick the normal path back up.
+        if (isAdded) viewModel.initSplash.observe(viewLifecycleOwner) { handleUserState(it) }
+    }
+
     private fun observeAndNavigate() {
         // The view model publishes the update payload before the flag and emits the flag exactly
         // once — including on timeout — so this branch always runs and never re-registers.
@@ -246,14 +254,20 @@ class SplashScreen : Fragment() {
         }
     }
 
+    /**
+     * A mandatory update replaces the splash outright. An optional one is launched for a result
+     * and the splash stays alive behind it, so declining resumes this boot exactly where it left
+     * off. Finishing the splash unconditionally, as before, meant BACK on the update screen had
+     * nothing left in the task to return to and simply closed the app.
+     */
     private fun showUpdateDialog(appUpdate: AppUpdate) {
-        startActivity(
-            UpdateActivity.newIntent(
-                requireActivity(),
-                appUpdate
-            )
-        )
-        requireActivity().finishDeferred()
+        val intent = UpdateActivity.newIntent(requireActivity(), appUpdate)
+        if (appUpdate.isMandatory) {
+            startActivity(intent)
+            requireActivity().finishDeferred()
+            return
+        }
+        updateFlow.launch(intent)
     }
 
     override fun onDestroyView() {

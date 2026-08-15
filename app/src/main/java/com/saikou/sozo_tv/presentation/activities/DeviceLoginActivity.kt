@@ -96,7 +96,7 @@ class DeviceLoginActivity : AppCompatActivity() {
                 binding.progress.gone()
                 clearPairingViews()
                 binding.tvStatus.setText(R.string.device_login_expired)
-                binding.btnRefresh.requestFocus()
+                focusRefreshIfIdle()
             }
 
             is DeviceLoginState.Failed -> {
@@ -105,9 +105,19 @@ class DeviceLoginActivity : AppCompatActivity() {
                 binding.tvStatus.text = state.messageRes?.let { getString(it) }
                     ?: state.message
                     ?: getString(R.string.device_login_failed)
-                binding.btnRefresh.requestFocus()
+                focusRefreshIfIdle()
             }
         }
+    }
+
+    /**
+     * Only claims focus when the window has none. render() runs on every state emission,
+     * including the re-emission a StateFlow replays when repeatOnLifecycle restarts, so an
+     * unconditional requestFocus() here pulled the highlight off Back and onto Refresh behind
+     * the user - sometimes mid-press.
+     */
+    private fun focusRefreshIfIdle() {
+        if (binding.root.findFocus() == null) binding.btnRefresh.requestFocus()
     }
 
     /** A dead code left on screen next to "expired" reads as a code you can still scan. */

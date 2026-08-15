@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.data.extensions
 
 import android.content.Context
 import com.saikou.sozo_tv.app.MyApp
+import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.engine.aniyomi.AniyomiHost
 import com.saikou.sozo_tv.engine.aniyomi.AniyomiRepoManager
 import com.saikou.sozo_tv.engine.cloudstream.PluginHost
@@ -139,11 +140,24 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
     /** True once a source has been picked — used to decide whether first-launch setup is needed. */
     fun hasActiveProvider(): Boolean = getActiveProvider() != null
 
+    /**
+     * Providers for a group, with adult sources filtered out unless the user
+     * opted in (Settings -> NSFW, default off).
+     *
+     * Filtered HERE because this is the single chokepoint every surface goes
+     * through — the source picker, home, search and `searchAll` all call it. The
+     * `nsfw` flag was already parsed and carried on [ExtProvider]; nothing
+     * checked it, so the setting existed but changed nothing.
+     */
     suspend fun providers(group: String): List<ExtProvider> = withContext(Dispatchers.IO) {
         val b = backendForGroup(group) ?: return@withContext emptyList()
         b.ensureLoaded()
-        ExtParser.providers(b.providersJson())
+        val all = ExtParser.providers(b.providersJson())
+        if (nsfwAllowed()) all else all.filterNot { it.nsfw }
     }
+
+    private fun nsfwAllowed(): Boolean =
+        runCatching { PreferenceManager().isNsfwEnabled() }.getOrDefault(false)
 
     suspend fun listRepos(group: String): List<ExtRepo> = withContext(Dispatchers.IO) {
         val b = backendForGroup(group) ?: return@withContext emptyList()

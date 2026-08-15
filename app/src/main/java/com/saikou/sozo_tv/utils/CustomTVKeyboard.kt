@@ -57,6 +57,11 @@ class CustomTVKeyboard @JvmOverloads constructor(
             updateKeyFocus(it)
         }
 
+        findViewById<TextView>(R.id.key_clear)?.setOnClickListener {
+            onClearClickListener?.invoke()
+            updateKeyFocus(it)
+        }
+
         setupSymbols()
     }
 

@@ -15,7 +15,7 @@
         android:fontFamily="@font/days"
         android:text="Maybe You Like"
         android:textColor="@color/lb_tv_white"
-        android:textSize="16sp"
+        android:textSize="@dimen/tv_text_subtitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

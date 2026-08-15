@@ -7,6 +7,8 @@ import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.widget.ImageViewCompat
+import androidx.activity.addCallback
+import androidx.core.view.isVisible
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import com.saikou.sozo_tv.R
@@ -35,6 +37,30 @@ class MainActivity : AppCompatActivity() {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         model.loadProfile()
         setupNavigation()
+        setupBackBehaviour()
+    }
+
+    /**
+     * BACK walks out to the navigation rail before it leaves the app.
+     *
+     * There was no callback at all, so the default finished the activity: a single BACK
+     * anywhere on Home killed the app, skipping the rail entirely. `navMainFragment` is
+     * `isFocusedByDefault` (see setupNavigation), so focus always starts in the content
+     * pane — the rail was only reachable by pressing LEFT, and never by the gesture users
+     * actually reach for.
+     */
+    private fun setupBackBehaviour() {
+        onBackPressedDispatcher.addCallback(this) {
+            val rail = binding.navMain
+            if (rail.isVisible && !rail.hasFocus()) {
+                rail.requestFocus()
+                return@addCallback
+            }
+            // Already on the rail (or it is hidden on this destination) — fall through to
+            // the platform default, which finishes the activity.
+            isEnabled = false
+            onBackPressedDispatcher.onBackPressed()
+        }
     }
 
     private fun setupNavigation() {

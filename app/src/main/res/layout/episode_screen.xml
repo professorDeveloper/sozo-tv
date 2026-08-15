@@ -56,7 +56,7 @@
                     android:fontFamily="@font/days"
                     android:text="@string/sources"
                     android:textColor="#FFFFFF"
-                    android:textSize="15sp" />
+                    android:textSize="@dimen/tv_text_subtitle" />
 
                 <TextView
                     android:id="@+id/textView7"
@@ -64,7 +64,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/days"
                     android:textColor="#FFFFFF"
-                    android:textSize="13sp"
+                    android:textSize="@dimen/tv_text_body"
                     tools:text="@string/sources" />
             </LinearLayout>
 
@@ -94,7 +94,7 @@
                     android:gravity="center"
                     android:text="Wrong Title?"
                     android:textColor="@color/login_button_text_color"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/tv_text_body" />
 
             </LinearLayout>
 
@@ -153,7 +153,7 @@
                 android:padding="8dp"
                 android:textAlignment="center"
                 android:textColor="@color/lb_tv_white"
-                android:textSize="16sp"
+                android:textSize="@dimen/tv_text_subtitle"
                 tools:text="Series Data is loading..." />
 
             <com.google.android.material.progressindicator.LinearProgressIndicator

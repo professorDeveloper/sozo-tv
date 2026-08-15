@@ -32,7 +32,7 @@
         android:gravity="center"
         android:paddingHorizontal="24dp"
         android:textColor="#FFFFFF"
-        android:textSize="14sp"
+        android:textSize="@dimen/tv_text_body"
         android:visibility="gone"
         tools:ignore="HardcodedText"
         tools:text="Setting up sources…"

@@ -7,7 +7,7 @@ plugins {
     id("kotlin-parcelize")
     id("androidx.navigation.safeargs.kotlin")
     id("kotlin-kapt")
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.24"
     id("com.google.gms.google-services")
 }
 val localProps = Properties()
@@ -55,7 +55,11 @@ android {
             val token = readLocalProperty("GITHUB_TOKEN")
             buildConfigField("String", "GITHUB_TOKEN", "\"$token\"")
             buildConfigField(
-                "String", "APISOZO_BASE_URL", "\"${readLocalProperty("APISOZO_BASE_URL")}\""
+                // MUST carry a default. Without one this compiles to "" and
+                // ApisozoClient builds relative URLs, which fail as
+                // "Server unreachable" on the Sozo provider tab — the whole
+                // server catalog and every on-device extractor go dark.
+                "String", "APISOZO_BASE_URL", "\"${readLocalProperty("APISOZO_BASE_URL", sozoApiBaseUrl)}\""
             )
             buildConfigField("String", "SOZO_API_BASE_URL", "\"$sozoApiBaseUrl\"")
             buildConfigField("String", "SOZO_LINK_BASE_URL", "\"$sozoLinkBaseUrl\"")
@@ -68,7 +72,11 @@ android {
             )
             buildConfigField("String", "GITHUB_TOKEN", "\"\"")
             buildConfigField(
-                "String", "APISOZO_BASE_URL", "\"${readLocalProperty("APISOZO_BASE_URL")}\""
+                // MUST carry a default. Without one this compiles to "" and
+                // ApisozoClient builds relative URLs, which fail as
+                // "Server unreachable" on the Sozo provider tab — the whole
+                // server catalog and every on-device extractor go dark.
+                "String", "APISOZO_BASE_URL", "\"${readLocalProperty("APISOZO_BASE_URL", sozoApiBaseUrl)}\""
             )
             buildConfigField("String", "SOZO_API_BASE_URL", "\"$sozoApiBaseUrl\"")
             buildConfigField("String", "SOZO_LINK_BASE_URL", "\"$sozoLinkBaseUrl\"")
@@ -114,7 +122,8 @@ android {
 // The CloudStream runtime drags kotlin-stdlib up to 2.3.0 (metadata 2.3.0), which
 // the Room/kapt annotation processor can't read (and which is newer than this
 // module's Kotlin 1.9 compiler). Pin the whole kotlin-stdlib family back to 1.9.x
-// so metadata stays readable and the toolchain stays consistent.
+// so metadata stays readable and the toolchain stays consistent — the compiler,
+// the serialization plugin and kotlin-reflect are all held at the same 1.9.24.
 configurations.all {
     resolutionStrategy.eachDependency {
         if (requested.group == "org.jetbrains.kotlin" &&
@@ -123,7 +132,7 @@ configurations.all {
             useVersion("1.9.24")
         }
         // Keep coroutines at 1.7.3 — 1.8.x's @InternalForInheritanceCoroutinesApi
-        // breaks the Kotlin 1.9.0 compiler backend.
+        // breaks the Kotlin 1.9 compiler backend.
         if (requested.group == "org.jetbrains.kotlinx" &&
             requested.name.startsWith("kotlinx-coroutines")
         ) {
@@ -254,13 +263,13 @@ dependencies {
     implementation("com.github.recloudstream.cloudstream:library:v4.7.0")
     // CloudStream plugins/extractors use coroutines on the IO dispatcher.
     // 1.7.3 (not 1.8.x): 1.8.x adds @InternalForInheritanceCoroutinesApi which
-    // trips the Kotlin 1.9.0 compiler backend.
+    // trips the Kotlin 1.9 compiler backend.
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     // compileOnly: our clean-room CloudflareKiller implements okhttp3.Interceptor;
     // okhttp itself is supplied at runtime by the CloudStream `library`.
     compileOnly("com.squareup.okhttp3:okhttp:4.12.0")
     // Aniyomi extension runtime supplied to DexClassLoader at load time.
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.0")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.24")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-okio:1.7.3")
     implementation("io.reactivex:rxjava:1.3.8")
     // JS engine for Aniyomi extractors that deobfuscate links (QuickJS).

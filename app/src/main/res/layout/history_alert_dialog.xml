@@ -23,7 +23,7 @@
             android:fontFamily="@font/days"
             android:text="Clear All History Movies !"
             android:textColor="@color/white40"
-            android:textSize="16sp"
+            android:textSize="@dimen/tv_text_subtitle"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -89,7 +89,7 @@
                 android:minLines="1"
                 android:text="Are you sue Clear History ? "
                 android:textColor="@color/lb_tv_white"
-                android:textSize="15sp" />
+                android:textSize="@dimen/tv_text_subtitle" />
 
 
             <LinearLayout
@@ -123,7 +123,7 @@
                         android:text="No Thanks"
                         android:textAlignment="center"
                         android:textColor="@color/color_item_tv_category_tv"
-                        android:textSize="12sp" />
+                        android:textSize="@dimen/tv_text_label" />
 
 
                 </LinearLayout>
@@ -151,7 +151,7 @@
                         android:text="Clear History"
                         android:textAlignment="center"
                         android:textColor="@color/color_item_tv_category_tv"
-                        android:textSize="12sp" />
+                        android:textSize="@dimen/tv_text_label" />
 
 
                 </LinearLayout>

@@ -55,7 +55,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/poppins_bold"
                     android:text="Follow us on social"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/tv_text_body" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -64,7 +64,7 @@
                     android:fontFamily="@font/poppins_bold"
                     android:text="@string/amp_sozoapp"
                     android:textColor="@color/red"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/tv_text_body" />
             </LinearLayout>
 
             <LinearLayout
@@ -101,7 +101,7 @@
                     android:text="Telegram"
                     android:textAlignment="center"
                     android:textColor="@color/color_item_tv_category_tv"
-                    android:textSize="13sp" />
+                    android:textSize="@dimen/tv_text_body" />
 
 
             </LinearLayout>

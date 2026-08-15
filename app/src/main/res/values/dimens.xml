@@ -53,4 +53,15 @@
     <dimen name="filter_button_height">48dp</dimen>
     <dimen name="url_count_corner_radius">4dp</dimen>
 
+
+    <!--
+        10-foot type scale. Everything on screen is read from across a room, so nothing below
+        tv_text_caption belongs in a layout - the app had 162 text sizes under 14sp, a third of
+        them at 13sp for ordinary body copy. Sizes are referenced by name so the whole scale can
+        be retuned here rather than across 48 layouts.
+    -->
+    <dimen name="tv_text_caption">12sp</dimen>
+    <dimen name="tv_text_label">14sp</dimen>
+    <dimen name="tv_text_body">16sp</dimen>
+    <dimen name="tv_text_subtitle">18sp</dimen>
 </resources>

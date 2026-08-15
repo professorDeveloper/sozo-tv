@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:text="Choose your preferred content type"
         android:textColor="@color/netflix_gray"
-        android:textSize="13sp"
+        android:textSize="@dimen/tv_text_body"
         android:layout_marginBottom="16dp"
         android:fontFamily="sans-serif"/>
 
@@ -41,7 +41,7 @@
             android:gravity="center"
             android:text="Anime Mode"
             android:textColor="@color/netflix_text_primary"
-            android:textSize="14sp"
+            android:textSize="@dimen/tv_text_body"
             android:background="@drawable/switch_background"
             android:focusable="true"
             android:focusableInTouchMode="true"
@@ -57,7 +57,7 @@
             android:gravity="center"
             android:text="Movie Mode"
             android:textColor="@color/netflix_text_primary"
-            android:textSize="14sp"
+            android:textSize="@dimen/tv_text_body"
             android:background="@drawable/switch_selected_background"
             android:focusable="true"
             android:focusableInTouchMode="true"

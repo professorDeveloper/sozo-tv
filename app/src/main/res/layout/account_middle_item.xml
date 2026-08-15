@@ -51,7 +51,7 @@
             android:scrollHorizontally="true"
             android:textAlignment="center"
             android:textColor="@color/color_black_white_text"
-            android:textSize="10sp"
+            android:textSize="@dimen/tv_text_caption"
             tools:text="+998943017410" />
 
 
@@ -83,7 +83,7 @@
                 android:fontFamily="@font/days"
                 android:text="@string/amallar"
                 android:textColor="@color/color_item_tv_category_tv"
-                android:textSize="10sp"
+                android:textSize="@dimen/tv_text_caption"
                 tools:ignore="SmallSp" />
 
         </FrameLayout>
