@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -33,6 +34,12 @@ object WebViewStreamExtractor {
     private const val MOBILE_UA =
         "Mozilla/5.0 (Linux; Android 13; SM-G998B) AppleWebKit/537.36 " +
             "(KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36"
+
+    /**
+     * How long the page is left running after the first stream url shows up, so its own retry /
+     * cookie handshake can finish before the WebView is destroyed.
+     */
+    private const val SETTLE_MS = 3_000L
 
     // Direct-media extensions that mean "already a stream, no extraction needed".
     private val DIRECT_EXT = listOf(".m3u8", ".mpd", ".mp4", ".mkv", ".webm")
@@ -85,7 +92,12 @@ object WebViewStreamExtractor {
     ): ExtractedStream? = suspendCancellableCoroutine { cont ->
         val main = Handler(Looper.getMainLooper())
         var webView: WebView? = null
-        val captured = java.util.concurrent.atomic.AtomicBoolean(false)
+        // Set once the coroutine has been resumed, so neither the timeout nor the settle timer
+        // can resume it twice.
+        val settled = java.util.concurrent.atomic.AtomicBoolean(false)
+        // The newest stream hit seen so far. Overwritten on purpose: if the page's first attempt
+        // is refused and its JS retries with a fresh token, the last one is the live one.
+        val hit = java.util.concurrent.atomic.AtomicReference<ExtractedStream?>(null)
 
         val cleanup = {
             main.post {
@@ -120,12 +132,34 @@ object WebViewStreamExtractor {
             webView = wv
 
             val timeout = Runnable {
-                if (!captured.get()) {
+                if (settled.compareAndSet(false, true)) {
                     android.util.Log.w("StreamExtract", "timeout, no stream captured for $pageUrl")
                     cleanup(); if (cont.isActive) cont.resume(null)
                 }
             }
             main.postDelayed(timeout, timeoutMs)
+
+            /**
+             * Fires [SETTLE_MS] after the first stream url appears, not immediately.
+             *
+             * The page is left running in between, on purpose. Hosts like juicycodes answer the
+             * first manifest request with 403 + Set-Cookie and expect the retry to carry that
+             * cookie; swallowing the request meant the WebView never completed that handshake and
+             * ExoPlayer arrived with no session at all. Letting the page finish puts the cookies
+             * in the shared CookieManager, which is the same jar OkHttp reads through
+             * AndroidCookieJar - and the segments need that session just as much as the manifest
+             * does, so there is no version of this that works without it.
+             */
+            val settle = Runnable {
+                if (!settled.compareAndSet(false, true)) return@Runnable
+                main.removeCallbacks(timeout)
+                // Push the WebView's cookies to the store OkHttp reads before we tear it down.
+                runCatching { CookieManager.getInstance().flush() }
+                val found = hit.get()
+                android.util.Log.i("StreamExtract", "settled on: ${found?.url}")
+                cleanup()
+                if (cont.isActive) cont.resume(found)
+            }
 
             wv.webViewClient = object : WebViewClient() {
                 override fun shouldInterceptRequest(
@@ -137,10 +171,8 @@ object WebViewStreamExtractor {
                     if (BLOCK.any { lower.contains(it) }) {
                         return WebResourceResponse("text/plain", "utf-8", ByteArrayInputStream(ByteArray(0)))
                     }
-                    if (captured.get()) return null
-                    val hit = STREAM_PATS.firstOrNull { lower.substringBefore('?').contains(it) } ?: return null
-                    if (!captured.compareAndSet(false, true)) return null
-                    main.removeCallbacks(timeout)
+                    if (settled.get()) return null
+                    STREAM_PATS.firstOrNull { lower.substringBefore('?').contains(it) } ?: return null
 
                     val headers = buildMap {
                         request.requestHeaders
@@ -160,10 +192,14 @@ object WebViewStreamExtractor {
                     val playType = if (lower.substringBefore('?').contains(".mp4")) "mp4" else "hls"
                     android.util.Log.i("StreamExtract", "captured $playType: $url")
                     android.util.Log.i("StreamExtract", "replaying headers: ${headers.keys.sorted()}")
-                    cleanup()
-                    if (cont.isActive) cont.resume(ExtractedStream(url, headers, playType))
-                    // Swallow so a single-use token isn't consumed before ExoPlayer opens it.
-                    return WebResourceResponse("application/octet-stream", null, ByteArrayInputStream(ByteArray(0)))
+
+                    // First hit starts the settle window; later hits just replace the candidate.
+                    if (hit.getAndSet(ExtractedStream(url, headers, playType)) == null) {
+                        main.postDelayed(settle, SETTLE_MS)
+                    }
+                    // Return null: the request goes out for real. See [settle] - the cookie
+                    // handshake this triggers is the whole point.
+                    return null
                 }
             }
 
