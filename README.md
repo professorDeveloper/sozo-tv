@@ -48,3 +48,4 @@ Stay updated with the newest versions, announcements, and fixes by following our
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
+
