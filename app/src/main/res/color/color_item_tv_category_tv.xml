@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_selected="true" android:color="@color/item_tv_selected" />
+<!--
+    Label colour for every focusable row that uses background_item_tv_category_tv (and its
+    _selected variant). Both of those backgrounds go solid white when focused or selected, so
+    the label has to go dark in either state and may only stay near-white at rest.
 
-    <item android:state_focused="true" android:color="#1B1E23" />
+    The focused case used to fall through to white80 - white text on a white background, i.e.
+    an invisible label on exactly the row the user is pointing at. Two things caused it: the
+    first item matched state_selected against @color/item_tv_selected, which is itself a
+    selector and not a valid colour inside a state list, and the adapters overwrote the whole
+    list with a flat setTextColor(int) so no state ever applied.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true" android:color="@color/selected_category_color" />
+    <item android:state_selected="true" android:color="@color/selected_category_color" />
     <item android:color="@color/white80" />
 </selector>

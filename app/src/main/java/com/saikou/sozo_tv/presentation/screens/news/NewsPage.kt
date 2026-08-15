@@ -5,13 +5,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.saikou.sozo_tv.adapters.NewsAdapter
 import com.saikou.sozo_tv.data.local.pref.NewsPreferences
 import com.saikou.sozo_tv.data.model.NewsItem
 import com.saikou.sozo_tv.databinding.NewsPageBinding
 import com.saikou.sozo_tv.presentation.viewmodel.NewsViewModel
+import com.saikou.sozo_tv.utils.requestInitialFocus
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class NewsPage : Fragment() {
@@ -33,6 +38,7 @@ class NewsPage : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         newsPreferences = NewsPreferences(requireContext())
         adapter = NewsAdapter(requireContext()) { newsItem, position ->
             handleNewsItemClick(newsItem, position)
@@ -40,14 +46,26 @@ class NewsPage : Fragment() {
 
         binding.verticalGridView.adapter = adapter
 
-        lifecycleScope.launchWhenStarted {
-            viewModel.news.collectLatest { list ->
-                adapter.update(list)
-                updateUnreadCount()
+        // viewLifecycleOwner, not the fragment: collected on the fragment's own scope this
+        // outlived onDestroyView and kept touching the adapter of a torn-down view.
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.news.collectLatest { list ->
+                    adapter.update(list)
+                    renderEmptyState(list.isEmpty())
+                    updateUnreadCount()
+                }
             }
         }
 
         viewModel.loadNews()
+    }
+
+    private fun renderEmptyState(isEmpty: Boolean) {
+        val b = _binding ?: return
+        b.emptyNews.isVisible = isEmpty
+        b.verticalGridView.isVisible = !isEmpty
+        if (!isEmpty) b.verticalGridView.requestInitialFocus()
     }
 
     private fun handleNewsItemClick(newsItem: NewsItem, position: Int) {

@@ -75,7 +75,11 @@
     </LinearLayout>
 
     <!-- Provider search — kept at the top (right under the tabs) so the field and the
-         list don't fight over D-pad focus while scrolling. -->
+         list don't fight over D-pad focus while scrolling.
+
+         No nextFocusLeft/Right: this is a full-width field, so LEFT and RIGHT belong to the
+         text caret. Redirecting them to the tab row meant a typo could only be fixed by
+         clearing the whole query, since moving the cursor jumped focus out of the field. -->
     <EditText
         android:id="@+id/etSearchProvider"
         android:layout_width="match_parent"
@@ -88,8 +92,6 @@
         android:inputType="text"
         android:maxLines="1"
         android:nextFocusUp="@id/btnTabServer"
-        android:nextFocusLeft="@id/btnTabServer"
-        android:nextFocusRight="@id/btnTabCloudstream"
         android:paddingHorizontal="16dp"
         android:paddingVertical="9dp"
         android:textColor="@color/tv_field_text"

@@ -6,9 +6,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.utils.requestInitialFocus
 import com.saikou.sozo_tv.databinding.FilterDialogGardenBinding
 
 class FilterDialogGarden : DialogFragment() {
@@ -34,11 +34,6 @@ class FilterDialogGarden : DialogFragment() {
         binding.countryContainer.title.text = "By Country"
         binding.customContainer.title.text = "Custom List"
 
-        val selectedColor =
-            ContextCompat.getColor(requireContext(), R.color.selected_category_color)
-        val defaultTextColor =
-            ContextCompat.getColor(requireContext(), R.color.color_item_tv_category_tv)
-
         binding.close.setOnClickListener { dismiss() }
 
         selectedSort = arguments?.getString("selectedSort") ?: "By Country"
@@ -47,25 +42,29 @@ class FilterDialogGarden : DialogFragment() {
         }
 
         // 🔹 Avvalgi tanlovni rang bilan ajratib ko‘rsatamiz
-        updateSelectionUI(selectedSort, selectedColor, defaultTextColor)
+        updateSelectionUI(selectedSort)
+
+        // Land the highlight on the row that is already selected, so the first D-pad press
+        // moves from the current choice instead of from wherever the window happened to focus.
+        selectedRow().requestInitialFocus()
 
         // 🔹 Eventlar
         binding.countryContainer.root.setOnClickListener {
             selectedSort = "By Country"
             binding.sliderHint.hint = "Selected Sort: $selectedSort"
-            updateSelectionUI(selectedSort, selectedColor, defaultTextColor)
+            updateSelectionUI(selectedSort)
         }
 
         binding.categoryContainer.root.setOnClickListener {
             selectedSort = "By Category"
             binding.sliderHint.hint = "Selected Sort: $selectedSort"
-            updateSelectionUI(selectedSort, selectedColor, defaultTextColor)
+            updateSelectionUI(selectedSort)
         }
 
         binding.customContainer.root.setOnClickListener {
             selectedSort = "Custom List"
             binding.sliderHint.hint = "Selected Sort: $selectedSort"
-            updateSelectionUI(selectedSort, selectedColor, defaultTextColor)
+            updateSelectionUI(selectedSort)
         }
 
         binding.applyFilter.setOnClickListener {
@@ -74,33 +73,31 @@ class FilterDialogGarden : DialogFragment() {
         }
     }
 
-    private fun updateSelectionUI(selected: String?, selectedColor: Int, defaultColor: Int) {
-        // Default background
-        binding.countryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv)
-        binding.categoryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv)
-        binding.customContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv)
+    private fun selectedRow(): View = when (selectedSort) {
+        "By Category" -> binding.categoryContainer.root
+        "Custom List" -> binding.customContainer.root
+        else -> binding.countryContainer.root
+    }
 
-        // Default colors
-        binding.countryContainer.title.setTextColor(defaultColor)
-        binding.categoryContainer.title.setTextColor(defaultColor)
-        binding.customContainer.title.setTextColor(defaultColor)
-
-        // Selected holatni bo‘yash
-        when (selected) {
-            "By Country" -> {
-                binding.countryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
-                binding.countryContainer.title.setTextColor(selectedColor)
-            }
-
-            "By Category" -> {
-                binding.categoryContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
-                binding.categoryContainer.title.setTextColor(selectedColor)
-            }
-
-            "Custom List" -> {
-                binding.customContainer.root.setBackgroundResource(R.drawable.background_item_tv_category_tv_selected)
-                binding.customContainer.title.setTextColor(selectedColor)
-            }
+    /**
+     * The label colour comes from the row's own state now, not from a flat colour applied here.
+     * Overwriting it with setTextColor(int) replaced the @color/color_item_tv_category_tv state
+     * list the layout declares, so a focused row kept its near-white label on the solid white
+     * focused background and became unreadable.
+     */
+    private fun updateSelectionUI(selected: String?) {
+        val rows = listOf(
+            "By Country" to binding.countryContainer.root,
+            "By Category" to binding.categoryContainer.root,
+            "Custom List" to binding.customContainer.root,
+        )
+        rows.forEach { (key, row) ->
+            val isSelected = key == selected
+            row.isSelected = isSelected
+            row.setBackgroundResource(
+                if (isSelected) R.drawable.background_item_tv_category_tv_selected
+                else R.drawable.background_item_tv_category_tv
+            )
         }
     }
 

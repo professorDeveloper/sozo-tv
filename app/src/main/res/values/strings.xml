@@ -181,4 +181,5 @@
 
     <string name="update_later">Later</string>
     <string name="voice_cancel_hint">Press BACK to cancel</string>
+    <string name="news_empty">No messages yet</string>
 </resources>
