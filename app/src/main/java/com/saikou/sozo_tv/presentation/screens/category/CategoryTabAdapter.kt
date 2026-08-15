@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.category
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
@@ -76,11 +77,20 @@ class CategoryTabAdapter(private var isFiltered: Boolean = true) :
         )
     }
 
+    /**
+     * Targeted notifies, never notifyDataSetChanged: a full rebind destroys and recreates every
+     * row, including the one the remote is sitting on, so the highlight vanished every time the
+     * caller re-asserted the selection.
+     */
     fun setSelectedPosition(position: Int) {
+        if (position == selectedPosition) return
+        val previous = selectedPosition
         selectedPosition = position
-        notifyDataSetChanged()
+        if (previous in list.indices) notifyItemChanged(previous)
+        if (selectedPosition in list.indices) notifyItemChanged(selectedPosition)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun submitList(newList: ArrayList<String>) {
         list.clear()
         if (isFiltered) list.add(0, "Filter")
