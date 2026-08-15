@@ -478,9 +478,19 @@ class SeriesPlayerScreen : Fragment() {
 
         model.currentQualityEpisode.observe(viewLifecycleOwner) { resource ->
             when (resource) {
-                Resource.Loading -> Unit
+                // Resolving a new quality is a network round-trip that can take
+                // several seconds. This used to be `Unit`: the picker closed and
+                // nothing else happened, so the switch read as "the button did
+                // nothing" until the stream eventually swapped. Reuse the same
+                // full-screen loading overlay an episode switch already shows.
+                Resource.Loading -> {
+                    binding.loadingLayout.visible()
+                    binding.loadingText.text = getString(R.string.quality_is_loading)
+                }
+
                 is Resource.Success -> {
                     ignoreNextEpisodeSuccess = false
+                    binding.loadingLayout.gone()
                     val vod = resource.data
                     playQualityVideo(
                         videoUrl = vod.urlobj, headers = vod.header, mimeType = vod.type
@@ -488,8 +498,17 @@ class SeriesPlayerScreen : Fragment() {
                     setupOrUpdatePreviewThumbnails(vod.thumbnail, vod.header)
                 }
 
+                // A failed switch was swallowed entirely — the overlay would have
+                // stayed up forever and the user was never told why. Drop back to
+                // the stream that is still playing and say so.
                 is Resource.Error -> {
                     ignoreNextEpisodeSuccess = false
+                    binding.loadingLayout.gone()
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.quality_switch_failed),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
 
                 else -> Unit

@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Whole Sources screen is one vertical RecyclerView: item 0 is the header (title, tabs,
-     shortcode, provider search), the rest are provider rows. Everything scrolls together and
-     D-pad focus moves between the search field and the rows without getting trapped. -->
 <androidx.recyclerview.widget.RecyclerView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"

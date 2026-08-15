@@ -116,6 +116,8 @@
     <string name="guest">Guest</string>
     <string name="episode">%1$s - Episode %2$d</string>
     <string name="episode_is_loading">Episode %1$s is loading…</string>
+    <string name="quality_is_loading">Switching quality…</string>
+    <string name="quality_switch_failed">Could not switch quality — staying on the current one.</string>
     <string name="part_episode">Part %1$d • Episode %2$d</string>
     <string name="part_are_episodes_loading">Part %1$s are episodes loading...</string>
     <string name="current_episode">%1$s - Episode %2$s</string>
