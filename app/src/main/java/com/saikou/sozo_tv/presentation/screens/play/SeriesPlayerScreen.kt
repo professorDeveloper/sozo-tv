@@ -1063,9 +1063,29 @@ class SeriesPlayerScreen : Fragment() {
 
         binding.pvPlayer.controller.binding.frameBackButton.setOnClickListener { navigateBack() }
 
+        // BACK closes the topmost overlay before it leaves the player.
+        //
+        // It used to go straight to navigateBack(), so pressing BACK with the episode
+        // drawer open — the obvious way to dismiss it with a remote — tore the whole
+        // player down instead. The drawer's only other dismissal is the small X in its
+        // corner, and the next-episode countdown had no cancel path on BACK at all.
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() = navigateBack()
+                override fun handleOnBackPressed() {
+                    if (binding.sidebarRight.isVisible) {
+                        toggleSidebarRight(false)
+                        return
+                    }
+                    if (isCountdownActive) {
+                        // stopCountdown() only hides the view; it does not run the
+                        // onCancelled callback, so undo the same state here.
+                        binding.countdownOverlay.stopCountdown()
+                        isCountdownActive = false
+                        if (::player.isInitialized) player.play()
+                        return
+                    }
+                    navigateBack()
+                }
             })
         bindQualityObserversOnce()
 

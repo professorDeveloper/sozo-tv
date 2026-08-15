@@ -31,6 +31,9 @@ class LiveTvPlayerScreen : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var player: ExoPlayer
+
+    /** True once the stream has played at least one frame — see onPlaybackStateChanged. */
+    private var hasBeenReady = false
     private lateinit var dataSourceFactory: DefaultHttpDataSource.Factory
 
     private val args by navArgs<LiveTvPlayerScreenArgs>()
@@ -99,11 +102,20 @@ class LiveTvPlayerScreen : Fragment() {
                         super.onPlaybackStateChanged(playbackState)
                         when (playbackState) {
                             Player.STATE_BUFFERING -> {
-                                binding.progressBar.visibility = View.VISIBLE
-                                binding.pvPlayer.visibility = View.GONE
+                                // Only take over the whole screen for the INITIAL load. For
+                                // mid-stream re-buffering keep the player (and its focusable
+                                // D-pad controls) on screen and let PlayerView's own spinner
+                                // (show_buffering="always") show, otherwise focus is dropped
+                                // on every stall of a live HLS stream — which on a weak
+                                // connection is constantly. Same guard LiveTvActivity uses.
+                                if (!hasBeenReady) {
+                                    binding.progressBar.visibility = View.VISIBLE
+                                    binding.pvPlayer.visibility = View.GONE
+                                }
                             }
 
                             Player.STATE_READY -> {
+                                hasBeenReady = true
                                 binding.progressBar.visibility = View.GONE
                                 binding.pvPlayer.visibility = View.VISIBLE
                                 binding.errorLayout.visibility = View.GONE
