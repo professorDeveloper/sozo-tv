@@ -26,7 +26,7 @@
         android:layout_gravity="center_vertical"
         android:text="Search Query"
         android:textColor="@color/netflix_white"
-        android:textSize="16sp"
+        android:textSize="@dimen/tv_text_subtitle"
         android:maxLines="1"
         android:ellipsize="end" />
 

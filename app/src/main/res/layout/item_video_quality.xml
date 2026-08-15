@@ -38,7 +38,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:text="1080p"
                 android:textColor="#ffffff"
-                android:textSize="16sp" />
+                android:textSize="@dimen/tv_text_subtitle" />
 
             <TextView
                 android:id="@+id/tv_audio_type"
@@ -50,7 +50,7 @@
                 android:paddingVertical="2dp"
                 android:text="SUB"
                 android:textColor="@color/red"
-                android:textSize="12sp"
+                android:textSize="@dimen/tv_text_label"
                 android:fontFamily="sans-serif-medium" />
 
         </LinearLayout>
@@ -68,7 +68,7 @@
                 android:layout_height="wrap_content"
                 android:text="Fansub Group"
                 android:textColor="#9ca3af"
-                android:textSize="13sp" />
+                android:textSize="@dimen/tv_text_body" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -76,7 +76,7 @@
                 android:layout_marginStart="8dp"
                 android:text="•"
                 android:textColor="#9ca3af"
-                android:textSize="13sp" />
+                android:textSize="@dimen/tv_text_body" />
 
             <TextView
                 android:id="@+id/tv_quality"
@@ -85,7 +85,7 @@
                 android:layout_marginStart="8dp"
                 android:text="High Quality"
                 android:textColor="#9ca3af"
-                android:textSize="13sp" />
+                android:textSize="@dimen/tv_text_body" />
 
         </LinearLayout>
 

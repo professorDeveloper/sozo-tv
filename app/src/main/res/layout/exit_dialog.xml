@@ -23,7 +23,7 @@
             android:fontFamily="@font/days"
             android:text="Exit Account"
             android:textColor="@color/white40"
-            android:textSize="16sp"
+            android:textSize="@dimen/tv_text_subtitle"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -67,7 +67,7 @@
                 android:fontFamily="@font/days"
                 android:text="Account "
                 android:textColor="@color/lb_tv_white"
-                android:textSize="15sp" />
+                android:textSize="@dimen/tv_text_subtitle" />
 
 
         </LinearLayout>
@@ -98,7 +98,7 @@
                 android:minLines="1"
                 android:text="Are you sure you want to exit ?"
                 android:textColor="@color/lb_tv_white"
-                android:textSize="15sp" />
+                android:textSize="@dimen/tv_text_subtitle" />
 
 
             <LinearLayout
@@ -132,7 +132,7 @@
                         android:text="Not Now"
                         android:textAlignment="center"
                         android:textColor="@color/color_item_tv_category_tv"
-                        android:textSize="12sp" />
+                        android:textSize="@dimen/tv_text_label" />
 
 
                 </LinearLayout>
@@ -160,7 +160,7 @@
                         android:text="Yes Continue"
                         android:textAlignment="center"
                         android:textColor="@color/color_item_tv_category_tv"
-                        android:textSize="12sp" />
+                        android:textSize="@dimen/tv_text_label" />
 
 
                 </LinearLayout>

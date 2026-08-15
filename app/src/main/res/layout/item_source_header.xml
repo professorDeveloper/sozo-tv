@@ -21,7 +21,7 @@
         android:paddingHorizontal="10dp"
         android:paddingVertical="3dp"
         android:textColor="#FFE50914"
-        android:textSize="11sp"
+        android:textSize="@dimen/tv_text_label"
         android:textStyle="bold"
         tools:text="ANIME" />
 
@@ -47,7 +47,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif"
         android:textColor="@color/netflix_text_secondary"
-        android:textSize="13sp"
+        android:textSize="@dimen/tv_text_body"
         tools:text="7 sources" />
 
 </LinearLayout>

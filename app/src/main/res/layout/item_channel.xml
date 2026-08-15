@@ -25,7 +25,7 @@
             android:maxLines="2"
             android:text="Channel Name"
             android:textColor="@color/netflix_text_primary"
-            android:textSize="14sp"
+            android:textSize="@dimen/tv_text_body"
             android:textStyle="bold" />
 
         <LinearLayout
@@ -47,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:text="LIVE"
                 android:textColor="@color/netflix_red"
-                android:textSize="10sp"
+                android:textSize="@dimen/tv_text_caption"
                 android:textStyle="bold" />
 
             <ImageView

@@ -58,7 +58,7 @@
             android:fontFamily="@font/days"
             android:text="Choose Type:"
             android:textColor="@color/white40"
-            android:textSize="13sp" />
+            android:textSize="@dimen/tv_text_body" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -116,7 +116,7 @@
                 android:text="Apply"
                 android:textAlignment="center"
                 android:textColor="@color/color_item_tv_category_tv"
-                android:textSize="12sp" />
+                android:textSize="@dimen/tv_text_label" />
 
 
         </LinearLayout>

@@ -15,4 +15,4 @@
     android:text="Watching"
     android:textAllCaps="false"
     android:textColor="@color/color_item_tv_category_tv"
-    android:textSize="14sp" />
+    android:textSize="@dimen/tv_text_body" />

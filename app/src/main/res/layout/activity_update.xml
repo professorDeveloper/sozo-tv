@@ -63,7 +63,7 @@
             android:layout_marginBottom="4dp"
             android:fontFamily="@font/rubik_regular"
             android:lineSpacingExtra="4dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:visibility="visible" />
 
         <LinearLayout
@@ -131,7 +131,7 @@
                         android:fontFamily="@font/days"
                         android:text="@string/update_now"
                         android:textColor="@color/login_button_text_color"
-                        android:textSize="15sp" />
+                        android:textSize="@dimen/tv_text_subtitle" />
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:layout_width="20dp"
@@ -172,7 +172,7 @@
                         android:fontFamily="@font/days"
                         android:text="@string/update_later"
                         android:textColor="@color/login_button_text_color"
-                        android:textSize="15sp" />
+                        android:textSize="@dimen/tv_text_subtitle" />
 
                 </LinearLayout>
             </LinearLayout>

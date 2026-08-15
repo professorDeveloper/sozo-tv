@@ -36,7 +36,7 @@
             android:fontFamily="@font/days"
             android:text="@string/back_to_main"
             android:textColor="@color/login_button_text_color"
-            android:textSize="13sp" />
+            android:textSize="@dimen/tv_text_body" />
     </LinearLayout>
 
     <LinearLayout
@@ -87,7 +87,7 @@
                 android:includeFontPadding="false"
                 android:singleLine="true"
                 android:textColor="@color/grayText"
-                android:textSize="14sp"
+                android:textSize="@dimen/tv_text_body"
                 android:visibility="visible"
                 tools:text="Nabatame" />
 
@@ -123,7 +123,7 @@
                         android:layout_marginStart="4dp"
                         android:fontFamily="@font/days"
                         android:textColor="@color/white"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/tv_text_label"
                         tools:text="16" />
                 </LinearLayout>
                 <LinearLayout
@@ -149,7 +149,7 @@
                         android:layout_marginStart="4dp"
                         android:fontFamily="@font/days"
                         android:textColor="@color/favorite_color"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/tv_text_label"
                         tools:text="48" />
                 </LinearLayout>
 

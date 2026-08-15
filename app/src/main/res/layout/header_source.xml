@@ -39,7 +39,7 @@
             android:paddingVertical="10dp"
             android:text="Sozo"
             android:textColor="#111417"
-            android:textSize="16sp"
+            android:textSize="@dimen/tv_text_subtitle"
             tools:ignore="HardcodedText" />
 
         <TextView
@@ -55,7 +55,7 @@
             android:paddingVertical="10dp"
             android:text="Aniyomi"
             android:textColor="#CCCCCC"
-            android:textSize="16sp" />
+            android:textSize="@dimen/tv_text_subtitle" />
 
         <TextView
             android:id="@+id/btnTabCloudstream"
@@ -70,7 +70,7 @@
             android:paddingVertical="10dp"
             android:text="CloudStream"
             android:textColor="#CCCCCC"
-            android:textSize="16sp" />
+            android:textSize="@dimen/tv_text_subtitle" />
 
     </LinearLayout>
 
@@ -96,7 +96,7 @@
         android:paddingVertical="9dp"
         android:textColor="@color/tv_field_text"
         android:textColorHint="@color/tv_field_hint"
-        android:textSize="14sp"
+        android:textSize="@dimen/tv_text_body"
         tools:ignore="Autofill,LabelFor" />
 
     <!-- Repo filter: "All" + one chip per installed repo. Filters the provider list by
@@ -121,7 +121,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
         android:textColor="@color/netflix_focus_highlight"
-        android:textSize="13sp"
+        android:textSize="@dimen/tv_text_body"
         android:visibility="gone"
         tools:text="Loading providers…"
         tools:visibility="visible" />
@@ -142,7 +142,7 @@
         android:gravity="center"
         android:text="No providers available."
         android:textColor="#888888"
-        android:textSize="14sp"
+        android:textSize="@dimen/tv_text_body"
         android:visibility="gone" />
 
 </LinearLayout>

@@ -60,7 +60,7 @@
             android:fontFamily="sans-serif-medium"
             android:text="@string/choose_subtitle"
             android:textColor="@color/netflix_white"
-            android:textSize="14sp" />
+            android:textSize="@dimen/tv_text_body" />
 
         <com.saikou.sozo_tv.components.TvOptionChipView
             android:id="@+id/subtitle_toggle_off"
@@ -71,7 +71,7 @@
             android:gravity="center"
             android:text="@string/off"
             android:textColor="@color/netflix_text_primary"
-            android:textSize="14sp" />
+            android:textSize="@dimen/tv_text_body" />
 
         <com.saikou.sozo_tv.components.TvOptionChipView
             android:id="@+id/subtitle_toggle_on"
@@ -82,7 +82,7 @@
             android:gravity="center"
             android:text="@string/on"
             android:textColor="@color/netflix_text_primary"
-            android:textSize="14sp" />
+            android:textSize="@dimen/tv_text_body" />
 
         <com.saikou.sozo_tv.components.TvOptionChipView
             android:id="@+id/subtitle_style_btn"
@@ -92,7 +92,7 @@
             android:gravity="center"
             android:text="@string/style"
             android:textColor="@color/netflix_text_primary"
-            android:textSize="14sp" />
+            android:textSize="@dimen/tv_text_body" />
     </LinearLayout>
 
     <TextView
@@ -103,7 +103,7 @@
         android:fontFamily="sans-serif"
         android:text="@string/subtitles_are_off"
         android:textColor="@color/netflix_gray"
-        android:textSize="13sp"
+        android:textSize="@dimen/tv_text_body"
         android:visibility="gone" />
 
     <!-- VerticalGridView, not a plain RecyclerView: the quality picker uses one and it is

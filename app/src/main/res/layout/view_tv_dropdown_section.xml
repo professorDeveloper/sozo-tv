@@ -48,7 +48,7 @@
                     android:paddingVertical="4dp"
                     android:textAllCaps="true"
                     android:textColor="@color/netflix_white"
-                    android:textSize="11sp"
+                    android:textSize="@dimen/tv_text_label"
                     android:visibility="gone" />
             </LinearLayout>
 
@@ -59,7 +59,7 @@
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans-serif"
                 android:textColor="@color/netflix_gray"
-                android:textSize="13sp" />
+                android:textSize="@dimen/tv_text_body" />
 
             <TextView
                 android:id="@+id/dropdown_summary"
@@ -68,7 +68,7 @@
                 android:layout_marginTop="6dp"
                 android:fontFamily="sans-serif"
                 android:textColor="@color/netflix_text_secondary"
-                android:textSize="12sp"
+                android:textSize="@dimen/tv_text_label"
                 android:visibility="gone" />
         </LinearLayout>
 

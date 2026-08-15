@@ -51,7 +51,7 @@
                 android:textColor="@color/netflix_white"
                 android:textColorHint="@color/netflix_gray"
                 android:textCursorDrawable="@null"
-                android:textSize="16sp" />
+                android:textSize="@dimen/tv_text_subtitle" />
 
         </LinearLayout>
 
@@ -118,7 +118,7 @@
                         android:paddingHorizontal="14dp"
                         android:paddingVertical="6dp"
                         android:text="This source"
-                        android:textSize="13sp" />
+                        android:textSize="@dimen/tv_text_body" />
 
                 </LinearLayout>
 

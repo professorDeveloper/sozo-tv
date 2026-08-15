@@ -39,7 +39,7 @@
             android:fontFamily="@font/inter_bold"
             android:paddingTop="4dp"
             android:text="Anime"
-            android:textSize="12sp" />
+            android:textSize="@dimen/tv_text_label" />
     </LinearLayout>
 
     <LinearLayout
@@ -71,7 +71,7 @@
             android:fontFamily="@font/inter_bold"
             android:paddingTop="4dp"
             android:text="Characters"
-            android:textSize="12sp" />
+            android:textSize="@dimen/tv_text_label" />
     </LinearLayout>
 
     <LinearLayout
@@ -103,6 +103,6 @@
             android:fontFamily="@font/inter_bold"
             android:paddingTop="4dp"
             android:text="Tv Channels"
-            android:textSize="12sp" />
+            android:textSize="@dimen/tv_text_label" />
     </LinearLayout>
 </LinearLayout>

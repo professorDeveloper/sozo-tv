@@ -55,7 +55,7 @@
         android:padding="10dp"
         android:textColor="@color/lb_tv_white"
         android:textColorHint="@color/lb_tv_white"
-        android:textSize="14.5sp"
+        android:textSize="@dimen/tv_text_body"
         app:spinner_arrow_gravity="end"
         app:spinner_arrow_padding="8dp"
         app:spinner_arrow_show="true"
@@ -84,7 +84,7 @@
         android:padding="10dp"
         android:textColor="@color/lb_tv_white"
         android:textColorHint="@color/lb_tv_white"
-        android:textSize="14.5sp"
+        android:textSize="@dimen/tv_text_body"
         app:spinner_arrow_gravity="end"
         app:spinner_arrow_padding="8dp"
         app:spinner_arrow_show="true"
@@ -117,7 +117,7 @@
             android:fontFamily="@font/days"
             android:text="Choose Rating:"
             android:textColor="@color/white40"
-            android:textSize="13sp" />
+            android:textSize="@dimen/tv_text_body" />
 
         <com.google.android.material.slider.Slider
             android:id="@+id/sliderRating"
@@ -169,7 +169,7 @@
                 android:text="Apply"
                 android:textAlignment="center"
                 android:textColor="@color/color_item_tv_category_tv"
-                android:textSize="12sp" />
+                android:textSize="@dimen/tv_text_label" />
 
 
         </LinearLayout>
@@ -194,7 +194,7 @@
                 android:duplicateParentState="true"
                 android:paddingVertical="6dp"
                 android:src="@drawable/clear_filter"
-                android:textSize="12sp"
+                android:textSize="@dimen/tv_text_label"
                 app:tint="@color/color_item_tv_section_profile" />
 
 

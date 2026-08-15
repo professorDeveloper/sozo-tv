@@ -31,7 +31,7 @@
         android:paddingStart="0dp"
         android:paddingEnd="10dp"
         android:textColor="#FFFFFF"
-        android:textSize="14sp"
+        android:textSize="@dimen/tv_text_body"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/iv_navigation_item_icon"
         app:layout_constraintTop_toTopOf="parent" />

@@ -32,7 +32,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/channel_list"
                 android:textColor="@color/netflix_white"
-                android:textSize="16sp"
+                android:textSize="@dimen/tv_text_subtitle"
                 android:layout_marginBottom="4dp"
                 android:fontFamily="sans-serif-medium"/>
 
@@ -42,7 +42,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/enable_or_disable_channel_content_visibility"
                 android:textColor="@color/netflix_gray"
-                android:textSize="13sp"
+                android:textSize="@dimen/tv_text_body"
                 android:fontFamily="sans-serif"/>
         </LinearLayout>
 
@@ -75,7 +75,7 @@
             android:layout_height="wrap_content"
             android:text="Disabled"
             android:textColor="@color/netflix_gray"
-            android:textSize="12sp"
+            android:textSize="@dimen/tv_text_label"
             android:fontFamily="sans-serif"/>
     </LinearLayout>
 </LinearLayout>

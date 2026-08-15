@@ -58,7 +58,7 @@
             android:fontFamily="sans-serif-medium"
             android:maxLines="1"
             android:textColor="@color/netflix_text_primary"
-            android:textSize="15sp"
+            android:textSize="@dimen/tv_text_subtitle"
             android:textStyle="bold"
             tools:text="VidEasy" />
 
@@ -69,7 +69,7 @@
             android:layout_marginTop="2dp"
             android:maxLines="1"
             android:textColor="@color/netflix_text_secondary"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             tools:text="English" />
     </LinearLayout>
 
@@ -86,7 +86,7 @@
         android:paddingVertical="5dp"
         android:singleLine="true"
         android:textColor="@android:color/white"
-        android:textSize="12sp"
+        android:textSize="@dimen/tv_text_label"
         tools:text="VIDEASY" />
 
 </LinearLayout>

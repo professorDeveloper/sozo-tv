@@ -39,6 +39,6 @@
         android:fontFamily="@font/rubik_regular"
         android:text="@string/news_empty"
         android:textColor="@color/white80"
-        android:textSize="16sp"
+        android:textSize="@dimen/tv_text_subtitle"
         android:visibility="gone" />
 </LinearLayout>

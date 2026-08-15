@@ -23,7 +23,7 @@
             android:text="@string/film_haqida"
             android:duplicateParentState="true"
             android:textColor="@color/color_textview_40"
-            android:textSize="16sp"
+            android:textSize="@dimen/tv_text_subtitle"
             android:textStyle="bold" />
 
         <androidx.cardview.widget.CardView

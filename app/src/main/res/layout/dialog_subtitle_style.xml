@@ -47,7 +47,7 @@
         android:layout_marginBottom="12dp"
         android:fontFamily="sans-serif"
         android:textColor="@color/netflix_gray"
-        android:textSize="13sp" />
+        android:textSize="@dimen/tv_text_body" />
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -77,7 +77,7 @@
                     android:letterSpacing="0.08"
                     android:text="@string/preview"
                     android:textColor="@color/netflix_gray"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/tv_text_label" />
 
                 <TextView
                     android:id="@+id/subtitle_preview_text"
@@ -86,7 +86,7 @@
                     android:fontFamily="sans-serif"
                     android:text="@string/this_is_how_subtitles_will_look_on_tv"
                     android:textColor="@color/netflix_white"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/tv_text_subtitle" />
             </LinearLayout>
 
             <!-- Font -->
@@ -97,7 +97,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:text="@string/font"
                 android:textColor="@color/netflix_white"
-                android:textSize="14sp" />
+                android:textSize="@dimen/tv_text_body" />
 
             <LinearLayout
                 android:id="@+id/subtitle_font_group"
@@ -116,7 +116,7 @@
                     android:gravity="center"
                     android:text="Default"
                     android:textColor="@color/netflix_text_primary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/tv_text_body" />
 
                 <com.saikou.sozo_tv.components.TvOptionChipView
                     android:id="@+id/subtitle_font_poppins"
@@ -128,7 +128,7 @@
                     android:gravity="center"
                     android:text="@string/poppins"
                     android:textColor="@color/netflix_text_primary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/tv_text_body" />
 
                 <com.saikou.sozo_tv.components.TvOptionChipView
                     android:id="@+id/subtitle_font_days"
@@ -140,7 +140,7 @@
                     android:gravity="center"
                     android:text="@string/days"
                     android:textColor="@color/netflix_text_primary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/tv_text_body" />
 
                 <com.saikou.sozo_tv.components.TvOptionChipView
                     android:id="@+id/subtitle_font_mono"
@@ -151,7 +151,7 @@
                     android:gravity="center"
                     android:text="Mono"
                     android:textColor="@color/netflix_text_primary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/tv_text_body" />
             </LinearLayout>
 
             <!-- Size -->
@@ -162,7 +162,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:text="Text Size"
                 android:textColor="@color/netflix_white"
-                android:textSize="14sp" />
+                android:textSize="@dimen/tv_text_body" />
 
             <com.saikou.sozo_tv.components.TvStepperView
                 android:id="@+id/subtitle_size_stepper"
@@ -183,7 +183,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:text="Text Color"
                 android:textColor="@color/netflix_white"
-                android:textSize="14sp" />
+                android:textSize="@dimen/tv_text_body" />
 
             <LinearLayout
                 android:id="@+id/subtitle_color_group"
@@ -302,7 +302,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:text="Subtitle Background"
                 android:textColor="@color/netflix_white"
-                android:textSize="14sp" />
+                android:textSize="@dimen/tv_text_body" />
 
             <LinearLayout
                 android:id="@+id/subtitle_bg_group"
@@ -339,7 +339,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:text="Outline"
                 android:textColor="@color/netflix_white"
-                android:textSize="14sp" />
+                android:textSize="@dimen/tv_text_body" />
 
             <LinearLayout
                 android:id="@+id/subtitle_outline_group"

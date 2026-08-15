@@ -55,7 +55,7 @@
             android:scrollHorizontally="true"
             android:textAlignment="center"
             android:textColor="@color/color_black_white_text"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             tools:text="+9989430qwdqdqwdq17410" />
 
         <TextView
@@ -76,7 +76,7 @@
             android:scrollHorizontally="true"
             android:textAlignment="center"
             android:textColor="@color/color_black_white_text"
-            android:textSize="10sp"
+            android:textSize="@dimen/tv_text_caption"
             tools:text="Character :qwdqdqwdqdqd Joker" />
 
     </LinearLayout>

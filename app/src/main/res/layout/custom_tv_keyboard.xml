@@ -39,7 +39,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="1" />
         <TextView
             android:id="@+id/key_2"
@@ -47,7 +47,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="2" />
         <TextView
             android:id="@+id/key_3"
@@ -55,7 +55,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="3" />
         <TextView
             android:id="@+id/key_4"
@@ -63,7 +63,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="4" />
         <TextView
             android:id="@+id/key_5"
@@ -71,7 +71,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="5" />
         <TextView
             android:id="@+id/key_6"
@@ -79,7 +79,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="6" />
         <TextView
             android:id="@+id/key_7"
@@ -87,7 +87,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="7" />
         <TextView
             android:id="@+id/key_8"
@@ -95,7 +95,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="8" />
         <TextView
             android:id="@+id/key_9"
@@ -103,7 +103,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="9" />
         <TextView
             android:id="@+id/key_0"
@@ -111,7 +111,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="0" />
     </LinearLayout>
 
@@ -128,7 +128,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="q" />
         <TextView
             android:id="@+id/key_w"
@@ -136,7 +136,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="w" />
         <TextView
             android:id="@+id/key_e"
@@ -144,7 +144,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="e" />
         <TextView
             android:id="@+id/key_r"
@@ -152,7 +152,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="r" />
         <TextView
             android:id="@+id/key_t"
@@ -160,7 +160,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="t" />
         <TextView
             android:id="@+id/key_y"
@@ -168,7 +168,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="y" />
         <TextView
             android:id="@+id/key_u"
@@ -176,7 +176,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="u" />
         <TextView
             android:id="@+id/key_i"
@@ -184,7 +184,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="i" />
         <TextView
             android:id="@+id/key_o"
@@ -192,7 +192,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="o" />
         <TextView
             android:id="@+id/key_p"
@@ -200,7 +200,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="p" />
     </LinearLayout>
 
@@ -217,7 +217,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="a" />
         <TextView
             android:id="@+id/key_s"
@@ -225,7 +225,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="s" />
         <TextView
             android:id="@+id/key_d"
@@ -233,7 +233,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="d" />
         <TextView
             android:id="@+id/key_f"
@@ -241,7 +241,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="f" />
         <TextView
             android:id="@+id/key_g"
@@ -249,7 +249,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="g" />
         <TextView
             android:id="@+id/key_h"
@@ -257,7 +257,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="h" />
         <TextView
             android:id="@+id/key_j"
@@ -265,7 +265,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="j" />
         <TextView
             android:id="@+id/key_k"
@@ -273,7 +273,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="k" />
         <TextView
             android:id="@+id/key_l"
@@ -281,7 +281,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="l" />
     </LinearLayout>
 
@@ -298,7 +298,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="z" />
         <TextView
             android:id="@+id/key_x"
@@ -306,7 +306,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="x" />
         <TextView
             android:id="@+id/key_c"
@@ -314,7 +314,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="c" />
         <TextView
             android:id="@+id/key_v"
@@ -322,7 +322,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="v" />
         <TextView
             android:id="@+id/key_b"
@@ -330,7 +330,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="b" />
         <TextView
             android:id="@+id/key_n"
@@ -338,7 +338,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="n" />
         <TextView
             android:id="@+id/key_m"
@@ -346,7 +346,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="m" />
     </LinearLayout>
 
@@ -371,56 +371,56 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="&#39;" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="&quot;" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text=":" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text=";" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="-" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="_" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="." />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="," />
     </LinearLayout>
 
@@ -436,56 +436,56 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="!" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="?" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="(" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text=")" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="[" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="]" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="&amp;" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="#" />
     </LinearLayout>
 
@@ -501,56 +501,56 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="@" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="+" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="*" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="=" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="%" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="$" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="/" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="13sp"
+            android:textSize="@dimen/tv_text_body"
             android:text="~" />
     </LinearLayout>
 
@@ -568,7 +568,7 @@
             android:layout_width="56dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="12sp"
+            android:textSize="@dimen/tv_text_label"
             android:text="123#" />
         <TextView
             android:id="@+id/key_space"
@@ -576,7 +576,7 @@
             android:layout_width="140dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="12sp"
+            android:textSize="@dimen/tv_text_label"
             android:text="SPACE" />
         <TextView
             android:id="@+id/key_backspace"
@@ -584,7 +584,7 @@
             android:layout_width="56dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="12sp"
+            android:textSize="@dimen/tv_text_label"
             android:text="DEL" />
 
         <!-- CustomTVKeyboard has exposed setOnClearClickListener since it was written and
@@ -596,7 +596,7 @@
             android:layout_width="56dp"
             android:layout_height="32dp"
             android:layout_margin="1dp"
-            android:textSize="12sp"
+            android:textSize="@dimen/tv_text_label"
             android:text="CLR" />
     </LinearLayout>
 

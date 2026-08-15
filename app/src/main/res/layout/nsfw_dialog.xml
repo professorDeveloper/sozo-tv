@@ -47,7 +47,7 @@
                 android:lineSpacingExtra="1dp"
                 android:text="You are about to enable adult content (NSFW). This will show mature content that may not be suitable for all audiences."
                 android:textColor="#9ca3af"
-                android:textSize="14sp" />
+                android:textSize="@dimen/tv_text_body" />
 
         </LinearLayout>
 
@@ -85,7 +85,7 @@
                         android:fontFamily="sans-serif-medium"
                         android:text="Age Verification"
                         android:textColor="#ffffff"
-                        android:textSize="15sp" />
+                        android:textSize="@dimen/tv_text_subtitle" />
 
                     <TextView
                         android:layout_width="match_parent"
@@ -94,7 +94,7 @@
                         android:lineSpacingExtra="1dp"
                         android:text="You must be 18+ years old to view adult content"
                         android:textColor="#9ca3af"
-                        android:textSize="13sp" />
+                        android:textSize="@dimen/tv_text_body" />
 
                 </LinearLayout>
 
@@ -128,7 +128,7 @@
                         android:fontFamily="sans-serif-medium"
                         android:text="Content Visibility"
                         android:textColor="#ffffff"
-                        android:textSize="15sp" />
+                        android:textSize="@dimen/tv_text_subtitle" />
 
                     <TextView
                         android:layout_width="match_parent"
@@ -137,7 +137,7 @@
                         android:lineSpacingExtra="1dp"
                         android:text="Adult content will be visible across the platform"
                         android:textColor="#9ca3af"
-                        android:textSize="13sp" />
+                        android:textSize="@dimen/tv_text_body" />
 
                 </LinearLayout>
 
@@ -170,7 +170,7 @@
                         android:fontFamily="sans-serif-medium"
                         android:text="Easy to Disable"
                         android:textColor="#ffffff"
-                        android:textSize="15sp" />
+                        android:textSize="@dimen/tv_text_subtitle" />
 
                     <TextView
                         android:layout_width="match_parent"
@@ -179,7 +179,7 @@
                         android:lineSpacingExtra="1dp"
                         android:text="You can turn this off anytime in your account settings"
                         android:textColor="#9ca3af"
-                        android:textSize="13sp" />
+                        android:textSize="@dimen/tv_text_body" />
 
                 </LinearLayout>
 
@@ -207,7 +207,7 @@
                 android:paddingVertical="12dp"
                 android:text="I Understand, Enable"
                 android:textColor="@color/color_item_tv_category_tv"
-                android:textSize="15sp"
+                android:textSize="@dimen/tv_text_subtitle"
                 android:fontFamily="sans-serif-medium" />
 
         </LinearLayout>

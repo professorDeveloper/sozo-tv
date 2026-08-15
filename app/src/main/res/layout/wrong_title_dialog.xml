@@ -26,7 +26,7 @@
             android:fontFamily="@font/days"
             android:text="@string/find_correct_anime_title"
             android:textColor="@android:color/white"
-            android:textSize="16sp"
+            android:textSize="@dimen/tv_text_subtitle"
             android:textStyle="bold" />
 
         <androidx.appcompat.widget.AppCompatImageView
@@ -73,7 +73,7 @@
             android:singleLine="true"
             android:textColor="@android:color/white"
             android:textColorHint="@color/white40"
-            android:textSize="14sp"
+            android:textSize="@dimen/tv_text_body"
             app:focusOutFront="true" />
 
         <FrameLayout

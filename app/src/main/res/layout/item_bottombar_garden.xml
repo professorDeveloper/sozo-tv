@@ -38,7 +38,7 @@
             android:fontFamily="@font/inter_bold"
             android:paddingTop="4dp"
             android:text="by Country"
-            android:textSize="12sp" />
+            android:textSize="@dimen/tv_text_label" />
     </LinearLayout>
 
     <LinearLayout
@@ -70,6 +70,6 @@
             android:layout_marginStart="4dp"
             android:text="by Category"
             android:fontFamily="@font/inter_bold"
-            android:textSize="12sp" />
+            android:textSize="@dimen/tv_text_label" />
     </LinearLayout>
 </LinearLayout>

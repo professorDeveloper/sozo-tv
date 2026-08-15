@@ -57,7 +57,7 @@
 
             android:text="Dear Santa is a heartwarming holiday film that captures the magic of the seasonDear Santa is a heartwarming holiday film that captures the magic of the seasonDear Santa is a heartwarming holiday film that captures the magic of the seasonDear Santa is a heartwarming holiday film that captures the magic of the seasonDear Santa is a heartwarming holiday film that captures the magic of the seasonDear Santa is a heartwarming holiday film that captures the magic of the seasonDear Santa is a heartwarming holiday film that captures the magic of the season and the transformative power of love."
             android:textColor="@android:color/white"
-            android:textSize="14sp" />
+            android:textSize="@dimen/tv_text_body" />
 
         <LinearLayout
             android:id="@+id/playButton"
@@ -91,7 +91,7 @@
                 android:text="Play Now"
                 android:textAlignment="center"
                 android:textColor="@color/login_button_text_color_selected_state"
-                android:textSize="13sp" />
+                android:textSize="@dimen/tv_text_body" />
 
         </LinearLayout>
 
@@ -119,7 +119,7 @@
                 android:textAlignment="center"
 
                 android:textColor="@android:color/white"
-                android:textSize="13sp" />
+                android:textSize="@dimen/tv_text_body" />
 
             <TextView
                 android:id="@+id/yearPropert"
@@ -130,7 +130,7 @@
                 android:text="2024"
                 android:textAlignment="center"
                 android:textColor="@android:color/white"
-                android:textSize="12sp" />
+                android:textSize="@dimen/tv_text_label" />
         </LinearLayout>
 
     </LinearLayout>

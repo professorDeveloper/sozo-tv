@@ -95,7 +95,7 @@
                 android:fontFamily="@font/days"
                 android:text="@string/retry"
                 android:textColor="@color/login_button_text_color"
-                android:textSize="14sp" />
+                android:textSize="@dimen/tv_text_body" />
         </LinearLayout>
     </LinearLayout>
 

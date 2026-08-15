@@ -23,7 +23,7 @@
             android:fontFamily="@font/days"
             android:text="Continue Watching"
             android:textColor="@color/white40"
-            android:textSize="16sp"
+            android:textSize="@dimen/tv_text_subtitle"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -84,7 +84,7 @@
                     android:maxLines="1"
                     android:text="Hokkeynie papi"
                     android:textColor="@color/color_black_white_text"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/tv_text_body" />
 
 
                 <TextView
@@ -95,7 +95,7 @@
                     android:fontFamily="@font/days"
                     android:text="IMDB 8.7"
                     android:textColor="@color/color_black_white_text"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/tv_text_label" />
 
                 <TextView
                     android:id="@+id/languageAnd"
@@ -107,7 +107,7 @@
                     android:maxLines="4"
                     android:text="PlatformTools is a Kotlin Multiplatform library designed to provide platform-specific"
                     android:textColor="@color/color_black_white_text"
-                    android:textSize="10sp" />
+                    android:textSize="@dimen/tv_text_caption" />
 
 
             </LinearLayout>
@@ -135,7 +135,7 @@
                 android:fontFamily="@font/days"
                 android:text="Last Watched Date"
                 android:textColor="@color/lb_tv_white"
-                android:textSize="12sp" />
+                android:textSize="@dimen/tv_text_label" />
 
             <TextView
                 android:id="@+id/timeLast"
@@ -145,7 +145,7 @@
                 android:fontFamily="@font/days"
                 android:text="01/03/2024"
                 android:textColor="@color/color_black_white_text"
-                android:textSize="13sp" />
+                android:textSize="@dimen/tv_text_body" />
 
             <TextView
                 android:id="@+id/continueTime"
@@ -159,7 +159,7 @@
                 android:minLines="1"
                 android:text="Continue from  14:42 ?"
                 android:textColor="@color/lb_tv_white"
-                android:textSize="15sp" />
+                android:textSize="@dimen/tv_text_subtitle" />
 
 
             <LinearLayout
@@ -193,7 +193,7 @@
                         android:text="Yes Continue"
                         android:textAlignment="center"
                         android:textColor="@color/color_item_tv_category_tv"
-                        android:textSize="12sp" />
+                        android:textSize="@dimen/tv_text_label" />
 
 
                 </LinearLayout>
@@ -221,7 +221,7 @@
                         android:text="Clear History"
                         android:textAlignment="center"
                         android:textColor="@color/color_item_tv_category_tv"
-                        android:textSize="12sp" />
+                        android:textSize="@dimen/tv_text_label" />
 
 
                 </LinearLayout>

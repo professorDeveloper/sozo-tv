@@ -40,7 +40,7 @@
         android:maxLines="8"
         android:minLines="5"
         android:textColor="@color/lb_tv_white"
-        android:textSize="13sp"
+        android:textSize="@dimen/tv_text_body"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline30"
@@ -67,7 +67,7 @@
             android:fontFamily="@font/inter_bold"
             android:text="Episode 2 will be released in"
             android:textAllCaps="true"
-            android:textSize="16sp" />
+            android:textSize="@dimen/tv_text_subtitle" />
 
         <TextView
             android:id="@+id/mediaCountdown"
@@ -101,7 +101,7 @@
         android:lines="1"
         android:text="@string/ishlab_chiqarilgan_sana"
         android:textColor="#8C9598"
-        android:textSize="13sp"
+        android:textSize="@dimen/tv_text_body"
         app:layout_constraintStart_toStartOf="@+id/guideline30"
         app:layout_constraintTop_toBottomOf="@id/barrier3" />
 
@@ -122,7 +122,7 @@
         android:lines="1"
         android:text="@string/davlat"
         android:textColor="#8C9598"
-        android:textSize="13sp"
+        android:textSize="@dimen/tv_text_body"
         app:layout_constraintStart_toEndOf="@id/barrier4"
         app:layout_constraintTop_toTopOf="@id/textView8" />
 
@@ -143,7 +143,7 @@
         android:lines="1"
         android:text="@string/til"
         android:textColor="#8C9598"
-        android:textSize="13sp"
+        android:textSize="@dimen/tv_text_body"
         app:layout_constraintStart_toEndOf="@id/guideline30"
         app:layout_constraintTop_toBottomOf="@id/container_date" />
 
@@ -164,7 +164,7 @@
         android:lines="1"
         android:text="@string/janr"
         android:textColor="#8C9598"
-        android:textSize="13sp"
+        android:textSize="@dimen/tv_text_body"
         app:layout_constraintStart_toEndOf="@id/barrier4"
         app:layout_constraintTop_toTopOf="@id/textView9" />
 

@@ -18,7 +18,7 @@
         android:alpha="0.58"
         android:fontFamily="@font/inter_bold"
         android:textAllCaps="true"
-        android:textSize="16sp"
+        android:textSize="@dimen/tv_text_subtitle"
         android:text="Episode 2 will be released in" />
 
     <TextView
