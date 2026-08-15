@@ -86,6 +86,11 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
      * Ma'lumotlarni kerakli ViewHolder bilan bog‘laydi.
      * Har bir pozitsiya uchun mos ma'lumot ko‘rsatiladi.
      */
+    override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
+        super.onViewRecycled(holder)
+        (holder as? BannerViewHolder)?.stopAutoAdvance()
+    }
+
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val item = itemList[position]
         when (holder) {
@@ -170,36 +175,45 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
      */
     class BannerViewHolder(private val binding: ContentBannerBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: BannerModel) {
 
-
-            val arraYList: ArrayList<BannerItem> = item.data as ArrayList<BannerItem>
-            val adapter = HomeAdapter().apply {
-                submitList(arraYList)
-            }
-            binding.viewPager.adapter = adapter
-            binding.dotsIndicator.attachTo(binding.viewPager)
-            val handler = Handler(Looper.getMainLooper())
-            val runnable = object : Runnable {
-                override fun run() {
-                    if (binding.viewPager.hasFocus() || (binding.viewPager.getChildAt(0) as? RecyclerView)?.findViewHolderForAdapterPosition(
-                            binding.viewPager.currentItem
-                        )?.itemView?.hasFocus() == true
-                    ) {
-                        val currentItem = binding.viewPager.currentItem
-                        val nextItem =
-                            if (currentItem == adapter.itemCount - 1) 0 else currentItem + 1
-                        binding.viewPager.setCurrentItem(nextItem, true)
-                        binding.viewPager.post {
-                            (binding.viewPager.getChildAt(0) as? RecyclerView)?.findViewHolderForAdapterPosition(
-                                nextItem
-                            )?.itemView?.requestFocus()
-                        }
-                    }
-                    handler.postDelayed(this, 8000)
+        // Timer state lives on the ViewHolder, not inside bind().
+        //
+        // It used to be created fresh on every bind and never cancelled, so each recycle
+        // left another 8-second loop running against the same pager — after a few scrolls
+        // the carousel was being advanced several times per cycle by a stack of orphaned
+        // runnables that outlived the row.
+        private val handler = Handler(Looper.getMainLooper())
+        private var childAdapter: HomeAdapter? = null
+        private val autoAdvance = object : Runnable {
+            override fun run() {
+                val adapter = childAdapter
+                // Advance only while the user is NOT on the banner. The original condition
+                // was inverted — it advanced ONLY when focused and then force-moved focus
+                // to the next item, so a banner the viewer was reading slid out from under
+                // them every 8 seconds and took the D-pad highlight with it.
+                if (adapter != null && adapter.itemCount > 1 && !binding.viewPager.hasFocus()) {
+                    val current = binding.viewPager.currentItem
+                    val next = if (current == adapter.itemCount - 1) 0 else current + 1
+                    binding.viewPager.setCurrentItem(next, true)
                 }
+                handler.postDelayed(this, AUTO_ADVANCE_MS)
             }
-            handler.postDelayed(runnable, 8000)
+        }
+
+        fun bind(item: BannerModel) {
+            stopAutoAdvance()
+
+            val banners: ArrayList<BannerItem> = item.data as ArrayList<BannerItem>
+            // Reuse the child adapter across binds, the way GenreViewHolder and
+            // ChannelViewHolder already do; a new one per bind resets the pager.
+            val adapter = childAdapter ?: HomeAdapter().also {
+                childAdapter = it
+                binding.viewPager.adapter = it
+                binding.dotsIndicator.attachTo(binding.viewPager)
+            }
+            adapter.submitList(banners)
+
+            handler.postDelayed(autoAdvance, AUTO_ADVANCE_MS)
 
             binding.viewPager.setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
@@ -211,6 +225,11 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             }
         }
 
+        fun stopAutoAdvance() = handler.removeCallbacks(autoAdvance)
+
+        private companion object {
+            const val AUTO_ADVANCE_MS = 8000L
+        }
     }
 
 

@@ -664,17 +664,13 @@ class CastDetailAdapter(
                 val oldItem = itemList[oldItemPosition]
                 val newItem = list[newItemPosition]
 
-                return when {
-                    oldItem is CastAdapterModel && newItem is CastAdapterModel && oldItem.viewType == DETAILS_ITEM_HEADER && newItem.viewType == DETAILS_ITEM_HEADER && oldItem.viewType == DETAILS_ITEM_THIRD && newItem.viewType == DETAILS_ITEM_THIRD -> {
+                // Each branch required viewType to equal DETAILS_ITEM_HEADER *and*
+                // DETAILS_ITEM_THIRD at the same time — impossible, so this always
+                // returned false and every submitList was a full teardown that threw away
+                // D-pad focus. Compare the viewTypes to each other instead.
+                return oldItem is CastAdapterModel && newItem is CastAdapterModel &&
+                        oldItem.viewType == newItem.viewType &&
                         oldItem.name == newItem.name
-                    }
-
-                    oldItem is CastAdapterModel && newItem is CastAdapterModel && oldItem.viewType == DETAILS_ITEM_SECTION && newItem.viewType == DETAILS_ITEM_SECTION && oldItem.viewType == DETAILS_ITEM_THIRD && newItem.viewType == DETAILS_ITEM_THIRD -> {
-                        oldItem.name == newItem.name
-                    }
-
-                    else -> false
-                }
             }
 
             /**
