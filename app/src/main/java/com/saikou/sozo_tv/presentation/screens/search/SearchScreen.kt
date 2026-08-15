@@ -12,6 +12,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
+import androidx.activity.OnBackPressedCallback
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
@@ -59,12 +60,33 @@ class SearchScreen : Fragment() {
         return binding.root
     }
 
+    /**
+     * The overlay is a full-screen sheet, but it used to be inert: not focusable and not
+     * clickable, so while it was up the D-pad kept walking the on-screen keyboard hidden behind
+     * it and BACK left the screen entirely with the recognizer still listening. It now takes
+     * focus for as long as it is shown, hands focus back to the mic button when it goes away,
+     * and BACK cancels recognition instead of leaving.
+     */
     private fun showVoiceOverlay(show: Boolean) {
-        binding.voiceListeningOverlay.root.visibility = if (show) View.VISIBLE else View.GONE
+        val overlay = binding.voiceListeningOverlay.root
+        overlay.visibility = if (show) View.VISIBLE else View.GONE
+        cancelVoiceCallback.isEnabled = show
+        if (show) {
+            overlay.requestFocus()
+        } else if (overlay.hasFocus() || !binding.root.hasFocus()) {
+            binding.micBtn.requestFocus()
+        }
+    }
+
+    private val cancelVoiceCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            stopVoiceRecognition()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, cancelVoiceCallback)
         setupRecyclerView()
         setupCustomKeyboard()
         setupSearchScopeToggle()

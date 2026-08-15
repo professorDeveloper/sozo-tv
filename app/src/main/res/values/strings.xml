@@ -179,4 +179,6 @@
     <string name="view_all">View All</string>
     <string name="see_more_movies">See more movie series</string>
 
+    <string name="update_later">Later</string>
+    <string name="voice_cancel_hint">Press BACK to cancel</string>
 </resources>
