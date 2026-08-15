@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.DialogFragment
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.utils.requestInitialFocus
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.DialogSubtitleStyleBinding
 
@@ -48,6 +49,11 @@ class SubtitleStyleDialog : DialogFragment() {
         setupSubtitleStyleUi(binding, prefs) {
             onStyleChanged?.invoke()
         }
+
+        // Land on the first real control instead of the close glyph: the X is the first
+        // focusable in the tree, so without this the dialog opened with the highlight on
+        // it and the very first OK press dismissed the dialog the user had just opened.
+        binding.subtitleFontDefault.requestInitialFocus()
     }
 
     private fun setupDialogWindow() {

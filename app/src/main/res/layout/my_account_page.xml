@@ -265,10 +265,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="18dp"
-                        android:background="@drawable/netflix_focusable_background"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:focusableInTouchMode="true"
                         android:padding="14dp">
 
                         <LinearLayout

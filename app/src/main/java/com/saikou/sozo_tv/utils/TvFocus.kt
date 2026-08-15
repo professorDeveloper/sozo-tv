@@ -48,3 +48,47 @@ fun View.applyTvFocusScale(
         onFocusChanged?.invoke(v, hasFocus)
     }
 }
+
+/**
+ * Moves D-pad focus to [target] once it is actually laid out.
+ *
+ * Focus cannot be requested during `onViewCreated`/`onBindViewHolder`: the view is not
+ * attached or measured yet, `requestFocus()` returns false, and the screen opens with the
+ * highlight wherever the framework happened to leave it — usually the first focusable in the
+ * tree, which across this app is repeatedly a 20dp close "X". Posting defers to the first
+ * frame, and the `isShown` guard keeps a dialog that was dismissed in the meantime from
+ * stealing focus back.
+ *
+ * Returns nothing on purpose: the caller has no useful recovery, and the fallback below is
+ * the recovery.
+ */
+fun View.requestInitialFocus(target: View = this) {
+    post {
+        if (!target.isShown) return@post
+        if (target.isFocusable && target.requestFocus()) return@post
+        // Container that is not itself focusable (the correct shape for a list): let the
+        // framework pick its first focusable descendant instead of leaving focus adrift.
+        (target as? android.view.ViewGroup)?.requestFocus(View.FOCUS_DOWN)
+    }
+}
+
+/**
+ * Runs [block] — a data-set swap, a visibility change, anything that can remove the focused
+ * view — and makes sure focus survives it.
+ *
+ * Android does NOT reassign focus when the focused view is removed or hidden; from
+ * targetSdk 26 onward it clears focus to the root instead. Every "the remote went dead after
+ * the list refreshed" bug in this app is that, so the recovery is centralised here: remember
+ * what was focused, run the mutation, and afterwards restore it or fall back to this
+ * container's first focusable.
+ */
+fun View.keepFocusAlive(block: () -> Unit) {
+    val previouslyFocused = findFocus()
+    block()
+    post {
+        if (previouslyFocused?.isShown == true && previouslyFocused.requestFocus()) return@post
+        if (!isShown) return@post
+        if (isFocusable && requestFocus()) return@post
+        (this as? android.view.ViewGroup)?.requestFocus(View.FOCUS_DOWN)
+    }
+}
