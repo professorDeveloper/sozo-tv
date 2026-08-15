@@ -95,8 +95,8 @@ object WebViewStreamExtractor {
         // Set once the coroutine has been resumed, so neither the timeout nor the settle timer
         // can resume it twice.
         val settled = java.util.concurrent.atomic.AtomicBoolean(false)
-        // The newest stream hit seen so far. Overwritten on purpose: if the page's first attempt
-        // is refused and its JS retries with a fresh token, the last one is the live one.
+        // The FIRST stream url the page requests, which is the master playlist. Everything the
+        // page asks for after it is a variant the master already points at.
         val hit = java.util.concurrent.atomic.AtomicReference<ExtractedStream?>(null)
 
         val cleanup = {
@@ -193,8 +193,14 @@ object WebViewStreamExtractor {
                     android.util.Log.i("StreamExtract", "captured $playType: $url")
                     android.util.Log.i("StreamExtract", "replaying headers: ${headers.keys.sorted()}")
 
-                    // First hit starts the settle window; later hits just replace the candidate.
-                    if (hit.getAndSet(ExtractedStream(url, headers, playType)) == null) {
+                    // First hit wins and starts the settle window; later ones are ignored.
+                    //
+                    // Taking the newest instead looked reasonable and was wrong: the page fetches
+                    // the master, then the variants it references, and playing those decodes fine
+                    // in the WebView. Handing ExoPlayer a variant made it ask for one without the
+                    // master fetch that precedes it in a real session, and the CDN answered 403 -
+                    // besides throwing away quality switching, which lives in the master.
+                    if (hit.compareAndSet(null, ExtractedStream(url, headers, playType))) {
                         main.postDelayed(settle, SETTLE_MS)
                     }
                     // Return null: the request goes out for real. See [settle] - the cookie
