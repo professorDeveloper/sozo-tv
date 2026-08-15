@@ -103,7 +103,7 @@
         android:maxLines="1"
         android:text="Hokkeynie papi"
         android:textColor="#ffffff"
-        android:textSize="@dimen/tv_text_body"
+        android:textSize="@dimen/tv_text_label"
         app:layout_constraintEnd_toEndOf="@+id/cardView"
         app:layout_constraintStart_toStartOf="@+id/cardView"
         app:layout_constraintTop_toBottomOf="@+id/cardView" />
@@ -143,7 +143,7 @@
             android:fontFamily="@font/rubik_regular"
             android:text="Play"
             android:textColor="@color/color_item_tv_category_tv"
-            android:textSize="@dimen/tv_text_body" />
+            android:textSize="@dimen/tv_text_label" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="16dp"

@@ -55,7 +55,7 @@
             android:scrollHorizontally="true"
             android:textAlignment="center"
             android:textColor="@color/color_black_white_text"
-            android:textSize="@dimen/tv_text_body"
+            android:textSize="@dimen/tv_text_label"
             tools:text="+9989430qwdqdqwdq17410" />
 
         <TextView

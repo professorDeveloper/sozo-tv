@@ -49,7 +49,7 @@
                     android:layout_height="wrap_content"
                     android:text="Anime Title"
                     android:textColor="@color/netflix_white"
-                    android:textSize="@dimen/tv_text_body"
+                    android:textSize="@dimen/tv_text_label"
                     android:textStyle="bold"
                     android:maxLines="2"
                     android:ellipsize="end"

@@ -63,17 +63,25 @@
             android:orientation="horizontal">
 
             <!--
-              1.2, not 0.85: the QWERTY keyboard is 10 columns wide (348dp) and
-              0.85 of this 2.9-weight row left only ~288dp, cutting it off at the
-              7th key. Keep these two numbers in sync with the arithmetic noted
-              in custom_tv_keyboard.xml.
+              1.3, not 1.2 and certainly not 0.85: the QWERTY keyboard is 10
+              columns wide (10 x 34dp = 340dp) and this row does NOT span the
+              panel - the navigation rail takes ~65dp of the 960dp first.
+
+                  (960 - 65) x 1.3/2.9 = 401dp
+                  minus 2 x 8dp column padding and 2 x 4dp keyboard padding
+                  = 377dp for 340dp of keys.
+
+              At 1.2 with 16dp padding the sum came to 330dp and the tenth
+              column ("0" and "p") was sliced in half; the earlier 0.85 left
+              only ~288dp and cut it off at the seventh key. Keep these numbers
+              in sync with the arithmetic noted in custom_tv_keyboard.xml.
             -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1.2"
+                android:layout_weight="1.3"
                 android:orientation="vertical"
-                android:paddingHorizontal="16dp">
+                android:paddingHorizontal="8dp">
 
                 <com.saikou.sozo_tv.utils.CustomTVKeyboard
                     android:id="@+id/customKeyboard"
@@ -86,7 +94,7 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1.7"
+                android:layout_weight="1.6"
                 android:orientation="vertical">
 
                 <LinearLayout

@@ -2,11 +2,16 @@
 <!--
   TV search keyboard — QWERTY with a symbols page.
 
-  SIZING IS LOAD-BEARING. The keyboard column is layout_weight 1.2 of a 2.9 row
-  on a 960dp-wide panel = ~397dp, minus 32dp padding = ~365dp usable. Ten
-  columns at 32+2dp = 340dp plus 8dp root padding fits with room to spare.
-  An earlier 36dp/2dp version needed 408dp and was visibly cut off at the 7th
-  key — re-check this arithmetic before changing key size or the column weight.
+  SIZING IS LOAD-BEARING. The keyboard column is layout_weight 1.3 of a 2.9 row,
+  and that row spans the panel MINUS the ~65dp navigation rail: (960 - 65) x
+  1.3/2.9 = ~401dp, minus 16dp column padding and 8dp root padding = ~377dp
+  usable. Ten columns at 32+2dp = 340dp fits with room to spare.
+
+  The earlier note forgot the rail and assumed the full 960dp, which is how a
+  1.2 weight with 16dp padding ended up at 330dp usable and sliced the tenth
+  column ("0" and "p") in half. An even earlier 36dp/2dp version needed 408dp
+  and was cut off at the 7th key. Re-check this arithmetic before changing key
+  size or the column weight.
 
   Letter/digit keys keep their @id/key_<char> names so the id-based wiring in
   CustomTVKeyboard.kt is untouched. Symbol keys carry NO id: they are bound by
