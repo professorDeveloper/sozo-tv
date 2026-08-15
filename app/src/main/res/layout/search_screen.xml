@@ -62,10 +62,16 @@
             android:layout_weight="1"
             android:orientation="horizontal">
 
+            <!--
+              1.2, not 0.85: the QWERTY keyboard is 10 columns wide (348dp) and
+              0.85 of this 2.9-weight row left only ~288dp, cutting it off at the
+              7th key. Keep these two numbers in sync with the arithmetic noted
+              in custom_tv_keyboard.xml.
+            -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="0.85"
+                android:layout_weight="1.2"
                 android:orientation="vertical"
                 android:paddingHorizontal="16dp">
 

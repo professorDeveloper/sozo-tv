@@ -55,7 +55,11 @@ android {
             val token = readLocalProperty("GITHUB_TOKEN")
             buildConfigField("String", "GITHUB_TOKEN", "\"$token\"")
             buildConfigField(
-                "String", "APISOZO_BASE_URL", "\"${readLocalProperty("APISOZO_BASE_URL")}\""
+                // MUST carry a default. Without one this compiles to "" and
+                // ApisozoClient builds relative URLs, which fail as
+                // "Server unreachable" on the Sozo provider tab — the whole
+                // server catalog and every on-device extractor go dark.
+                "String", "APISOZO_BASE_URL", "\"${readLocalProperty("APISOZO_BASE_URL", sozoApiBaseUrl)}\""
             )
             buildConfigField("String", "SOZO_API_BASE_URL", "\"$sozoApiBaseUrl\"")
             buildConfigField("String", "SOZO_LINK_BASE_URL", "\"$sozoLinkBaseUrl\"")
@@ -68,7 +72,11 @@ android {
             )
             buildConfigField("String", "GITHUB_TOKEN", "\"\"")
             buildConfigField(
-                "String", "APISOZO_BASE_URL", "\"${readLocalProperty("APISOZO_BASE_URL")}\""
+                // MUST carry a default. Without one this compiles to "" and
+                // ApisozoClient builds relative URLs, which fail as
+                // "Server unreachable" on the Sozo provider tab — the whole
+                // server catalog and every on-device extractor go dark.
+                "String", "APISOZO_BASE_URL", "\"${readLocalProperty("APISOZO_BASE_URL", sozoApiBaseUrl)}\""
             )
             buildConfigField("String", "SOZO_API_BASE_URL", "\"$sozoApiBaseUrl\"")
             buildConfigField("String", "SOZO_LINK_BASE_URL", "\"$sozoLinkBaseUrl\"")

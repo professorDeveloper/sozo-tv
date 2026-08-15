@@ -40,7 +40,14 @@ class ApisozoClient(private val baseUrl: String = BuildConfig.APISOZO_BASE_URL) 
     }
 
     private fun buildUrl(path: String, query: Map<String, String?>): String {
-        val builder = Uri.parse(baseUrl + path).buildUpon()
+        // Normalise the join. Every caller passes a leading-slash path, and the
+        // configured base may or may not end in one — concatenating raw produced
+        // ".../api//contents/providers", which 404s. A non-2xx here returns null
+        // with no log, so the only symptom was an empty provider list and the
+        // silent fallback to another source.
+        val base = baseUrl.trimEnd('/')
+        val suffix = if (path.startsWith("/")) path else "/$path"
+        val builder = Uri.parse(base + suffix).buildUpon()
         query.forEach { (k, v) -> if (!v.isNullOrEmpty()) builder.appendQueryParameter(k, v) }
         return builder.build().toString()
     }

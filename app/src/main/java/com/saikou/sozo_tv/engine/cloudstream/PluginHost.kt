@@ -62,7 +62,6 @@ class PluginHost(private val appContext: Context) {
             // This app has its own AniList integration, so the feature is redundant here.
             "StreamPlay",
             "TorraStream",
-            "CineStream",
         )
     }
 
