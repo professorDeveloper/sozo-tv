@@ -41,15 +41,6 @@ class MainActivity : AppCompatActivity() {
         setupBackBehaviour()
     }
 
-    /**
-     * BACK walks out to the navigation rail before it leaves the app.
-     *
-     * There was no callback at all, so the default finished the activity: a single BACK
-     * anywhere on Home killed the app, skipping the rail entirely. `navMainFragment` is
-     * `isFocusedByDefault` (see setupNavigation), so focus always starts in the content
-     * pane — the rail was only reachable by pressing LEFT, and never by the gesture users
-     * actually reach for.
-     */
     private fun setupBackBehaviour() {
         onBackPressedDispatcher.addCallback(this) {
             val rail = binding.navMain
@@ -57,8 +48,6 @@ class MainActivity : AppCompatActivity() {
                 rail.requestFocus()
                 return@addCallback
             }
-            // Already on the rail (or it is hidden on this destination) — fall through to
-            // the platform default, which finishes the activity.
             isEnabled = false
             onBackPressedDispatcher.onBackPressed()
         }
@@ -71,18 +60,12 @@ class MainActivity : AppCompatActivity() {
 
         binding.navMain.setupWithNavController(navController)
 
-        // A query handed over from another activity (the AniList screen's "find in
-        // sources"). Consumed rather than read: this activity is often reached
-        // through singleTop, and leaving the extra on the intent would re-open
-        // search on every later return to Home.
         intent?.getStringExtra(EXTRA_SEARCH_QUERY)?.takeIf { it.isNotBlank() }?.let { query ->
             intent.removeExtra(EXTRA_SEARCH_QUERY)
             navController.navigate(
                 R.id.search,
                 Bundle().apply {
                     putString(SearchScreen.ARG_QUERY, query)
-                    // The only caller is AniList's "find in sources", which is
-                    // asking which of the installed sources carries this title.
                     putBoolean(SearchScreen.ARG_SEARCH_ALL, true)
                 },
             )
@@ -152,7 +135,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        /** Intent extra carrying a search query from another activity. */
         const val EXTRA_SEARCH_QUERY = "sozo.extra.SEARCH_QUERY"
     }
 

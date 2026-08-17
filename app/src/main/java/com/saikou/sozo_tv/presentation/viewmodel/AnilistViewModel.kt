@@ -15,14 +15,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/**
- * Drives the AniList library screen.
- *
- * Holds every status in memory because AniList returns them in a single request:
- * switching filter tabs is a local operation, and re-fetching per tab would spend
- * a round trip to show data already held — which on a TV means a visible stall
- * every time the d-pad moves sideways.
- */
 class AnilistViewModel(
     private val repository: AnilistRepository,
 ) : ViewModel() {
@@ -30,19 +22,11 @@ class AnilistViewModel(
     private val _state = MutableStateFlow(AnilistLibraryState())
     val state: StateFlow<AnilistLibraryState> = _state.asStateFlow()
 
-    /** One-shot messages. A flow rather than state so a toast is not re-shown on rotation. */
     private val _messages = MutableSharedFlow<String>(extraBufferCapacity = 4)
     val messages: SharedFlow<String> = _messages.asSharedFlow()
 
     val connection: StateFlow<AnilistConnection> = repository.connection
 
-    /**
-     * Reads the connection from the account, then loads the library.
-     *
-     * The connection is refreshed first every time rather than trusted from a
-     * previous screen: the phone can connect or disconnect at any moment, and
-     * this box has no way to be told about it.
-     */
     fun load(force: Boolean = false) {
         if (_state.value.loading) return
         if (_state.value.entries.isNotEmpty() && !force) return
@@ -70,16 +54,8 @@ class AnilistViewModel(
         _state.value = _state.value.copy(status = status)
     }
 
-    /** Marks one more episode watched. */
     fun bumpEpisode(entry: AnilistListEntry) = setProgress(entry, entry.progress + 1)
 
-    /**
-     * Writes an explicit progress value.
-     *
-     * Optimistic: the card updates immediately and rolls back if the write fails.
-     * On a TV the round trip is long enough that an unchanged card reads as a
-     * dead button, and the remote gets pressed again.
-     */
     fun setProgress(entry: AnilistListEntry, progress: Int) {
         if (progress < 0 || entry.id in _state.value.busy) return
         val previous = entry
@@ -98,8 +74,6 @@ class AnilistViewModel(
                         total = state?.totalEpisodes ?: entry.media.episodes,
                     ),
                 )
-                // Trust the server's answer over the guess: AniList clamps progress
-                // to the episode total and flips status to COMPLETED on the last one.
                 replace(
                     entry.copy(progress = saved.progress, status = saved.status),
                     busy = _state.value.busy - entry.id,
@@ -111,7 +85,6 @@ class AnilistViewModel(
         }
     }
 
-    /** Moves an entry to another list. */
     fun setStatus(entry: AnilistListEntry, status: AnilistStatus) {
         if (entry.id in _state.value.busy) return
         val previous = entry
@@ -148,13 +121,8 @@ data class AnilistLibraryState(
     val status: AnilistStatus = AnilistStatus.CURRENT,
     val loading: Boolean = false,
     val error: String? = null,
-    /** Entry ids with a write in flight, so one slow card does not block the rest. */
     val busy: Set<Int> = emptySet(),
 ) {
-    /**
-     * The visible rows, most recently updated first — the order that puts what
-     * the viewer is actually watching at the top.
-     */
     val visible: List<AnilistListEntry>
         get() = entries.filter { it.status == status.value }.sortedByDescending { it.updatedAt }
 

@@ -27,7 +27,6 @@
             android:layout_height="1dp"
             android:background="?android:attr/listDivider" />
 
-
         <LinearLayout
             android:id="@+id/bottomDialogCustomContainer"
             android:layout_width="match_parent"
@@ -72,12 +71,6 @@
             android:layout_margin="8dp"
             android:orientation="vertical">
 
-            <!--
-                The progress bar sits on its own row. It used to share a horizontal row with
-                updateBtn at match_parent width, which squeezed the button to zero pixels the
-                moment a download started - which is why the code hid the button outright and
-                left the window with nothing focusable.
-            -->
             <com.skydoves.progressview.ProgressView
                 android:id="@+id/progressView1"
                 android:layout_width="match_parent"
@@ -144,11 +137,6 @@
 
                 </LinearLayout>
 
-                <!--
-                    Shown only for a non-mandatory update. Without it the screen had exactly one
-                    action and BACK finished the last activity in the task, so declining an
-                    optional update meant closing the app.
-                -->
                 <LinearLayout
                     android:id="@+id/laterBtn"
                     android:layout_width="0dp"

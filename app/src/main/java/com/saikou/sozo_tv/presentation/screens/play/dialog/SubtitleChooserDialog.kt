@@ -13,22 +13,6 @@ import com.saikou.sozo_tv.adapters.SubtitleAdapter
 import com.saikou.sozo_tv.data.model.SubTitle
 import com.saikou.sozo_tv.databinding.DialogSubtitleChooserBinding
 
-/**
- * Subtitle track picker.
- *
- * Behaves like [com.saikou.sozo_tv.presentation.screens.play.VideoQualityDialog]: choosing an
- * entry applies it and closes. It previously did not, and that was the whole of the reported
- * "subtitles don't work on TV":
- *
- * - Clicking a track only mutated local state. The selection was handed to the player solely
- *   by the small "X" button, so pressing OK on a track appeared to do nothing at all.
- * - BACK — the natural way to leave a dialog with a remote — dismissed without ever calling
- *   the listener, silently discarding the choice.
- * - The list was a plain RecyclerView marked `focusable="true"`, so `requestFocus()` focused
- *   the *container*: no row highlighted, and the first D-pad press went nowhere.
- * - Every selection ran `notifyDataSetChanged()`, rebinding all rows and destroying the
- *   focused view, so the highlight jumped back to the top.
- */
 class SubtitleChooserDialog : DialogFragment() {
 
     private var subtitles: List<SubTitle> = emptyList()
@@ -61,7 +45,6 @@ class SubtitleChooserDialog : DialogFragment() {
         onSelected = listener
     }
 
-    /** Lets the player re-apply subtitle styling live while this dialog is open. */
     fun setOnSubtitleStyleChangedListener(listener: () -> Unit) {
         onStyleChanged = listener
     }
@@ -82,15 +65,11 @@ class SubtitleChooserDialog : DialogFragment() {
             commit(selectedSub)
         }
 
-        // No layoutManager assignment: VerticalGridView owns its own, and replacing it
-        // breaks the focus and scrolling behaviour that makes it usable with a remote.
         binding.rvSubtitles.adapter = adapter
 
         setEnabledState(subtitlesEnabled, updateFocus = true)
 
-        // OFF is a real choice — apply it instead of waiting for a separate confirm.
         binding.subtitleToggleOff.setOnClickListener { commit(null) }
-        // ON only reveals the list; it picks no track, so it must not commit.
         binding.subtitleToggleOn.setOnClickListener { setEnabledState(true) }
 
         binding.subtitleStyleBtn.setOnClickListener {
@@ -99,8 +78,6 @@ class SubtitleChooserDialog : DialogFragment() {
             }.show(parentFragmentManager, "subtitle_style")
         }
 
-        // Plain cancel: any real choice has already been applied by the time the user
-        // reaches this button, so closing must not re-apply or revert anything.
         binding.close.setOnClickListener { dismiss() }
 
         if (subtitles.isEmpty()) {
@@ -110,7 +87,6 @@ class SubtitleChooserDialog : DialogFragment() {
         }
     }
 
-    /** Applies [choice] to the player and closes. Null means "subtitles off". */
     private fun commit(choice: SubTitle?) {
         subtitlesEnabled = choice != null
         currentSelected = choice
@@ -137,9 +113,6 @@ class SubtitleChooserDialog : DialogFragment() {
             binding.subtitleToggleOff.requestFocus()
             return
         }
-        // Land the highlight on the track that is actually playing. setSelectedPosition is
-        // what moves a VerticalGridView's D-pad cursor; requestFocus on its own would leave
-        // the cursor at row 0 no matter which track is active.
         binding.rvSubtitles.post {
             if (_binding == null) return@post
             if (subtitles.isNotEmpty()) {

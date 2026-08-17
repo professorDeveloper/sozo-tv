@@ -149,15 +149,6 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
     /** True once a source has been picked — used to decide whether first-launch setup is needed. */
     fun hasActiveProvider(): Boolean = getActiveProvider() != null
 
-    /**
-     * Providers for a group, with adult sources filtered out unless the user
-     * opted in (Settings -> NSFW, default off).
-     *
-     * Filtered HERE because this is the single chokepoint every surface goes
-     * through — the source picker, home, search and `searchAll` all call it. The
-     * `nsfw` flag was already parsed and carried on [ExtProvider]; nothing
-     * checked it, so the setting existed but changed nothing.
-     */
     suspend fun providers(group: String): List<ExtProvider> = withContext(Dispatchers.IO) {
         val b = backendForGroup(group) ?: return@withContext emptyList()
         b.ensureLoaded()
@@ -281,9 +272,6 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
 
         if (candidates.isEmpty()) return@channelFlow
 
-        // A plain index shared by the workers: each takes the next provider when
-        // it frees up, which keeps exactly `concurrency` searches in flight
-        // rather than starting them all and hoping.
         val next = AtomicInteger(0)
         val workers = minOf(concurrency, candidates.size).coerceAtLeast(1)
 
@@ -300,7 +288,6 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
         }
     }
 
-    /** One provider's leg. Never throws — the outcome is carried in the result. */
     private suspend fun searchOne(
         provider: ExtProvider,
         query: String,
@@ -321,11 +308,6 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
         SearchLeg(provider, emptyList(), SearchLegStatus.ERROR)
     }
 
-    /**
-     * Blocking "all sources" search, kept for callers that genuinely need the
-     * whole set at once. Built on [searchAllFlow] so there is one fan-out
-     * implementation rather than two that drift apart.
-     */
     suspend fun searchAll(
         query: String,
         maxProviders: Int = MAX_GLOBAL_PROVIDERS,
@@ -363,30 +345,10 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
         private const val KEY_PROVIDER_NAME = "active_provider_name"
         private const val HOME_TIMEOUT_MS = 25_000L
 
-        /** Global-search bounds — see [searchAllFlow]. */
         private const val MAX_GLOBAL_PROVIDERS = 12
 
-        /**
-         * How many provider searches run at once.
-         *
-         * Four, not twelve: each leg may download and dex-load an extension APK
-         * before it can issue a single request, and a TV box has a fraction of a
-         * phone's CPU. Running them all together made every leg slower and made
-         * the first result arrive later, which is the opposite of the point.
-         */
         private const val GLOBAL_SEARCH_CONCURRENCY = 4
 
-        /**
-         * Per-provider budget.
-         *
-         * Raised from 12s because the first search against a freshly-installed
-         * source has to fetch and dex-load its extension before it can do
-         * anything — several megabytes over whatever connection the box has.
-         * Under the old ceiling every extension timed out on first use, which is
-         * exactly when the user had just added sources and was watching.
-         * Later searches hit the cached extension and return in well under a
-         * second, so this is only ever paid once per source.
-         */
         private const val GLOBAL_SEARCH_TIMEOUT_MS = 40_000L
 
         val shared: ExtensionEngine by lazy { ExtensionEngine() }

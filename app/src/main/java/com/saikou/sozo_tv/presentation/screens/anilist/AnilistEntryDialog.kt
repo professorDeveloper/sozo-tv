@@ -23,13 +23,6 @@ import com.saikou.sozo_tv.utils.requestInitialFocus
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
-/**
- * Everything you can do to one library entry, on one dialog.
- *
- * Re-reads the entry from the ViewModel on every state change instead of holding
- * the copy it was opened with: the dialog stays up across a write, and a captured
- * entry would keep showing the progress the user just changed.
- */
 class AnilistEntryDialog : DialogFragment() {
 
     private var _binding: AnilistEntryDialogBinding? = null
@@ -88,9 +81,6 @@ class AnilistEntryDialog : DialogFragment() {
 
         binding.btnBump.applyTvFocusScale(scale = 1.02f)
         binding.btnSearch.applyTvFocusScale(scale = 1.02f)
-        // Posted, not immediate: requestFocus() before the dialog window is laid
-        // out returns false, and the highlight ends up on whatever the framework
-        // picked first.
         binding.btnBump.requestInitialFocus()
     }
 
@@ -116,16 +106,11 @@ class AnilistEntryDialog : DialogFragment() {
         val next = entry.nextEpisode
         binding.btnBump.text = when {
             busy -> getString(R.string.anilist_saving)
-            // Caught up is stated rather than left as a button that does nothing —
-            // on a remote, a dead button just gets pressed harder.
             next == null -> getString(R.string.anilist_caught_up)
             else -> getString(R.string.anilist_mark_watched, next)
         }
         val wasFocused = binding.btnBump.hasFocus()
         binding.btnBump.isEnabled = !busy && next != null
-        // A disabled view is not focusable. Disabling the one under the cursor
-        // strands the remote, so hand focus to the next action rather than
-        // letting the framework drop it to the dialog root.
         if (wasFocused && !binding.btnBump.isEnabled) binding.btnSearch.requestFocus()
 
         statusAdapter.setCounts(emptyMap())

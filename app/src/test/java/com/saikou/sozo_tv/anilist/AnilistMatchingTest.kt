@@ -12,20 +12,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * The pure decisions behind AniList tracking.
- *
- * Worth testing precisely because the consequences are invisible: a bad
- * normalisation silently attaches the wrong show, and a wrong `nextEpisode`
- * offers to mark an episode watched that has not aired. Neither produces an
- * error — they produce a quietly wrong list.
- *
- * These mirror the mobile app's tests on purpose. The two clients write to one
- * AniList account, and a rule verified on only one of them is not a rule.
- */
 class AnilistMatchingTest {
-
-    // ─── title normalisation ────────────────────────────────────────────────
 
     @Test
     fun `ignores case and punctuation`() {
@@ -45,8 +32,6 @@ class AnilistMatchingTest {
 
     @Test
     fun `keeps non-Latin scripts intact`() {
-        // A Latin-only filter would reduce both of these to empty strings and
-        // then declare them equal — the worst possible failure for a matcher.
         assertTrue(AnilistTracker.normalizeTitle("鋼の錬金術師").isNotEmpty())
         assertFalse(
             AnilistTracker.normalizeTitle("鋼の錬金術師") ==
@@ -67,8 +52,6 @@ class AnilistMatchingTest {
         )
     }
 
-    // ─── link identity ──────────────────────────────────────────────────────
-
     @Test
     fun `link key is case-insensitive so one title is not linked twice`() {
         assertEquals(
@@ -79,14 +62,10 @@ class AnilistMatchingTest {
 
     @Test
     fun `link key separates the same content on different providers`() {
-        // Episode numbering routinely differs between sources, so these must not
-        // share one link.
         assertFalse(
             AnilistLinkStore.keyFor("cs:A", "1") == AnilistLinkStore.keyFor("an:B", "1")
         )
     }
-
-    // ─── episode arithmetic ─────────────────────────────────────────────────
 
     private fun entry(
         progress: Int,
@@ -111,8 +90,6 @@ class AnilistMatchingTest {
 
     @Test
     fun `caps at what has aired, not at the announced total`() {
-        // 24 announced, episode 6 airs next => 5 exist. A viewer on 5 is caught
-        // up, and "+1" would report an episode nobody has seen.
         val e = entry(
             progress = 5,
             episodes = 24,
@@ -139,8 +116,6 @@ class AnilistMatchingTest {
         assertEquals(0.5f, entry(progress = 6, episodes = 12).completion!!, 0.0001f)
     }
 
-    // ─── airing ─────────────────────────────────────────────────────────────
-
     @Test
     fun `airing time is read as seconds, not milliseconds`() {
         val airing = AnilistAiring(episode = 1, airingAt = 1_700_000_000L)
@@ -151,8 +126,6 @@ class AnilistMatchingTest {
     fun `an episode in the past has aired`() {
         assertTrue(AnilistAiring(episode = 1, airingAt = 1_000_000_000L).hasAired)
     }
-
-    // ─── media titles ───────────────────────────────────────────────────────
 
     @Test
     fun `searchTitles drops blanks and duplicates, best guess first`() {

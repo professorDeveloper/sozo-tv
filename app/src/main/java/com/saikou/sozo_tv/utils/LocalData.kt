@@ -15,7 +15,6 @@ import com.saikou.sozo_tv.domain.model.GenreTmdbModel
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.MySpinnerItem
 
-
 object LocalData {
     lateinit var historyItemClickListenerr: (WatchHistoryEntity) -> Unit
     fun setHistoryItemClickListener(listener: (WatchHistoryEntity) -> Unit) {
@@ -228,16 +227,12 @@ object LocalData {
 
     }
 
-
     val sectionList = arrayListOf(
         SectionItem(MyApp.context.getString(R.string.my_info), R.drawable.ic_users),
         SectionItem(MyApp.context.getString(R.string.sources), R.drawable.ic_round_star_24),
         SectionItem(MyApp.context.getString(R.string.my_history), R.drawable.ic_time_history),
         SectionItem(MyApp.context.getString(R.string.bookmark), R.drawable.ic_bookmark),
         SectionItem(MyApp.context.getString(R.string.message_page), R.drawable.ic_chat),
-        // Appended, never inserted: ProfileActivity maps rail positions to
-        // destinations by INDEX, so putting this anywhere but the end would
-        // silently repoint every row after it.
         SectionItem(MyApp.context.getString(R.string.anilist), R.drawable.ic_bookmark),
     )
     lateinit var listenerItemCategory: (isAbout: CategoryDetails) -> Unit

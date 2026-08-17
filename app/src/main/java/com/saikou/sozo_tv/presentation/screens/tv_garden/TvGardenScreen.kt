@@ -43,7 +43,6 @@ class TvGardenScreen : Fragment() {
     private var selectedPosCount = 1
     private val categoryList = ArrayList<Category>()
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -60,18 +59,6 @@ class TvGardenScreen : Fragment() {
                 }
             }
         }
-        // Adapters are built and attached on EVERY onViewCreated.
-        //
-        // All of this used to sit behind `if (!model.isOpened)`, and `isOpened` is set true
-        // when a channel is launched and never reset. So after watching one channel and
-        // coming back, this fragment got a fresh view with NO adapters attached — while the
-        // ViewModel's retained LiveData replayed straight into `categoriesAdapter`
-        // (line ~97, unguarded), throwing UninitializedPropertyAccessException. When it did
-        // not crash it left a screen with nothing focusable at all.
-        //
-        // The flag now means only "we already fetched" and gates the network call, which is
-        // all it was ever needed for — the data lives in the ViewModel and replays into the
-        // newly attached adapters by itself.
         categoriesAdapter = CategoryTabAdapter(isFiltered = true)
         channelsAdapter = ChannelsAdapter {
             if (it.iptvUrls.isNotEmpty()) {
@@ -206,6 +193,5 @@ class TvGardenScreen : Fragment() {
             binding.bookmarkRv.visibility = if (it.isEmpty()) View.GONE else View.VISIBLE
         }
     }
-
 
 }

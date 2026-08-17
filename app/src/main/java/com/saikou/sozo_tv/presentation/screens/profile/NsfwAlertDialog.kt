@@ -15,7 +15,6 @@ class NsfwAlertDialog : DialogFragment() {
     private var _binding: NsfwDialogBinding? = null
     private val binding get() = _binding!!
 
-
     private lateinit var yesContinueListener: () -> Unit
     private lateinit var onbackPressedListener: () -> Unit
 
@@ -44,12 +43,6 @@ class NsfwAlertDialog : DialogFragment() {
         binding.btnConfirm.setOnClickListener {
             yesContinueListener.invoke()
         }
-        // BACK on a DialogFragment is consumed by the dialog's own window, so an
-        // activity-level callback never fires for it. Worse, this one was registered with
-        // no LifecycleOwner: it stayed on the activity's dispatcher after the dialog was
-        // gone and — callbacks being LIFO — permanently outranked ProfileActivity's own
-        // BACK handler, so BACK stopped working on the whole screen afterwards.
-        // setOnCancelListener is the callback that actually runs when BACK dismisses it.
         dialog?.setOnCancelListener { onbackPressedListener.invoke() }
 
     }

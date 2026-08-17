@@ -58,9 +58,6 @@ val NetworkModule = module {
     }
     single { UserListsRepository(context = androidContext(), client = get()) }
 
-    // Watch history sync. Same auth transport and same per-request token as the
-    // lists above; the difference is that history is written by the player
-    // rather than by the user, so it pushes on its own schedule.
     single {
         WatchHistorySyncClient(
             okHttpClient = get(named("authOkHttp")),
@@ -77,10 +74,6 @@ val NetworkModule = module {
         )
     }
 
-    // AniList. This box never runs the OAuth handshake: the phone connects once,
-    // the token is stored against the Sozo account, and the TV reads it from
-    // there. An OAuth flow here would mean typing an AniList password with a
-    // d-pad, which is the problem the backend exchange exists to avoid.
     single {
         AnilistLinkClient(
             okHttpClient = get(named("authOkHttp")),
@@ -89,18 +82,12 @@ val NetworkModule = module {
             tokenProvider = { get<DeviceAuthRepository>().accessToken() },
         )
     }
-    // Platform TLS again — the app's content client trusts any certificate, and
-    // must never carry someone's AniList token.
     single { AnilistGraphQlClient(okHttpClient = get(named("authOkHttp"))) }
     single { AnilistLinkStore(context = androidContext()) }
     single { AnilistSourceRegistry(context = androidContext()) }
     single { AnilistRepository(linkClient = get(), api = get(), links = get()) }
     single { AnilistTracker(repository = get(), links = get()) }
 
-    // In-app updater. Same endpoint the phone calls, so one admin screen governs
-    // both apps — the TV was previously reading a Firebase node nothing else
-    // used. Auth client on purpose: this answer decides which APK gets
-    // installed, and the content client trusts any certificate.
     single {
         AppVersionClient(
             okHttpClient = get(named("authOkHttp")),

@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Status tabs. Focus and selection are drawn DIFFERENTLY on purpose: on a d-pad
-  the cursor moves independently of the current filter, so a single highlight
-  would leave the user unable to tell which list they are actually looking at.
--->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_focused="true">
         <shape android:shape="rectangle">

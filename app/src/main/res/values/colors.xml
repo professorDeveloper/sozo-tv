@@ -80,8 +80,6 @@
     <color name="notification_action_color">#FFFFFF</color>
     <color name="notification_action_bg">#404040</color>
     <color name="notification_icon_tint">#4A9EFF</color>
-    <!-- AniList's own blue. Used only for AniList affordances, so a "tracked"
-         badge is never mistaken for a Sozo-native control in red. -->
     <color name="anilist_blue">#02A9FF</color>
     <color name="anilist_blue_deep">#0073C4</color>
 </resources>

@@ -65,9 +65,6 @@ class SearchViewModel(
         val q = query.trim()
         if (q.isEmpty()) return
 
-        // Cancelled, not skipped. The old guard returned early on a repeated
-        // query, which meant a search that came back empty because every source
-        // timed out could never be retried.
         globalSearchJob?.cancel()
         globalSearchJob = viewModelScope.launch {
             _loading.value = true
@@ -82,10 +79,6 @@ class SearchViewModel(
                     .collect { leg ->
                         answered++
                         if (leg.status == SearchLegStatus.OK) withResults++
-                        // Deduped on the encoded content id, which already
-                        // carries provider AND url. The same title legitimately
-                        // appears on several sources and each is separately
-                        // playable, so only exact repeats collapse.
                         for (item in leg.items) {
                             merged.putIfAbsent("${item.id}", item)
                         }
@@ -97,7 +90,6 @@ class SearchViewModel(
                         )
                     }
                 lastGlobalQuery = q
-                // Let a later single-source search of the same text still run.
                 lastQuery = ""
             } catch (c: CancellationException) {
                 throw c
@@ -110,7 +102,6 @@ class SearchViewModel(
 
     private var globalSearchJob: Job? = null
 
-    /** How far an "all sources" search has got. Drives the progress line. */
     private val _searchProgress = MutableStateFlow(SearchProgress())
     val searchProgress: StateFlow<SearchProgress> get() = _searchProgress
 
@@ -140,10 +131,8 @@ class SearchViewModel(
         }
     }
 
-
 }
 
-/** Progress of an in-flight "all sources" search. */
 data class SearchProgress(
     val answered: Int = 0,
     val sourcesWithResults: Int = 0,

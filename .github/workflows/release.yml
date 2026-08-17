@@ -51,13 +51,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ---------------------------------------------------------------- Version ----
-  # Decides what this release IS, and is the only job allowed to change it.
-  #
-  # versionCode always rises unless "none" is chosen. It is the number Android
-  # compares to decide an update exists, and the number the backend's AppVersion
-  # row stores under platform `androidtv`; two releases sharing one are
-  # invisible to the in-app updater.
   version:
     runs-on: ubuntu-latest
     outputs:
@@ -68,7 +61,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # The tag push below needs real history, not a shallow clone.
           fetch-depth: 0
 
       - name: Resolve version
@@ -90,8 +82,6 @@ jobs:
             echo "::error title=Malformed versionName::could not read it from ${GRADLE}"; exit 1
           fi
 
-          # A tag push ships exactly what is committed. Rewriting the version on
-          # a tag would make the tag name and the built APK disagree.
           if [ "${GITHUB_EVENT_NAME}" != "workflow_dispatch" ]; then
             echo "Tag build — using the committed version verbatim."
             NEW_NAME="${NAME}"
@@ -144,20 +134,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Refuse to reuse a tag rather than silently shipping a second,
-          # different build under a name someone has already installed.
           if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null || \
              git ls-remote --exit-code --tags origin "${TAG}" >/dev/null 2>&1; then
             echo "::error title=Tag exists::${TAG} is already published. Pick a different bump, or delete the tag first."
             exit 1
           fi
 
-          # python3, not `sed -i`: BSD and GNU sed disagree on that flag and the
-          # BSD form silently leaves the file untouched, which surfaces later as
-          # "nothing to commit" — an error pointing nowhere near the cause.
-          #
-          # Both patterns are anchored and capped at one substitution, so the
-          # `compileSdk`/`minSdk` neighbourhood is never touched.
           python3 - "${NAME}" "${CODE}" <<'PY'
           import re, sys
           name, code = sys.argv[1], sys.argv[2]
@@ -176,9 +158,6 @@ jobs:
           git commit -am "chore: ${NAME} (${CODE})"
           git tag "${TAG}"
 
-          # Pushed with GITHUB_TOKEN, which deliberately does NOT re-trigger
-          # workflows. Without that guarantee this tag would start a second run
-          # of this same workflow and ship the release twice.
           git push origin HEAD:"${GITHUB_REF_NAME}"
           git push origin "${TAG}"
 
@@ -186,14 +165,12 @@ jobs:
         id: sha
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-  # ------------------------------------------------------------------- APK ----
   apk:
     needs: version
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-        # The commit the version job just made, so the APK and the tag agree.
         with:
           ref: ${{ needs.version.outputs.sha }}
 
@@ -204,9 +181,6 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      # Without this the release build is UNSIGNED and cannot be installed at
-      # all. Failing here is far better than producing an artifact that looks
-      # fine and is useless.
       - name: Restore signing key
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_TV_KEYSTORE_B64 }}
@@ -224,14 +198,8 @@ jobs:
       - name: Build release APK
         run: ./gradlew :app:assembleRelease --no-daemon
 
-      # The one check that matters for an app distributed by sideload: a build
-      # signed with a DIFFERENT certificate cannot be installed over an existing
-      # copy. Users get "package conflicts with an existing package" and have to
-      # uninstall, losing their history — and nothing about the APK looks wrong
-      # until someone tries.
       - name: Verify the APK is signed by the expected certificate
         env:
-          # CN=Sozo Tv, O=Sozo LLC — the certificate already on devices.
           EXPECTED_CERT_SHA256: cc23741adc1f7df57f62107bdd65d8bd15197ef34605dec5bfa7fae57ed620f8
         run: |
           set -euo pipefail
@@ -251,8 +219,6 @@ jobs:
           fi
           echo "::notice title=Signature::matches the certificate already on devices"
 
-      # Proves the version actually baked into the APK, rather than trusting
-      # that the gradle rewrite landed.
       - name: Report the version inside the APK
         env:
           EXPECTED_CODE: ${{ needs.version.outputs.code }}
@@ -293,7 +259,6 @@ jobs:
           path: dist/*.apk
           if-no-files-found: error
 
-  # ------------------------------------------------- Deliver (Telegram) --------
   deliver:
     needs: [version, apk]
     if: ${{ always() && !cancelled() && needs.apk.result == 'success' }}
@@ -327,8 +292,6 @@ jobs:
           if [ -n "${RELEASE_NOTES}" ]; then
             HEAD="$(printf '%s\n\n📝 %s' "${HEAD}" "${RELEASE_NOTES}")"
           fi
-          # Says the one thing that is easy to forget and invisible when missed:
-          # the APK existing does not make the in-app updater offer it.
           HEAD="$(printf '%s\n\n⚙️ Ichki updater buni ko'"'"'rishi uchun admin panelda platforma **androidtv** ostida versionCode %s ni e'"'"'lon qiling.' \
                   "${HEAD}" "${VERSION_CODE}")"
           HEAD="$(printf '%s\n\n🧰 Run: %s' "${HEAD}" "${RUN_URL}")"

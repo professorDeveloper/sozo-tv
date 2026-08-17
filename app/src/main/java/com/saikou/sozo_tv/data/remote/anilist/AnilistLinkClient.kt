@@ -11,18 +11,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 
-/**
- * Reads the AniList connection stored on the Sozo account.
- *
- * The TV never performs the OAuth handshake itself, and that is the whole point
- * of putting the exchange on the server: an OAuth flow on a television means
- * typing an AniList password with a d-pad. The phone connects once, the token is
- * stored against the account, and this box simply picks it up.
- *
- * Shares the `authOkHttp` client with device sign-in for the same reason the
- * history and lists clients do: this call carries a bearer token, and the app's
- * content client trusts any certificate.
- */
 class AnilistLinkClient(
     private val okHttpClient: OkHttpClient,
     private val gson: Gson,
@@ -30,24 +18,10 @@ class AnilistLinkClient(
     private val tokenProvider: suspend () -> String?,
 ) {
 
-    /**
-     * The stored link, or `Ok(null)` when the account has none.
-     *
-     * "No link" is a successful answer, not an error — the caller shows an
-     * instruction rather than a failure.
-     */
     suspend fun get(): ApiResult<AnilistLink?> = call("GET")
 
-    /** Removes the link from the account, and therefore from every device. */
     suspend fun unlink(): ApiResult<AnilistLink?> = call("DELETE")
 
-    /**
-     * Exchanges this box's title->media map with the account.
-     *
-     * The reason the TV can track anything at all: a d-pad cannot realistically
-     * search AniList, and a translated source title will never match one exactly
-     * — so this box depends on associations the phone made by hand.
-     */
     suspend fun syncLinks(items: List<Map<String, Any?>>): ApiResult<List<RemoteTitleLink>> =
         withContext(Dispatchers.IO) {
             val token = runCatching { tokenProvider() }.getOrNull()
@@ -82,8 +56,6 @@ class AnilistLinkClient(
 
     private suspend fun call(method: String): ApiResult<AnilistLink?> =
         withContext(Dispatchers.IO) {
-            // No token => signed out. Reported as 401 so callers branch on the
-            // code rather than on message text.
             val token = runCatching { tokenProvider() }.getOrNull()
                 ?: return@withContext ApiResult.Http(401, "Not signed in", null)
 
@@ -128,13 +100,6 @@ class AnilistLinkClient(
     }
 }
 
-/**
- * The AniList connection as the account holds it.
- *
- * The access token travels to the client on purpose: this box talks to AniList
- * directly, which keeps that traffic off the Sozo server and means an AniList
- * outage degrades one feature instead of the whole app.
- */
 data class AnilistLink(
     val userId: Int? = null,
     val name: String? = null,

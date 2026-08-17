@@ -44,8 +44,6 @@ class FilterDialogGarden : DialogFragment() {
         // 🔹 Avvalgi tanlovni rang bilan ajratib ko‘rsatamiz
         updateSelectionUI(selectedSort)
 
-        // Land the highlight on the row that is already selected, so the first D-pad press
-        // moves from the current choice instead of from wherever the window happened to focus.
         selectedRow().requestInitialFocus()
 
         // 🔹 Eventlar
@@ -79,12 +77,6 @@ class FilterDialogGarden : DialogFragment() {
         else -> binding.countryContainer.root
     }
 
-    /**
-     * The label colour comes from the row's own state now, not from a flat colour applied here.
-     * Overwriting it with setTextColor(int) replaced the @color/color_item_tv_category_tv state
-     * list the layout declares, so a focused row kept its near-white label on the solid white
-     * focused background and became unreadable.
-     */
     private fun updateSelectionUI(selected: String?) {
         val rows = listOf(
             "By Country" to binding.countryContainer.root,

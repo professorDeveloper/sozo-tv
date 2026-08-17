@@ -100,16 +100,7 @@ data class ExtDetail(
     val cast: List<ExtCast>,
     val related: List<ExtCard>,
     val episodes: List<ExtEpisode>,
-    /**
-     * The AniList entry this page IS, when the provider says so.
-     *
-     * The difference between exact tracking and guessing. A provider that
-     * reports its AniList id removes title normalisation, season ambiguity and
-     * every chance of filing episodes into the wrong show. Null for the many
-     * sources that do not report one — those still go through title matching.
-     */
     val anilistId: Int? = null,
-    /** Same, for MyAnimeList. Carried for a future tracker; unused today. */
     val malId: Int? = null,
 )
 
@@ -335,16 +326,8 @@ internal object ExtParser {
     }
 }
 
-/** Outcome of one provider's leg in an "all sources" search. */
 enum class SearchLegStatus { OK, EMPTY, TIMEOUT, ERROR }
 
-/**
- * One provider's answer.
- *
- * Carries the status rather than just the items so the UI can tell "this source
- * is down" from "no match here" — they look identical as an empty list, and only
- * one of them is worth retrying.
- */
 data class SearchLeg(
     val provider: ExtProvider,
     val items: List<ExtCard>,

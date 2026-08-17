@@ -160,7 +160,6 @@ class SplashScreen : Fragment() {
     private val updateFlow = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        // The user declined an optional update (Later, or BACK). Pick the normal path back up.
         if (isAdded) viewModel.initSplash.observe(viewLifecycleOwner) { handleUserState(it) }
     }
 
@@ -254,12 +253,6 @@ class SplashScreen : Fragment() {
         }
     }
 
-    /**
-     * A mandatory update replaces the splash outright. An optional one is launched for a result
-     * and the splash stays alive behind it, so declining resumes this boot exactly where it left
-     * off. Finishing the splash unconditionally, as before, meant BACK on the update screen had
-     * nothing left in the task to return to and simply closed the app.
-     */
     private fun showUpdateDialog(appUpdate: AppUpdate) {
         val intent = UpdateActivity.newIntent(requireActivity(), appUpdate)
         if (appUpdate.isMandatory) {

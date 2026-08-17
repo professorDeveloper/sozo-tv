@@ -56,11 +56,6 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!--
-      Primary action first in the layout so it also takes initial focus: on a
-      d-pad the first focusable is what the remote lands on, and "+1" is what
-      this dialog is opened for nine times out of ten.
-    -->
     <TextView
         android:id="@+id/btnBump"
         android:layout_width="match_parent"

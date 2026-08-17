@@ -25,17 +25,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun watchHistoryDao(): WatchHistoryDao
 }
 
-/**
- * Adds `providerId` to watch history.
- *
- * A real migration rather than a destructive fallback: this database also holds
- * every bookmark and every character the user saved, and losing those to add one
- * nullable-ish column would be a far worse bug than the one being fixed.
- *
- * Existing rows get "" and keep syncing under their old identity — they were
- * written before the app knew which provider played them, and inventing one now
- * would be a guess.
- */
 val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE watch_history ADD COLUMN providerId TEXT NOT NULL DEFAULT ''")

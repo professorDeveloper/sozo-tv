@@ -116,7 +116,6 @@ class CastDetailAdapter(
 
     }
 
-
     class ItemPlayDetailsThirdViewHolder(private val binding: ItemCastRecommendedBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(model: CastAdapterModel) {
@@ -167,7 +166,6 @@ class CastDetailAdapter(
         }
 
     }
-
 
     class ItemPlayDetailsHeaderViewHolder(private val binding: ItemCategoryDetailsHeaderBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -595,7 +593,6 @@ class CastDetailAdapter(
                                 val angleStep = (2 * Math.PI / (points * 2)).toFloat()
                                 var angle = -Math.PI.toFloat() / 2
 
-
                                 for (i in 0 until points * 2) {
                                     val radius = if (i % 2 == 0) outerRadius else innerRadius
                                     val x = centerX + (radius * cos(angle))
@@ -664,10 +661,6 @@ class CastDetailAdapter(
                 val oldItem = itemList[oldItemPosition]
                 val newItem = list[newItemPosition]
 
-                // Each branch required viewType to equal DETAILS_ITEM_HEADER *and*
-                // DETAILS_ITEM_THIRD at the same time — impossible, so this always
-                // returned false and every submitList was a full teardown that threw away
-                // D-pad focus. Compare the viewTypes to each other instead.
                 return oldItem is CastAdapterModel && newItem is CastAdapterModel &&
                         oldItem.viewType == newItem.viewType &&
                         oldItem.name == newItem.name
@@ -692,6 +685,5 @@ class CastDetailAdapter(
         characterBookmark = it
         notifyItemChanged(0)
     }
-
 
 }

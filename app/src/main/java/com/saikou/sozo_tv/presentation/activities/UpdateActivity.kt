@@ -45,8 +45,6 @@ class UpdateActivity : AppCompatActivity() {
                 putExtra(EXTRA_APP_LINK, update.appLink)
                 putExtra(EXTRA_APP_IMG, update.imageLink)
                 putExtra(EXTRA_CHANGE_LOG, update.changeLog)
-                // Carried through so the screen knows whether it may be declined. It was never
-                // passed before, which made every update effectively mandatory.
                 putExtra(EXTRA_MANDATORY, update.isMandatory)
             }
         }
@@ -167,24 +165,11 @@ class UpdateActivity : AppCompatActivity() {
     private fun startDownload() {
         val link = appLink ?: return
         binding.progressView1.visible()
-        // Disabled, NOT gone. This is the only focusable view on the screen; hiding it
-        // left the window with nothing focused, and since targetSdk 26 Android does not
-        // reassign focus when the focused view disappears. The button then came back
-        // unhighlighted and OK did nothing.
         binding.updateBtn.isEnabled = false
         binding.updateTxt.text = "Downloading…"
         vm.startDownload(this, link)
     }
 
-    /**
-     * Gives an optional update a way out.
-     *
-     * The splash finishes itself before launching this screen, so BACK here used to finish the
-     * only activity left in the task: declining an update meant closing the app, and there was
-     * no on-screen control to decline with in the first place. A non-mandatory update now shows
-     * a focusable "Later" button, and BACK does the same thing; RESULT_CANCELED tells the splash
-     * to resume its normal boot path.
-     */
     private fun setupDeclinePath() {
         if (isMandatory) return
 

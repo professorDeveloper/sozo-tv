@@ -88,8 +88,6 @@ class SourceScreen : Fragment() {
             onProviderLongClick = { provider -> openSettings(provider) },
         )
 
-        // Which providers have been seen reporting AniList ids. Read here rather
-        // than inside the adapter so the adapter needs no Android context.
         adapter.anilistSources = anilistSourceRegistry.all()
 
         binding.screenRv.apply {

@@ -47,7 +47,6 @@ import com.saikou.sozo_tv.utils.visible
 class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf()) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-
     interface HomeData {
         val viewType: Int
     }
@@ -160,7 +159,6 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
         }
     }
 
-
     /**
      * Berilgan pozitsiyadagi elementning `viewType` ni qaytaradi.
      * Bu adapterga qaysi ViewHolderni ishlatishni aniqlashga yordam beradi.
@@ -169,28 +167,17 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
         return itemList[position].viewType
     }
 
-
     /**
      * Bannerlarni ko‘rsatish uchun ViewHolder.
      */
     class BannerViewHolder(private val binding: ContentBannerBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        // Timer state lives on the ViewHolder, not inside bind().
-        //
-        // It used to be created fresh on every bind and never cancelled, so each recycle
-        // left another 8-second loop running against the same pager — after a few scrolls
-        // the carousel was being advanced several times per cycle by a stack of orphaned
-        // runnables that outlived the row.
         private val handler = Handler(Looper.getMainLooper())
         private var childAdapter: HomeAdapter? = null
         private val autoAdvance = object : Runnable {
             override fun run() {
                 val adapter = childAdapter
-                // Advance only while the user is NOT on the banner. The original condition
-                // was inverted — it advanced ONLY when focused and then force-moved focus
-                // to the next item, so a banner the viewer was reading slid out from under
-                // them every 8 seconds and took the D-pad highlight with it.
                 if (adapter != null && adapter.itemCount > 1 && !binding.viewPager.hasFocus()) {
                     val current = binding.viewPager.currentItem
                     val next = if (current == adapter.itemCount - 1) 0 else current + 1
@@ -204,8 +191,6 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             stopAutoAdvance()
 
             val banners: ArrayList<BannerItem> = item.data as ArrayList<BannerItem>
-            // Reuse the child adapter across binds, the way GenreViewHolder and
-            // ChannelViewHolder already do; a new one per bind resets the pager.
             val adapter = childAdapter ?: HomeAdapter().also {
                 childAdapter = it
                 binding.viewPager.adapter = it
@@ -231,7 +216,6 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             const val AUTO_ADVANCE_MS = 8000L
         }
     }
-
 
     /**
      * Banner elementlarini ko‘rsatish uchun ViewHolder.
@@ -310,7 +294,6 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 return@setOnKeyListener false
             }
 
-
         }
     }
 
@@ -331,7 +314,6 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             }
         }
     }
-
 
     class GenreItemViewHolder(private val binding: ItemGenreBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -360,7 +342,6 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
         }
     }
 
-
     class ChannelViewHolder(private val binding: ItemCategoryBinding) :
         RecyclerView.ViewHolder(binding.root) {
         private val childAdapter = HomeAdapter()
@@ -376,7 +357,6 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             }
         }
     }
-
 
     class HistoryViewHolder(private val binding: ItemCategoryBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -417,7 +397,6 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             }
         }
     }
-
 
     class ChannelItemViewHolder(private val binding: ItemMiddleChannelBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -493,7 +472,6 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
         }
     }
 
-
     /**
      * "Barchasini ko'rish" kartasi uchun ViewHolder.
      * Bosilganda CategoryActivity ga o'tadi.
@@ -518,7 +496,6 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             }
         }
     }
-
 
     /**
      * Adapterdagi ma'lumotlarni yangilaydi va o‘zgarishlarni hisoblab chiqaradi.
@@ -559,7 +536,6 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                     oldItem is CategoryGenreItem && newItem is CategoryGenreItem -> {
                         oldItem.content.image == newItem.content.image
                     }
-
 
                     else -> false
                 }

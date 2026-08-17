@@ -26,10 +26,6 @@
             android:contentDescription="@null"
             android:scaleType="centerCrop" />
 
-        <!--
-          Only shown when episodes have aired that the viewer has not seen. A
-          badge that is always present stops being a signal.
-        -->
         <TextView
             android:id="@+id/behindBadge"
             android:layout_width="wrap_content"

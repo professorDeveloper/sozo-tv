@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-
 class HistoryPage : Fragment() {
     private lateinit var binding: HistoryPageBinding
     private val model by viewModel<PlayAnimeViewModel>()
@@ -39,8 +38,6 @@ class HistoryPage : Fragment() {
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // Cached first, then synced. Rendering only after the network would
-        // leave the screen empty on a slow link for a list already on disk.
         lifecycleScope.launch {
             renderHistory()
             if (model.syncHistoryNow()) renderHistory()
@@ -126,12 +123,6 @@ class HistoryPage : Fragment() {
         }
     }
 
-    /**
-     * historyGroup references clearHistoryBtn as well as the list, so hiding it took away every
-     * focusable view on the page: after clearing history the highlight simply disappeared and
-     * the D-pad had nothing to move between. Focus goes back to the profile section rail that
-     * owns this page.
-     */
     private fun showEmptyState() {
         if (!isAdded) return
         binding.placeHolder.root.visibility = View.VISIBLE

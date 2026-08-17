@@ -10,15 +10,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 
-/**
- * One history row on the wire. The field names are the server's contract and
- * are shared verbatim with the Flutter client - renaming one here desyncs the
- * two apps into separate rows for the same episode.
- *
- * [extra] carries whatever a platform stores beyond the shared shape (the TV's
- * Room row has a dozen such fields) and comes back untouched, so a device gets
- * its own full record rather than a lossy projection of it.
- */
 data class HistorySyncItem(
     val provider: String,
     val contentUrl: String? = null,
@@ -34,13 +25,11 @@ data class HistorySyncItem(
     val extra: Map<String, Any?>? = null,
     val watchedAt: String? = null,
     val deletedAt: String? = null,
-    /** Server-assigned identity. Sent back as-is; never invented by the client. */
     val key: String? = null,
 )
 
 data class HistorySyncResult(
     val items: List<HistorySyncItem>,
-    /** Server clock. Becomes the next request's `since`, so client skew cannot lose rows. */
     val serverTime: String?,
 )
 
@@ -56,13 +45,6 @@ private data class SyncResponse(
 
 private data class ApiMessage(@SerializedName("message") val message: String?)
 
-/**
- * Transport for `/auth/history/sync` - push and pull in one round trip.
- *
- * Shares the `authOkHttp` client with device sign-in for the same reason the
- * lists client does: this call carries a bearer token, and the app's content
- * client trusts any certificate.
- */
 class WatchHistorySyncClient(
     private val okHttpClient: OkHttpClient,
     private val gson: Gson,
@@ -70,16 +52,8 @@ class WatchHistorySyncClient(
     private val tokenProvider: suspend () -> String?,
 ) {
 
-    /**
-     * Sends [items] and returns everything changed elsewhere since [since].
-     *
-     * An empty [items] is a normal pull, not a special case - a device with no
-     * local changes still wants the other devices' progress.
-     */
     suspend fun sync(items: List<HistorySyncItem>, since: String?): ApiResult<HistorySyncResult> =
         withContext(Dispatchers.IO) {
-            // No token => signed out. Reported as 401 so callers branch on the
-            // code rather than on message text.
             val token = runCatching { tokenProvider() }.getOrNull()
                 ?: return@withContext ApiResult.Http(401, "Not signed in", null)
 

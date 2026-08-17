@@ -31,24 +31,6 @@ fun readLocalProperty(name: String, default: String = ""): String {
 val sozoApiBaseUrl = readLocalProperty("SOZO_API_BASE_URL", "https://apisozo.azamov.me/api/")
 val sozoLinkBaseUrl = readLocalProperty("SOZO_LINK_BASE_URL", "https://sozo.azamov.me/link/")
 
-/**
- * Release signing, read from a gitignored `key.properties`.
- *
- * The release build previously had NO signing config at all, so `assembleRelease`
- * produced an unsigned APK; every shipped build was signed by hand through
- * Android Studio. That works until it is automated, and then it fails in the
- * worst way: a CI-signed APK carrying a different certificate cannot be
- * installed over an existing one. Users get "package conflicts with an existing
- * package" and must uninstall first, losing their data.
- *
- * The key must therefore be THE key already on devices —
- * `CN=Sozo Tv, O=Sozo LLC`. The release workflow verifies the fingerprint of
- * what it built and refuses to ship anything else.
- *
- * Absent on a normal checkout, and that is fine: debug builds do not need it,
- * and a release build without it stays unsigned rather than silently adopting
- * some other identity.
- */
 val keystorePropertiesFile = rootProject.file("key.properties")
 val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) {
@@ -93,10 +75,6 @@ android {
             val token = readLocalProperty("GITHUB_TOKEN")
             buildConfigField("String", "GITHUB_TOKEN", "\"$token\"")
             buildConfigField(
-                // MUST carry a default. Without one this compiles to "" and
-                // ApisozoClient builds relative URLs, which fail as
-                // "Server unreachable" on the Sozo provider tab — the whole
-                // server catalog and every on-device extractor go dark.
                 "String", "APISOZO_BASE_URL", "\"${readLocalProperty("APISOZO_BASE_URL", sozoApiBaseUrl)}\""
             )
             buildConfigField("String", "SOZO_API_BASE_URL", "\"$sozoApiBaseUrl\"")
@@ -104,9 +82,6 @@ android {
 
         }
         release {
-            // Only when the key is actually present. Pointing at a missing
-            // config would fail every local release build for people who have
-            // no business holding the signing key.
             if (hasReleaseKeystore) {
                 signingConfig = signingConfigs.getByName("release")
             }
@@ -115,10 +90,6 @@ android {
             )
             buildConfigField("String", "GITHUB_TOKEN", "\"\"")
             buildConfigField(
-                // MUST carry a default. Without one this compiles to "" and
-                // ApisozoClient builds relative URLs, which fail as
-                // "Server unreachable" on the Sozo provider tab — the whole
-                // server catalog and every on-device extractor go dark.
                 "String", "APISOZO_BASE_URL", "\"${readLocalProperty("APISOZO_BASE_URL", sozoApiBaseUrl)}\""
             )
             buildConfigField("String", "SOZO_API_BASE_URL", "\"$sozoApiBaseUrl\"")
@@ -165,8 +136,6 @@ android {
 // The CloudStream runtime drags kotlin-stdlib up to 2.3.0 (metadata 2.3.0), which
 // the Room/kapt annotation processor can't read (and which is newer than this
 // module's Kotlin 1.9 compiler). Pin the whole kotlin-stdlib family back to 1.9.x
-// so metadata stays readable and the toolchain stays consistent — the compiler,
-// the serialization plugin and kotlin-reflect are all held at the same 1.9.24.
 configurations.all {
     resolutionStrategy.eachDependency {
         if (requested.group == "org.jetbrains.kotlin" &&
@@ -175,7 +144,6 @@ configurations.all {
             useVersion("1.9.24")
         }
         // Keep coroutines at 1.7.3 — 1.8.x's @InternalForInheritanceCoroutinesApi
-        // breaks the Kotlin 1.9 compiler backend.
         if (requested.group == "org.jetbrains.kotlinx" &&
             requested.name.startsWith("kotlinx-coroutines")
         ) {
@@ -207,8 +175,6 @@ dependencies {
     implementation("com.tbuonomo:dotsindicator:5.1.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
-
-
 
     //
     // qr
@@ -244,14 +210,12 @@ dependencies {
     //Jackson
     api("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.1")
 
-
     //Exoplayer2
     implementation("com.google.android.exoplayer:exoplayer-core:2.18.7")
     implementation("com.google.android.exoplayer:exoplayer-ui:2.18.7")
     implementation("com.google.android.exoplayer:exoplayer-dash:2.18.7")
     implementation("com.google.android.exoplayer:exoplayer-hls:2.18.7")
     implementation("com.google.android.exoplayer:exoplayer-smoothstreaming:2.18.7")
-
 
     //FacebookShimmmer
     implementation("com.facebook.shimmer:shimmer:0.5.0")
@@ -288,7 +252,6 @@ dependencies {
     //MarkdownView
     implementation("io.noties.markwon:core:v4.6.2")
 
-
     val markwon_version = "4.6.2"
     implementation("io.noties.markwon:core:$markwon_version")
     implementation("io.noties.markwon:image:$markwon_version")
@@ -306,7 +269,6 @@ dependencies {
     implementation("com.github.recloudstream.cloudstream:library:v4.7.0")
     // CloudStream plugins/extractors use coroutines on the IO dispatcher.
     // 1.7.3 (not 1.8.x): 1.8.x adds @InternalForInheritanceCoroutinesApi which
-    // trips the Kotlin 1.9 compiler backend.
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     // compileOnly: our clean-room CloudflareKiller implements okhttp3.Interceptor;
     // okhttp itself is supplied at runtime by the CloudStream `library`.
@@ -318,9 +280,5 @@ dependencies {
     // JS engine for Aniyomi extractors that deobfuscate links (QuickJS).
     implementation("app.cash.quickjs:quickjs-android:0.9.2")
 
-    // Local JVM tests. Only for logic with no Android dependency — the title
-    // normalisation and episode arithmetic behind AniList tracking, where every
-    // failure mode is silent (a wrong match writes to the wrong list, and
-    // nothing errors).
     testImplementation("junit:junit:4.13.2")
 }
