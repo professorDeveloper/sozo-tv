@@ -59,6 +59,7 @@ class AnilistRepository(
                     ?.let { AnilistConnection.Connected(it) }
                     ?: AnilistConnection.NotConnected
                 _connection.value = state
+                if (state is AnilistConnection.Connected) syncLinks()
                 state
             }
             // 401 means signed out of Sozo, which really is "no connection here".
@@ -70,6 +71,20 @@ class AnilistRepository(
                 _connection.value
             }
             is ApiResult.Network -> _connection.value
+        }
+    }
+
+    /**
+     * Exchanges this box's title->media map with the account.
+     *
+     * Silent on failure: it runs behind a screen opening or a playback event,
+     * neither of which the viewer is waiting on, and the local map plus its
+     * pending unlinks simply stay put until the next attempt.
+     */
+    suspend fun syncLinks() {
+        when (val result = linkClient.syncLinks(links.pendingChanges())) {
+            is ApiResult.Ok -> links.applyRemote(result.body)
+            else -> Unit
         }
     }
 
