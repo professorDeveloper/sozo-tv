@@ -44,18 +44,11 @@ class AnilistSourceRegistry(context: Context) {
         prefs.edit().putStringSet(KEY_PROVIDERS, all() + id).apply()
     }
 
-    /**
-     * Forgets a provider.
-     *
-     * Used when an extension is removed: a stale badge on a source the user no
-     * longer has installed is a small lie, and the set is rebuilt for free the
-     * next time the provider is used.
-     */
-    fun forget(providerId: String) {
-        val id = providerId.trim()
-        if (id !in all()) return
-        prefs.edit().putStringSet(KEY_PROVIDERS, all() - id).apply()
-    }
+    // No remove/clear on purpose. The set is only ever read to decorate
+    // providers that are currently installed, so an entry for an extension the
+    // user deleted matches nothing and shows nothing. Pruning it would be
+    // bookkeeping with no observable effect, and an unused method that claims
+    // otherwise is worse than none.
 
     private companion object {
         const val FILE = "sozo_anilist_sources"

@@ -79,7 +79,12 @@ class MainActivity : AppCompatActivity() {
             intent.removeExtra(EXTRA_SEARCH_QUERY)
             navController.navigate(
                 R.id.search,
-                Bundle().apply { putString(SearchScreen.ARG_QUERY, query) },
+                Bundle().apply {
+                    putString(SearchScreen.ARG_QUERY, query)
+                    // The only caller is AniList's "find in sources", which is
+                    // asking which of the installed sources carries this title.
+                    putBoolean(SearchScreen.ARG_SEARCH_ALL, true)
+                },
             )
         }
 

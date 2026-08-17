@@ -117,7 +117,18 @@ class SearchScreen : Fragment() {
     private fun applyIncomingQuery() {
         val query = arguments?.getString(ARG_QUERY)?.trim().orEmpty()
         if (query.isEmpty()) return
+        val searchEverywhere = arguments?.getBoolean(ARG_SEARCH_ALL) ?: false
         arguments?.remove(ARG_QUERY)
+        arguments?.remove(ARG_SEARCH_ALL)
+
+        // "Find in sources" means SOURCES, plural. Handing the title over and
+        // then quietly searching only the active one answers a different
+        // question than the button asked — the point is finding which of the
+        // installed sources actually carries this title.
+        if (searchEverywhere && !searchAllSources) {
+            searchAllSources = true
+            binding.searchScopeToggle.text = "All sources"
+        }
 
         binding.searchEdt.setText(query)
         binding.searchEdt.setSelection(query.length)
@@ -771,6 +782,9 @@ class SearchScreen : Fragment() {
     companion object {
         /** Fragment argument carrying a pre-filled search query. */
         const val ARG_QUERY = "query"
+
+        /** Run that query across every installed source, not just the active one. */
+        const val ARG_SEARCH_ALL = "searchAll"
     }
 
 }
