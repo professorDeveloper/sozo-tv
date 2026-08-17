@@ -8,6 +8,7 @@ import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.data.remote.anilist.AnilistGraphQlClient
 import com.saikou.sozo_tv.data.remote.anilist.AnilistLinkClient
 import com.saikou.sozo_tv.data.remote.device.DeviceAuthClient
+import com.saikou.sozo_tv.data.remote.version.AppVersionClient
 import com.saikou.sozo_tv.data.remote.history.WatchHistorySyncClient
 import com.saikou.sozo_tv.data.remote.lists.UserListsClient
 import com.saikou.sozo_tv.data.repository.AnilistLinkStore
@@ -95,6 +96,18 @@ val NetworkModule = module {
     single { AnilistSourceRegistry(context = androidContext()) }
     single { AnilistRepository(linkClient = get(), api = get(), links = get()) }
     single { AnilistTracker(repository = get(), links = get()) }
+
+    // In-app updater. Same endpoint the phone calls, so one admin screen governs
+    // both apps — the TV was previously reading a Firebase node nothing else
+    // used. Auth client on purpose: this answer decides which APK gets
+    // installed, and the content client trusts any certificate.
+    single {
+        AppVersionClient(
+            okHttpClient = get(named("authOkHttp")),
+            gson = get(),
+            baseUrl = BuildConfig.SOZO_API_BASE_URL,
+        )
+    }
 
 }
 

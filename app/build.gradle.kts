@@ -31,6 +31,33 @@ fun readLocalProperty(name: String, default: String = ""): String {
 val sozoApiBaseUrl = readLocalProperty("SOZO_API_BASE_URL", "https://apisozo.azamov.me/api/")
 val sozoLinkBaseUrl = readLocalProperty("SOZO_LINK_BASE_URL", "https://sozo.azamov.me/link/")
 
+/**
+ * Release signing, read from a gitignored `key.properties`.
+ *
+ * The release build previously had NO signing config at all, so `assembleRelease`
+ * produced an unsigned APK; every shipped build was signed by hand through
+ * Android Studio. That works until it is automated, and then it fails in the
+ * worst way: a CI-signed APK carrying a different certificate cannot be
+ * installed over an existing one. Users get "package conflicts with an existing
+ * package" and must uninstall first, losing their data.
+ *
+ * The key must therefore be THE key already on devices —
+ * `CN=Sozo Tv, O=Sozo LLC`. The release workflow verifies the fingerprint of
+ * what it built and refuses to ship anything else.
+ *
+ * Absent on a normal checkout, and that is fine: debug builds do not need it,
+ * and a release build without it stays unsigned rather than silently adopting
+ * some other identity.
+ */
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use { load(it) }
+    }
+}
+val hasReleaseKeystore = keystorePropertiesFile.exists() &&
+        !keystoreProperties.getProperty("storeFile").isNullOrBlank()
+
 android {
     namespace = "com.saikou.sozo_tv"
     compileSdk = 35
@@ -50,6 +77,17 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         debug {
             val token = readLocalProperty("GITHUB_TOKEN")
@@ -66,7 +104,12 @@ android {
 
         }
         release {
-            //
+            // Only when the key is actually present. Pointing at a missing
+            // config would fail every local release build for people who have
+            // no business holding the signing key.
+            if (hasReleaseKeystore) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
