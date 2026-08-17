@@ -104,7 +104,7 @@ val koinModule = module {
     viewModel { ViewAllViewModel(get()) }
     viewModel { SettingsViewModel(get(), profileRepo = get(), deviceAuth = get(), userLists = get(), historySync = get(), anilist = get()) }
     viewModel { LiveTvViewModel(dao = get()) }
-    viewModel { SplashViewModel(firebaseService = get()) }
+    viewModel { SplashViewModel(appVersionClient = get()) }
     viewModel { PlayAnimeViewModel(watchHistoryRepository = get(), historySync = get()) }
     viewModel { DetailViewModel(repo = get(), bookmarkRepo = get()) }
     viewModel { CategoriesViewModel(repo = get()) }
