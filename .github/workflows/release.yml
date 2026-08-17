@@ -1,0 +1,370 @@
+name: Release → Telegram
+
+# Builds a signed Android TV APK and hands it to Telegram.
+#
+# It NEVER touches GitHub Releases — cut those yourself if you want them. It runs
+# only when you ask:
+#   * Actions → this workflow → Run workflow (pick how to raise the version)
+#   * or on a version tag: git tag v11.0.0 && git push origin v11.0.0
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   ANDROID_TV_KEYSTORE_B64   base64 of the release keystore (.jks)
+#   ANDROID_TV_KEY_PROPERTIES contents of key.properties — storeFile,
+#                             storePassword, keyAlias, keyPassword
+#   TELEGRAM_BOT_TOKEN        bot token from @BotFather
+#   TELEGRAM_CHAT_IDS         comma-separated NUMERIC chat ids. The Bot API
+#                             cannot message a person by @username; each
+#                             recipient must press Start on the bot once.
+#
+# The keystore MUST be the one already on devices (CN=Sozo Tv, O=Sozo LLC). A
+# different certificate cannot be installed over an existing copy: users get
+# "package conflicts with an existing package" and have to uninstall, losing
+# their history. The build verifies the fingerprint and refuses to ship anything
+# else — see EXPECTED_CERT_SHA256 below.
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Which part of the version to raise'
+        type: choice
+        default: patch
+        options:
+          - patch          # 10.0.0 -> 10.0.1
+          - minor          # 10.0.0 -> 10.1.0
+          - major          # 10.0.0 -> 11.0.0
+          - code-only      # name unchanged, versionCode +1
+          - none           # build and ship whatever is committed
+      version:
+        description: 'Exact versionName, e.g. 11.0.0 (overrides the choice above)'
+        type: string
+        required: false
+      notes:
+        description: 'Release notes for the Telegram message'
+        type: string
+        required: false
+  push:
+    tags: ['v*']
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------- Version ----
+  # Decides what this release IS, and is the only job allowed to change it.
+  #
+  # versionCode always rises unless "none" is chosen. It is the number Android
+  # compares to decide an update exists, and the number the backend's AppVersion
+  # row stores under platform `androidtv`; two releases sharing one are
+  # invisible to the in-app updater.
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      name: ${{ steps.resolve.outputs.name }}
+      code: ${{ steps.resolve.outputs.code }}
+      tag: ${{ steps.resolve.outputs.tag }}
+      sha: ${{ steps.sha.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The tag push below needs real history, not a shallow clone.
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: resolve
+        env:
+          BUMP: ${{ inputs.bump }}
+          EXPLICIT: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          GRADLE=app/build.gradle.kts
+
+          NAME="$(grep -E '^\s*versionName\s*=' "$GRADLE" | head -1 | sed -E 's/.*"(.*)".*/\1/')"
+          CODE="$(grep -E '^\s*versionCode\s*=' "$GRADLE" | head -1 | sed -E 's/[^0-9]*([0-9]+).*/\1/')"
+
+          case "${CODE}" in
+            ''|*[!0-9]*) echo "::error title=Malformed versionCode::read '${CODE}' from ${GRADLE}"; exit 1 ;;
+          esac
+          if [ -z "${NAME}" ]; then
+            echo "::error title=Malformed versionName::could not read it from ${GRADLE}"; exit 1
+          fi
+
+          # A tag push ships exactly what is committed. Rewriting the version on
+          # a tag would make the tag name and the built APK disagree.
+          if [ "${GITHUB_EVENT_NAME}" != "workflow_dispatch" ]; then
+            echo "Tag build — using the committed version verbatim."
+            NEW_NAME="${NAME}"
+            NEW_CODE="${CODE}"
+            BUMPED=no
+          else
+            IFS=. read -r MA MI PA <<< "${NAME}"
+            MA="${MA:-0}"; MI="${MI:-0}"; PA="${PA:-0}"
+            NEW_CODE="$((CODE + 1))"
+
+            if [ -n "${EXPLICIT}" ]; then
+              case "${EXPLICIT}" in
+                *[!0-9.]*) echo "::error title=Bad version::'${EXPLICIT}' must be digits and dots only, e.g. 11.0.0"; exit 1 ;;
+              esac
+              NEW_NAME="${EXPLICIT}"
+              BUMPED=yes
+            else
+              case "${BUMP}" in
+                patch)     NEW_NAME="${MA}.${MI}.$((PA + 1))"; BUMPED=yes ;;
+                minor)     NEW_NAME="${MA}.$((MI + 1)).0";     BUMPED=yes ;;
+                major)     NEW_NAME="$((MA + 1)).0.0";         BUMPED=yes ;;
+                code-only) NEW_NAME="${NAME}";                 BUMPED=yes ;;
+                none)      NEW_NAME="${NAME}"; NEW_CODE="${CODE}"; BUMPED=no ;;
+                *)         echo "::error title=Unknown bump::'${BUMP}'"; exit 1 ;;
+              esac
+            fi
+          fi
+
+          echo "name=${NEW_NAME}" >> "$GITHUB_OUTPUT"
+          echo "code=${NEW_CODE}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${NEW_NAME}" >> "$GITHUB_OUTPUT"
+          echo "bumped=${BUMPED}" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Release version"
+            echo ""
+            echo "| | versionName | versionCode |"
+            echo "|---|---|---|"
+            echo "| was | \`${NAME}\` | \`${CODE}\` |"
+            echo "| now | \`${NEW_NAME}\` | \`${NEW_CODE}\` |"
+            echo ""
+            echo "Publish \`versionCode ${NEW_CODE}\` on the admin panel under platform **androidtv** for the in-app updater to offer it."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit and tag
+        if: steps.resolve.outputs.bumped == 'yes'
+        env:
+          NAME: ${{ steps.resolve.outputs.name }}
+          CODE: ${{ steps.resolve.outputs.code }}
+          TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          set -euo pipefail
+
+          # Refuse to reuse a tag rather than silently shipping a second,
+          # different build under a name someone has already installed.
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null || \
+             git ls-remote --exit-code --tags origin "${TAG}" >/dev/null 2>&1; then
+            echo "::error title=Tag exists::${TAG} is already published. Pick a different bump, or delete the tag first."
+            exit 1
+          fi
+
+          # python3, not `sed -i`: BSD and GNU sed disagree on that flag and the
+          # BSD form silently leaves the file untouched, which surfaces later as
+          # "nothing to commit" — an error pointing nowhere near the cause.
+          #
+          # Both patterns are anchored and capped at one substitution, so the
+          # `compileSdk`/`minSdk` neighbourhood is never touched.
+          python3 - "${NAME}" "${CODE}" <<'PY'
+          import re, sys
+          name, code = sys.argv[1], sys.argv[2]
+          path = 'app/build.gradle.kts'
+          src = open(path, encoding='utf-8').read()
+          src, n1 = re.subn(r'(?m)^(\s*versionCode\s*=\s*)\d+', rf'\g<1>{code}', src, count=1)
+          src, n2 = re.subn(r'(?m)^(\s*versionName\s*=\s*)"[^"]*"', rf'\g<1>"{name}"', src, count=1)
+          if n1 != 1 or n2 != 1:
+              sys.exit(f'expected one versionCode and one versionName, replaced {n1}/{n2}')
+          open(path, 'w', encoding='utf-8').write(src)
+          PY
+          grep -E '^\s*version(Code|Name)\s*=' app/build.gradle.kts
+
+          git config user.name  "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git commit -am "chore: ${NAME} (${CODE})"
+          git tag "${TAG}"
+
+          # Pushed with GITHUB_TOKEN, which deliberately does NOT re-trigger
+          # workflows. Without that guarantee this tag would start a second run
+          # of this same workflow and ship the release twice.
+          git push origin HEAD:"${GITHUB_REF_NAME}"
+          git push origin "${TAG}"
+
+      - name: Record the commit the build job will use
+        id: sha
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  # ------------------------------------------------------------------- APK ----
+  apk:
+    needs: version
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        # The commit the version job just made, so the APK and the tag agree.
+        with:
+          ref: ${{ needs.version.outputs.sha }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Without this the release build is UNSIGNED and cannot be installed at
+      # all. Failing here is far better than producing an artifact that looks
+      # fine and is useless.
+      - name: Restore signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_TV_KEYSTORE_B64 }}
+          KEY_PROPERTIES: ${{ secrets.ANDROID_TV_KEY_PROPERTIES }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEYSTORE_B64}" ] || [ -z "${KEY_PROPERTIES}" ]; then
+            echo "::error title=Signing secrets missing::ANDROID_TV_KEYSTORE_B64 / ANDROID_TV_KEY_PROPERTIES are not set. Refusing to ship an unsigned APK."
+            exit 1
+          fi
+          printf '%s' "${KEYSTORE_B64}" | base64 -d > sozo-tv-release.jks
+          printf '%s' "${KEY_PROPERTIES}" > key.properties
+          echo "keystore restored ($(stat -c%s sozo-tv-release.jks) bytes)"
+
+      - name: Build release APK
+        run: ./gradlew :app:assembleRelease --no-daemon
+
+      # The one check that matters for an app distributed by sideload: a build
+      # signed with a DIFFERENT certificate cannot be installed over an existing
+      # copy. Users get "package conflicts with an existing package" and have to
+      # uninstall, losing their history — and nothing about the APK looks wrong
+      # until someone tries.
+      - name: Verify the APK is signed by the expected certificate
+        env:
+          # CN=Sozo Tv, O=Sozo LLC — the certificate already on devices.
+          EXPECTED_CERT_SHA256: cc23741adc1f7df57f62107bdd65d8bd15197ef34605dec5bfa7fae57ed620f8
+        run: |
+          set -euo pipefail
+          APKSIGNER="$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/build-tools" -name apksigner | sort | tail -1)"
+          APK="$(ls app/build/outputs/apk/release/*.apk | head -1)"
+          CERTS="$("$APKSIGNER" verify --print-certs "$APK")"
+          echo "$CERTS"
+
+          ACTUAL="$(echo "$CERTS" | grep -oE 'certificate SHA-256 digest: [0-9a-f]+' | head -1 | awk '{print $NF}')"
+          if [ -z "${ACTUAL}" ]; then
+            echo "::error title=Unsigned APK::apksigner reported no certificate."
+            exit 1
+          fi
+          if [ "${ACTUAL}" != "${EXPECTED_CERT_SHA256}" ]; then
+            echo "::error title=Wrong signing key::APK is signed by ${ACTUAL}, expected ${EXPECTED_CERT_SHA256}. Existing installs could not update to this build. Check ANDROID_TV_KEYSTORE_B64."
+            exit 1
+          fi
+          echo "::notice title=Signature::matches the certificate already on devices"
+
+      # Proves the version actually baked into the APK, rather than trusting
+      # that the gradle rewrite landed.
+      - name: Report the version inside the APK
+        env:
+          EXPECTED_CODE: ${{ needs.version.outputs.code }}
+          EXPECTED_NAME: ${{ needs.version.outputs.name }}
+        run: |
+          set -euo pipefail
+          AAPT="$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/build-tools" -name aapt2 | sort | tail -1)"
+          APK="$(ls app/build/outputs/apk/release/*.apk | head -1)"
+          LINE="$("$AAPT" dump badging "$APK" | head -1)"
+          CODE="$(echo "$LINE" | grep -oE "versionCode='[0-9]+'" | grep -oE '[0-9]+')"
+          NAME="$(echo "$LINE" | grep -oE "versionName='[^']*'" | cut -d"'" -f2)"
+          echo "APK: versionCode=${CODE} versionName=${NAME}"
+          if [ "${CODE}" != "${EXPECTED_CODE}" ] || [ "${NAME}" != "${EXPECTED_NAME}" ]; then
+            echo "::error title=Version mismatch::APK carries ${NAME} (${CODE}) but the release is ${EXPECTED_NAME} (${EXPECTED_CODE}). The gradle rewrite did not apply."
+            exit 1
+          fi
+          {
+            echo "### APK"
+            echo ""
+            echo "- versionName **${NAME}**, versionCode **${CODE}**"
+            echo "- signature verified against the certificate already on devices"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Name the APK after its version
+        env:
+          NAME: ${{ needs.version.outputs.name }}
+          CODE: ${{ needs.version.outputs.code }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp "$(ls app/build/outputs/apk/release/*.apk | head -1)" \
+             "dist/sozo-tv-${NAME}-${CODE}.apk"
+          ls -lh dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sozo-tv-apk
+          path: dist/*.apk
+          if-no-files-found: error
+
+  # ------------------------------------------------- Deliver (Telegram) --------
+  deliver:
+    needs: [version, apk]
+    if: ${{ always() && !cancelled() && needs.apk.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: sozo-tv-apk
+          path: dist
+
+      - name: Send to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
+          VERSION_NAME: ${{ needs.version.outputs.name }}
+          VERSION_CODE: ${{ needs.version.outputs.code }}
+          RELEASE_NOTES: ${{ inputs.notes }}
+        run: |
+          set -uo pipefail
+
+          if [ -z "${TELEGRAM_BOT_TOKEN}" ] || [ -z "${TELEGRAM_CHAT_IDS}" ]; then
+            echo "::warning title=Telegram skipped::TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_IDS not set. The APK is attached to this run as an artifact."
+            exit 0
+          fi
+
+          API="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}"
+          MAX=$((49 * 1024 * 1024))   # Bot API sendDocument limit is 50 MB
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+          HEAD="$(printf '📺 Sozo TV %s (versionCode %s)' "${VERSION_NAME}" "${VERSION_CODE}")"
+          if [ -n "${RELEASE_NOTES}" ]; then
+            HEAD="$(printf '%s\n\n📝 %s' "${HEAD}" "${RELEASE_NOTES}")"
+          fi
+          # Says the one thing that is easy to forget and invisible when missed:
+          # the APK existing does not make the in-app updater offer it.
+          HEAD="$(printf '%s\n\n⚙️ Ichki updater buni ko'"'"'rishi uchun admin panelda platforma **androidtv** ostida versionCode %s ni e'"'"'lon qiling.' \
+                  "${HEAD}" "${VERSION_CODE}")"
+          HEAD="$(printf '%s\n\n🧰 Run: %s' "${HEAD}" "${RUN_URL}")"
+
+          fail=0
+          IFS=',' read -ra CHATS <<< "${TELEGRAM_CHAT_IDS}"
+          for raw in "${CHATS[@]}"; do
+            chat="$(echo "${raw}" | xargs)"
+            [ -z "${chat}" ] && continue
+            echo "──▶ ${chat}"
+
+            curl -sS --fail-with-body -X POST "${API}/sendMessage" \
+              --data-urlencode "chat_id=${chat}" \
+              --data-urlencode "text=${HEAD}" \
+              --data "disable_web_page_preview=true" -o /tmp/tg_msg.json \
+              || { echo "::error::sendMessage ${chat}: $(cat /tmp/tg_msg.json)"; fail=1; }
+
+            for f in dist/*.apk; do
+              [ -f "${f}" ] || continue
+              name="$(basename "${f}")"
+              size="$(stat -c%s "${f}")"
+              if [ "${size}" -gt "${MAX}" ]; then
+                echo "::warning title=Too big for Telegram::${name} is $((size/1024/1024)) MB. Grab it from ${RUN_URL}"
+                curl -sS -X POST "${API}/sendMessage" \
+                  --data-urlencode "chat_id=${chat}" \
+                  --data-urlencode "text=⬇️ ${name} ($((size/1024/1024)) MB) Telegram limitidan katta — run artifacts dan oling: ${RUN_URL}" \
+                  -o /dev/null
+                continue
+              fi
+              if curl -sS --fail-with-body -X POST "${API}/sendDocument" \
+                   -F "chat_id=${chat}" -F "document=@${f}" -o /tmp/tg_doc.json; then
+                echo "    ✓ ${name} ($((size/1024/1024)) MB)"
+              else
+                echo "::error::sendDocument ${chat}/${name}: $(cat /tmp/tg_doc.json)"
+                fail=1
+              fi
+            done
+          done
+          exit "${fail}"
