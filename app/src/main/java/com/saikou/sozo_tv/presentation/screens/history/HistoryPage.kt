@@ -39,8 +39,29 @@ class HistoryPage : Fragment() {
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // Cached first, then synced. Rendering only after the network would
+        // leave the screen empty on a slow link for a list already on disk.
         lifecycleScope.launch {
-            val watchHistoryList = if (isAnimeEnabled) model.getAllWatchHistory()
+            renderHistory()
+            if (model.syncHistoryNow()) renderHistory()
+        }
+
+        binding.clearHistoryBtn.setOnClickListener {
+            val dialog = HistoryAlertDialog()
+            dialog.setNoClearListener {
+                dialog.dismiss()
+                clearHistory()
+            }
+            dialog.setYesContinueListener {
+                dialog.dismiss()
+            }
+            dialog.show(parentFragmentManager, "ConfirmationDialog")
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private suspend fun renderHistory() {
+        val watchHistoryList = if (isAnimeEnabled) model.getAllWatchHistory()
                 .filter { it.isAnime }
                 .filter {
                     it.source == PreferenceManager().getString(LocalData.SOURCE)
@@ -84,20 +105,8 @@ class HistoryPage : Fragment() {
                     }
                 }
 
-            } else {
-                showEmptyState()
-            }
-        }
-        binding.clearHistoryBtn.setOnClickListener {
-            val dialog = HistoryAlertDialog()
-            dialog.setNoClearListener {
-                dialog.dismiss()
-                clearHistory()
-            }
-            dialog.setYesContinueListener {
-                dialog.dismiss()
-            }
-            dialog.show(parentFragmentManager, "ConfirmationDialog")
+        } else {
+            showEmptyState()
         }
     }
 

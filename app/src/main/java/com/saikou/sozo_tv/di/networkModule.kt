@@ -6,9 +6,11 @@ import com.saikou.sozo_tv.BuildConfig
 import com.saikou.sozo_tv.data.local.pref.DeviceSessionStore
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.data.remote.device.DeviceAuthClient
+import com.saikou.sozo_tv.data.remote.history.WatchHistorySyncClient
 import com.saikou.sozo_tv.data.remote.lists.UserListsClient
 import com.saikou.sozo_tv.data.repository.DeviceAuthRepository
 import com.saikou.sozo_tv.data.repository.UserListsRepository
+import com.saikou.sozo_tv.data.repository.WatchHistorySyncRepository
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
@@ -48,6 +50,25 @@ val NetworkModule = module {
         )
     }
     single { UserListsRepository(context = androidContext(), client = get()) }
+
+    // Watch history sync. Same auth transport and same per-request token as the
+    // lists above; the difference is that history is written by the player
+    // rather than by the user, so it pushes on its own schedule.
+    single {
+        WatchHistorySyncClient(
+            okHttpClient = get(named("authOkHttp")),
+            gson = get(),
+            baseUrl = BuildConfig.SOZO_API_BASE_URL,
+            tokenProvider = { get<DeviceAuthRepository>().accessToken() },
+        )
+    }
+    single {
+        WatchHistorySyncRepository(
+            context = androidContext(),
+            client = get(),
+            local = get(),
+        )
+    }
 
 }
 
