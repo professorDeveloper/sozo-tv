@@ -19,7 +19,10 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.SearchAdapter
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
@@ -38,6 +41,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.Locale
+import androidx.core.content.ContextCompat
+import androidx.activity.result.contract.ActivityResultContracts
+import android.Manifest
 
 class SearchScreen : Fragment() {
     private var _binding: SearchScreenBinding? = null
@@ -130,11 +136,10 @@ class SearchScreen : Fragment() {
                 if (isListening) {
                     stopVoiceRecognition()
                 } else {
-                    if (isTV) {
-                        startVoiceRecognition()
-                    } else {
-                        checkAndStartVoiceRecognition()
-                    }
+                    // TV is not exempt: the permission model is identical, and
+                    // skipping the request here is what left TV boxes with a mic
+                    // button that could only ever fail.
+                    checkAndStartVoiceRecognition()
                 }
             }
 
@@ -268,6 +273,18 @@ class SearchScreen : Fragment() {
             }
 
             override fun onPartialResults(partialResults: Bundle?) {
+                val partial = partialResults
+                    ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    ?.firstOrNull()
+                    ?.takeIf { it.isNotBlank() }
+                    ?: return
+                // Feedback only — not typed into the field. Partial results are
+                // revised as the recogniser hears more, and writing them to the
+                // search box would fire a search per revision.
+                requireActivity().runOnUiThread {
+                    if (_binding == null) return@runOnUiThread
+                    binding.voiceListeningOverlay.listeningTxt.text = partial
+                }
             }
 
             override fun onEvent(eventType: Int, params: Bundle?) {
@@ -275,14 +292,40 @@ class SearchScreen : Fragment() {
         }
     }
 
+    /**
+     * Asks for the microphone, then listens.
+     *
+     * This was the hole that made voice search unusable: RECORD_AUDIO was
+     * declared in the manifest but never REQUESTED. SpeechRecognizer does not
+     * throw for a missing permission — it reports ERROR_INSUFFICIENT_PERMISSIONS
+     * through the listener, which the TV branch turned into "Microphone not
+     * available" and gave up on. Nothing anywhere asked the user, so the
+     * permission could never be granted and the feature could never work.
+     */
     private fun checkAndStartVoiceRecognition() {
-        try {
+        if (hasMicPermission()) {
             startVoiceRecognition()
-        } catch (e: SecurityException) {
-            Log.e("SearchScreen", "SecurityException: ${e.message}")
-            startAlternativeVoiceSearch()
+            return
         }
+        micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
     }
+
+    private fun hasMicPermission(): Boolean =
+        ContextCompat.checkSelfPermission(
+            requireContext(), Manifest.permission.RECORD_AUDIO,
+        ) == PackageManager.PERMISSION_GRANTED
+
+    private val micPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                startVoiceRecognition()
+            } else {
+                // Denied. The system recogniser activity runs in its own process
+                // with its own permission, so it still works — falling back there
+                // is better than telling the user "no".
+                startAlternativeVoiceSearch()
+            }
+        }
 
     private fun startVoiceRecognition() {
         try {
@@ -294,10 +337,21 @@ class SearchScreen : Fragment() {
                     RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                     RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
                 )
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+                // A LANGUAGE TAG, not a Locale. `putExtra(String, Locale)` binds
+                // to the Serializable overload, compiles fine, and is then
+                // ignored by every recogniser — so speech was always transcribed
+                // in the recogniser's own default language rather than the user's.
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toLanguageTag())
+                putExtra(
+                    RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE,
+                    Locale.getDefault().toLanguageTag(),
+                )
                 putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something to search...")
                 putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
-                putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
+                // On: the overlay can show words as they are recognised. Without
+                // it a TV shows a static "Listening…" and gives no sign it heard
+                // anything, which is indistinguishable from a dead microphone.
+                putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
 
                 if (isTV) {
                     putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 2000)
@@ -308,6 +362,11 @@ class SearchScreen : Fragment() {
                 }
             }
 
+            // Shown here rather than waiting for onReadyForSpeech: if the
+            // recogniser fails to start, that callback never arrives and the
+            // button looks like it did nothing at all.
+            showVoiceOverlay(true)
+            binding.voiceListeningOverlay.listeningTxt.text = "Starting…"
             speechRecognizer?.startListening(intent)
 
         } catch (e: Exception) {
@@ -326,7 +385,7 @@ class SearchScreen : Fragment() {
                     RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                     RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
                 )
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toLanguageTag())
                 putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something to search...")
                 putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
             }
@@ -430,13 +489,35 @@ class SearchScreen : Fragment() {
                 searchAdapter.updateData(movies)
                 binding.placeHolder.root.visibility = View.GONE
                 binding.recommendationsTitle.visibility = View.VISIBLE
-                binding.recommendationsTitle.text =
-                    getString(R.string.search_results_for, binding.searchEdt.text.toString().trim())
+                binding.recommendationsTitle.text = resultsHeading(movies.size)
+            } else if (model.loading.value) {
+                // Results now stream in one source at a time, so an empty list
+                // mid-search is normal — the first source simply had no match.
+                // Claiming "No results found" here would flash a wrong answer
+                // and then be replaced a second later.
+                hideResultsGrid()
+                binding.placeHolder.root.visibility = View.GONE
+                binding.recommendationsTitle.visibility = View.VISIBLE
+                binding.recommendationsTitle.text = resultsHeading(0)
             } else {
                 hideResultsGrid()
                 binding.placeHolder.root.visibility = View.VISIBLE
                 binding.placeHolder.placeholderTxt.text = "No results found"
                 binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_place_holder_search)
+            }
+        }
+
+        // Progress of an "all sources" run. Kept in the heading rather than a
+        // spinner: on a TV the useful thing to know is how many sources have
+        // answered, because the user is deciding whether to keep waiting.
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                model.searchProgress.collect {
+                    if (searchAllSources && binding.recommendationsTitle.isVisible) {
+                        binding.recommendationsTitle.text =
+                            resultsHeading(model.searchResults.value?.size ?: 0)
+                    }
+                }
             }
         }
 
@@ -448,6 +529,26 @@ class SearchScreen : Fragment() {
                 binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
             }
         }
+    }
+
+    /**
+     * The line above the grid.
+     *
+     * In "all sources" mode it names how many sources have answered, so a search
+     * that is still running does not look like one that finished with few
+     * results — the two are indistinguishable from the grid alone.
+     */
+    private fun resultsHeading(count: Int): String {
+        val query = binding.searchEdt.text.toString().trim()
+        if (!searchAllSources) return getString(R.string.search_results_for, query)
+
+        val progress = model.searchProgress.value
+        val scope = if (model.loading.value) {
+            "${progress.answered} source(s) answered…"
+        } else {
+            "${progress.sourcesWithResults} of ${progress.answered} source(s)"
+        }
+        return "All sources — \"$query\"  •  $scope  •  $count"
     }
 
     private fun setupRecyclerView() {

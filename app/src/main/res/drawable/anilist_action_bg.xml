@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Dialog action button.
+
+  Three states, not two. A disabled button must look different from an
+  unfocused one: "Caught up" is a real answer, and drawing it like a live
+  button invites the remote to be pressed at it repeatedly.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_enabled="false">
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp" />
+            <solid android:color="#14FFFFFF" />
+            <stroke
+                android:width="1dp"
+                android:color="#1FFFFFFF" />
+        </shape>
+    </item>
+
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp" />
+            <solid android:color="@color/anilist_blue" />
+            <stroke
+                android:width="2dp"
+                android:color="@color/netflix_white" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp" />
+            <solid android:color="@color/netflix_card_background" />
+            <stroke
+                android:width="1dp"
+                android:color="#3302A9FF" />
+        </shape>
+    </item>
+</selector>

@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.data.extensions
 
 import android.content.Context
+import android.util.Log
 import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.engine.aniyomi.AniyomiHost
@@ -18,6 +19,14 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import java.util.concurrent.atomic.AtomicInteger
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 class ExtensionEngine(private val appContext: Context = MyApp.context) {
 
@@ -228,29 +237,40 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
     }
 
     /**
-     * "All sources": search every installed provider across all three groups
-     * instead of only the active one.
+     * "All sources", emitted INCREMENTALLY: one item per provider, the moment
+     * that provider answers.
      *
-     * Three bounds, all load-bearing — a CloudStream repo alone can install
-     * dozens of providers, and a naive fan-out would hang the screen on the
-     * slowest dead mirror:
-     *   - [maxProviders] caps how many are queried at all,
-     *   - [perProviderTimeoutMs] caps each one INDEPENDENTLY, so one stalled
-     *     source costs its own slot and nothing else,
-     *   - a throwing/empty source is dropped rather than failing the search.
+     * The previous version awaited every provider before returning anything, so
+     * a single dead mirror held the whole screen blank for the full timeout even
+     * when eight sources had already replied in under a second. On a TV, where
+     * there is no spinner worth watching and no way to peek at partial results,
+     * that reads as "search is broken".
      *
-     * The active provider is queried FIRST so its hits lead the merged list —
-     * that is the source the user already chose. Results are deduped on
-     * (provider, contentUrl): the same title legitimately appears on several
-     * sources and each is separately playable, so only exact repeats collapse.
+     * Four bounds, all load-bearing — a CloudStream repo alone can install
+     * dozens of providers:
+     *   - [maxProviders] caps how many are queried at all;
+     *   - [concurrency] caps how many run AT ONCE. The old fan-out launched all
+     *     twelve together, and each one may dex-load an extension APK; on a
+     *     low-end box that is a thundering herd that slows every leg down;
+     *   - [perProviderTimeoutMs] caps each leg independently, so one stalled
+     *     source costs its own slot and nothing else;
+     *   - cancelling the flow stops scheduling further work.
+     *
+     * The active provider is queried FIRST so its hits arrive first — that is
+     * the source the user already chose.
+     *
+     * Every leg reports a [SearchLegStatus] rather than being silently dropped.
+     * "This source is down" and "no match here" look identical to a user
+     * otherwise, and only one of them is worth retrying.
      */
-    suspend fun searchAll(
+    fun searchAllFlow(
         query: String,
         maxProviders: Int = MAX_GLOBAL_PROVIDERS,
+        concurrency: Int = GLOBAL_SEARCH_CONCURRENCY,
         perProviderTimeoutMs: Long = GLOBAL_SEARCH_TIMEOUT_MS,
-    ): List<ExtCard> = withContext(Dispatchers.IO) {
+    ): Flow<SearchLeg> = channelFlow {
         val q = query.trim()
-        if (q.isEmpty()) return@withContext emptyList()
+        if (q.isEmpty()) return@channelFlow
 
         val active = getActiveProvider()
         val candidates = listOf(ExtGroup.SERVER, ExtGroup.ANIYOMI, ExtGroup.CLOUDSTREAM)
@@ -259,16 +279,63 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
             .sortedByDescending { it.id == active }
             .take(maxProviders)
 
-        val pages = candidates.map { p ->
-            async {
-                withTimeoutOrNull(perProviderTimeoutMs) {
-                    runCatching { search(p.id, q)?.items }.getOrNull().orEmpty()
-                }.orEmpty()
-            }
-        }.map { it.await() }
+        if (candidates.isEmpty()) return@channelFlow
 
+        // A plain index shared by the workers: each takes the next provider when
+        // it frees up, which keeps exactly `concurrency` searches in flight
+        // rather than starting them all and hoping.
+        val next = AtomicInteger(0)
+        val workers = minOf(concurrency, candidates.size).coerceAtLeast(1)
+
+        coroutineScope {
+            repeat(workers) {
+                launch(Dispatchers.IO) {
+                    while (isActive) {
+                        val i = next.getAndIncrement()
+                        if (i >= candidates.size) return@launch
+                        send(searchOne(candidates[i], q, perProviderTimeoutMs))
+                    }
+                }
+            }
+        }
+    }
+
+    /** One provider's leg. Never throws — the outcome is carried in the result. */
+    private suspend fun searchOne(
+        provider: ExtProvider,
+        query: String,
+        timeoutMs: Long,
+    ): SearchLeg = try {
+        val items = withTimeoutOrNull(timeoutMs) {
+            search(provider.id, query)?.items.orEmpty()
+        }
+        when {
+            items == null -> SearchLeg(provider, emptyList(), SearchLegStatus.TIMEOUT)
+            items.isEmpty() -> SearchLeg(provider, emptyList(), SearchLegStatus.EMPTY)
+            else -> SearchLeg(provider, items, SearchLegStatus.OK)
+        }
+    } catch (c: CancellationException) {
+        throw c
+    } catch (t: Throwable) {
+        Log.w("ExtensionEngine", "search failed on ${provider.id}: ${t.message}")
+        SearchLeg(provider, emptyList(), SearchLegStatus.ERROR)
+    }
+
+    /**
+     * Blocking "all sources" search, kept for callers that genuinely need the
+     * whole set at once. Built on [searchAllFlow] so there is one fan-out
+     * implementation rather than two that drift apart.
+     */
+    suspend fun searchAll(
+        query: String,
+        maxProviders: Int = MAX_GLOBAL_PROVIDERS,
+        perProviderTimeoutMs: Long = GLOBAL_SEARCH_TIMEOUT_MS,
+    ): List<ExtCard> {
         val seen = HashSet<String>()
-        pages.flatten().filter { seen.add("${it.provider}|${it.contentUrl}") }
+        return searchAllFlow(query, maxProviders, perProviderTimeoutMs = perProviderTimeoutMs)
+            .toList()
+            .flatMap { it.items }
+            .filter { seen.add("${it.provider}|${it.contentUrl}") }
     }
 
     suspend fun load(provider: String, url: String): ExtDetail? = withContext(Dispatchers.IO) {
@@ -296,9 +363,31 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
         private const val KEY_PROVIDER_NAME = "active_provider_name"
         private const val HOME_TIMEOUT_MS = 25_000L
 
-        /** Global-search bounds — see [searchAll]. */
+        /** Global-search bounds — see [searchAllFlow]. */
         private const val MAX_GLOBAL_PROVIDERS = 12
-        private const val GLOBAL_SEARCH_TIMEOUT_MS = 12_000L
+
+        /**
+         * How many provider searches run at once.
+         *
+         * Four, not twelve: each leg may download and dex-load an extension APK
+         * before it can issue a single request, and a TV box has a fraction of a
+         * phone's CPU. Running them all together made every leg slower and made
+         * the first result arrive later, which is the opposite of the point.
+         */
+        private const val GLOBAL_SEARCH_CONCURRENCY = 4
+
+        /**
+         * Per-provider budget.
+         *
+         * Raised from 12s because the first search against a freshly-installed
+         * source has to fetch and dex-load its extension before it can do
+         * anything — several megabytes over whatever connection the box has.
+         * Under the old ceiling every extension timed out on first use, which is
+         * exactly when the user had just added sources and was watching.
+         * Later searches hit the cached extension and return in well under a
+         * second, so this is only ever paid once per source.
+         */
+        private const val GLOBAL_SEARCH_TIMEOUT_MS = 40_000L
 
         val shared: ExtensionEngine by lazy { ExtensionEngine() }
     }

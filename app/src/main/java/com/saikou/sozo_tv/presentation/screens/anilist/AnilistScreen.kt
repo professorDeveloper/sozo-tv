@@ -21,6 +21,8 @@ import com.saikou.sozo_tv.databinding.AnilistScreenBinding
 import com.saikou.sozo_tv.presentation.activities.MainActivity
 import com.saikou.sozo_tv.presentation.viewmodel.AnilistLibraryState
 import com.saikou.sozo_tv.presentation.viewmodel.AnilistViewModel
+import com.saikou.sozo_tv.utils.keepFocusAlive
+import com.saikou.sozo_tv.utils.requestInitialFocus
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
@@ -114,13 +116,31 @@ class AnilistScreen : Fragment() {
             else -> null
         }
 
-        binding.messageView.isVisible = message != null
-        binding.messageView.text = message.orEmpty()
-        binding.statusRv.isVisible = connection is AnilistConnection.Connected
-        binding.entriesRv.isVisible = message == null
+        // Android does NOT reassign focus when the focused view is hidden or its
+        // row is removed — from targetSdk 26 it clears focus to the root, and
+        // the remote goes dead. Both mutations below can do exactly that: the
+        // grid is hidden whenever a message replaces it, and submitList removes
+        // rows when the status filter changes.
+        binding.root.keepFocusAlive {
+            binding.messageView.isVisible = message != null
+            binding.messageView.text = message.orEmpty()
+            binding.statusRv.isVisible = connection is AnilistConnection.Connected
+            binding.entriesRv.isVisible = message == null
 
-        entryAdapter.submitList(state.visible)
+            entryAdapter.submitList(state.visible)
+        }
+
+        // First real content: put the highlight on the grid rather than leaving
+        // it wherever the framework left it, which is the status row and makes
+        // the screen look like a filter picker.
+        if (message == null && state.visible.isNotEmpty() && !hasPlacedInitialFocus) {
+            hasPlacedInitialFocus = true
+            binding.entriesRv.requestInitialFocus()
+        }
     }
+
+    /** One-shot: after this, focus is the user's to move. */
+    private var hasPlacedInitialFocus = false
 
     /**
      * Hands the title to the app's own search.

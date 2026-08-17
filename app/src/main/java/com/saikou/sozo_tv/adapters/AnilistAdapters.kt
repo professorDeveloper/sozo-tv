@@ -22,6 +22,13 @@ class AnilistEntryAdapter(
     inner class VH(private val binding: ItemAnilistEntryBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
+        init {
+            // Once per holder, not per bind: applyTvFocusScale resets the scale
+            // and re-registers the focus listener, and doing that to a recycled
+            // view while it holds focus makes the highlight jump.
+            binding.root.applyTvFocusScale(scale = 1.06f)
+        }
+
         @SuppressLint("SetTextI18n")
         fun bind(entry: AnilistListEntry) = with(binding) {
             val media = entry.media
@@ -38,7 +45,6 @@ class AnilistEntryAdapter(
             behindBadge.isVisible = behind > 0
             if (behind > 0) behindBadge.text = "+$behind"
 
-            root.applyTvFocusScale(scale = 1.06f)
             root.setOnClickListener { onClick(entry) }
         }
     }
@@ -91,11 +97,14 @@ class AnilistStatusAdapter(
     inner class VH(private val binding: ItemAnilistStatusBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
+        init {
+            binding.statusLabel.applyTvFocusScale(scale = 1.04f)
+        }
+
         fun bind(status: AnilistStatus) = with(binding.statusLabel) {
             val count = counts[status] ?: 0
             text = if (count > 0) "${status.label}  $count" else status.label
             isSelected = status == selected
-            applyTvFocusScale(scale = 1.04f)
             setOnClickListener { onPick(status) }
         }
     }

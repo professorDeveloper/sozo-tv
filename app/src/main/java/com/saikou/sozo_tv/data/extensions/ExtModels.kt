@@ -320,3 +320,21 @@ internal object ExtParser {
         )
     }
 }
+
+/** Outcome of one provider's leg in an "all sources" search. */
+enum class SearchLegStatus { OK, EMPTY, TIMEOUT, ERROR }
+
+/**
+ * One provider's answer.
+ *
+ * Carries the status rather than just the items so the UI can tell "this source
+ * is down" from "no match here" — they look identical as an empty list, and only
+ * one of them is worth retrying.
+ */
+data class SearchLeg(
+    val provider: ExtProvider,
+    val items: List<ExtCard>,
+    val status: SearchLegStatus,
+) {
+    val hasItems: Boolean get() = items.isNotEmpty()
+}

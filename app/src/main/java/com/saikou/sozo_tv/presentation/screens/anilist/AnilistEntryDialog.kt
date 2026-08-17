@@ -17,7 +17,9 @@ import com.saikou.sozo_tv.data.remote.anilist.AnilistListEntry
 import com.saikou.sozo_tv.data.remote.anilist.AnilistStatus
 import com.saikou.sozo_tv.databinding.AnilistEntryDialogBinding
 import com.saikou.sozo_tv.presentation.viewmodel.AnilistViewModel
+import com.saikou.sozo_tv.utils.applyTvFocusScale
 import com.saikou.sozo_tv.utils.loadImage
+import com.saikou.sozo_tv.utils.requestInitialFocus
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
@@ -84,7 +86,12 @@ class AnilistEntryDialog : DialogFragment() {
             onSearchSources?.invoke(title)
         }
 
-        binding.btnBump.requestFocus()
+        binding.btnBump.applyTvFocusScale(scale = 1.02f)
+        binding.btnSearch.applyTvFocusScale(scale = 1.02f)
+        // Posted, not immediate: requestFocus() before the dialog window is laid
+        // out returns false, and the highlight ends up on whatever the framework
+        // picked first.
+        binding.btnBump.requestInitialFocus()
     }
 
     private fun currentEntry(): AnilistListEntry? =
@@ -114,8 +121,12 @@ class AnilistEntryDialog : DialogFragment() {
             next == null -> getString(R.string.anilist_caught_up)
             else -> getString(R.string.anilist_mark_watched, next)
         }
+        val wasFocused = binding.btnBump.hasFocus()
         binding.btnBump.isEnabled = !busy && next != null
-        binding.btnBump.alpha = if (binding.btnBump.isEnabled) 1f else 0.5f
+        // A disabled view is not focusable. Disabling the one under the cursor
+        // strands the remote, so hand focus to the next action rather than
+        // letting the framework drop it to the dialog root.
+        if (wasFocused && !binding.btnBump.isEnabled) binding.btnSearch.requestFocus()
 
         statusAdapter.setCounts(emptyMap())
         AnilistStatus.fromValue(entry.status)?.let { statusAdapter.setSelected(it) }

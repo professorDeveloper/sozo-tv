@@ -66,13 +66,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:background="@drawable/anilist_tab_bg"
+        android:background="@drawable/anilist_action_bg"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:fontFamily="@font/rubik_regular"
         android:gravity="center"
         android:paddingVertical="12dp"
-        android:textColor="@color/anilist_tab_text"
+        android:textColor="@color/anilist_action_text"
         android:textSize="@dimen/tv_text_label"
         android:textStyle="bold"
         tools:text="Mark episode 9 watched" />
@@ -82,14 +82,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:background="@drawable/anilist_tab_bg"
+        android:background="@drawable/anilist_action_bg"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:fontFamily="@font/rubik_regular"
         android:gravity="center"
         android:paddingVertical="12dp"
         android:text="@string/anilist_find_in_sources"
-        android:textColor="@color/anilist_tab_text"
+        android:textColor="@color/anilist_action_text"
         android:textSize="@dimen/tv_text_label" />
 
     <TextView
