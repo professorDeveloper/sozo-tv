@@ -1293,6 +1293,10 @@ class SeriesPlayerScreen : Fragment() {
 
     override fun onDestroyView() {
         stopProgressTracking()
+        // Push the position the viewer just stopped at, so a phone can pick it
+        // up. Without this the progress only leaves this box the next time the
+        // History screen happens to be opened.
+        model.syncHistory()
 
         thumbLoadJob?.cancel()
         thumbFetchJob?.cancel()

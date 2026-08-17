@@ -9,6 +9,8 @@ import com.saikou.sozo_tv.data.model.ContentMode
 import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.data.model.anilist.Profile
 import com.saikou.sozo_tv.data.repository.DeviceAuthRepository
+import com.saikou.sozo_tv.data.repository.WatchHistorySyncRepository
+import com.saikou.sozo_tv.data.repository.UserListsRepository
 import com.saikou.sozo_tv.domain.repository.ProfileRepository
 import com.saikou.sozo_tv.domain.repository.SettingsRepository
 import com.saikou.sozo_tv.utils.LocalData
@@ -21,6 +23,8 @@ class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
     private val profileRepo: ProfileRepository,
     private val deviceAuth: DeviceAuthRepository,
+    private val userLists: UserListsRepository,
+    private val historySync: WatchHistorySyncRepository,
 ) : ViewModel() {
 
     val contentMode: StateFlow<ContentMode> =
@@ -61,6 +65,13 @@ class SettingsViewModel(
 
     /** Revokes only THIS device's session — the user's phone and other TVs stay signed in. */
     fun exitUser() {
+        // Account-scoped caches go first, and synchronously. A TV is a shared
+        // screen: leaving the previous account's Watch Later and watch history
+        // on the box after a visible sign-out shows one person's viewing to the
+        // next. Both are plain local wipes, so there is nothing to await.
+        userLists.clear()
+        historySync.clear()
+
         // Runs on the repository's scope, not viewModelScope: the Exit dialog relaunches
         // MainActivity with CLEAR_TASK in the same handler, which tears this ViewModel down and
         // would abandon the revocation call mid-flight, leaving the session alive server-side.

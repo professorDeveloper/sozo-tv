@@ -9,6 +9,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.data.repository.WatchHistorySyncRepository
 import com.saikou.sozo_tv.databinding.ActivityDeviceLoginBinding
 import com.saikou.sozo_tv.presentation.viewmodel.DeviceLoginState
 import com.saikou.sozo_tv.presentation.viewmodel.DeviceLoginViewModel
@@ -19,6 +20,7 @@ import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.visible
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
@@ -31,6 +33,7 @@ class DeviceLoginActivity : AppCompatActivity() {
     private val binding get() = _binding!!
 
     private val model: DeviceLoginViewModel by viewModel()
+    private val historySync: WatchHistorySyncRepository by inject()
     private val settingsViewModel: SettingsViewModel by viewModel()
 
     // Approved is a sticky StateFlow value, so re-collecting it after a STARTED restart would
@@ -130,6 +133,10 @@ class DeviceLoginActivity : AppCompatActivity() {
     /** Holds the linked account on screen briefly so an unexpected rebind is actually readable. */
     private fun handOffToProfile() {
         if (handedOff) return
+        // First pull for the account that just signed in. Without it this box
+        // shows nothing until the History screen happens to be opened, which is
+        // exactly the moment a new sign-in should already have caught up.
+        historySync.syncAsync()
         lifecycleScope.launch {
             delay(SIGNED_IN_DWELL_MS)
             // Latched only once the start actually happens: a hand-off that lands while the
