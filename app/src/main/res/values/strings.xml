@@ -194,4 +194,5 @@
     <string name="anilist_connect_on_phone">AniList is not connected.\n\nConnect it in the Sozo phone app under Profile → Connections. This TV picks it up automatically — no sign-in needed here.</string>
     <string name="anilist_library_empty">Your AniList list is empty.</string>
     <string name="anilist_status_empty">Nothing in “%1$s”.</string>
+    <string name="anilist_exact_tracking">AniList ID</string>
 </resources>

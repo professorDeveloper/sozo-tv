@@ -12,6 +12,7 @@ import com.saikou.sozo_tv.data.remote.history.WatchHistorySyncClient
 import com.saikou.sozo_tv.data.remote.lists.UserListsClient
 import com.saikou.sozo_tv.data.repository.AnilistLinkStore
 import com.saikou.sozo_tv.data.repository.AnilistRepository
+import com.saikou.sozo_tv.data.repository.AnilistSourceRegistry
 import com.saikou.sozo_tv.data.repository.AnilistTracker
 import com.saikou.sozo_tv.data.repository.DeviceAuthRepository
 import com.saikou.sozo_tv.data.repository.UserListsRepository
@@ -91,6 +92,7 @@ val NetworkModule = module {
     // must never carry someone's AniList token.
     single { AnilistGraphQlClient(okHttpClient = get(named("authOkHttp"))) }
     single { AnilistLinkStore(context = androidContext()) }
+    single { AnilistSourceRegistry(context = androidContext()) }
     single { AnilistRepository(linkClient = get(), api = get(), links = get()) }
     single { AnilistTracker(repository = get(), links = get()) }
 

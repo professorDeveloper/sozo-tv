@@ -378,6 +378,21 @@ class PluginHost(private val appContext: Context) {
                 })
             }
         }
+        // Tracker ids the provider itself supplied.
+        //
+        // This is the difference between exact tracking and guessing. A provider
+        // that calls addAniListId() is telling us precisely which AniList entry
+        // this page IS — no title normalisation, no season ambiguity, no chance
+        // of filing episodes into the wrong show. Only some providers do it,
+        // which is why the app still has a title matcher for the rest.
+        val syncIds = JSONObject()
+        runCatching {
+            resp.syncData.forEach { (name, value) ->
+                val id = value.trim().toIntOrNull() ?: return@forEach
+                if (id > 0) syncIds.put(name.lowercase(), id)
+            }
+        }
+
         // Cast (actors) + related (recommendations) when the provider supplies them.
         val cast = JSONArray()
         (resp.actors ?: emptyList()).forEach { ad ->
@@ -415,6 +430,7 @@ class PluginHost(private val appContext: Context) {
             put("genres", JSONArray(resp.tags ?: emptyList<String>()))
             put("type", resp.type.name)
             put("isSerial", isSerial)
+            if (syncIds.length() > 0) put("syncIds", syncIds)
             put("cast", cast)
             put("related", related)
             put("episodes", episodes)

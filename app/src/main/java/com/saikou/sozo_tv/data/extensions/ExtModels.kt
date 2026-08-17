@@ -100,6 +100,17 @@ data class ExtDetail(
     val cast: List<ExtCast>,
     val related: List<ExtCard>,
     val episodes: List<ExtEpisode>,
+    /**
+     * The AniList entry this page IS, when the provider says so.
+     *
+     * The difference between exact tracking and guessing. A provider that
+     * reports its AniList id removes title normalisation, season ambiguity and
+     * every chance of filing episodes into the wrong show. Null for the many
+     * sources that do not report one — those still go through title matching.
+     */
+    val anilistId: Int? = null,
+    /** Same, for MyAnimeList. Carried for a future tracker; unused today. */
+    val malId: Int? = null,
 )
 
 data class ExtVideoSource(
@@ -268,6 +279,9 @@ internal object ExtParser {
             genres = genres,
             type = o.strOrNull("type"),
             isSerial = o.optBoolean("isSerial", eps.size > 1),
+            anilistId = o.optJSONObject("syncIds")?.intOrNull("anilist"),
+            malId = o.optJSONObject("syncIds")?.intOrNull("mal")
+                ?: o.optJSONObject("syncIds")?.intOrNull("myanimelist"),
             cast = cast,
             related = cards(o.optJSONArray("related")),
             episodes = eps,

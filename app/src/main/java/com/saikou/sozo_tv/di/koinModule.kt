@@ -93,7 +93,7 @@ val koinModule = module {
         CategoriesRepositoryImpl(engine = get())
     }
     single<DetailRepository> {
-        DetailRepositoryImpl(engine = get())
+        DetailRepositoryImpl(engine = get(), links = get(), sourceRegistry = get())
     }
     viewModel { HomeViewModel(repo = get(), imdbRepo = get(), historyRepository = get()) }
     viewModel { TvGardenViewModel(get()) }
