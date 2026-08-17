@@ -43,13 +43,6 @@ class SourceAdapter(
     private val onProviderLongClick: (ExtProvider) -> Boolean = { false },
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    /**
-     * Provider ids observed to report AniList ids.
-     *
-     * A `var` fed by the screen rather than a constructor argument: the set
-     * grows as the user opens titles, and the picker should reflect that on the
-     * next visit without being rebuilt.
-     */
     var anilistSources: Set<String> = emptySet()
         set(value) {
             if (field == value) return
@@ -206,11 +199,6 @@ class SourceAdapter(
         val views = SourceHeaderViews(v)
     }
 
-    /**
-     * [anilistSources] is a lambda, not a value: holders outlive any one bind
-     * pass, and capturing the set by value would freeze whatever it happened to
-     * be when the holder was created.
-     */
     class ProviderVH(v: View, private val anilistSources: () -> Set<String>) :
         RecyclerView.ViewHolder(v) {
         private val icon: ImageView = v.findViewById(R.id.ivIcon)
@@ -229,11 +217,6 @@ class SourceAdapter(
                     else -> "Local"
                 }
             } else p.group
-            // "AniList ID" marks a source that reports the AniList entry each
-            // page corresponds to. Those track EXACTLY — no title guessing, no
-            // season ambiguity. Its absence is not a claim of the opposite: a
-            // source is only known to support it once a title has been opened
-            // on it, so this reads as a confirmation, never as a verdict.
             val anilistLabel = "AniList ID".takeIf { p.id in anilistSources() }
             meta.text = listOfNotNull(groupLabel, p.lang, p.repo, anilistLabel)
                 .filter { it.isNotBlank() }

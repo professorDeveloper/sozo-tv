@@ -592,9 +592,6 @@
             android:textSize="@dimen/tv_text_label"
             android:text="DEL" />
 
-        <!-- CustomTVKeyboard has exposed setOnClearClickListener since it was written and
-             SearchScreen registers one, but there was no key to fire it: clearing a query
-             meant holding DEL down once per character. -->
         <TextView
             android:id="@+id/key_clear"
             style="@style/KeyboardKey"

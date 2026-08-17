@@ -28,8 +28,6 @@
         android:layout_marginTop="8dp"
         tools:listitem="@layout/item_featured_news" />
 
-    <!-- Without this the screen was a title over an empty grid: nothing to read and nothing
-         to focus, which on a TV is indistinguishable from a screen that failed to load. -->
     <TextView
         android:id="@+id/emptyNews"
         android:layout_width="match_parent"

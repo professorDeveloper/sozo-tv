@@ -46,8 +46,6 @@ class NewsPage : Fragment() {
 
         binding.verticalGridView.adapter = adapter
 
-        // viewLifecycleOwner, not the fragment: collected on the fragment's own scope this
-        // outlived onDestroyView and kept touching the adapter of a torn-down view.
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.news.collectLatest { list ->

@@ -46,7 +46,6 @@ class MovieDetailsAdapter(
     private val detailsButtonListener: DetailsInterface
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-
     interface DetailsInterface {
         fun onCancelButtonClicked()
         fun onCastItemClicked(item: Cast)
@@ -133,7 +132,6 @@ class MovieDetailsAdapter(
         }
 
     }
-
 
     class ItemPlayDetailsThirdViewHolder(private val binding: ItemPlayRecommendedBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -289,7 +287,6 @@ class MovieDetailsAdapter(
                 image?.loadImage(item.content.coverImage.large)
             }
 
-
         }
 
         private fun formatCountdown(secondsInput: Long): String {
@@ -303,7 +300,6 @@ class MovieDetailsAdapter(
 
             return "${days}d ${hours}h ${minutes}m ${secs}s"
         }
-
 
         private fun createCategoryTextView(context: Context, text: String): TextView {
             return TextView(context).apply {
@@ -321,7 +317,6 @@ class MovieDetailsAdapter(
             }
         }
     }
-
 
     class ItemPlayDetailsHeaderViewHolder(private val binding: ItemPlayDetailsHeaderBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -412,7 +407,6 @@ class MovieDetailsAdapter(
         }
     }
 
-
     class ItemPlayCastViewHolder(private val binding: ItemPlayCastBinding) :
         RecyclerView.ViewHolder(binding.root) {
         private val castAdapter = CastAdapter()
@@ -453,16 +447,6 @@ class MovieDetailsAdapter(
                 val oldItem = itemList[oldItemPosition]
                 val newItem = list[newItemPosition]
 
-                // The list holds DetailCategory (DetailViewModel builds them); the type
-                // tested here used to be CategoryDetails, an unrelated class that never
-                // appears in this adapter. Both branches were therefore unreachable and
-                // this always returned false, so DiffUtil saw every item as
-                // removed-and-reinserted: a full teardown on every submitList, which drops
-                // D-pad focus — returning from Episodes or Cast landed the highlight on
-                // Back instead of Watch.
-                //
-                // Comparing viewType generally (rather than against two specific constants)
-                // also covers DETAILS_ITEM_THIRD, which is DetailCategory's default.
                 return oldItem is DetailCategory && newItem is DetailCategory &&
                         oldItem.viewType == newItem.viewType &&
                         oldItem.content.id == newItem.content.id

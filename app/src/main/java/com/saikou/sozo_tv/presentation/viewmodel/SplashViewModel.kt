@@ -48,10 +48,6 @@ class SplashViewModel(
                 (appVersionClient.check(current) as? ApiResult.Ok)?.body
             }
 
-            // The server already compared versions against the row it holds.
-            // Re-checking `version > current` here anyway costs nothing and
-            // means a stale or misconfigured row cannot make the box offer an
-            // update to a build it is already running — which would loop.
             val update = check
                 ?.takeIf { it.isActionable && (it.version ?: 0L) > current }
                 ?.toAppUpdate()
@@ -63,8 +59,6 @@ class SplashViewModel(
 
     private fun AppVersionCheck.toAppUpdate() = AppUpdate(
         versionCode = version ?: 0L,
-        // forceUpdate is only true when the server has ALSO decided this build
-        // is below minVersion, so it is safe to pass straight through.
         isMandatory = forceUpdate == true,
         changeLog = releaseNotes,
         appLink = installUrl,

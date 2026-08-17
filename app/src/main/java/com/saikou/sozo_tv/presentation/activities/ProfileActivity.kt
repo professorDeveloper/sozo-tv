@@ -62,13 +62,6 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
 
         isHistoryItemClicked = false
         onBackPressedDispatcher.addCallback(this) {
-            // Step back a navigation level first.
-            //
-            // This callback used to go straight into the backPressCount state machine and
-            // never touched the nav controller, so a nested destination — Sources →
-            // Aniyomi source settings, for example — could not be left with BACK at all:
-            // the counter fell through to `else` on the second press and jumped the user
-            // all the way out to MainActivity, skipping every level in between.
             if (findNavController(R.id.nav_profile).popBackStack()) {
                 backPressCount = 0
                 return@addCallback
@@ -85,7 +78,6 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
                     viewBinding.profileRv.requestFocus()
                     backPressCount = 0
                 }
-
 
                 else -> {
                     Log.d("GGG", "onCreate:Home :${backPressCount} ")
@@ -245,7 +237,6 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
                 }
             }
         }
-
 
     }
 

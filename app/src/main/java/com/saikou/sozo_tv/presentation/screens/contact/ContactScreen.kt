@@ -28,10 +28,6 @@ class ContactScreen : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.seasonalBackground.setTheme(PreferenceManager().getSeasonalTheme())
 
-        // playContainer was declared focusable with no listener behind it: the only focusable
-        // view on the screen, and pressing OK on it did nothing at all. Plenty of TVs ship
-        // without Telegram or a browser, so a device that cannot open the link falls back to
-        // showing the handle rather than throwing.
         binding.playContainer.setOnClickListener {
             try {
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(TELEGRAM_URL)))

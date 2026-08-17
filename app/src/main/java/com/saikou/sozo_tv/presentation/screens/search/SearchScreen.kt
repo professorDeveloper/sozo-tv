@@ -66,13 +66,6 @@ class SearchScreen : Fragment() {
         return binding.root
     }
 
-    /**
-     * The overlay is a full-screen sheet, but it used to be inert: not focusable and not
-     * clickable, so while it was up the D-pad kept walking the on-screen keyboard hidden behind
-     * it and BACK left the screen entirely with the recognizer still listening. It now takes
-     * focus for as long as it is shown, hands focus back to the mic button when it goes away,
-     * and BACK cancels recognition instead of leaving.
-     */
     private fun showVoiceOverlay(show: Boolean) {
         val overlay = binding.voiceListeningOverlay.root
         overlay.visibility = if (show) View.VISIBLE else View.GONE
@@ -107,13 +100,6 @@ class SearchScreen : Fragment() {
         applyIncomingQuery()
     }
 
-    /**
-     * Runs a query handed in by another screen (AniList's "find in sources").
-     *
-     * The argument is REMOVED after use: this fragment is re-created whenever the
-     * user navigates back to search, and a lingering argument would silently
-     * re-run someone's old query instead of showing an empty search box.
-     */
     private fun applyIncomingQuery() {
         val query = arguments?.getString(ARG_QUERY)?.trim().orEmpty()
         if (query.isEmpty()) return
@@ -121,10 +107,6 @@ class SearchScreen : Fragment() {
         arguments?.remove(ARG_QUERY)
         arguments?.remove(ARG_SEARCH_ALL)
 
-        // "Find in sources" means SOURCES, plural. Handing the title over and
-        // then quietly searching only the active one answers a different
-        // question than the button asked — the point is finding which of the
-        // installed sources actually carries this title.
         if (searchEverywhere && !searchAllSources) {
             searchAllSources = true
             binding.searchScopeToggle.text = "All sources"
@@ -147,9 +129,6 @@ class SearchScreen : Fragment() {
                 if (isListening) {
                     stopVoiceRecognition()
                 } else {
-                    // TV is not exempt: the permission model is identical, and
-                    // skipping the request here is what left TV boxes with a mic
-                    // button that could only ever fail.
                     checkAndStartVoiceRecognition()
                 }
             }
@@ -289,9 +268,6 @@ class SearchScreen : Fragment() {
                     ?.firstOrNull()
                     ?.takeIf { it.isNotBlank() }
                     ?: return
-                // Feedback only — not typed into the field. Partial results are
-                // revised as the recogniser hears more, and writing them to the
-                // search box would fire a search per revision.
                 requireActivity().runOnUiThread {
                     if (_binding == null) return@runOnUiThread
                     binding.voiceListeningOverlay.listeningTxt.text = partial
@@ -303,16 +279,6 @@ class SearchScreen : Fragment() {
         }
     }
 
-    /**
-     * Asks for the microphone, then listens.
-     *
-     * This was the hole that made voice search unusable: RECORD_AUDIO was
-     * declared in the manifest but never REQUESTED. SpeechRecognizer does not
-     * throw for a missing permission — it reports ERROR_INSUFFICIENT_PERMISSIONS
-     * through the listener, which the TV branch turned into "Microphone not
-     * available" and gave up on. Nothing anywhere asked the user, so the
-     * permission could never be granted and the feature could never work.
-     */
     private fun checkAndStartVoiceRecognition() {
         if (hasMicPermission()) {
             startVoiceRecognition()
@@ -331,9 +297,6 @@ class SearchScreen : Fragment() {
             if (granted) {
                 startVoiceRecognition()
             } else {
-                // Denied. The system recogniser activity runs in its own process
-                // with its own permission, so it still works — falling back there
-                // is better than telling the user "no".
                 startAlternativeVoiceSearch()
             }
         }
@@ -348,10 +311,6 @@ class SearchScreen : Fragment() {
                     RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                     RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
                 )
-                // A LANGUAGE TAG, not a Locale. `putExtra(String, Locale)` binds
-                // to the Serializable overload, compiles fine, and is then
-                // ignored by every recogniser — so speech was always transcribed
-                // in the recogniser's own default language rather than the user's.
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toLanguageTag())
                 putExtra(
                     RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE,
@@ -359,9 +318,6 @@ class SearchScreen : Fragment() {
                 )
                 putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something to search...")
                 putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
-                // On: the overlay can show words as they are recognised. Without
-                // it a TV shows a static "Listening…" and gives no sign it heard
-                // anything, which is indistinguishable from a dead microphone.
                 putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
 
                 if (isTV) {
@@ -373,9 +329,6 @@ class SearchScreen : Fragment() {
                 }
             }
 
-            // Shown here rather than waiting for onReadyForSpeech: if the
-            // recogniser fails to start, that callback never arrives and the
-            // button looks like it did nothing at all.
             showVoiceOverlay(true)
             binding.voiceListeningOverlay.listeningTxt.text = "Starting…"
             speechRecognizer?.startListening(intent)
@@ -502,10 +455,6 @@ class SearchScreen : Fragment() {
                 binding.recommendationsTitle.visibility = View.VISIBLE
                 binding.recommendationsTitle.text = resultsHeading(movies.size)
             } else if (model.loading.value) {
-                // Results now stream in one source at a time, so an empty list
-                // mid-search is normal — the first source simply had no match.
-                // Claiming "No results found" here would flash a wrong answer
-                // and then be replaced a second later.
                 hideResultsGrid()
                 binding.placeHolder.root.visibility = View.GONE
                 binding.recommendationsTitle.visibility = View.VISIBLE
@@ -518,9 +467,6 @@ class SearchScreen : Fragment() {
             }
         }
 
-        // Progress of an "all sources" run. Kept in the heading rather than a
-        // spinner: on a TV the useful thing to know is how many sources have
-        // answered, because the user is deciding whether to keep waiting.
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 model.searchProgress.collect {
@@ -542,13 +488,6 @@ class SearchScreen : Fragment() {
         }
     }
 
-    /**
-     * The line above the grid.
-     *
-     * In "all sources" mode it names how many sources have answered, so a search
-     * that is still running does not look like one that finished with few
-     * results — the two are indistinguishable from the grid alone.
-     */
     private fun resultsHeading(count: Int): String {
         val query = binding.searchEdt.text.toString().trim()
         if (!searchAllSources) return getString(R.string.search_results_for, query)
@@ -646,7 +585,6 @@ class SearchScreen : Fragment() {
             }
         }
     }
-
 
     private fun scheduleSearch(query: String) {
         searchJob?.cancel()
@@ -780,10 +718,8 @@ class SearchScreen : Fragment() {
     }
 
     companion object {
-        /** Fragment argument carrying a pre-filled search query. */
         const val ARG_QUERY = "query"
 
-        /** Run that query across every installed source, not just the active one. */
         const val ARG_SEARCH_ALL = "searchAll"
     }
 

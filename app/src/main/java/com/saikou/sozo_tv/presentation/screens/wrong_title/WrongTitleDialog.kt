@@ -28,7 +28,6 @@ class WrongTitleDialog : DialogFragment() {
     var onWrongTitleChanged: ((ShowResponse) -> Unit)? = null
     private var selectedRating: String? = null
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -46,12 +45,8 @@ class WrongTitleDialog : DialogFragment() {
         val title = arguments?.getString("animeTitle")
         val isAdult = arguments?.getBoolean("isAdult")
         binding.inputAnimeName.setText(arguments?.getString("animeTitle"))
-        // Pre-selected, so the first keypress replaces the wrong title instead of appending to
-        // it - the caret sat at position 0 and the user had to clear the field by hand first.
         binding.inputAnimeName.selectAll()
         binding.inputAnimeName.requestFocus()
-        // A focused EditText does not raise the leanback IME on its own; the dialog window has
-        // to ask. Without this the field looked ready to type into and swallowed every key.
         dialog?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
         binding.inputAnimeName.apply {
             setOnEditorActionListener { _, actionId, _ ->
@@ -152,5 +147,4 @@ class WrongTitleDialog : DialogFragment() {
     }
 
 }
-
 

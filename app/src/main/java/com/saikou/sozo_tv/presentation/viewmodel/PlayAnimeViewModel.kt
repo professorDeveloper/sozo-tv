@@ -122,8 +122,6 @@ class PlayAnimeViewModel(
     }
 
     suspend fun removeHistory(videoUrl: String) {
-        // Tombstone first: once the Room row is gone there is nothing left to
-        // describe the delete, and the next sync would download it straight back.
         watchHistoryRepository.getWatchHistoryById(videoUrl)?.let { historySync.rememberDeleted(it) }
         watchHistoryRepository.removeHistory(videoUrl)
     }
@@ -141,24 +139,15 @@ class PlayAnimeViewModel(
             runCatching {
                 historySync.rememberClearedAll()
                 watchHistoryRepository.clearAllHistory()
-                // Push immediately so the phone does not keep showing a list
-                // the user just emptied here.
                 historySync.sync()
             }
         }
     }
 
-    /**
-     * Pull other devices' progress and push this box's.
-     *
-     * Fire-and-forget on purpose: history is a convenience, and a screen must
-     * never wait on the network to render the copy it already has.
-     */
     fun syncHistory() {
         viewModelScope.launch(Dispatchers.IO) { runCatching { historySync.sync() } }
     }
 
-    /** Awaitable form, for a screen that wants to redraw once the pull lands. */
     suspend fun syncHistoryNow(): Boolean =
         runCatching { historySync.sync() }.getOrDefault(false)
 

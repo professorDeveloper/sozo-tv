@@ -187,15 +187,9 @@ class EpisodeScreen : Fragment() {
                                             partList.add(Part("Part $i", i))
                                         }
                                         binding.tabRv.visible()
-                                        // Built once and kept. Choosing a part reloads this
-                                        // screen, and rebuilding the adapter here threw away
-                                        // the row the remote was sitting on: focus was lost on
-                                        // every single part switch, which is the whole reason
-                                        // the tab strip felt unusable.
                                         if (!::categoriesAdapter.isInitialized) {
                                             categoriesAdapter = EpisodeTabAdapter()
                                         }
-                                        // Reattached only if the view was actually recreated.
                                         if (binding.tabRv.adapter !== categoriesAdapter) {
                                             binding.tabRv.adapter = categoriesAdapter
                                         }
@@ -209,9 +203,6 @@ class EpisodeScreen : Fragment() {
                                             categoriesAdapter.submitList(partList)
                                         }
                                         categoriesAdapter.setSelectedPosition(selectedPosition)
-                                        // Only chase the selection when the user is not already
-                                        // steering the strip - scrolling under a held focus
-                                        // yanks the highlight away mid-press.
                                         if (!binding.tabRv.hasFocus()) {
                                             binding.tabRv.scrollToPosition(selectedPosition)
                                         }
@@ -268,6 +259,5 @@ class EpisodeScreen : Fragment() {
         }
         return spannable
     }
-
 
 }

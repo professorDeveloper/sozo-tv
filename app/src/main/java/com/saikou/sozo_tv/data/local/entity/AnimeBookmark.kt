@@ -45,7 +45,6 @@ data class EpisodeInfoEntity(
     val videoUrl: String,
 )
 
-
 @Entity(tableName = "watch_history")
 data class WatchHistoryEntity(
     @PrimaryKey val session: String,
@@ -70,21 +69,7 @@ data class WatchHistoryEntity(
     val currentQualityIndex: Int = -1,
     val isAnime: Boolean = true,
     val isSeries: Boolean = false,
-    /**
-     * Routing sentinel (`AnimeSources.EXTENSION`), NOT a provider identity.
-     * The History screen filters on it and the player routes on it, so it must
-     * keep meaning "an extension played this".
-     */
     var source: String = "",
     val currentSourceName: String = "",
-    /**
-     * The real active provider, prefixed exactly as the mobile app prefixes it
-     * (`cs:` CloudStream, `an:` Aniyomi).
-     *
-     * Separate from [source] because that field is a routing sentinel with the
-     * same value for every extension — which meant every row from every source
-     * shared one sync identity, and no TV row could ever line up with the
-     * phone's. Empty on rows written before this column existed.
-     */
     val providerId: String = ""
 )

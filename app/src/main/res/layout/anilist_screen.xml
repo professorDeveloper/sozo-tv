@@ -45,11 +45,6 @@
             tools:visibility="visible" />
     </LinearLayout>
 
-    <!--
-      Status filter. A HorizontalGridView rather than a plain row so the d-pad
-      scrolls it when six statuses do not fit, instead of stranding the last one
-      off-screen with no way to reach it.
-    -->
     <androidx.leanback.widget.HorizontalGridView
         android:id="@+id/statusRv"
         android:layout_width="match_parent"
@@ -73,11 +68,6 @@
         app:focusOutFront="true"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager" />
 
-    <!--
-      One message view for every empty state — loading, not connected, no rows,
-      network error. Separate placeholders drift apart in wording and in the
-      focus they steal.
-    -->
     <TextView
         android:id="@+id/messageView"
         android:layout_width="match_parent"

@@ -1,11 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Dialog action button.
-
-  Three states, not two. A disabled button must look different from an
-  unfocused one: "Caught up" is a real answer, and drawing it like a live
-  button invites the remote to be pressed at it repeatedly.
--->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:state_enabled="false">

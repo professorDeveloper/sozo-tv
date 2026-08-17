@@ -14,7 +14,6 @@ import com.saikou.sozo_tv.databinding.ItemAnilistStatusBinding
 import com.saikou.sozo_tv.utils.applyTvFocusScale
 import com.saikou.sozo_tv.utils.loadImage
 
-/** One title in the AniList library grid. */
 class AnilistEntryAdapter(
     private val onClick: (AnilistListEntry) -> Unit,
 ) : ListAdapter<AnilistListEntry, AnilistEntryAdapter.VH>(DIFF) {
@@ -23,9 +22,6 @@ class AnilistEntryAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         init {
-            // Once per holder, not per bind: applyTvFocusScale resets the scale
-            // and re-registers the focus listener, and doing that to a recycled
-            // view while it holds focus makes the highlight jump.
             binding.root.applyTvFocusScale(scale = 1.06f)
         }
 
@@ -56,11 +52,6 @@ class AnilistEntryAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) = holder.bind(getItem(position))
 
     private companion object {
-        /**
-         * Compared by CONTENT, not just id: a "+1" writes a new progress value
-         * onto the same entry, and an identity-only diff would leave the old
-         * number on screen.
-         */
         val DIFF = object : DiffUtil.ItemCallback<AnilistListEntry>() {
             override fun areItemsTheSame(a: AnilistListEntry, b: AnilistListEntry) = a.id == b.id
             override fun areContentsTheSame(a: AnilistListEntry, b: AnilistListEntry) =
@@ -69,7 +60,6 @@ class AnilistEntryAdapter(
     }
 }
 
-/** The status filter row. */
 class AnilistStatusAdapter(
     private val onPick: (AnilistStatus) -> Unit,
 ) : RecyclerView.Adapter<AnilistStatusAdapter.VH>() {
@@ -87,9 +77,6 @@ class AnilistStatusAdapter(
         if (selected == status) return
         val previous = statuses.indexOf(selected)
         selected = status
-        // Two targeted updates rather than notifyDataSetChanged: rebinding the
-        // whole row while the d-pad sits on one of these chips drops focus back
-        // to the screen root.
         notifyItemChanged(previous)
         notifyItemChanged(statuses.indexOf(status))
     }

@@ -113,12 +113,6 @@ class DeviceLoginActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Only claims focus when the window has none. render() runs on every state emission,
-     * including the re-emission a StateFlow replays when repeatOnLifecycle restarts, so an
-     * unconditional requestFocus() here pulled the highlight off Back and onto Refresh behind
-     * the user - sometimes mid-press.
-     */
     private fun focusRefreshIfIdle() {
         if (binding.root.findFocus() == null) binding.btnRefresh.requestFocus()
     }
@@ -133,9 +127,6 @@ class DeviceLoginActivity : AppCompatActivity() {
     /** Holds the linked account on screen briefly so an unexpected rebind is actually readable. */
     private fun handOffToProfile() {
         if (handedOff) return
-        // First pull for the account that just signed in. Without it this box
-        // shows nothing until the History screen happens to be opened, which is
-        // exactly the moment a new sign-in should already have caught up.
         historySync.syncAsync()
         lifecycleScope.launch {
             delay(SIGNED_IN_DWELL_MS)

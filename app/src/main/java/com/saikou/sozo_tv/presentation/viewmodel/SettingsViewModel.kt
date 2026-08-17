@@ -67,16 +67,8 @@ class SettingsViewModel(
 
     /** Revokes only THIS device's session — the user's phone and other TVs stay signed in. */
     fun exitUser() {
-        // Account-scoped caches go first, and synchronously. A TV is a shared
-        // screen: leaving the previous account's Watch Later and watch history
-        // on the box after a visible sign-out shows one person's viewing to the
-        // next. Both are plain local wipes, so there is nothing to await.
         userLists.clear()
         historySync.clear()
-        // The AniList token belongs to the signed-out account and writes to a
-        // real third-party list. Left behind, the next person's viewing would be
-        // filed under a stranger's AniList profile. `forgetLocal` drops this
-        // box's copy only — it does not unlink the account itself.
         anilist.forgetLocal()
 
         // Runs on the repository's scope, not viewModelScope: the Exit dialog relaunches

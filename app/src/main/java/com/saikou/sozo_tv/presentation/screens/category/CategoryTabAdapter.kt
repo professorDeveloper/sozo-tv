@@ -31,11 +31,6 @@ class CategoryTabAdapter(private var isFiltered: Boolean = true) :
         fun onBind(data: String, position: Int) {
             binding.title.text = data
             val isSelected = (position == selectedPosition)
-            // Drive the label through the view's state, not a flat colour. The layout already
-            // points title at the @color/color_item_tv_category_tv state list and marks it
-            // duplicateParentState, so setting isSelected here is enough - and setTextColor(int)
-            // would replace that list outright, which is why a focused tab used to render white
-            // text on its white focused background.
             binding.root.isSelected = isSelected
             if (isFiltered) {
                 if (position != 0) {
@@ -77,11 +72,6 @@ class CategoryTabAdapter(private var isFiltered: Boolean = true) :
         )
     }
 
-    /**
-     * Targeted notifies, never notifyDataSetChanged: a full rebind destroys and recreates every
-     * row, including the one the remote is sitting on, so the highlight vanished every time the
-     * caller re-asserted the selection.
-     */
     fun setSelectedPosition(position: Int) {
         if (position == selectedPosition) return
         val previous = selectedPosition

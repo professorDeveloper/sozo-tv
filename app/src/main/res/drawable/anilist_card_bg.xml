@@ -1,13 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Focus ring for an AniList poster.
-  
-  Its own drawable rather than reusing item_movie_history_bg: that one rings in
-  yellow, which on this screen would read as the app's own "continue watching"
-  accent rather than as a third-party tracker. The glow layer sits BEHIND the
-  ring so the card appears lifted rather than merely outlined — on a 10-foot
-  screen a 2dp border alone is not visible from the sofa.
--->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:state_focused="true">

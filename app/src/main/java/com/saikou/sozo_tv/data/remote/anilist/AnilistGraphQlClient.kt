@@ -9,27 +9,10 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 
-/**
- * Talks to AniList's GraphQL API directly.
- *
- * Hand-rolled JSON rather than Gson models: AniList nests every field two or
- * three levels deep behind optional containers, and a tree of nullable DTOs to
- * mirror that costs more to read than the twenty lines of parsing below.
- *
- * Uses the auth OkHttp client (platform TLS) — the app's content client trusts
- * any certificate, which must never carry someone's AniList token.
- */
 class AnilistGraphQlClient(
     private val okHttpClient: OkHttpClient,
 ) {
 
-    /**
-     * Runs [query] and returns its `data` object.
-     *
-     * @throws AnilistException on a transport failure OR on a GraphQL error,
-     *   which AniList reports inside a 200 body — a non-throwing HTTP call is
-     *   not the same as a successful query.
-     */
     private suspend fun run(
         query: String,
         variables: JSONObject = JSONObject(),
@@ -66,7 +49,6 @@ class AnilistGraphQlClient(
         body.optJSONObject("data") ?: throw AnilistException("AniList ma'lumot qaytarmadi")
     }
 
-    /** Who the stored token belongs to. Also the cheapest check that it still works. */
     suspend fun viewer(token: String): AnilistViewer {
         val data = run("query { Viewer { id name avatar { large } } }", token = token)
         val v = data.optJSONObject("Viewer")
@@ -78,13 +60,6 @@ class AnilistGraphQlClient(
         )
     }
 
-    /**
-     * The viewer's anime list, every status in one call.
-     *
-     * Flattened here so the grouping decision stays in the UI rather than being
-     * baked into the transport — and de-duped by entry id, because a title on a
-     * custom list is repeated under several list objects.
-     */
     suspend fun mediaList(token: String, userId: Int): List<AnilistListEntry> {
         val query = """
             query (${'$'}userId: Int) {
@@ -119,13 +94,6 @@ class AnilistGraphQlClient(
         return out
     }
 
-    /**
-     * The viewer's own entry for one title, or null when it is not on their list.
-     *
-     * Read before every automatic write so progress is never moved BACKWARDS: a
-     * rewatch, a second device, or a partly-watched episode would otherwise
-     * overwrite a higher number the account already holds.
-     */
     suspend fun entryState(token: String, mediaId: Int): AnilistEntryState? {
         val query = """
             query (${'$'}mediaId: Int) {
@@ -147,7 +115,6 @@ class AnilistGraphQlClient(
         )
     }
 
-    /** Public title search — used to attach an AniList id to a locally-watched title. */
     suspend fun searchMedia(search: String, perPage: Int = 20): List<AnilistMedia> {
         if (search.isBlank()) return emptyList()
         val query = """
@@ -164,16 +131,6 @@ class AnilistGraphQlClient(
         return media.mapObjects { it.toMedia() }
     }
 
-    /**
-     * Writes progress back to AniList.
-     *
-     * [progress] is an episode COUNT, not an index — AniList means "episodes
-     * finished", so passing a zero-based index silently reports one episode less
-     * than the viewer actually watched.
-     *
-     * Returns what AniList stored, which is not always what was sent: it clamps
-     * progress to the episode total and flips status to COMPLETED on the last one.
-     */
     suspend fun saveProgress(
         token: String,
         mediaId: Int,
@@ -202,8 +159,6 @@ class AnilistGraphQlClient(
             status = saved.optStringOrNull("status") ?: status ?: AnilistStatus.CURRENT.value,
         )
     }
-
-    // ─── parsing ─────────────────────────────────────────────────────────────
 
     private fun JSONObject.toListEntry(): AnilistListEntry? {
         val media = optJSONObject("media")?.toMedia() ?: return null
@@ -238,7 +193,6 @@ class AnilistGraphQlClient(
         )
     }
 
-    /** `optString` returns "null" for a JSON null, which is a real trap here. */
     private fun JSONObject.optStringOrNull(key: String): String? =
         if (isNull(key)) null else optString(key).takeIf { it.isNotBlank() }
 
@@ -260,12 +214,6 @@ class AnilistGraphQlClient(
         const val ENDPOINT = "https://graphql.anilist.co"
         val JSON = "application/json; charset=utf-8".toMediaType()
 
-        /**
-         * The media selection every query shares. One constant rather than a copy
-         * per query: the parser reads these fields unconditionally, so a field
-         * added to search but forgotten in the library query would show up as a
-         * silently missing value rather than an error.
-         */
         const val MEDIA_FIELDS = """
             id
             episodes
@@ -280,5 +228,4 @@ class AnilistGraphQlClient(
     }
 }
 
-/** A failure that is AniList's fault, not the transport's — carried to the UI as text. */
 class AnilistException(message: String, cause: Throwable? = null) : Exception(message, cause)

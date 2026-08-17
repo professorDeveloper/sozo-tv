@@ -97,23 +97,10 @@ class SeriesPlayerScreen : Fragment() {
 
     private val model by viewModel<PlayAnimeViewModel>()
 
-    /** Which extension is actually playing — see WatchHistoryEntity.providerId. */
     private val extensionEngine: ExtensionEngine by inject()
 
-    /**
-     * AniList write-back. Injected rather than reached through the ViewModel
-     * because it deliberately outlives this fragment: an episode completing is
-     * very often the moment the player is torn down.
-     */
     private val anilistTracker: AnilistTracker by inject()
 
-    /**
-     * Episode numbers already reported to AniList for this playback session.
-     *
-     * The progress check runs on every position callback, and auto-advance means
-     * one fragment can cover several episodes — a plain flag would report the
-     * first episode and nothing after it.
-     */
     private val anilistReported = HashSet<Int>()
 
     private lateinit var mediaSession: MediaSession
@@ -149,7 +136,6 @@ class SeriesPlayerScreen : Fragment() {
         return binding.root
     }
 
-
     @OptIn(UnstableApi::class)
     private fun buildOkHttpClient(headers: Map<String, String>): OkHttpClient {
         return OkHttpClient.Builder().followRedirects(true).followSslRedirects(true)
@@ -171,9 +157,6 @@ class SeriesPlayerScreen : Fragment() {
                 val req = b.build()
                 val resp = chain.proceed(req)
                 if (!resp.isSuccessful) {
-                    // The player only reports ERROR_CODE_IO_BAD_HTTP_STATUS, which says nothing
-                    // about WHY a CDN refused. Log what we actually sent so a 403 is diagnosable
-                    // from one logcat instead of a guess.
                     Log.w(
                         "PlayerHttp",
                         "${resp.code} ${req.url}\n  sent: ${req.headers.names().sorted()}" +
@@ -227,7 +210,6 @@ class SeriesPlayerScreen : Fragment() {
         }.getOrDefault(originalUrl)
     }
 
-
     private fun resetCountdownState() {
         countdownShown = false
         isCountdownActive = false
@@ -263,30 +245,12 @@ class SeriesPlayerScreen : Fragment() {
         progressHandler?.post(progressRunnable!!)
     }
 
-    /**
-     * Tells AniList this episode has been watched.
-     *
-     * Fires at [ANILIST_WATCHED_FRACTION] rather than at the end because viewers
-     * skip endings and next-episode previews; waiting for the last frame loses
-     * those episodes entirely. Runs from the one-second progress tick, so it is
-     * guarded by [anilistReported] — without that it would fire once per second
-     * for the rest of the episode.
-     *
-     * Everything below is fire-and-forget. There is no error path on purpose:
-     * this happens mid-playback, on a screen with no room for a message and no
-     * keyboard to answer one with.
-     */
     private fun reportToAnilist() {
-        // No connection check here on purpose: whether this box has read the
-        // account's AniList link yet is the tracker's problem, and asking on this
-        // thread would either block playback or answer "no" during a cold start.
         val episodeNumber = model.currentEpIndex + 1
         if (episodeNumber <= 0 || !anilistReported.add(episodeNumber)) return
 
         val contentId = args.seriesMainId
         if (contentId.isBlank()) {
-            // Nothing stable to key a link on; a link keyed on a URL that changes
-            // per session would be created fresh every time and never reused.
             anilistReported.remove(episodeNumber)
             return
         }
@@ -338,7 +302,6 @@ class SeriesPlayerScreen : Fragment() {
         }
     }
 
-
     @SuppressLint("StringFormatMatches")
     private fun playNextEpisodeAutomatically() {
         if (model.currentEpIndex < episodeList.size - 1) {
@@ -369,7 +332,6 @@ class SeriesPlayerScreen : Fragment() {
             }
         }
     }
-
 
     @SuppressLint("WrongConstant")
     @OptIn(UnstableApi::class)
@@ -480,7 +442,6 @@ class SeriesPlayerScreen : Fragment() {
         }
     }
 
-
     private var currentResizeIdx = 0
     private var currentSpeedIdx = 2
 
@@ -550,11 +511,6 @@ class SeriesPlayerScreen : Fragment() {
 
         model.currentQualityEpisode.observe(viewLifecycleOwner) { resource ->
             when (resource) {
-                // Resolving a new quality is a network round-trip that can take
-                // several seconds. This used to be `Unit`: the picker closed and
-                // nothing else happened, so the switch read as "the button did
-                // nothing" until the stream eventually swapped. Reuse the same
-                // full-screen loading overlay an episode switch already shows.
                 Resource.Loading -> {
                     binding.loadingLayout.visible()
                     binding.loadingText.text = getString(R.string.quality_is_loading)
@@ -570,9 +526,6 @@ class SeriesPlayerScreen : Fragment() {
                     setupOrUpdatePreviewThumbnails(vod.thumbnail, vod.header)
                 }
 
-                // A failed switch was swallowed entirely — the overlay would have
-                // stayed up forever and the user was never told why. Drop back to
-                // the stream that is still playing and say so.
                 is Resource.Error -> {
                     ignoreNextEpisodeSuccess = false
                     binding.loadingLayout.gone()
@@ -587,7 +540,6 @@ class SeriesPlayerScreen : Fragment() {
             }
         }
     }
-
 
     @OptIn(UnstableApi::class)
     private fun createMediaSource(url: String, mimeType: String?): MediaSource {
@@ -623,7 +575,6 @@ class SeriesPlayerScreen : Fragment() {
         android.util.Log.i("PlayerSrc", "mime: url=$u declared=$declared -> $resolved")
         return resolved
     }
-
 
     @OptIn(UnstableApi::class)
     private fun playNewEpisode(videoUrl: String, headers: Map<String, String>) {
@@ -853,7 +804,6 @@ class SeriesPlayerScreen : Fragment() {
             .createMediaSource(finalItem)
     }
 
-
     @SuppressLint("UnsafeOptInUsageError")
     fun applySubtitleStyleToPlayer(playerView: PlayerView, prefs: PreferenceManager) {
         val subtitleView = playerView.subtitleView ?: return
@@ -898,7 +848,6 @@ class SeriesPlayerScreen : Fragment() {
 
         subtitleView.setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, s.sizeSp.toFloat())
     }
-
 
     private fun setupOrUpdatePreviewThumbnails(vttUrl: String?, headers: Map<String, String>) {
         val url = vttUrl?.trim().orEmpty()
@@ -1022,7 +971,6 @@ class SeriesPlayerScreen : Fragment() {
         }
     }
 
-
     private suspend fun saveWatchHistory() {
         try {
             if (!::player.isInitialized) return
@@ -1041,9 +989,6 @@ class SeriesPlayerScreen : Fragment() {
                     lastPosition = player.currentPosition,
                     videoUrl = series.urlobj,
                     currentQualityIndex = model.currentSelectedVideoOptionIndex,
-                    // Backfill: rows written before providerId existed pick it up
-                    // the next time they are saved, rather than staying unmatchable
-                    // forever. Only ever filled in, never overwritten with a blank.
                     providerId = getEpIndex.providerId
                         .ifBlank { extensionEngine.getActiveProvider().orEmpty() },
                     currentSourceName = getEpIndex.currentSourceName
@@ -1077,9 +1022,6 @@ class SeriesPlayerScreen : Fragment() {
                     isEpisode = true,
                     currentQualityIndex = model.currentSelectedVideoOptionIndex,
                     source = PreferenceManager().getString(LocalData.SOURCE),
-                    // The real provider, so this row has an identity the phone can
-                    // match. `source` above is the routing sentinel and is the same
-                    // string for every extension.
                     providerId = extensionEngine.getActiveProvider().orEmpty(),
                     currentSourceName = extensionEngine.getActiveProviderName().orEmpty(),
                 )
@@ -1147,12 +1089,6 @@ class SeriesPlayerScreen : Fragment() {
 
         binding.pvPlayer.controller.binding.frameBackButton.setOnClickListener { navigateBack() }
 
-        // BACK closes the topmost overlay before it leaves the player.
-        //
-        // It used to go straight to navigateBack(), so pressing BACK with the episode
-        // drawer open — the obvious way to dismiss it with a remote — tore the whole
-        // player down instead. The drawer's only other dismissal is the small X in its
-        // corner, and the next-episode countdown had no cancel path on BACK at all.
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
@@ -1161,8 +1097,6 @@ class SeriesPlayerScreen : Fragment() {
                         return
                     }
                     if (isCountdownActive) {
-                        // stopCountdown() only hides the view; it does not run the
-                        // onCancelled callback, so undo the same state here.
                         binding.countdownOverlay.stopCountdown()
                         isCountdownActive = false
                         if (::player.isInitialized) player.play()
@@ -1367,9 +1301,6 @@ class SeriesPlayerScreen : Fragment() {
 
     override fun onDestroyView() {
         stopProgressTracking()
-        // Push the position the viewer just stopped at, so a phone can pick it
-        // up. Without this the progress only leaves this box the next time the
-        // History screen happens to be opened.
         model.syncHistory()
 
         thumbLoadJob?.cancel()
@@ -1411,12 +1342,6 @@ class SeriesPlayerScreen : Fragment() {
     }
 
     private companion object {
-        /**
-         * How far through an episode counts as "watched" for tracking.
-         *
-         * 85% is the convention every anime tracker uses, and it exists because
-         * endings and next-episode previews are routinely skipped.
-         */
         const val ANILIST_WATCHED_FRACTION = 0.85
     }
 }

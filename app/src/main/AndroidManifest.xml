@@ -9,15 +9,6 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
-
-    <!--
-      Package visibility (Android 11+). Without this the platform hides speech
-      recognisers from us entirely: SpeechRecognizer.isRecognitionAvailable()
-      returns false and Intent.resolveActivity() returns null even when Google's
-      recogniser is installed and working. Both voice-search paths then fall
-      through to "Voice search not available", which is why it was dead on every
-      modern box.
-    -->
     <queries>
         <intent>
             <action android:name="android.speech.RecognitionService" />
@@ -33,12 +24,6 @@
     <uses-feature
         android:name="android.software.leanback"
         android:required="true" />
-    <!--
-      required="false": plenty of Android TV boxes have no built-in microphone
-      (the mic lives in the remote, or there is none at all). Marked required,
-      this line makes the app UNINSTALLABLE on those devices for the sake of one
-      optional button.
-    -->
     <uses-feature
         android:name="android.hardware.microphone"
         android:required="false"
