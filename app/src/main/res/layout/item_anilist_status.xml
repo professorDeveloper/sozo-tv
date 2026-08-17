@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/statusLabel"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    android:background="@drawable/anilist_tab_bg"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:fontFamily="@font/rubik_regular"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="8dp"
+    android:textColor="@color/anilist_tab_text"
+    android:textSize="@dimen/tv_text_label"
+    android:textStyle="bold"
+    tools:text="Watching  12" />

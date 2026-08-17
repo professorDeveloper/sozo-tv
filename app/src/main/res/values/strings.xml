@@ -182,4 +182,16 @@
     <string name="update_later">Later</string>
     <string name="voice_cancel_hint">Press BACK to cancel</string>
     <string name="news_empty">No messages yet</string>
+
+    <!-- AniList -->
+    <string name="anilist">AniList</string>
+    <string name="anilist_status">STATUS</string>
+    <string name="anilist_find_in_sources">Find in sources</string>
+    <string name="anilist_mark_watched">Mark episode %1$d watched</string>
+    <string name="anilist_caught_up">Caught up</string>
+    <string name="anilist_saving">Saving…</string>
+    <string name="anilist_n_new">%1$d new</string>
+    <string name="anilist_connect_on_phone">AniList is not connected.\n\nConnect it in the Sozo phone app under Profile → Connections. This TV picks it up automatically — no sign-in needed here.</string>
+    <string name="anilist_library_empty">Your AniList list is empty.</string>
+    <string name="anilist_status_empty">Nothing in “%1$s”.</string>
 </resources>

@@ -98,6 +98,24 @@ class SearchScreen : Fragment() {
         setupSpeechRecognizer()
         binding.searchEdt.requestFocus()
         binding.seasonalBackground.setTheme(PreferenceManager().getSeasonalTheme())
+        applyIncomingQuery()
+    }
+
+    /**
+     * Runs a query handed in by another screen (AniList's "find in sources").
+     *
+     * The argument is REMOVED after use: this fragment is re-created whenever the
+     * user navigates back to search, and a lingering argument would silently
+     * re-run someone's old query instead of showing an empty search box.
+     */
+    private fun applyIncomingQuery() {
+        val query = arguments?.getString(ARG_QUERY)?.trim().orEmpty()
+        if (query.isEmpty()) return
+        arguments?.remove(ARG_QUERY)
+
+        binding.searchEdt.setText(query)
+        binding.searchEdt.setSelection(query.length)
+        performSearchImmediate(query)
     }
 
     private fun setupSpeechRecognizer() {
@@ -648,4 +666,10 @@ class SearchScreen : Fragment() {
         cancelPendingSearch()
         _binding = null
     }
+
+    companion object {
+        /** Fragment argument carrying a pre-filled search query. */
+        const val ARG_QUERY = "query"
+    }
+
 }

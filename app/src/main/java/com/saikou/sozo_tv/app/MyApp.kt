@@ -17,6 +17,12 @@ import com.saikou.sozo_tv.di.firebaseModule
 import com.saikou.sozo_tv.di.koinModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
+import com.saikou.sozo_tv.data.repository.AnilistRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.get
 import org.koin.core.context.startKoin
 import java.lang.ref.WeakReference
 
@@ -42,7 +48,24 @@ class MyApp : Application() {
             androidLogger()
             modules(NetworkModule, koinModule, firebaseModule)
         }
+        warmAnilistLink()
 
+    }
+
+    /**
+     * Reads the account's AniList link once at startup.
+     *
+     * Not required for correctness — the tracker reads it lazily too — but it
+     * means the AniList screen and the first episode of a session already know
+     * the answer instead of waiting on a round trip.
+     *
+     * Failure is silent by design: no AniList, no account, or no network are all
+     * ordinary states, and none of them should say anything at app launch.
+     */
+    private fun warmAnilistLink() {
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            runCatching { get<AnilistRepository>().refresh() }
+        }
     }
 
     /**

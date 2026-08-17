@@ -2,7 +2,10 @@ package com.saikou.sozo_tv.di
 
 import androidx.room.Room
 import com.google.firebase.database.FirebaseDatabase
+import com.saikou.sozo_tv.data.repository.AnilistRepository
+import com.saikou.sozo_tv.presentation.viewmodel.AnilistViewModel
 import com.saikou.sozo_tv.data.local.database.AppDatabase
+import com.saikou.sozo_tv.data.local.database.MIGRATION_1_2
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.repository.CategoriesRepositoryImpl
 import com.saikou.sozo_tv.data.repository.CharacterBookmarkRepositoryImpl
@@ -52,7 +55,7 @@ val koinModule = module {
     single {
         Room.databaseBuilder(
             androidApplication(), AppDatabase::class.java, "movie_database"
-        ).build()
+        ).addMigrations(MIGRATION_1_2).build()
     }
     single { get<AppDatabase>().movieDao() }
     single { get<AppDatabase>().tvDao() }
@@ -97,8 +100,9 @@ val koinModule = module {
     viewModel { EpisodeViewModel(watchHistoryRepository = get()) }
     viewModel { WrongTitleViewModel() }
     viewModel { UpdateViewModel() }
+    viewModel { AnilistViewModel(repository = get()) }
     viewModel { ViewAllViewModel(get()) }
-    viewModel { SettingsViewModel(get(), profileRepo = get(), deviceAuth = get(), userLists = get(), historySync = get()) }
+    viewModel { SettingsViewModel(get(), profileRepo = get(), deviceAuth = get(), userLists = get(), historySync = get(), anilist = get()) }
     viewModel { LiveTvViewModel(dao = get()) }
     viewModel { SplashViewModel(firebaseService = get()) }
     viewModel { PlayAnimeViewModel(watchHistoryRepository = get(), historySync = get()) }

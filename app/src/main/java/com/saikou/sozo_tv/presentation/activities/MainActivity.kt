@@ -3,6 +3,7 @@ package com.saikou.sozo_tv.presentation.activities
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import com.saikou.sozo_tv.presentation.screens.search.SearchScreen
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatDelegate
@@ -70,6 +71,18 @@ class MainActivity : AppCompatActivity() {
 
         binding.navMain.setupWithNavController(navController)
 
+        // A query handed over from another activity (the AniList screen's "find in
+        // sources"). Consumed rather than read: this activity is often reached
+        // through singleTop, and leaving the extra on the intent would re-open
+        // search on every later return to Home.
+        intent?.getStringExtra(EXTRA_SEARCH_QUERY)?.takeIf { it.isNotBlank() }?.let { query ->
+            intent.removeExtra(EXTRA_SEARCH_QUERY)
+            navController.navigate(
+                R.id.search,
+                Bundle().apply { putString(SearchScreen.ARG_QUERY, query) },
+            )
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             binding.navMainFragment.isFocusedByDefault = true
         }
@@ -132,4 +145,10 @@ class MainActivity : AppCompatActivity() {
         _binding = null
         headerBinding = null
     }
+
+    companion object {
+        /** Intent extra carrying a search query from another activity. */
+        const val EXTRA_SEARCH_QUERY = "sozo.extra.SEARCH_QUERY"
+    }
+
 }
