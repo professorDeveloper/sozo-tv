@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AniList blue rather than the app's red: this bar reports what a third-party
+  tracker holds, and colouring it like a Sozo control would suggest it reflects
+  local playback progress.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:left="1dp" android:right="1dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#40FFFFFF" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+
+    <item>
+        <clip>
+            <shape android:shape="rectangle">
+                <solid android:color="@color/anilist_blue" />
+                <corners android:radius="24dp" />
+            </shape>
+        </clip>
+    </item>
+</layer-list>

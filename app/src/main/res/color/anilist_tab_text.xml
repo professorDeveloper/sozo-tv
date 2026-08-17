@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  White on focus (the tab is filled blue), blue when selected but not focused,
+  grey otherwise. Ordering matters: state_focused must come first, or a selected
+  tab under the cursor would keep the blue text on a blue fill.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/netflix_white" android:state_focused="true" />
+    <item android:color="@color/anilist_blue" android:state_selected="true" />
+    <item android:color="@color/netflix_text_secondary" />
+</selector>

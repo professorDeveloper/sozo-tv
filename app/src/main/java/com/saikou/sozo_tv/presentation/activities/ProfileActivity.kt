@@ -235,6 +235,14 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
                         NavOptions.Builder().setPopUpTo(R.id.newsPage, true).build()
                     )
                 }
+
+                5 -> {
+                    if (currentPageId != R.id.anilistScreen) navController.navigate(
+                        R.id.anilistScreen,
+                        null,
+                        NavOptions.Builder().setPopUpTo(R.id.anilistScreen, true).build()
+                    )
+                }
             }
         }
 

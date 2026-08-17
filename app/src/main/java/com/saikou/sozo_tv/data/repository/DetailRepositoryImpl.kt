@@ -20,6 +20,8 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class DetailRepositoryImpl(
     private val engine: ExtensionEngine,
+    private val links: AnilistLinkStore,
+    private val sourceRegistry: AnilistSourceRegistry,
 ) : DetailRepository {
 
     private val cache = ConcurrentHashMap<Int, ExtDetail>()
@@ -29,7 +31,46 @@ class DetailRepositoryImpl(
         val entry = ExtensionContentRegistry.resolve(id) ?: return null
         val detail = engine.load(entry.provider, entry.url) ?: return null
         cache[id] = detail
+        recordAnilistId(detail)
         return detail
+    }
+
+    /**
+     * Takes the AniList id straight from the provider, when it offers one.
+     *
+     * This is the difference between exact tracking and guessing. A provider
+     * that reports its AniList id has told us precisely which entry the page IS
+     * — no title normalisation, no season ambiguity, no chance of filing
+     * episodes into the wrong show. Writing it into the link store here means
+     * the player needs no new plumbing: the tracker finds it by the ordinary
+     * lookup, exactly as it would find one the user made by hand.
+     *
+     * `auto = false` on purpose. The flag means "we guessed"; this is not a
+     * guess, and the UI must not label it as one.
+     *
+     * Only ever ADDS a link. A user who deliberately re-pointed a title at a
+     * different entry must not have that overwritten by the source on the next
+     * page load.
+     */
+    private fun recordAnilistId(detail: ExtDetail) {
+        val mediaId = detail.anilistId ?: return
+        if (mediaId <= 0) return
+
+        sourceRegistry.remember(detail.provider)
+        if (links.mediaIdFor(detail.provider, detail.contentUrl) != null) return
+
+        links.save(
+            AnilistTitleLink(
+                provider = detail.provider,
+                contentId = detail.contentUrl,
+                mediaId = mediaId,
+                title = detail.title,
+                coverImage = detail.thumbnail,
+                totalEpisodes = detail.episodes.size.takeIf { it > 0 },
+                linkedAt = System.currentTimeMillis(),
+                auto = false,
+            )
+        )
     }
 
     private suspend fun detailResult(id: Int): Result<DetailModel> {

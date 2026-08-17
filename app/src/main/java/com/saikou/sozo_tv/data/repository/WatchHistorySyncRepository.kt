@@ -197,13 +197,19 @@ class WatchHistorySyncRepository(
     // ─── mapping ─────────────────────────────────────────────────────────────
 
     private fun WatchHistoryEntity.toSyncItem() = HistorySyncItem(
-        provider = source.ifBlank { currentSourceName },
+        provider = syncProvider(),
         contentId = categoryid,
         contentUrl = videoUrl,
         title = mediaName.ifBlank { title },
         thumbnail = image,
         isSerial = isSeries,
         episodeIndex = epIndex.takeIf { it >= 0 },
+        // The phone sends a 1-based episode NUMBER and the server keys on
+        // `episodeNumber ?? episodeIndex`. Sending only the 0-based index meant
+        // this box's episode 1 was keyed `e0` against the phone's `e1` — two rows
+        // for one episode that could never reconcile. The TV already calls this
+        // "Episode ${epIndex + 1}" everywhere it shows one.
+        episodeNumber = epIndex.takeIf { it >= 0 }?.plus(1),
         positionMs = lastPosition,
         durationMs = totalDuration,
         watchedAt = isoOf(watchedAt),
@@ -230,6 +236,7 @@ class WatchHistorySyncRepository(
             "isSeries" to isSeries,
             "source" to source,
             "currentSourceName" to currentSourceName,
+            "providerId" to providerId,
         ),
     )
 
@@ -262,6 +269,7 @@ class WatchHistorySyncRepository(
             isSeries = e["isSeries"] as? Boolean ?: false,
             source = str("source").orEmpty(),
             currentSourceName = str("currentSourceName").orEmpty(),
+            providerId = str("providerId").orEmpty(),
         )
     }
 
@@ -269,16 +277,33 @@ class WatchHistorySyncRepository(
         parseIso(watchedAt).takeIf { it > 0 } ?: System.currentTimeMillis()
 
     /**
+     * The provider string this row syncs under.
+     *
+     * [WatchHistoryEntity.providerId] is the real one (`cs:`/`an:`, prefixed
+     * exactly as the phone prefixes it). `source` is only a routing sentinel —
+     * the literal string "extension" for every extension provider — so falling
+     * back to it means a row keeps the identity it already had on the server.
+     * Rows written before providerId existed are the only ones that land there.
+     */
+    private fun WatchHistoryEntity.syncProvider(): String =
+        providerId.ifBlank { source.ifBlank { currentSourceName } }.trim()
+
+    /**
      * Mirrors the server's buildHistoryKey EXACTLY. Drifting from it splits one
      * episode into two rows that never reconcile, so the two must change together.
+     *
+     * The episode segment uses the 1-based NUMBER, matching what [toSyncItem]
+     * sends and what the phone sends. Rows already on the server under the old
+     * 0-based key are re-keyed once and then agree; history is capped and the
+     * stale keys age out.
      */
     private fun WatchHistoryEntity.syncKey(): String? {
-        val provider = source.ifBlank { currentSourceName }.trim()
+        val provider = syncProvider()
         val base = (categoryid?.takeIf { it.isNotBlank() } ?: videoUrl).trim()
         if (base.isEmpty()) return null
         val head = "$provider|$base"
         if (!isSeries) return head
-        return if (epIndex < 0) head else "$head|e$epIndex"
+        return if (epIndex < 0) head else "$head|e${epIndex + 1}"
     }
 
     private companion object {

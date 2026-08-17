@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Status tabs. Focus and selection are drawn DIFFERENTLY on purpose: on a d-pad
+  the cursor moves independently of the current filter, so a single highlight
+  would leave the user unable to tell which list they are actually looking at.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp" />
+            <solid android:color="@color/anilist_blue" />
+        </shape>
+    </item>
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp" />
+            <solid android:color="#3302A9FF" />
+            <stroke android:width="1dp" android:color="@color/anilist_blue" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp" />
+            <solid android:color="@color/netflix_card_background" />
+        </shape>
+    </item>
+</selector>

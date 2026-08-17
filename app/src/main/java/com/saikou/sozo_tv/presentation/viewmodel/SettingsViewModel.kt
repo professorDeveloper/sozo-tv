@@ -8,6 +8,7 @@ import com.saikou.sozo_tv.data.local.pref.DeviceSession
 import com.saikou.sozo_tv.data.model.ContentMode
 import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.data.model.anilist.Profile
+import com.saikou.sozo_tv.data.repository.AnilistRepository
 import com.saikou.sozo_tv.data.repository.DeviceAuthRepository
 import com.saikou.sozo_tv.data.repository.WatchHistorySyncRepository
 import com.saikou.sozo_tv.data.repository.UserListsRepository
@@ -25,6 +26,7 @@ class SettingsViewModel(
     private val deviceAuth: DeviceAuthRepository,
     private val userLists: UserListsRepository,
     private val historySync: WatchHistorySyncRepository,
+    private val anilist: AnilistRepository,
 ) : ViewModel() {
 
     val contentMode: StateFlow<ContentMode> =
@@ -71,6 +73,11 @@ class SettingsViewModel(
         // next. Both are plain local wipes, so there is nothing to await.
         userLists.clear()
         historySync.clear()
+        // The AniList token belongs to the signed-out account and writes to a
+        // real third-party list. Left behind, the next person's viewing would be
+        // filed under a stranger's AniList profile. `forgetLocal` drops this
+        // box's copy only — it does not unlink the account itself.
+        anilist.forgetLocal()
 
         // Runs on the repository's scope, not viewModelScope: the Exit dialog relaunches
         // MainActivity with CLEAR_TASK in the same handler, which tears this ViewModel down and

@@ -274,4 +274,10 @@ dependencies {
     implementation("io.reactivex:rxjava:1.3.8")
     // JS engine for Aniyomi extractors that deobfuscate links (QuickJS).
     implementation("app.cash.quickjs:quickjs-android:0.9.2")
+
+    // Local JVM tests. Only for logic with no Android dependency — the title
+    // normalisation and episode arithmetic behind AniList tracking, where every
+    // failure mode is silent (a wrong match writes to the wrong list, and
+    // nothing errors).
+    testImplementation("junit:junit:4.13.2")
 }
