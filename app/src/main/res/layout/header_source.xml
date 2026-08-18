@@ -47,7 +47,7 @@
             android:paddingHorizontal="20dp"
             android:paddingVertical="9dp"
             android:text="Update sources"
-            android:textColor="@color/netflix_text_primary"
+            android:textColor="@color/tv_field_text"
             android:textSize="@dimen/tv_text_body"
             tools:ignore="HardcodedText" />
 

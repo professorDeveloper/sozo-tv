@@ -62,7 +62,7 @@ class AnilistScreen : Fragment() {
         // 150dp card + 10dp margin each side. Six were forced in regardless of
         // width, so every cell came out narrower than the card and the rows sat
         // on top of each other.
-        binding.entriesRv.autoFitColumns(itemWidthDp = 170, min = 2, max = 8)
+        binding.entriesRv.autoFitColumns(itemWidthDp = 150, min = 2, max = 8)
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {

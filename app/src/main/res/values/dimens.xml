@@ -17,9 +17,9 @@
     <dimen name="tv_card_width">220dp</dimen>
     <dimen name="tv_card_height">120dp</dimen>
     <dimen name="tv_card_margin">4dp</dimen>
-    <dimen name="tv_text_size_large">24sp</dimen>
-    <dimen name="tv_text_size_medium">18sp</dimen>
-    <dimen name="tv_text_size_small">14sp</dimen>
+    <dimen name="tv_text_size_large">22sp</dimen>
+    <dimen name="tv_text_size_medium">17sp</dimen>
+    <dimen name="tv_text_size_small">13sp</dimen>
     <dimen name="tv_padding_large">24dp</dimen>
     <dimen name="tv_padding_medium">16dp</dimen>
     <dimen name="tv_padding_small">8dp</dimen>
@@ -53,10 +53,10 @@
     <dimen name="filter_button_height">48dp</dimen>
     <dimen name="url_count_corner_radius">4dp</dimen>
 
-    <dimen name="tv_text_caption">12sp</dimen>
-    <dimen name="tv_text_label">14sp</dimen>
-    <dimen name="tv_text_body">16sp</dimen>
-    <dimen name="tv_text_subtitle">18sp</dimen>
+    <dimen name="tv_text_caption">11sp</dimen>
+    <dimen name="tv_text_label">13sp</dimen>
+    <dimen name="tv_text_body">15sp</dimen>
+    <dimen name="tv_text_subtitle">17sp</dimen>
 
     <!--
       On-screen keyboard. Narrow keys, tall keys: the widest row is ten of them
