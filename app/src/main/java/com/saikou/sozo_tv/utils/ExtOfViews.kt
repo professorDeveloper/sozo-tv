@@ -68,6 +68,18 @@ fun String.readableAmount(): String {
     return list.joinToString("")
 }
 
+/**
+ * Fills in the placeholders remote repos leave in their icon URLs.
+ *
+ * CloudStream repos ship favicon templates like
+ * `.../s2/favicons?domain=x&sz=%size%` and expect the client to substitute the
+ * size. Passing the template through unchanged made Google answer 404, so every
+ * such source showed the error drawable instead of its logo.
+ */
+fun String.resolveImageTemplate(): String =
+    replace("%size%", "128", ignoreCase = true)
+        .replace("{size}", "128", ignoreCase = true)
+
 fun ImageView.loadImage(url: String?) {
     val rm = Glide.with(this)
     if (url.isNullOrBlank()) {
@@ -88,7 +100,7 @@ fun ImageView.loadImage(url: String?) {
                 .error(R.drawable.planet)
         )
 
-    rm.load(url)
+    rm.load(url.resolveImageTemplate())
         .apply(
             RequestOptions()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListUpdateCallback
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.saikou.sozo_tv.utils.resolveImageTemplate
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.extensions.ExtGroup
 import com.saikou.sozo_tv.data.extensions.ExtProvider
@@ -27,6 +28,8 @@ class SourceHeaderViews(val root: View) {
     val etSearchProvider: EditText = root.findViewById(R.id.etSearchProvider)
     val repoFilterContainer: LinearLayout = root.findViewById(R.id.repoFilterContainer)
     val tvEmpty: TextView = root.findViewById(R.id.tvEmpty)
+    val tvProviderCount: TextView = root.findViewById(R.id.tvProviderCount)
+    val btnUpdateSources: TextView = root.findViewById(R.id.btnUpdateSources)
 }
 
 /**
@@ -223,8 +226,10 @@ class SourceAdapter(
                 .joinToString(" · ")
             selected.isVisible = isSelected
             if (!p.icon.isNullOrEmpty()) {
-                Glide.with(icon).load(p.icon)
-                    .placeholder(R.drawable.ic_round_star_24).into(icon)
+                Glide.with(icon).load(p.icon.resolveImageTemplate())
+                    .placeholder(R.drawable.ic_round_star_24)
+                    .error(R.drawable.ic_round_star_24)
+                    .into(icon)
             } else {
                 icon.setImageResource(R.drawable.ic_round_star_24)
             }
