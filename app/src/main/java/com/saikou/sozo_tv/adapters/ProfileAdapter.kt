@@ -37,6 +37,9 @@ class ProfileAdapter(
 
     /** Consumed by the first bind of the selected row; see bind(). */
     private var focusPending: Boolean = true
+
+    /** Deferred selection repaint; see setSectionSelected. */
+    private var pendingSelectionNotify: Runnable? = null
     private var pendingNav: Runnable? = null
 
     fun setOnExitClickListener(listener: () -> Unit) {
@@ -271,6 +274,8 @@ class ProfileAdapter(
         // it reaches an activity that is already tearing down.
         pendingNav?.let { recyclerView.removeCallbacks(it) }
         pendingNav = null
+        pendingSelectionNotify?.let { recyclerView.removeCallbacks(it) }
+        pendingSelectionNotify = null
     }
 
     fun setSectionSelected(index: Int) {
@@ -278,10 +283,24 @@ class ProfileAdapter(
         val previousIndex = selectedSectionIndex
         selectedSectionIndex = index
 
-        if (previousIndex != RecyclerView.NO_POSITION) {
-            notifyItemChanged(previousIndex + accounts.size + 2)
+        // Leanback's GridLayoutManager moves focus from inside onLayoutChildren
+        // (focusToViewInLayout), so the focus listener that calls this runs
+        // DURING layout — and notifyItemChanged throws there. Deferring to the
+        // next frame is the only safe moment; the rows repaint one frame later,
+        // which is invisible next to the focus animation itself.
+        val notify = Runnable {
+            if (previousIndex != RecyclerView.NO_POSITION) {
+                notifyItemChanged(previousIndex + accounts.size + 2)
+            }
+            notifyItemChanged(index + accounts.size + 2)
         }
-        notifyItemChanged(selectedSectionIndex + accounts.size + 2)
+        if (recyclerView.isComputingLayout || recyclerView.scrollState != RecyclerView.SCROLL_STATE_IDLE) {
+            pendingSelectionNotify?.let { recyclerView.removeCallbacks(it) }
+            pendingSelectionNotify = notify
+            recyclerView.post(notify)
+        } else {
+            notify.run()
+        }
     }
 
 }
