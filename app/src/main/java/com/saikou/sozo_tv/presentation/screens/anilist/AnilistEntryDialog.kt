@@ -79,8 +79,12 @@ class AnilistEntryDialog : DialogFragment() {
             onSearchSources?.invoke(title)
         }
 
-        binding.btnBump.applyTvFocusScale(scale = 1.02f)
-        binding.btnSearch.applyTvFocusScale(scale = 1.02f)
+        // No scale. These are full-width inside a fixed panel, so growing on
+        // focus pushes them past its padding — which is what made the focused
+        // button look wider than the one above it. The white focus ring in
+        // anilist_action_bg is the affordance.
+        binding.btnBump.applyTvFocusScale(scale = 1f)
+        binding.btnSearch.applyTvFocusScale(scale = 1f)
         binding.btnBump.requestInitialFocus()
     }
 

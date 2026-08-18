@@ -27,6 +27,7 @@ import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.SearchAdapter
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.data.extensions.toSearchModel
+import com.saikou.sozo_tv.utils.autoFitColumns
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.SearchScreenBinding
 import com.saikou.sozo_tv.domain.model.SearchModel
@@ -508,6 +509,9 @@ class SearchScreen : Fragment() {
             openOnSelectedProvider(searchModel)
         }
         binding.vgvSearch.adapter = searchAdapter
+        // 140dp poster + 6dp margin each side. The layout's fixed 4 needed 608dp
+        // and the column is ~470dp on a 720p panel, so the last one was clipped.
+        binding.vgvSearch.autoFitColumns(itemWidthDp = 152, min = 2, max = 6)
     }
 
     /**

@@ -104,5 +104,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:clipChildren="false"
-        android:clipToPadding="false" />
+        android:clipToPadding="false"
+        android:paddingEnd="24dp"
+        android:requiresFadingEdge="horizontal"
+        android:fadingEdgeLength="28dp" />
 </LinearLayout>

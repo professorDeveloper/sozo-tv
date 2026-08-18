@@ -59,20 +59,22 @@
     <dimen name="tv_text_subtitle">18sp</dimen>
 
     <!--
-      On-screen keyboard. Sized against the column it lives in, not guessed:
-      the widest row is ten keys, and the column is 1.7 of a 3.3 weight split.
-      The narrowest real TV is 720p at density 1.5, i.e. 853dp wide, which
-      leaves the column ~439dp — so the row must stay under that.
+      On-screen keyboard. Narrow keys, tall keys: the widest row is ten of them
+      and it shares the screen with the results grid, so width is the scarce
+      dimension and height is free.
 
-        10 x (36 + 2*2) + 12 padding + 16 side padding = 428dp
+        10 x (30 + 2*2) + 12 padding + 16 side padding = 368dp
 
-      No screen-size qualifiers on purpose: `sw` buckets key off the SHORTER
-      edge, and a 1080p TV is only 540dp tall, so every panel would land in the
-      same bucket and the qualifier would do nothing.
+      The narrowest real TV is 720p at density 1.5, i.e. 853dp wide, leaving the
+      keyboard column ~382dp at weight 1.3. Fits there and everywhere larger.
+
+      No screen-size qualifiers: `sw` buckets key off the SHORTER edge, and a
+      1080p TV is only 540dp tall, so every panel lands in the same bucket.
     -->
-    <dimen name="tv_keyboard_key">36dp</dimen>
-    <dimen name="tv_keyboard_key_wide">62dp</dimen>
-    <dimen name="tv_keyboard_key_space">156dp</dimen>
+    <dimen name="tv_keyboard_key_w">30dp</dimen>
+    <dimen name="tv_keyboard_key_h">44dp</dimen>
+    <dimen name="tv_keyboard_key_wide">54dp</dimen>
+    <dimen name="tv_keyboard_key_space">136dp</dimen>
     <dimen name="tv_keyboard_key_gap">2dp</dimen>
     <dimen name="tv_keyboard_key_text">18sp</dimen>
 </resources>

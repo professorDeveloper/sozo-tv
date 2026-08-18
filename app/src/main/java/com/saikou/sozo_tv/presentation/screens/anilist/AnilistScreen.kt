@@ -11,7 +11,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.AnilistEntryAdapter
@@ -21,6 +20,7 @@ import com.saikou.sozo_tv.databinding.AnilistScreenBinding
 import com.saikou.sozo_tv.presentation.activities.MainActivity
 import com.saikou.sozo_tv.presentation.viewmodel.AnilistLibraryState
 import com.saikou.sozo_tv.presentation.viewmodel.AnilistViewModel
+import com.saikou.sozo_tv.utils.autoFitColumns
 import com.saikou.sozo_tv.utils.keepFocusAlive
 import com.saikou.sozo_tv.utils.requestInitialFocus
 import kotlinx.coroutines.launch
@@ -58,8 +58,11 @@ class AnilistScreen : Fragment() {
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         binding.statusRv.adapter = statusAdapter
 
-        binding.entriesRv.layoutManager = GridLayoutManager(requireContext(), GRID_COLUMNS)
         binding.entriesRv.adapter = entryAdapter
+        // 150dp card + 6dp margin each side. Six were forced in regardless of
+        // width, so every cell came out narrower than the card and the rows sat
+        // on top of each other.
+        binding.entriesRv.autoFitColumns(itemWidthDp = 162, min = 2, max = 8)
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {

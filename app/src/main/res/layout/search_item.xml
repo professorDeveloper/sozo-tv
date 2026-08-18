@@ -64,7 +64,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:background="@drawable/anilist_chip_bg"
+                    android:background="@drawable/source_chip_bg"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:paddingHorizontal="6dp"
