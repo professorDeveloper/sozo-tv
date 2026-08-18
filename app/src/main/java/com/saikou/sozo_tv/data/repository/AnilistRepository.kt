@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.data.repository
 
+import android.util.Log
 import com.saikou.sozo_tv.data.remote.anilist.AnilistEntryState
 import com.saikou.sozo_tv.data.remote.anilist.AnilistException
 import com.saikou.sozo_tv.data.remote.anilist.AnilistGraphQlClient
@@ -59,7 +60,10 @@ class AnilistRepository(
     suspend fun syncLinks() {
         when (val result = linkClient.syncLinks(links.pendingChanges())) {
             is ApiResult.Ok -> links.applyRemote(result.body)
-            else -> Unit
+            // Logged, not swallowed. This failing silently is how a 404 from a
+            // wrong path survived every launch looking like "nothing to sync".
+            is ApiResult.Http -> Log.w(TAG, "link sync HTTP ${result.code}: ${result.message}")
+            is ApiResult.Network -> Log.w(TAG, "link sync failed: ${result.cause.message}")
         }
     }
 
@@ -78,9 +82,9 @@ class AnilistRepository(
     }
 
     suspend fun library(): List<AnilistListEntry> {
-        val token = token ?: throw AnilistException("AniList ulanmagan")
+        val token = token ?: throw AnilistException("AniList is not connected")
         val viewer = (_connection.value as? AnilistConnection.Connected)?.viewer
-            ?: throw AnilistException("AniList hisobi aniqlanmadi")
+            ?: throw AnilistException("Could not identify the AniList account")
         return api.mediaList(token, viewer.id)
     }
 
@@ -90,7 +94,7 @@ class AnilistRepository(
     }
 
     suspend fun saveProgress(mediaId: Int, progress: Int, status: String?): AnilistSaveResult {
-        val token = token ?: throw AnilistException("AniList ulanmagan")
+        val token = token ?: throw AnilistException("AniList is not connected")
         return api.saveProgress(token, mediaId, progress, status)
     }
 
@@ -103,6 +107,8 @@ class AnilistRepository(
         else -> AnilistStatus.CURRENT.value
     }
 }
+
+private const val TAG = "AnilistRepository"
 
 sealed class AnilistConnection {
     data object Unknown : AnilistConnection()

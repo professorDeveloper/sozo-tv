@@ -1,32 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  The AniList mark on its rounded brand tile, for the profile rail. The rail's
-  ImageView tints its icon, so the mark is drawn white and the tile carries the
-  colour — a tint applied to a flat vector would repaint the whole badge.
+  The logo on a rounded tile for the profile rail. The official artwork is a
+  square, so the corners are rounded here rather than by editing the mark.
 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="5dp" />
-            <solid android:color="@color/anilist_blue" />
+            <solid android:color="#1E2630" />
         </shape>
     </item>
     <item
-        android:bottom="4dp"
-        android:left="4dp"
-        android:right="4dp"
-        android:top="4dp">
-        <vector
-            android:width="18dp"
-            android:height="18dp"
-            android:viewportWidth="863"
-            android:viewportHeight="605">
-            <path
-                android:fillColor="#FFFFFFFF"
-                android:pathData="M162.4,440.7V0H0v483.7c0,66.9 34.7,101.6 101.6,101.6h318.4l-20.7,-144.6H162.4z" />
-            <path
-                android:fillColor="#FFFFFFFF"
-                android:pathData="M646.5,0H400.3l193.7,585.3h269L646.5,0zM548.1,348.4L471.2,118.6l76.9,229.8z" />
-        </vector>
-    </item>
+        android:bottom="2dp"
+        android:left="2dp"
+        android:right="2dp"
+        android:top="2dp"
+        android:drawable="@drawable/ic_anilist_logo" />
 </layer-list>

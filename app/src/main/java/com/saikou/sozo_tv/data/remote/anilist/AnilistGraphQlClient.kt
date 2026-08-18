@@ -35,24 +35,24 @@ class AnilistGraphQlClient(
         val raw = try {
             okHttpClient.newCall(request).execute().use { it.body.string() }
         } catch (t: Throwable) {
-            throw AnilistException("AniList bilan bog'lanib bo'lmadi", t)
+            throw AnilistException("Could not reach AniList", t)
         }
 
         val body = runCatching { JSONObject(raw) }.getOrNull()
-            ?: throw AnilistException("AniList javobini o'qib bo'lmadi")
+            ?: throw AnilistException("AniList sent a response we could not read")
 
         body.optJSONArray("errors")?.takeIf { it.length() > 0 }?.let { errors ->
             val message = errors.optJSONObject(0)?.optString("message").orEmpty()
-            throw AnilistException(message.ifBlank { "AniList so'rovni rad etdi" })
+            throw AnilistException(message.ifBlank { "AniList rejected the request" })
         }
 
-        body.optJSONObject("data") ?: throw AnilistException("AniList ma'lumot qaytarmadi")
+        body.optJSONObject("data") ?: throw AnilistException("AniList returned no data")
     }
 
     suspend fun viewer(token: String): AnilistViewer {
         val data = run("query { Viewer { id name avatar { large } } }", token = token)
         val v = data.optJSONObject("Viewer")
-            ?: throw AnilistException("AniList hisobi topilmadi")
+            ?: throw AnilistException("AniList did not recognise this account")
         return AnilistViewer(
             id = v.optInt("id"),
             name = v.optString("name"),
@@ -153,7 +153,7 @@ class AnilistGraphQlClient(
         status?.let { variables.put("status", it) }
 
         val saved = run(mutation, variables, token).optJSONObject("SaveMediaListEntry")
-            ?: throw AnilistException("AniList saqlamadi")
+            ?: throw AnilistException("AniList did not save the change")
         return AnilistSaveResult(
             progress = saved.optInt("progress", progress),
             status = saved.optStringOrNull("status") ?: status ?: AnilistStatus.CURRENT.value,
