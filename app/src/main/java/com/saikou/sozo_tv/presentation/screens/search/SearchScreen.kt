@@ -575,6 +575,7 @@ class SearchScreen : Fragment() {
             val q = query.trim()
             // Active provider by default; "All sources" fans out across every
             // installed one (bounded + failure-tolerant in ExtensionEngine).
+            searchAdapter.showSource = searchAllSources
             if (searchAllSources) model.searchAllSources(q) else model.searchAnime(q)
             searchAdapter.setQueryText(q)
             binding.recommendationsTitle.visibility = View.VISIBLE

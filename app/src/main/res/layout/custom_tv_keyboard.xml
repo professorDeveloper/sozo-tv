@@ -23,7 +23,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@color/netflix_background_primary"
-    android:padding="4dp">
+    android:padding="6dp">
 
     <LinearLayout
         android:id="@+id/letters_page"
@@ -41,82 +41,82 @@
         <TextView
             android:id="@+id/key_1"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="1" />
         <TextView
             android:id="@+id/key_2"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="2" />
         <TextView
             android:id="@+id/key_3"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="3" />
         <TextView
             android:id="@+id/key_4"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="4" />
         <TextView
             android:id="@+id/key_5"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="5" />
         <TextView
             android:id="@+id/key_6"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="6" />
         <TextView
             android:id="@+id/key_7"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="7" />
         <TextView
             android:id="@+id/key_8"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="8" />
         <TextView
             android:id="@+id/key_9"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="9" />
         <TextView
             android:id="@+id/key_0"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="0" />
     </LinearLayout>
 
@@ -130,82 +130,82 @@
         <TextView
             android:id="@+id/key_q"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="q" />
         <TextView
             android:id="@+id/key_w"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="w" />
         <TextView
             android:id="@+id/key_e"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="e" />
         <TextView
             android:id="@+id/key_r"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="r" />
         <TextView
             android:id="@+id/key_t"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="t" />
         <TextView
             android:id="@+id/key_y"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="y" />
         <TextView
             android:id="@+id/key_u"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="u" />
         <TextView
             android:id="@+id/key_i"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="i" />
         <TextView
             android:id="@+id/key_o"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="o" />
         <TextView
             android:id="@+id/key_p"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="p" />
     </LinearLayout>
 
@@ -219,74 +219,74 @@
         <TextView
             android:id="@+id/key_a"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="a" />
         <TextView
             android:id="@+id/key_s"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="s" />
         <TextView
             android:id="@+id/key_d"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="d" />
         <TextView
             android:id="@+id/key_f"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="f" />
         <TextView
             android:id="@+id/key_g"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="g" />
         <TextView
             android:id="@+id/key_h"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="h" />
         <TextView
             android:id="@+id/key_j"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="j" />
         <TextView
             android:id="@+id/key_k"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="k" />
         <TextView
             android:id="@+id/key_l"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="l" />
     </LinearLayout>
 
@@ -300,58 +300,58 @@
         <TextView
             android:id="@+id/key_z"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="z" />
         <TextView
             android:id="@+id/key_x"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="x" />
         <TextView
             android:id="@+id/key_c"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="c" />
         <TextView
             android:id="@+id/key_v"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="v" />
         <TextView
             android:id="@+id/key_b"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="b" />
         <TextView
             android:id="@+id/key_n"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="n" />
         <TextView
             android:id="@+id/key_m"
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="m" />
     </LinearLayout>
 
@@ -373,59 +373,59 @@
 
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="&#39;" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="&quot;" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text=":" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text=";" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="-" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="_" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="." />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="," />
     </LinearLayout>
 
@@ -438,59 +438,59 @@
 
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="!" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="?" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="(" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text=")" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="[" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="]" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="&amp;" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="#" />
     </LinearLayout>
 
@@ -503,59 +503,59 @@
 
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="@" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="+" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="*" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="=" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="%" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="$" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="/" />
         <TextView
             style="@style/KeyboardKey"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
-            android:textSize="@dimen/tv_text_body"
+            android:layout_width="@dimen/tv_keyboard_key"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
+            android:textSize="@dimen/tv_keyboard_key_text"
             android:text="~" />
     </LinearLayout>
 
@@ -570,34 +570,34 @@
         <TextView
             android:id="@+id/key_toggle"
             style="@style/KeyboardKey"
-            android:layout_width="56dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
+            android:layout_width="@dimen/tv_keyboard_key_wide"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
             android:textSize="@dimen/tv_text_label"
             android:text="123#" />
         <TextView
             android:id="@+id/key_space"
             style="@style/KeyboardKey"
-            android:layout_width="140dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
+            android:layout_width="@dimen/tv_keyboard_key_space"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
             android:textSize="@dimen/tv_text_label"
             android:text="SPACE" />
         <TextView
             android:id="@+id/key_backspace"
             style="@style/KeyboardKey"
-            android:layout_width="56dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
+            android:layout_width="@dimen/tv_keyboard_key_wide"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
             android:textSize="@dimen/tv_text_label"
             android:text="DEL" />
 
         <TextView
             android:id="@+id/key_clear"
             style="@style/KeyboardKey"
-            android:layout_width="56dp"
-            android:layout_height="32dp"
-            android:layout_margin="1dp"
+            android:layout_width="@dimen/tv_keyboard_key_wide"
+            android:layout_height="@dimen/tv_keyboard_key"
+            android:layout_margin="@dimen/tv_keyboard_key_gap"
             android:textSize="@dimen/tv_text_label"
             android:text="CLR" />
     </LinearLayout>
