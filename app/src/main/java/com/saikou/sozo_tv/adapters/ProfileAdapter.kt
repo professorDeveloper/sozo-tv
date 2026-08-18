@@ -34,6 +34,9 @@ class ProfileAdapter(
     private lateinit var onSectionClick: (SectionItem, Int) -> Unit
 
     private var selectedSectionIndex: Int = RecyclerView.NO_POSITION
+
+    /** Consumed by the first bind of the selected row; see bind(). */
+    private var focusPending: Boolean = true
     private var pendingNav: Runnable? = null
 
     fun setOnExitClickListener(listener: () -> Unit) {
@@ -116,18 +119,26 @@ class ProfileAdapter(
             val isSelected = sectionPosition == selectedSectionIndex
 
 
-            if (isSelected) {
+            // Focus is placed ONCE, on the first bind of the selected row. Requesting it
+            // on every bind dragged focus back to the rail whenever a row rebound, so
+            // moving right into the content pane did not stick.
+            if (isSelected && focusPending) {
+                focusPending = false
                 binding.root.requestFocus()
-                setSectionSelected(sectionPosition)
-
-            } else {
-                binding.root.clearFocus()
             }
+            // No setSectionSelected() here: it calls notifyItemChanged, and mutating the
+            // adapter from inside bind runs during layout. The focus listener below is
+            // what owns selection.
+            // No clearFocus() either — clearing focus on a recycled view strands the
+            // d-pad, since Android does not hand it anywhere afterwards.
 
             binding.root.isFocusable = true
             binding.root.isFocusableInTouchMode = true
 
-            binding.root.applyTvFocusScale(scale = 1.06f) { _, hasFocus ->
+            // These rows are full-width, so a scale-up grows them past the rail's edge
+            // and over the screen border. The white focused background is the
+            // affordance; 1f keeps the z-lift and the callback without the overflow.
+            binding.root.applyTvFocusScale(scale = 1f) { _, hasFocus ->
                 if (hasFocus) {
                     setSectionSelected(sectionPosition)
                     // Debounce: passing focus THROUGH rail items must not load every screen
@@ -252,6 +263,14 @@ class ProfileAdapter(
         }
         accounts[0] = account
         notifyItemChanged(1)
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView)
+        // The pending navigation outlives the view it was scheduled on. Left to run,
+        // it reaches an activity that is already tearing down.
+        pendingNav?.let { recyclerView.removeCallbacks(it) }
+        pendingNav = null
     }
 
     fun setSectionSelected(index: Int) {

@@ -23,6 +23,8 @@ import androidx.annotation.OptIn
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import com.saikou.sozo_tv.domain.player.VideoOptionGroups
+import com.saikou.sozo_tv.adapters.VideoServersAdapter
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.data.repository.AnilistTracker
 import org.koin.android.ext.android.inject
@@ -495,17 +497,64 @@ class SeriesPlayerScreen : Fragment() {
         setupPlayerSettings()
 
         model.videoOptionsData.observe(viewLifecycleOwner) { videoOptions ->
-            binding.pvPlayer.controller.binding.exoQuality.setOnClickListener {
-                if (videoOptions.isNullOrEmpty()) return@setOnClickListener
-                val dialog = VideoQualityDialog(videoOptions, model.currentSelectedVideoOptionIndex)
-                dialog.setYesContinueListener { _, i ->
-                    if (i != model.currentSelectedVideoOptionIndex) {
-                        ignoreNextEpisodeSuccess = true
-                        model.currentSelectedVideoOptionIndex = i
-                        model.updateQualityByIndex()
-                    }
+            val controls = binding.pvPlayer.controller.binding
+            val options = videoOptions.orEmpty()
+            val servers = VideoOptionGroups.servers(options)
+
+            // Only worth a button when there is a choice to make.
+            controls.exoServer.isVisible = servers.size > 1
+
+            controls.exoServer.setOnClickListener {
+                if (servers.size < 2) return@setOnClickListener
+                val current = VideoOptionGroups.serverOf(
+                    options, model.currentSelectedVideoOptionIndex,
+                )
+                val rows = servers.map { name ->
+                    VideoServersAdapter.ServerRow(
+                        name = name,
+                        qualities = VideoOptionGroups.indicesFor(options, name)
+                            .mapNotNull { options[it].resolution.trim().ifBlank { null } }
+                            .distinct()
+                            .joinToString(" · "),
+                    )
                 }
-                dialog.show(parentFragmentManager, "VideoQualityDialog")
+                VideoServerDialog(rows, servers.indexOf(current).coerceAtLeast(0)).apply {
+                    setOnServerPicked { picked ->
+                        val target = VideoOptionGroups.switchTo(
+                            options, model.currentSelectedVideoOptionIndex, picked,
+                        )
+                        if (target != model.currentSelectedVideoOptionIndex) {
+                            ignoreNextEpisodeSuccess = true
+                            model.currentSelectedVideoOptionIndex = target
+                            model.updateQualityByIndex()
+                        }
+                    }
+                }.show(parentFragmentManager, "VideoServerDialog")
+            }
+
+            controls.exoQuality.setOnClickListener {
+                if (options.isEmpty()) return@setOnClickListener
+                // Scoped to the current server: a quality list spanning hosts means
+                // picking a resolution silently moves you to a different one.
+                val currentServer = VideoOptionGroups.serverOf(
+                    options, model.currentSelectedVideoOptionIndex,
+                )
+                val indices = VideoOptionGroups.indicesFor(options, currentServer)
+                    .ifEmpty { options.indices.toList() }
+                val subset = indices.map { options[it] }
+                val selected = indices.indexOf(model.currentSelectedVideoOptionIndex)
+                    .coerceAtLeast(0)
+
+                VideoQualityDialog(subset, selected).apply {
+                    setYesContinueListener { _, i ->
+                        val target = indices.getOrNull(i) ?: return@setYesContinueListener
+                        if (target != model.currentSelectedVideoOptionIndex) {
+                            ignoreNextEpisodeSuccess = true
+                            model.currentSelectedVideoOptionIndex = target
+                            model.updateQualityByIndex()
+                        }
+                    }
+                }.show(parentFragmentManager, "VideoQualityDialog")
             }
         }
 
