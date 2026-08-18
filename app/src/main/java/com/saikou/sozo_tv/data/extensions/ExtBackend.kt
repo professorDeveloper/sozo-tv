@@ -38,7 +38,7 @@ class AniyomiBackend(
     override fun listReposJson() = repos.listReposJson()
     override fun addRepo(url: String, progress: ((Int, Int) -> Unit)?) = repos.addRepo(url, progress)
     override fun removeRepo(url: String) = repos.removeRepo(url)
-    override fun checkUpdates(progress: ((Int, Int) -> Unit)?) = JSONObject()
+    override fun checkUpdates(progress: ((Int, Int) -> Unit)?) = repos.checkUpdates(progress)
 
     override suspend fun getMainPageJson(provider: String, page: Int) =
         host.getMainPageJson(bare(provider), page)

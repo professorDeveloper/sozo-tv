@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.engine.aniyomi
 
+import com.saikou.sozo_tv.utils.SOZO_USER_AGENT
 import android.content.Context
 import android.util.Log
 import org.json.JSONArray
@@ -11,8 +12,7 @@ class AniyomiRepoManager(private val context: Context, private val host: Aniyomi
 
     companion object {
         private const val TAG = "AniyomiRepo"
-        private const val UA =
-            "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"
+        private val UA = SOZO_USER_AGENT
     }
 
     private val prefs = context.getSharedPreferences("aniyomi", Context.MODE_PRIVATE)
@@ -101,6 +101,43 @@ class AniyomiRepoManager(private val context: Context, private val host: Aniyomi
             if (!repos.contains(v)) { repos.add(v); persist(repos) }
         }
         return result
+    }
+
+    /**
+     * Re-syncs every saved repo so newly published sources are picked up.
+     *
+     * Aniyomi's index carries no per-source version, so there is nothing to
+     * compare against — refreshing each repo and diffing the resulting source
+     * list is the only update signal available. Previously this returned an
+     * empty result and Aniyomi sources never updated at all.
+     */
+    fun checkUpdates(progress: ((Int, Int) -> Unit)? = null): JSONObject {
+        val repos = savedRepos()
+        val before = providerNames()
+        progress?.invoke(0, repos.size)
+        repos.forEachIndexed { index, repo ->
+            runCatching { addRepoInternal(repo) }
+            progress?.invoke(index + 1, repos.size)
+        }
+        val added = (providerNames() - before).toList()
+        Log.i(TAG, "checkUpdates: ${repos.size} repo(s) refreshed, ${added.size} new source(s)")
+        return JSONObject().apply {
+            put("updated", JSONArray(added))
+            put("count", added.size)
+        }
+    }
+
+    private fun providerNames(): Set<String> {
+        val meta = loadMeta()
+        val names = HashSet<String>()
+        meta.keys().forEach { key ->
+            val entries = meta.optJSONArray(key) ?: return@forEach
+            for (i in 0 until entries.length()) {
+                entries.optJSONObject(i)?.optString("name")
+                    ?.takeIf { it.isNotEmpty() }?.let(names::add)
+            }
+        }
+        return names
     }
 
     private fun addRepoInternal(input: String, progress: ((Int, Int) -> Unit)? = null): JSONObject {
