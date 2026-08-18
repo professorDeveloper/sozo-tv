@@ -30,6 +30,23 @@
             app:show_subtitle_button="true"
             app:show_timeout="5000"
             app:show_vr_button="true" />
+        <!-- Placed before loading_layout so the opaque resolve overlay covers it when
+             both would otherwise be up. -->
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/bufferingIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorColor="@color/netflix_red"
+            app:indicatorSize="56dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:trackColor="#33FFFFFF"
+            app:trackThickness="4dp" />
+
         <LinearLayout
             android:id="@+id/loading_layout"
             android:layout_width="match_parent"

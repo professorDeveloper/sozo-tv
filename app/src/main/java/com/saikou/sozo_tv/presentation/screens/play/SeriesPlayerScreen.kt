@@ -241,6 +241,18 @@ class SeriesPlayerScreen : Fragment() {
         }.getOrDefault(originalUrl)
     }
 
+    /**
+     * The spinner shown while the stream stalls.
+     *
+     * Between the resolve overlay coming down and the first frame arriving there
+     * was no feedback at all — a black screen at 00:00 that looked like a dead
+     * player. Suppressed while the resolve overlay is up so the two don't stack.
+     */
+    private fun showBuffering(show: Boolean) {
+        val b = _binding ?: return
+        b.bufferingIndicator.isVisible = show && !b.loadingLayout.isVisible
+    }
+
     private fun resetCountdownState() {
         countdownShown = false
         isCountdownActive = false
@@ -402,6 +414,7 @@ class SeriesPlayerScreen : Fragment() {
         player.addListener(object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
                 Log.e("PLAYER_ERR", "code=${error.errorCodeName}", error)
+                showBuffering(false)
                 Bugsnag.notify(Exception("GGGG:${model.seriesResponse?.urlobj} || ${model.parser.name}" + error.message))
             }
 
@@ -409,6 +422,7 @@ class SeriesPlayerScreen : Fragment() {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 when (playbackState) {
                     Player.STATE_READY -> {
+                        showBuffering(false)
                         // Unconditional: the countdown/auto-advance tracker is what
                         // drives "next episode", and history playback needs it too.
                         resetCountdownState()
@@ -437,9 +451,11 @@ class SeriesPlayerScreen : Fragment() {
 
                     Player.STATE_BUFFERING -> {
                         Log.d("GGG", "Buffering... ${player.currentPosition} / ${player.duration}")
+                        showBuffering(true)
                     }
 
                     Player.STATE_ENDED -> {
+                        showBuffering(false)
                         if (player.duration > 0) {
                             stopProgressTracking()
                             if (!isCountdownActive) playNextEpisodeAutomatically()
@@ -541,10 +557,14 @@ class SeriesPlayerScreen : Fragment() {
                 val rows = servers.map { name ->
                     VideoServersAdapter.ServerRow(
                         name = name,
+                        // The raw resolution label repeats the host ("Vidstream-2 [Sub] ·
+                        // 1080p"), so listing it verbatim printed the server name once per
+                        // quality. Pull out the number instead.
                         qualities = VideoOptionGroups.indicesFor(options, name)
-                            .mapNotNull { options[it].resolution.trim().ifBlank { null } }
+                            .mapNotNull { VideoOptionGroups.resolutionOf(options[it]) }
                             .distinct()
-                            .joinToString(" · "),
+                            .sortedDescending()
+                            .joinToString(" · ") { "${it}p" },
                     )
                 }
                 VideoServerDialog(rows, servers.indexOf(current).coerceAtLeast(0)).apply {
