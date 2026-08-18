@@ -181,7 +181,13 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
         profileAdapter.setSectionSelected(if (isSettingsOpen) 3 else 0)
 
         profileAdapter.sectionClickListener { _, position ->
-            val navController = findNavController(R.id.nav_profile)
+            // The rail navigates 300ms after focus settles, so this can fire once the
+            // activity is already finishing, or before the NavHostFragment has been
+            // created. findNavController throws in both cases, which is what crashed
+            // the app on the way out of this screen.
+            if (isFinishing || isDestroyed) return@sectionClickListener
+            val navController = runCatching { findNavController(R.id.nav_profile) }.getOrNull()
+                ?: return@sectionClickListener
             val currentPageId = navController.currentDestination?.id
             backPressCount = 2
 
