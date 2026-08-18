@@ -494,12 +494,14 @@ class SearchScreen : Fragment() {
         if (!searchAllSources) return getString(R.string.search_results_for, query)
 
         val progress = model.searchProgress.value
+        // One line, because the header is a single ellipsized row: the old
+        // phrasing wrapped and then truncated mid-word.
         val scope = if (model.loading.value) {
-            "${progress.answered} source(s) answered…"
+            "searching ${progress.answered}…"
         } else {
-            "${progress.sourcesWithResults} of ${progress.answered} source(s)"
+            "${progress.sourcesWithResults}/${progress.answered} sources"
         }
-        return "All sources — \"$query\"  •  $scope  •  $count"
+        return "\"$query\" · $count results · $scope"
     }
 
     private fun setupRecyclerView() {
@@ -511,7 +513,7 @@ class SearchScreen : Fragment() {
         binding.vgvSearch.adapter = searchAdapter
         // 140dp poster + 6dp margin each side. The layout's fixed 4 needed 608dp
         // and the column is ~470dp on a 720p panel, so the last one was clipped.
-        binding.vgvSearch.autoFitColumns(itemWidthDp = 152, min = 2, max = 6)
+        binding.vgvSearch.autoFitColumns(itemWidthDp = 125, min = 3, max = 6)
     }
 
     /**
@@ -584,9 +586,9 @@ class SearchScreen : Fragment() {
             searchAdapter.setQueryText(q)
             binding.recommendationsTitle.visibility = View.VISIBLE
             binding.recommendationsTitle.text = if (searchAllSources) {
-                "All sources — \"$query\""
+                "\"$query\" · searching all sources…"
             } else {
-                "Search Results for \"$query\""
+                "Results for \"$query\""
             }
         }
     }

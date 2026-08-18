@@ -166,7 +166,7 @@
     <string name="starting_voice_search">Starting voice search…</string>
     <string name="voice_search_not_available">Voice search not available</string>
     <string name="your_search_recommendations">Your Search Recommendations</string>
-    <string name="search_results_for">Search Results for \"%1$s\"</string>
+    <string name="search_results_for">Results for \"%1$s\"</string>
     <string name="app_icon_banner_style"><![CDATA[App Icon & Banner Style]]></string>
     <string name="choose_your_preferred_banner_appearance">Choose your preferred banner appearance</string>
     <string name="current_selected_anime_source">Anime: %s</string>
@@ -198,4 +198,22 @@
     <string name="player_quality_subtitle">Pick the resolution for the current server.</string>
     <string name="player_server_title">Server</string>
     <string name="player_server_subtitle">Choose which host streams this episode. Quality is picked separately.</string>
+    <string name="sources_update">Update sources</string>
+    <string name="sources_updating">Updating…</string>
+    <string name="sources_checking_updates">Checking for source updates…</string>
+    <string name="sources_updating_progress">Updating repos… %1$d/%2$d</string>
+    <string name="sources_update_failed">Update failed: %1$s</string>
+    <string name="sources_up_to_date">All sources are up to date</string>
+    <plurals name="sources_updated">
+        <item quantity="one">%1$d source updated</item>
+        <item quantity="other">%1$d sources updated</item>
+    </plurals>
+    <plurals name="source_count">
+        <item quantity="one">%1$d source</item>
+        <item quantity="other">%1$d sources</item>
+    </plurals>
+    <plurals name="repo_count">
+        <item quantity="one">%1$d repo</item>
+        <item quantity="other">%1$d repos</item>
+    </plurals>
 </resources>

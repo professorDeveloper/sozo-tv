@@ -49,14 +49,15 @@ class FilterDialog : DialogFragment() {
         binding.sortFilter.apply {
             setSpinnerAdapter(CustomSpinnerAdapter(-1, this).apply {
                 this.setOnSpinnerItemSelectedListen {
-                    binding.sortFilter.hint = "Selected Sort: ${it.title}"
-                    selectedSort = it.title.toString()
+                    binding.sortFilter.hint = "Sort: ${it.title}"
+                    // The picker shows a label; the API takes the raw enum.
+                    selectedSort = LocalData.sortValue(it.title.toString())
                 }
                 var findIndex = -1
+                val selectedLabel = selectedSort?.toString()?.let(LocalData::sortLabel)
                 LocalData.sortSpinner.onEachIndexed { index, mySpinnerItem ->
-                    if (selectedSort.toString() == mySpinnerItem.title) {
+                    if (selectedLabel == mySpinnerItem.title) {
                         findIndex = index
-
                     }
                 }
                 if (findIndex != -1) {
