@@ -16,6 +16,8 @@ import com.saikou.sozo_tv.data.repository.AnilistRepository
 import com.saikou.sozo_tv.data.repository.AnilistSourceRegistry
 import com.saikou.sozo_tv.data.repository.AnilistTracker
 import com.saikou.sozo_tv.data.repository.DeviceAuthRepository
+import com.saikou.sozo_tv.data.remote.remote.RemoteControlClient
+import com.saikou.sozo_tv.data.repository.RemoteControlManager
 import com.saikou.sozo_tv.data.repository.UserListsRepository
 import com.saikou.sozo_tv.data.repository.WatchHistorySyncRepository
 import okhttp3.OkHttpClient
@@ -57,6 +59,18 @@ val NetworkModule = module {
         )
     }
     single { UserListsRepository(context = androidContext(), client = get()) }
+
+    // The phone's remote. Same auth client and per-request token as the other
+    // authenticated APIs, so a mid-session refresh is picked up on reconnect.
+    single {
+        RemoteControlClient(
+            okHttpClient = get(named("authOkHttp")),
+            gson = get(),
+            baseUrl = BuildConfig.SOZO_API_BASE_URL,
+            tokenProvider = { get<DeviceAuthRepository>().accessToken() },
+        )
+    }
+    single { RemoteControlManager(client = get(), store = get()) }
 
     single {
         WatchHistorySyncClient(
