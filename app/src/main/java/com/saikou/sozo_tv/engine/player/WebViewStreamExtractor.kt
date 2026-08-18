@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.engine.player
 
+import com.saikou.sozo_tv.utils.SOZO_USER_AGENT
 import android.content.Context
 import android.net.Uri
 import android.os.Handler
@@ -31,9 +32,7 @@ data class ExtractedStream(
  */
 object WebViewStreamExtractor {
 
-    private const val MOBILE_UA =
-        "Mozilla/5.0 (Linux; Android 13; SM-G998B) AppleWebKit/537.36 " +
-            "(KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36"
+    private val MOBILE_UA = SOZO_USER_AGENT
 
     private const val SETTLE_MS = 3_000L
 

@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.viewmodel
 
+import com.saikou.sozo_tv.utils.SOZO_USER_AGENT
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -314,7 +315,7 @@ class PlayAnimeViewModel(
 
             SOURCE_ANIMEWORLD -> {
                 val headers = linkedMapOf(
-                    "User-Agent" to "Mozilla/5.0",
+                    "User-Agent" to SOZO_USER_AGENT,
                     "Accept" to "*/*",
                     "Accept-Language" to "en-US,en;q=0.9,uz-UZ;q=0.8,uz;q=0.7",
                     "Connection" to "keep-alive",

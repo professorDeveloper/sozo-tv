@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.play
 
+import com.saikou.sozo_tv.utils.SOZO_USER_AGENT
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -154,6 +155,12 @@ class SeriesPlayerScreen : Fragment() {
 
                 headers.forEach { (k, v) ->
                     b.header(k, v)
+                }
+                // An extractor that returns no User-Agent used to let OkHttp send
+                // its own, which Cloudflare rejects outright and which never
+                // matches the cf_clearance earned during extraction.
+                if (headers.keys.none { it.equals("User-Agent", true) }) {
+                    b.header("User-Agent", SOZO_USER_AGENT)
                 }
 
                 val req = b.build()
@@ -812,7 +819,7 @@ class SeriesPlayerScreen : Fragment() {
 
                         val request = Request.Builder()
                             .url(subUrl)
-                            .header("User-Agent", "Mozilla/5.0")
+                            .header("User-Agent", SOZO_USER_AGENT)
                             .build()
 
                         client.newCall(request).execute().use { response ->

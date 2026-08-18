@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.engine.server
 
+import com.saikou.sozo_tv.utils.SOZO_USER_AGENT
 import android.net.Uri
 import com.saikou.sozo_tv.BuildConfig
 import java.net.HttpURLConnection
@@ -48,7 +49,6 @@ class ApisozoClient(private val baseUrl: String = BuildConfig.APISOZO_BASE_URL) 
     }
 
     companion object {
-        private const val UA =
-            "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+        private val UA = SOZO_USER_AGENT
     }
 }
