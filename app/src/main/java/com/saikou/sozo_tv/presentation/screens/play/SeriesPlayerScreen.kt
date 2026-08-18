@@ -1,5 +1,7 @@
 package com.saikou.sozo_tv.presentation.screens.play
 
+import eu.kanade.tachiyomi.network.interceptor.CloudflareInterceptor
+import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.utils.SOZO_USER_AGENT
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
@@ -168,7 +170,10 @@ class SeriesPlayerScreen : Fragment() {
                 if (!resp.isSuccessful) {
                     Log.w(
                         "PlayerHttp",
-                        "${resp.code} ${req.url}\n  sent: ${req.headers.names().sorted()}" +
+                        // Values, not just names: a 403 usually comes down to WHICH
+                        // Referer or UA went out, and names alone never showed that.
+                        "${resp.code} ${req.url}\n  sent: " +
+                            req.headers.joinToString("\n        ") { (k, v) -> "$k: $v" } +
                             "\n  got: ${resp.headers}"
                     )
                 }
@@ -176,8 +181,14 @@ class SeriesPlayerScreen : Fragment() {
             }.connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS)
             // Share the global WebView cookie store so the cf_clearance / session cookies that
             // NativeFetch + CloudflareInterceptor solved during resolveMedia are replayed on the
-            // stream request — fixes the broad Cloudflare 403 class on the video fetch.
+            // stream request.
             .cookieJar(eu.kanade.tachiyomi.network.AndroidCookieJar())
+            // …but replaying is useless when nothing ever solved a challenge for THIS host.
+            // The extractor talks to the site; the manifest and segments come from a separate
+            // CDN the plugin never touches, so no clearance for it exists and the CDN answered
+            // 403 with Server: cloudflare. Solving it here, on the request that actually hits
+            // the CDN, is what makes the shared jar worth anything.
+            .addInterceptor(cloudflareSolver())
             .ignoreAllSSLErrors().build()
     }
 
@@ -191,6 +202,16 @@ class SeriesPlayerScreen : Fragment() {
         dataSourceFactory = DefaultDataSource.Factory(requireContext(), okFactory)
     }
 
+    /**
+     * Solves a Cloudflare challenge in a WebView and stores the clearance in the
+     * shared cookie jar. Only fires on 403/503 responses that carry a Cloudflare
+     * Server header, so ordinary failures pass straight through.
+     */
+    private fun cloudflareSolver() = CloudflareInterceptor(
+        MyApp.context.applicationContext,
+        eu.kanade.tachiyomi.network.AndroidCookieJar(),
+    ) { SOZO_USER_AGENT }
+
     // Loopback HLS proxy for IP/cookie-bound + RC4-signed CDNs (uzmovi/uzdown). Uses its own
     // OkHttp client sharing the global WebView cookie jar so every upstream socket (manifest,
     // variants, segments, keys) carries the same IP + cf_clearance + signed headers.
@@ -200,6 +221,7 @@ class SeriesPlayerScreen : Fragment() {
             OkHttpClient.Builder()
                 .followRedirects(true).followSslRedirects(true)
                 .cookieJar(eu.kanade.tachiyomi.network.AndroidCookieJar())
+                .addInterceptor(cloudflareSolver())
                 .connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS)
                 .ignoreAllSSLErrors().build()
         )
