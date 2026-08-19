@@ -572,6 +572,9 @@ class SeriesPlayerScreen : Fragment() {
         })
 
         binding.pvPlayer.player = player
+        // Remotes with transport keys reach episode navigation through these.
+        binding.pvPlayer.onNextEpisode = { playNextEpisodeAutomatically() }
+        binding.pvPlayer.onPreviousEpisode = { playPreviousEpisode() }
         observeRemote()
         binding.pvPlayer.controller.binding.exoNextTenContainer.setOnClickListener {
             player.seekTo(player.currentPosition + 10_000)
@@ -854,14 +857,17 @@ class SeriesPlayerScreen : Fragment() {
             variants.forEach {
                 add(
                     VideoServersAdapter.ServerRow(
-                        name = "${'$'}{it.height}p",
+                        name = "${it.height}p",
                         qualities = NativeQualities.bitrateLabel(it.bitrate),
                     )
                 )
             }
         }
+        // By identity, not by height: an adaptive stream routinely carries the same
+        // resolution at two bitrates, and matching on height alone put the tick on
+        // whichever came first.
         val selected = selectedNativeQuality
-            ?.let { current -> variants.indexOfFirst { it.height == current.height } + 1 }
+            ?.let { variants.indexOf(it) + 1 }
             ?.coerceAtLeast(0) ?: 0
 
         VideoServerDialog(

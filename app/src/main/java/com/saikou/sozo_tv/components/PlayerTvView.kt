@@ -27,8 +27,24 @@ class PlayerTvView @JvmOverloads constructor(
     private var lastFocusedView: View? = null
     private var focusRestoreInstalled = false
 
+    /** Episode navigation lives in the fragment; the remote's transport keys reach it here. */
+    var onNextEpisode: (() -> Unit)? = null
+    var onPreviousEpisode: (() -> Unit)? = null
+
+    private var seekRunDirection = 0
+    private var seekRunCount = 0
+    private var seekRunLastAt = 0L
+
     private companion object {
         const val SEEK_STEP_MS = 10_000L
+
+        /**
+         * Held left or right accelerates. Ten seconds a press is right for finding a line of
+         * dialogue again and hopeless for skipping an opening, and a remote has nothing else
+         * to offer for the second case.
+         */
+        val SEEK_LADDER_MS = longArrayOf(10_000L, 30_000L, 60_000L, 120_000L)
+        const val SEEK_RUN_GAP_MS = 700L
     }
 
     @OptIn(UnstableApi::class)
@@ -63,6 +79,12 @@ class PlayerTvView @JvmOverloads constructor(
 //        }
 
         if (controller.isVisible) {
+            // Back belongs to the controls while they are up. Leaving it to the activity meant
+            // one press of the most-used key on the remote left playback entirely.
+            if (event.keyCode == KeyEvent.KEYCODE_BACK) {
+                if (event.action == KeyEvent.ACTION_UP) hideController()
+                return true
+            }
             val currentFocus = controller.findFocus()
             if (currentFocus != null) {
                 lastFocusedView = currentFocus
@@ -80,18 +102,74 @@ class PlayerTvView @JvmOverloads constructor(
         if (event.action != KeyEvent.ACTION_DOWN) return super.dispatchKeyEvent(event)
 
         return when (event.keyCode) {
-            KeyEvent.KEYCODE_DPAD_LEFT -> {
-                seekByAndReveal(-SEEK_STEP_MS)
+            KeyEvent.KEYCODE_DPAD_LEFT,
+            KeyEvent.KEYCODE_MEDIA_REWIND -> {
+                seekByAndReveal(-stepFor(-1))
                 true
             }
 
-            KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                seekByAndReveal(SEEK_STEP_MS)
+            KeyEvent.KEYCODE_DPAD_RIGHT,
+            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+                seekByAndReveal(stepFor(1))
+                true
+            }
+
+            // With the controls hidden, OK did nothing but bring them up — so the most
+            // obvious button on the remote was the one that could not pause.
+            KeyEvent.KEYCODE_DPAD_CENTER,
+            KeyEvent.KEYCODE_ENTER,
+            KeyEvent.KEYCODE_SPACE,
+            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
+                togglePlayback()
+                true
+            }
+
+            KeyEvent.KEYCODE_MEDIA_PLAY -> {
+                player.play()
+                showController()
+                true
+            }
+
+            KeyEvent.KEYCODE_MEDIA_PAUSE -> {
+                player.pause()
+                showController()
+                true
+            }
+
+            KeyEvent.KEYCODE_MEDIA_NEXT -> {
+                onNextEpisode?.invoke() ?: return super.dispatchKeyEvent(event)
+                true
+            }
+
+            KeyEvent.KEYCODE_MEDIA_PREVIOUS -> {
+                onPreviousEpisode?.invoke() ?: return super.dispatchKeyEvent(event)
                 true
             }
 
             else -> super.dispatchKeyEvent(event)
         }
+    }
+
+    private fun togglePlayback() {
+        val p = player ?: return
+        if (p.isPlaying) p.pause() else p.play()
+        showController()
+    }
+
+    /**
+     * The step grows while presses keep coming, and drops back the moment they stop — so a
+     * single tap is always ten seconds and a held key covers a whole opening.
+     */
+    private fun stepFor(direction: Int): Long {
+        val now = android.os.SystemClock.uptimeMillis()
+        if (direction != seekRunDirection || now - seekRunLastAt > SEEK_RUN_GAP_MS) {
+            seekRunDirection = direction
+            seekRunCount = 0
+        }
+        seekRunLastAt = now
+        val step = SEEK_LADDER_MS[seekRunCount.coerceAtMost(SEEK_LADDER_MS.lastIndex)]
+        seekRunCount++
+        return step * direction
     }
 
     private fun seekByAndReveal(deltaMs: Long) {
