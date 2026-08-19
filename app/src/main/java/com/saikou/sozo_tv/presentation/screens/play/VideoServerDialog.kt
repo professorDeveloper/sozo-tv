@@ -13,15 +13,23 @@ import com.saikou.sozo_tv.databinding.DialogVideoQualityBinding
 class VideoServerDialog(
     private val servers: List<VideoServersAdapter.ServerRow>,
     private val currentIndex: Int,
+    private val titleRes: Int = R.string.player_server_title,
+    private val subtitleRes: Int = R.string.player_server_subtitle,
 ) : DialogFragment() {
 
     private var _binding: DialogVideoQualityBinding? = null
     private val binding get() = _binding!!
 
     private var onPick: ((String) -> Unit)? = null
+    private var onPickIndex: ((Int) -> Unit)? = null
 
     fun setOnServerPicked(listener: (String) -> Unit) {
         onPick = listener
+    }
+
+    /** For rows whose label is not itself the answer. */
+    fun setOnRowPicked(listener: (Int) -> Unit) {
+        onPickIndex = listener
     }
 
     override fun onCreateView(
@@ -38,11 +46,12 @@ class VideoServerDialog(
         dialog?.window?.setBackgroundDrawable(ColorDrawable(0))
         dialog?.window?.setWindowAnimations(R.style.DialogAnimation)
 
-        binding.dialogTitle.text = getString(R.string.player_server_title)
-        binding.dialogSubtitle.text = getString(R.string.player_server_subtitle)
+        binding.dialogTitle.text = getString(titleRes)
+        binding.dialogSubtitle.text = getString(subtitleRes)
 
-        binding.videOptionRv.adapter = VideoServersAdapter(servers, currentIndex) { row ->
+        binding.videOptionRv.adapter = VideoServersAdapter(servers, currentIndex) { row, index ->
             onPick?.invoke(row.name)
+            onPickIndex?.invoke(index)
             dismiss()
         }
 

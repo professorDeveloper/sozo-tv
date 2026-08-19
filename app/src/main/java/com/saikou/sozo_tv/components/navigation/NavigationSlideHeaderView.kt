@@ -11,17 +11,30 @@ class NavigationSlideHeaderView @JvmOverloads constructor(
     private var openListener: (() -> Unit)? = null
     private var closeListener: (() -> Unit)? = null
 
+    /** Starts true because the header's own layout is drawn expanded. */
+    private var opened = true
 
+
+    /**
+     * A listener registered after the state already changed is applied at once.
+     *
+     * The rail collapses while the menu is being built, long before the host has anything to
+     * register, so the first close() used to fire into a null listener: the items collapsed and the
+     * header stayed expanded, leaving the rail half open until it was focused once.
+     */
     fun setOnOpenListener(onOpen: () -> Unit) {
         openListener = onOpen
+        if (opened) onOpen()
     }
 
     fun setOnCloseListener(onClose: () -> Unit) {
         closeListener = onClose
+        if (!opened) onClose()
     }
 
 
     fun open() {
+        opened = true
         isFocusable = true
         isFocusableInTouchMode = true
 
@@ -29,6 +42,7 @@ class NavigationSlideHeaderView @JvmOverloads constructor(
     }
 
     fun close() {
+        opened = false
         isFocusable = false
         isFocusableInTouchMode = false
 

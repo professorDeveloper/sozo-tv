@@ -27,6 +27,8 @@ import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.UiState
 import com.saikou.sozo_tv.utils.animationTransaction
+import com.saikou.sozo_tv.domain.model.BannerModel
+import com.saikou.sozo_tv.utils.requestInitialFocus
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -37,6 +39,7 @@ class HomeScreen : Fragment() {
     private val homeViewModel: HomeViewModel by viewModel()
     private val homeAdapter = HomeAdapter()
     private val settingsViewModel: SettingsViewModel by activityViewModel()
+    private var initialFocusPlaced = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -48,8 +51,12 @@ class HomeScreen : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // Reset per view: coming back from a detail screen recreates the view with
+        // nothing focused, and the grid has to claim focus again.
+        initialFocusPlaced = false
         initializeHome()
         LocalData.currentCategory = ""
+        observeAniId()
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 settingsViewModel.seasonalTheme.collect { theme ->
@@ -71,6 +78,15 @@ class HomeScreen : Fragment() {
             binding.isLoading.gIsLoadingRetry.isGone = true
             binding.isLoading.root.isGone = true
             homeAdapter.submitList(state.data)
+            if (!initialFocusPlaced && state.data.isNotEmpty()) {
+                initialFocusPlaced = true
+                // Not the banner: it is the first row, so focus landed there by default, which
+                // parked a white focus ring over the whole hero and stopped the carousel from
+                // ever advancing. It stays one press of UP away.
+                val firstRow = state.data.indexOfFirst { it !is BannerModel }
+                if (firstRow > 0) binding.vgvHome.selectedPosition = firstRow
+                binding.vgvHome.requestInitialFocus()
+            }
             LocalData.setFocusedGenreClickListener {
                 (requireActivity() as MainActivity).navigateToCategory(it)
             }
@@ -137,29 +153,6 @@ class HomeScreen : Fragment() {
                     }
                 }
             }
-            homeViewModel.aniId.observe(viewLifecycleOwner) {
-                when (it) {
-                    is Resource.Success -> {
-                        WaitDialog.dismiss(requireActivity())
-                        homeViewModel.aniId.postValue(Resource.Idle)
-                        val intent = Intent(binding.root.context, PlayerActivity::class.java)
-                        intent.putExtra("model", it.data)
-                        binding.root.context.startActivity(intent)
-                    }
-
-                    is Resource.Error -> {
-                        WaitDialog.dismiss(requireActivity())
-                        homeViewModel.aniId.postValue(Resource.Idle)
-                        Toast.makeText(
-                            requireContext(),
-                            "Couldn't open this title. Please try again.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-
-                    else -> {}
-                }
-            }
             LocalData.setonClickedListenerItemCategory {
 
                 val intent = Intent(binding.root.context, PlayerActivity::class.java)
@@ -193,6 +186,32 @@ class HomeScreen : Fragment() {
         else -> {}
     }
 
+    private fun observeAniId() {
+        homeViewModel.aniId.observe(viewLifecycleOwner) {
+            when (it) {
+                is Resource.Success -> {
+                    WaitDialog.dismiss(requireActivity())
+                    homeViewModel.aniId.postValue(Resource.Idle)
+                    val intent = Intent(binding.root.context, PlayerActivity::class.java)
+                    intent.putExtra("model", it.data)
+                    binding.root.context.startActivity(intent)
+                }
+
+                is Resource.Error -> {
+                    WaitDialog.dismiss(requireActivity())
+                    homeViewModel.aniId.postValue(Resource.Idle)
+                    Toast.makeText(
+                        requireContext(),
+                        "Couldn't open this title. Please try again.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                else -> {}
+            }
+        }
+    }
+
     private fun initializeHome() {
         binding.vgvHome.apply {
             adapter = homeAdapter.apply {
@@ -201,9 +220,8 @@ class HomeScreen : Fragment() {
             }
             // Preserve each row's horizontal scroll/focus column when the outer grid recycles rows.
             setSaveChildrenPolicy(androidx.leanback.widget.BaseGridView.SAVE_ALL_CHILD)
-            setItemSpacing(resources.getDimension(R.dimen.home_spacing).toInt() * 2)
+            setItemSpacing(resources.getDimensionPixelSize(R.dimen.home_spacing) * 2)
         }
-        binding.root.requestFocus()
     }
 
 

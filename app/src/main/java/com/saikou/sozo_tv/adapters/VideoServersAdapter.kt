@@ -10,7 +10,7 @@ import com.saikou.sozo_tv.utils.applyTvFocusScale
 class VideoServersAdapter(
     private val servers: List<ServerRow>,
     private var selectedPosition: Int,
-    private val onItemClick: (ServerRow) -> Unit,
+    private val onItemClick: (ServerRow, Int) -> Unit,
 ) : RecyclerView.Adapter<VideoServersAdapter.VH>() {
 
     data class ServerRow(val name: String, val qualities: String)
@@ -28,7 +28,7 @@ class VideoServersAdapter(
             tvServerQualities.isVisible = row.qualities.isNotBlank()
             ivServerSelected.isVisible = position == selectedPosition
             root.isSelected = position == selectedPosition
-            root.setOnClickListener { onItemClick(row) }
+            root.setOnClickListener { onItemClick(row, position) }
         }
     }
 

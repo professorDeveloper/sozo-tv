@@ -3,6 +3,7 @@ package com.saikou.sozo_tv.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.ItemCastBinding
@@ -23,12 +24,16 @@ class CastAdapter : RecyclerView.Adapter<CastAdapter.CastVh>() {
         RecyclerView.ViewHolder(binding.root) {
         fun onBind(cast: Cast) {
             binding.userNameTxt.text = cast.name
+            // Most sources send no role at all, and an empty line under every face read as a
+            // half-loaded row.
+            binding.characterTxt.isVisible = cast.role.isNotBlank()
             binding.characterTxt.text = cast.role
             binding.accountImg.loadImage(cast.image)
-            binding.root.setOnClickListener {
-                itemClickkedListener.invoke(cast)
-            }
-            binding.root.applyTvFocusScale()
+            // Nothing behind extensions can serve a person page: the repository's
+            // characterDetail/creditDetail both fail unconditionally, so every cast card
+            // opened a "not available" placeholder. The row stays informational.
+            binding.root.isClickable = false
+            binding.root.isFocusable = false
         }
     }
 

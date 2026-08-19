@@ -109,9 +109,13 @@ class ServerHost(
             val g = items.optJSONObject(i) ?: continue
             out.put(JSONObject().apply {
                 put("provider", prefixed(b))
-                put("name", g.optString("name"))
-                put("slug", g.optString("slug"))
-                put("image", g.optString("image"))
+                // The API sends "label"; "name" was always blank, so every genre chip on
+                // every server provider came through unnamed.
+                put("name", str(g, "label").ifEmpty { str(g, "name") })
+                // getSectionJson splits on "::" to build the path — a bare slug resolved to
+                // /contents/<slug>, which is not a route.
+                put("slug", "genre::" + str(g, "slug"))
+                put("image", str(g, "image"))
             })
         }
         return out.toString()
@@ -169,8 +173,18 @@ class ServerHost(
         (m?.scope == "all" || m?.scope == "resolveMedia") && !m.extractorName.isNullOrEmpty()
 
     private fun ensureMeta() {
+        // Left as a plain retry rather than a cached empty map: a failed call used to leave
+        // meta empty, and every provider then took the REST branch — including the ones that
+        // only work through their JS catalog.
         if (meta.isEmpty()) runCatching { providersJson() }
     }
+
+    /**
+     * optString over a JSON null returns the literal string "null" on Android, which is how
+     * "null" ended up rendered as a description, a runtime and a director.
+     */
+    private fun str(o: JSONObject, key: String): String =
+        if (o.isNull(key)) "" else o.optString(key)
 
     private fun translateHome(soplay: String?, bareProvider: String): String {
         val o = parseObject(soplay ?: return "{}")
@@ -221,12 +235,12 @@ class ServerHost(
             val e = epsIn.optJSONObject(i) ?: continue
             epsOut.put(JSONObject().apply {
                 put("episode", e.optInt("episode", i + 1))
-                put("label", e.optString("label"))
-                put("mediaRef", movieSources ?: e.optString("mediaRef"))
-                put("image", e.optString("image"))
-                put("overview", e.optString("overview"))
-                put("airdate", e.optString("airdate"))
-                put("runtime", e.optString("runtime"))
+                put("label", str(e, "label"))
+                put("mediaRef", movieSources ?: str(e, "mediaRef"))
+                put("image", str(e, "image"))
+                put("overview", str(e, "overview"))
+                put("airdate", str(e, "airdate"))
+                put("runtime", str(e, "runtime"))
             })
         }
         val isSerial = d.optBoolean("isSerial", false) || ep.optBoolean("isSerial", false) || epsOut.length() > 1
@@ -246,19 +260,23 @@ class ServerHost(
         for (i in 0 until castIn.length()) {
             val c = castIn.optJSONObject(i) ?: continue
             castOut.put(JSONObject().apply {
-                put("name", c.optString("name"))
-                put("image", c.optString("image"))
+                put("id", str(c, "id"))
+                put("name", str(c, "name"))
+                put("image", str(c, "image"))
+                put("character", str(c, "character").ifEmpty { str(c, "role") })
             })
         }
         return JSONObject().apply {
             put("provider", prefixed(bareProvider))
-            put("contentUrl", d.optString("contentUrl").ifEmpty { url })
-            put("title", d.optString("title"))
-            put("description", d.optString("description"))
-            put("thumbnail", d.optString("thumbnail"))
+            put("contentUrl", str(d, "contentUrl").ifEmpty { url })
+            put("title", str(d, "title"))
+            put("description", str(d, "description"))
+            put("thumbnail", str(d, "thumbnail"))
+            put("banner", str(d, "banner"))
+            put("type", str(d, "type").ifEmpty { str(d, "category") })
             if (d.has("year") && !d.isNull("year")) put("year", d.opt("year"))
-            put("duration", d.optString("duration"))
-            put("director", d.optString("director"))
+            put("duration", str(d, "duration"))
+            put("director", str(d, "director"))
             put("genres", d.optJSONArray("genres") ?: JSONArray())
             put("isSerial", isSerial)
             put("cast", castOut)

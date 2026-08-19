@@ -31,6 +31,7 @@ import androidx.annotation.OptIn
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import com.saikou.sozo_tv.domain.player.NativeQualities
 import com.saikou.sozo_tv.domain.player.VideoOptionGroups
 import com.saikou.sozo_tv.adapters.VideoServersAdapter
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
@@ -103,6 +104,9 @@ class SeriesPlayerScreen : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var player: ExoPlayer
+    @OptIn(UnstableApi::class)
+    private var trackSelector: DefaultTrackSelector? = null
+    private var selectedNativeQuality: NativeQualities.Variant? = null
     private lateinit var dataSourceFactory: DataSource.Factory
     private var okHttpClient: OkHttpClient? = null
 
@@ -493,6 +497,7 @@ class SeriesPlayerScreen : Fragment() {
                     .setPreferredAudioLanguages("hin", "jpn", "eng") // Hindi > Japanese > English
             )
         }
+        this.trackSelector = trackSelector
 
         player = ExoPlayer.Builder(requireContext(), renderersFactory)
             .setRenderersFactory(renderersFactory)
@@ -684,6 +689,17 @@ class SeriesPlayerScreen : Fragment() {
             }
 
             controls.exoQuality.setOnClickListener {
+                // The stream's own renditions come first: switching between them is a track
+                // change, not a reload, and it is the only path that can offer auto.
+                val variants = if (::player.isInitialized) {
+                    NativeQualities.of(player.currentTracks)
+                } else {
+                    emptyList()
+                }
+                if (variants.isNotEmpty()) {
+                    showNativeQualityDialog(variants)
+                    return@setOnClickListener
+                }
                 if (options.isEmpty()) return@setOnClickListener
                 // Scoped to the current server: a quality list spanning hosts means
                 // picking a resolution silently moves you to a different one.
@@ -817,9 +833,59 @@ class SeriesPlayerScreen : Fragment() {
                 ?: model.seriesResponse?.type
         )
         player.setMediaSource(mediaSource)
+        // Track groups belong to the stream that declared them, so a pinned rendition cannot
+        // survive a reload. Back to auto rather than to a stale override.
+        selectedNativeQuality = null
+        applyNativeQuality()
         player.prepare()
         player.seekTo(resumePos)
         player.play()
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun showNativeQualityDialog(variants: List<NativeQualities.Variant>) {
+        val rows = buildList {
+            add(
+                VideoServersAdapter.ServerRow(
+                    name = getString(R.string.quality_auto),
+                    qualities = getString(R.string.quality_auto_hint),
+                )
+            )
+            variants.forEach {
+                add(
+                    VideoServersAdapter.ServerRow(
+                        name = "${'$'}{it.height}p",
+                        qualities = NativeQualities.bitrateLabel(it.bitrate),
+                    )
+                )
+            }
+        }
+        val selected = selectedNativeQuality
+            ?.let { current -> variants.indexOfFirst { it.height == current.height } + 1 }
+            ?.coerceAtLeast(0) ?: 0
+
+        VideoServerDialog(
+            rows,
+            selected,
+            titleRes = R.string.player_quality_title,
+            subtitleRes = R.string.player_quality_subtitle,
+        ).apply {
+            setOnRowPicked { index ->
+                selectedNativeQuality = if (index == 0) null else variants.getOrNull(index - 1)
+                applyNativeQuality()
+            }
+        }.show(parentFragmentManager, "NativeQualityDialog")
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun applyNativeQuality() {
+        val selector = trackSelector ?: return
+        val variant = selectedNativeQuality
+        selector.setParameters(
+            selector.buildUponParameters()
+                .clearOverridesOfType(C.TRACK_TYPE_VIDEO)
+                .apply { variant?.let { addOverride(NativeQualities.overrideFor(it)) } }
+        )
     }
 
     @OptIn(UnstableApi::class)

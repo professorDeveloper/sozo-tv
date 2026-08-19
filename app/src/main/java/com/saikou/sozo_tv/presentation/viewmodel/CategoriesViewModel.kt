@@ -31,11 +31,20 @@ class CategoriesViewModel(private val repo: CategoriesRepository) : ViewModel() 
     fun loadCategories(r: SearchResults) {
         viewModelScope.launch {
             val catResult = repo.loadAnimeByGenre(r)
-            if (catResult.isSuccess) {
-                Log.d("TAG", "loadSearch: ${catResult.getOrNull()!!.results}")
-                result.postValue(catResult.getOrNull())
-            } else {
-                Log.d("TAG", "loadSearch: ${catResult.exceptionOrNull()!!.message}")
+            // A failure used to be logged and nothing else, so the chip's spinner — which the
+            // screen shows and never hides on its own — ran forever. updateFilter already has
+            // an error rendering; route it there.
+            val results = catResult.getOrNull()?.results
+            when {
+                catResult.isFailure -> updateFilter.postValue(
+                    UiState.Error(catResult.exceptionOrNull()?.message ?: "Could not load this category.")
+                )
+
+                results.isNullOrEmpty() -> updateFilter.postValue(
+                    UiState.Error("Nothing under \"${r.genre}\" on this source.")
+                )
+
+                else -> result.postValue(catResult.getOrNull())
             }
         }
     }
@@ -54,11 +63,20 @@ class CategoriesViewModel(private val repo: CategoriesRepository) : ViewModel() 
     fun loadCategoriesMovie(r: SearchResults) {
         viewModelScope.launch {
             val catResult = repo.loadMovieByGenre(r)
-            if (catResult.isSuccess) {
-                Log.d("TAG", "loadSearch: ${catResult.getOrNull()!!.results}")
-                result.postValue(catResult.getOrNull())
-            } else {
-                Log.d("TAG", "loadSearch: ${catResult.exceptionOrNull()!!.message}")
+            // A failure used to be logged and nothing else, so the chip's spinner — which the
+            // screen shows and never hides on its own — ran forever. updateFilter already has
+            // an error rendering; route it there.
+            val results = catResult.getOrNull()?.results
+            when {
+                catResult.isFailure -> updateFilter.postValue(
+                    UiState.Error(catResult.exceptionOrNull()?.message ?: "Could not load this category.")
+                )
+
+                results.isNullOrEmpty() -> updateFilter.postValue(
+                    UiState.Error("Nothing under \"${r.genre}\" on this source.")
+                )
+
+                else -> result.postValue(catResult.getOrNull())
             }
         }
     }
