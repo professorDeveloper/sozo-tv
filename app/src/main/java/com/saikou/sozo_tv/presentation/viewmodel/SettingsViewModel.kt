@@ -8,6 +8,7 @@ import com.saikou.sozo_tv.data.local.pref.DeviceSession
 import com.saikou.sozo_tv.data.model.ContentMode
 import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.data.model.anilist.Profile
+import com.saikou.sozo_tv.data.repository.AnilistConnection
 import com.saikou.sozo_tv.data.repository.AnilistRepository
 import com.saikou.sozo_tv.data.repository.DeviceAuthRepository
 import com.saikou.sozo_tv.data.repository.WatchHistorySyncRepository
@@ -41,6 +42,17 @@ class SettingsViewModel(
     val deviceSession: StateFlow<DeviceSession?> get() = deviceAuth.session
 
     val profileData = MutableLiveData<Profile>()
+
+    /** The linked AniList account, for surfaces that want to show who is connected. */
+    val anilistConnection: StateFlow<AnilistConnection> get() = anilist.connection
+
+    /**
+     * The link is made on the phone, so the TV can hold a stale "not connected" for as long as
+     * it has been running. Any screen that shows the account asks for a re-check.
+     */
+    fun refreshAnilist() {
+        viewModelScope.launch { runCatching { anilist.refresh() } }
+    }
 
     init {
         viewModelScope.launch {

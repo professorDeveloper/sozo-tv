@@ -13,6 +13,7 @@ import androidx.appcompat.view.SupportMenuInflater
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.core.content.res.getResourceIdOrThrow
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.utils.TvNavFocus
 
 @SuppressLint("RestrictedApi")
 class NavigationSlideView @JvmOverloads constructor(
@@ -162,6 +163,11 @@ class NavigationSlideView @JvmOverloads constructor(
             }
 
             child.setOnClickListener {
+                // Activating a rail item is the one moment focus is meant to follow into the
+                // page. Without saying so, the destination's own focus request is refused —
+                // and with it, every background load that finishes while the rail is focused
+                // would be allowed to pull focus out of it.
+                TvNavFocus.handOff()
                 if (!menu.performItemAction(item, presenter, 0)) {
                     item.isChecked = true
                 }

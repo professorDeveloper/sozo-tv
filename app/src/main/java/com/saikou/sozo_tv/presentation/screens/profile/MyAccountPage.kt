@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import com.saikou.sozo_tv.data.repository.AnilistConnection
 import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.databinding.MyAccountPageBinding
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
@@ -98,9 +99,29 @@ class MyAccountPage : Fragment() {
             binding.unreadCount.text = it.unreadNotificationCount.toString()
         }
         setupLoginButton()
+        setupAnilistRow()
 
         setupAppearanceSection()
         setupContentControlsSection()
+    }
+
+    /**
+     * The link is made on the phone, so this screen was the one place a connected account was
+     * never visible on the TV at all.
+     */
+    private fun setupAnilistRow() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsViewModel.refreshAnilist()
+                settingsViewModel.anilistConnection.collect { connection ->
+                    val viewer = (connection as? AnilistConnection.Connected)?.viewer
+                    binding.anilistAccount.text = viewer?.name
+                        ?: getString(R.string.anilist_connect_on_phone)
+                    val avatar = viewer?.avatarUrl
+                    if (!avatar.isNullOrBlank()) binding.anilistAvatar.loadImage(avatar)
+                }
+            }
+        }
     }
 
     private fun setupLoginButton() {
