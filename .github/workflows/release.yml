@@ -1,4 +1,6 @@
 name: Release → Telegram
+run-name: >-
+  Release ${{ inputs.version != '' && inputs.version || inputs.bump || github.ref_name }}
 
 # Builds a signed Android TV APK and hands it to Telegram.
 #
@@ -89,6 +91,8 @@ jobs:
             echo "::error title=Malformed versionName::could not read it from ${GRADLE}"; exit 1
           fi
 
+          echo "::notice title=Current version::${NAME} (versionCode ${CODE})"
+
           if [ "${GITHUB_EVENT_NAME}" != "workflow_dispatch" ]; then
             echo "Tag build — using the committed version verbatim."
             NEW_NAME="${NAME}"
@@ -131,6 +135,8 @@ jobs:
             echo ""
             echo "Publish \`versionCode ${NEW_CODE}\` on the admin panel under platform **androidtv** for the in-app updater to offer it."
           } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "::notice title=Releasing::${NEW_NAME} (versionCode ${NEW_CODE})"
 
       - name: Commit and tag
         if: steps.resolve.outputs.bumped == 'yes'
