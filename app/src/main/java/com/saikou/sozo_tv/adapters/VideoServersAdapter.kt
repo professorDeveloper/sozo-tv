@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.databinding.ItemVideoServerBinding
-import com.saikou.sozo_tv.utils.applyTvFocusScale
 
 class VideoServersAdapter(
     private val servers: List<ServerRow>,
@@ -18,9 +17,9 @@ class VideoServersAdapter(
     inner class VH(private val binding: ItemVideoServerBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        init {
-            binding.root.applyTvFocusScale(scale = 1.02f)
-        }
+        // Deliberately not scaled. The row is match_parent, so growing it on focus pushes it
+        // past the list it lives in and the edges clip — the background selector is what
+        // marks focus here.
 
         fun bind(row: ServerRow, position: Int) = with(binding) {
             tvServerName.text = row.name

@@ -63,7 +63,9 @@
             android:focusable="true"
             android:scrollbars="none"
             app:numberOfColumns="1"
-            tools:listitem="@layout/item_video_quality" />
+            tools:listitem="@layout/item_video_quality"
+        app:focusOutEnd="true"
+        app:focusOutFront="true" />
 
     </LinearLayout>
 

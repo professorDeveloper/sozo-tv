@@ -37,7 +37,9 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:itemCount="1"
-            tools:listitem="@layout/content_banner" />
+            tools:listitem="@layout/content_banner"
+        app:focusOutEnd="true"
+        app:focusOutFront="true" />
 
 
         <include

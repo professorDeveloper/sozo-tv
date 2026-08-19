@@ -114,6 +114,8 @@
         android:descendantFocusability="afterDescendants"
         android:focusable="false"
         android:overScrollMode="never"
-        android:scrollbars="none" />
+        android:scrollbars="none"
+        app:focusOutEnd="true"
+        app:focusOutFront="true" />
 
 </LinearLayout>

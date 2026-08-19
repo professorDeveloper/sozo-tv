@@ -107,5 +107,7 @@
         android:clipToPadding="false"
         android:paddingEnd="24dp"
         android:requiresFadingEdge="horizontal"
-        android:fadingEdgeLength="28dp" />
+        android:fadingEdgeLength="28dp"
+        app:focusOutEnd="true"
+        app:focusOutFront="true" />
 </LinearLayout>
