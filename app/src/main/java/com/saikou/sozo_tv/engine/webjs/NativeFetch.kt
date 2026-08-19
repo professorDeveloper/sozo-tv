@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.engine.webjs
 
+import com.saikou.sozo_tv.utils.SOZO_USER_AGENT
 import android.content.Context
 import com.lagradost.nicehttp.ignoreAllSSLErrors
 import eu.kanade.tachiyomi.network.AndroidCookieJar
@@ -112,7 +113,6 @@ class NativeFetch(context: Context) {
     }.toString()
 
     companion object {
-        private const val UA =
-            "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+        private val UA = SOZO_USER_AGENT
     }
 }

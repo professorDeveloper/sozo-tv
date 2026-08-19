@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
+import androidx.core.view.isVisible
+import com.saikou.sozo_tv.data.extensions.ExtensionContentRegistry
 import com.saikou.sozo_tv.databinding.SearchItemBinding
 import com.saikou.sozo_tv.domain.model.SearchModel
 
@@ -18,6 +20,14 @@ class SearchAdapter :
     RecyclerView.Adapter<SearchAdapter.MovieViewHolder>() {
     private var movieList = ArrayList<SearchModel>()
     var query: String = ""
+
+    /** Only meaningful when results span providers; a single-source search knows. */
+    var showSource: Boolean = false
+        set(value) {
+            if (field == value) return
+            field = value
+            notifyItemRangeChanged(0, movieList.size)
+        }
 
     private lateinit var itemClickeddListener: (movie: SearchModel) -> Unit
     fun setOnItemClickListener(listener: (movie: SearchModel) -> Unit) {
@@ -33,6 +43,17 @@ class SearchAdapter :
         RecyclerView.ViewHolder(binding.root) {
         @SuppressLint("SetTextI18n", "NewApi")
         fun bind(movie: SearchModel) {
+            // Which source found this. In an all-sources search the same title
+            // comes back from several, and without this the duplicates look
+            // like a bug rather than a choice of where to play from.
+            val source = movie.id
+                ?.let { ExtensionContentRegistry.resolve(it) }
+                ?.provider
+                ?.substringAfter(':')
+                ?.takeIf { it.isNotBlank() }
+            binding.movieSource.isVisible = showSource && source != null
+            binding.movieSource.text = source.orEmpty()
+
             binding.root.setOnClickListener {
                 itemClickeddListener.invoke(movie)
             }

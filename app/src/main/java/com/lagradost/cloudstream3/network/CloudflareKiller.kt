@@ -1,6 +1,11 @@
 package com.lagradost.cloudstream3.network
 
+import com.saikou.sozo_tv.app.MyApp
+import com.saikou.sozo_tv.utils.SOZO_USER_AGENT
+import eu.kanade.tachiyomi.network.AndroidCookieJar
+import eu.kanade.tachiyomi.network.interceptor.CloudflareInterceptor
 import okhttp3.Headers
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
 
@@ -14,23 +19,49 @@ import okhttp3.Response
  * `NoClassDefFoundError` (e.g. GuardaSerieProvider in the logs) before it can do
  * anything.
  *
- * This passthrough satisfies the symbol so those plugins load and run. Providers
- * that don't actually sit behind Cloudflare work normally; a Cloudflare-gated one
- * simply receives the unsolved response instead of taking the whole app down.
+ * This satisfies the symbol so those plugins load and run, and delegates the
+ * actual work to [CloudflareInterceptor] — the WebView-based solver already in
+ * the tree for the Aniyomi side. It stores the clearance in the shared WebView
+ * cookie jar, so the player replays it on the stream request. Previously this
+ * was a passthrough and a Cloudflare-gated provider simply received the
+ * unsolved 403.
  *
  * Implements `okhttp3.Interceptor` because plugins pass it as the `interceptor`
  * argument to `app.get(...)`. okhttp 5.x keeps the `okhttp3` package, so this
  * resolves against the runtime the `library` brings in.
  */
 class CloudflareKiller : Interceptor {
-    /** Real class exposes this; some plugins read it. Always empty here. */
+    /** Real class exposes this; some plugins read it. */
     val savedCookies: MutableMap<String, Map<String, String>> = mutableMapOf()
 
-    override fun intercept(chain: Interceptor.Chain): Response =
-        chain.proceed(chain.request())
+    private val cookieJar = AndroidCookieJar()
 
-    /** Plugins occasionally fetch stored CF cookies; none are kept here. */
-    fun getCookieHeaders(url: String): Headers = Headers.headersOf()
+    // Built lazily: plugins construct this at load time, before the WebView is
+    // usable, and a failure here must not take the provider down with it.
+    private val solver: Interceptor? by lazy {
+        runCatching {
+            CloudflareInterceptor(
+                MyApp.context.applicationContext,
+                cookieJar,
+            ) { SOZO_USER_AGENT }
+        }.getOrNull()
+    }
+
+    override fun intercept(chain: Interceptor.Chain): Response =
+        solver?.intercept(chain) ?: chain.proceed(chain.request())
+
+    /** Plugins fetch stored CF cookies to build their own requests. */
+    fun getCookieHeaders(url: String): Headers {
+        val cookies = runCatching {
+            cookieJar.get(url.toHttpUrl())
+        }.getOrDefault(emptyList())
+        if (cookies.isEmpty()) return Headers.headersOf()
+        savedCookies[url] = cookies.associate { it.name to it.value }
+        return Headers.headersOf(
+            "Cookie",
+            cookies.joinToString("; ") { "${it.name}=${it.value}" },
+        )
+    }
 
     companion object {
         fun parseCookieMap(cookie: String): Map<String, String> =

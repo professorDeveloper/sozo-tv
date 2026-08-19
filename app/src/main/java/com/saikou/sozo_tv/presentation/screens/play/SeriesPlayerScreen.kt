@@ -1,5 +1,8 @@
 package com.saikou.sozo_tv.presentation.screens.play
 
+import eu.kanade.tachiyomi.network.interceptor.CloudflareInterceptor
+import com.saikou.sozo_tv.app.MyApp
+import com.saikou.sozo_tv.utils.SOZO_USER_AGENT
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -155,13 +158,22 @@ class SeriesPlayerScreen : Fragment() {
                 headers.forEach { (k, v) ->
                     b.header(k, v)
                 }
+                // An extractor that returns no User-Agent used to let OkHttp send
+                // its own, which Cloudflare rejects outright and which never
+                // matches the cf_clearance earned during extraction.
+                if (headers.keys.none { it.equals("User-Agent", true) }) {
+                    b.header("User-Agent", SOZO_USER_AGENT)
+                }
 
                 val req = b.build()
                 val resp = chain.proceed(req)
                 if (!resp.isSuccessful) {
                     Log.w(
                         "PlayerHttp",
-                        "${resp.code} ${req.url}\n  sent: ${req.headers.names().sorted()}" +
+                        // Values, not just names: a 403 usually comes down to WHICH
+                        // Referer or UA went out, and names alone never showed that.
+                        "${resp.code} ${req.url}\n  sent: " +
+                            req.headers.joinToString("\n        ") { (k, v) -> "$k: $v" } +
                             "\n  got: ${resp.headers}"
                     )
                 }
@@ -169,8 +181,14 @@ class SeriesPlayerScreen : Fragment() {
             }.connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS)
             // Share the global WebView cookie store so the cf_clearance / session cookies that
             // NativeFetch + CloudflareInterceptor solved during resolveMedia are replayed on the
-            // stream request — fixes the broad Cloudflare 403 class on the video fetch.
+            // stream request.
             .cookieJar(eu.kanade.tachiyomi.network.AndroidCookieJar())
+            // …but replaying is useless when nothing ever solved a challenge for THIS host.
+            // The extractor talks to the site; the manifest and segments come from a separate
+            // CDN the plugin never touches, so no clearance for it exists and the CDN answered
+            // 403 with Server: cloudflare. Solving it here, on the request that actually hits
+            // the CDN, is what makes the shared jar worth anything.
+            .addInterceptor(cloudflareSolver())
             .ignoreAllSSLErrors().build()
     }
 
@@ -184,6 +202,16 @@ class SeriesPlayerScreen : Fragment() {
         dataSourceFactory = DefaultDataSource.Factory(requireContext(), okFactory)
     }
 
+    /**
+     * Solves a Cloudflare challenge in a WebView and stores the clearance in the
+     * shared cookie jar. Only fires on 403/503 responses that carry a Cloudflare
+     * Server header, so ordinary failures pass straight through.
+     */
+    private fun cloudflareSolver() = CloudflareInterceptor(
+        MyApp.context.applicationContext,
+        eu.kanade.tachiyomi.network.AndroidCookieJar(),
+    ) { SOZO_USER_AGENT }
+
     // Loopback HLS proxy for IP/cookie-bound + RC4-signed CDNs (uzmovi/uzdown). Uses its own
     // OkHttp client sharing the global WebView cookie jar so every upstream socket (manifest,
     // variants, segments, keys) carries the same IP + cf_clearance + signed headers.
@@ -193,6 +221,7 @@ class SeriesPlayerScreen : Fragment() {
             OkHttpClient.Builder()
                 .followRedirects(true).followSslRedirects(true)
                 .cookieJar(eu.kanade.tachiyomi.network.AndroidCookieJar())
+                .addInterceptor(cloudflareSolver())
                 .connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS)
                 .ignoreAllSSLErrors().build()
         )
@@ -210,6 +239,18 @@ class SeriesPlayerScreen : Fragment() {
                 requestTransform = vod.requestTransformJson?.let { org.json.JSONObject(it) } ?: org.json.JSONObject(),
             )
         }.getOrDefault(originalUrl)
+    }
+
+    /**
+     * The spinner shown while the stream stalls.
+     *
+     * Between the resolve overlay coming down and the first frame arriving there
+     * was no feedback at all — a black screen at 00:00 that looked like a dead
+     * player. Suppressed while the resolve overlay is up so the two don't stack.
+     */
+    private fun showBuffering(show: Boolean) {
+        val b = _binding ?: return
+        b.bufferingIndicator.isVisible = show && !b.loadingLayout.isVisible
     }
 
     private fun resetCountdownState() {
@@ -373,6 +414,7 @@ class SeriesPlayerScreen : Fragment() {
         player.addListener(object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
                 Log.e("PLAYER_ERR", "code=${error.errorCodeName}", error)
+                showBuffering(false)
                 Bugsnag.notify(Exception("GGGG:${model.seriesResponse?.urlobj} || ${model.parser.name}" + error.message))
             }
 
@@ -380,6 +422,7 @@ class SeriesPlayerScreen : Fragment() {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 when (playbackState) {
                     Player.STATE_READY -> {
+                        showBuffering(false)
                         // Unconditional: the countdown/auto-advance tracker is what
                         // drives "next episode", and history playback needs it too.
                         resetCountdownState()
@@ -408,9 +451,11 @@ class SeriesPlayerScreen : Fragment() {
 
                     Player.STATE_BUFFERING -> {
                         Log.d("GGG", "Buffering... ${player.currentPosition} / ${player.duration}")
+                        showBuffering(true)
                     }
 
                     Player.STATE_ENDED -> {
+                        showBuffering(false)
                         if (player.duration > 0) {
                             stopProgressTracking()
                             if (!isCountdownActive) playNextEpisodeAutomatically()
@@ -512,10 +557,14 @@ class SeriesPlayerScreen : Fragment() {
                 val rows = servers.map { name ->
                     VideoServersAdapter.ServerRow(
                         name = name,
+                        // The raw resolution label repeats the host ("Vidstream-2 [Sub] ·
+                        // 1080p"), so listing it verbatim printed the server name once per
+                        // quality. Pull out the number instead.
                         qualities = VideoOptionGroups.indicesFor(options, name)
-                            .mapNotNull { options[it].resolution.trim().ifBlank { null } }
+                            .mapNotNull { VideoOptionGroups.resolutionOf(options[it]) }
                             .distinct()
-                            .joinToString(" · "),
+                            .sortedDescending()
+                            .joinToString(" · ") { "${it}p" },
                     )
                 }
                 VideoServerDialog(rows, servers.indexOf(current).coerceAtLeast(0)).apply {
@@ -812,7 +861,7 @@ class SeriesPlayerScreen : Fragment() {
 
                         val request = Request.Builder()
                             .url(subUrl)
-                            .header("User-Agent", "Mozilla/5.0")
+                            .header("User-Agent", SOZO_USER_AGENT)
                             .build()
 
                         client.newCall(request).execute().use { response ->

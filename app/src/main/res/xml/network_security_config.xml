@@ -1,48 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sources are added by the user at runtime from remote repos, so their hosts are
+  not knowable at build time. This file used to allow cleartext for a hardcoded
+  list of ~40 domains, which silently denied every other one: once a network
+  security config exists, android:usesCleartextTraffic is ignored and the
+  unlisted default on targetSdk 28+ is deny. Any http:// source added later
+  failed with UnknownServiceException.
+-->
 <network-security-config>
-
-
-    <domain-config cleartextTrafficPermitted="true">
-        <!-- LocalHlsProxy loopback server (ExoPlayer fetches http://127.0.0.1:PORT/hls/...). -->
-        <domain includeSubdomains="false">127.0.0.1</domain>
-        <domain includeSubdomains="false">localhost</domain>
-        <domain includeSubdomains="true">cdn.jwplayer.com</domain>
-        <domain includeSubdomains="true">api.jikan.moe</domain>
-        <domain includeSubdomains="true">sunshinerays93.live</domain>
-        <domain includeSubdomains="true">www.imdb.com</domain>
-        <domain includeSubdomains="true">vidsrc-embed.su</domain>
-        <domain includeSubdomains="true">hentaimama.io</domain>
-        <domain includeSubdomains="true">dood.watch</domain>
-        <domain includeSubdomains="true">imdb-video.media-imdb.com</domain>
-        <domain includeSubdomains="true">s4.anilist.co</domain>
-        <domain includeSubdomains="true">streamimdb.me</domain>
-        <domain includeSubdomains="true">www.livechart.me</domain>
-        <domain includeSubdomains="true">animepahe.ru</domain>
-        <domain includeSubdomains="true">jumpfreedom.com</domain>
-        <domain includeSubdomains="true">vidnest.io</domain>
-        <domain includeSubdomains="true">primesrc.me</domain>
-        <domain includeSubdomains="true">animepahe.si</domain>
-        <domain includeSubdomains="true">javprovider.com</domain>
-        <domain includeSubdomains="true">www.dubs.io</domain>
-        <domain includeSubdomains="true">www.jikan.moe</domain>
-        <domain includeSubdomains="true">sat24shop.com</domain>
-        <domain includeSubdomains="true">api.themoviedb.org</domain>
-        <domain includeSubdomains="true">infinity-loop-21.biz</domain>
-        <domain includeSubdomains="true">cdn.dotstream.buzz</domain>
-        <domain includeSubdomains="true">www.g9cap.com</domain>
-        <domain includeSubdomains="true">www.m6ive.com</domain>
-        <domain includeSubdomains="true">m.media-amazon.com</domain>
+    <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
             <certificates src="system" />
             <certificates src="user" />
         </trust-anchors>
-        <domain includeSubdomains="true">ngslbs.com</domain>
-        <domain includeSubdomains="true">familytv.co</domain>
-        <domain includeSubdomains="true">crl3.digicert.com</domain>
-        <domain includeSubdomains="false">102.177.177.151</domain>
-        <domain includeSubdomains="false">wb.mixmusic.online</domain>
-        <domain includeSubdomains="false">103.211.103.84</domain>
-        <domain includeSubdomains="true">www.moviefone.com</domain>
-        <domain includeSubdomains="true">141.94.26.102</domain>
-    </domain-config>
+    </base-config>
 </network-security-config>

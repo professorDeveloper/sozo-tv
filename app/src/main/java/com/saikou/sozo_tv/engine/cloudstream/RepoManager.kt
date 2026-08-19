@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.engine.cloudstream
 
+import com.saikou.sozo_tv.utils.SOZO_USER_AGENT
 import android.content.Context
 import android.util.Log
 import org.json.JSONArray
@@ -24,8 +25,7 @@ class RepoManager(private val context: Context, private val host: PluginHost) {
 
     companion object {
         private const val TAG = "CloudStreamRepo"
-        private const val UA =
-            "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"
+        private val UA = SOZO_USER_AGENT
     }
 
     private val cs3Dir: File = File(context.filesDir, "cs3").apply { mkdirs() }

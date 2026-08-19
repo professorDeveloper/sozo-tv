@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import androidx.core.widget.ImageViewCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.model.SectionItem
@@ -117,6 +118,13 @@ class ProfileAdapter(
         fun bind(section: SectionItem) {
             binding.sectionTxt.text = section.sectionTitle
             binding.sectionImg.setImageResource(section.sectionImg)
+            // The rail tints icons to follow focus. A brand badge must keep its
+            // own colours, so it opts out.
+            binding.sectionImg.imageTintList =
+                if (section.sectionImg == R.drawable.ic_anilist_badge) null
+                else ContextCompat.getColorStateList(
+                    binding.root.context, R.color.color_item_tv_section_profile,
+                )
 
             val sectionPosition = sectionList.indexOf(section)
             val isSelected = sectionPosition == selectedSectionIndex

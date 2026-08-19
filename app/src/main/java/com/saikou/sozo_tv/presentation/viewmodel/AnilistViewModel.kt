@@ -44,7 +44,7 @@ class AnilistViewModel(
             } catch (t: Throwable) {
                 _state.value = _state.value.copy(
                     loading = false,
-                    error = (t as? AnilistException)?.message ?: "AniList ro'yxati yuklanmadi",
+                    error = (t as? AnilistException)?.message ?: "Could not load your AniList list",
                 )
             }
         }
@@ -80,7 +80,7 @@ class AnilistViewModel(
                 )
             } catch (t: Throwable) {
                 replace(previous, busy = _state.value.busy - entry.id)
-                _messages.tryEmit((t as? AnilistException)?.message ?: "Saqlanmadi")
+                _messages.tryEmit((t as? AnilistException)?.message ?: "Could not save to AniList")
             }
         }
     }
@@ -103,7 +103,7 @@ class AnilistViewModel(
                 )
             } catch (t: Throwable) {
                 replace(previous, busy = _state.value.busy - entry.id)
-                _messages.tryEmit((t as? AnilistException)?.message ?: "Saqlanmadi")
+                _messages.tryEmit((t as? AnilistException)?.message ?: "Could not save to AniList")
             }
         }
     }

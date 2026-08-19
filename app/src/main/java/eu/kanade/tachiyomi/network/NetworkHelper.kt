@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.network
 
+import com.saikou.sozo_tv.utils.SOZO_USER_AGENT
 import android.content.Context
 import eu.kanade.tachiyomi.network.interceptor.CloudflareInterceptor
 import eu.kanade.tachiyomi.network.interceptor.IgnoreGzipInterceptor
@@ -43,9 +44,7 @@ class NetworkHelper(context: Context) {
     val cloudflareClient: OkHttpClient = client
 
     companion object {
-        fun defaultUserAgentProvider(): String =
-            "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 " +
-                "(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"
+        fun defaultUserAgentProvider(): String = SOZO_USER_AGENT
     }
 }
 

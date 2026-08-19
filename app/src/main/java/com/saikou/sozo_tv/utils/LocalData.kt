@@ -215,8 +215,46 @@ object LocalData {
         "VOLUMES",
         "VOLUMES_DESC"
     )
+    /**
+     * Human labels for the AniList sort values.
+     *
+     * The raw enum names went straight into the picker, so the user chose
+     * between START_DATE_DESC and TITLE_ENGLISH_DESC. The values themselves are
+     * the API contract and must not change — only what is shown.
+     */
+    private val mediaSortLabels = mapOf(
+        "START_DATE" to "Release date — oldest",
+        "START_DATE_DESC" to "Release date — newest",
+        "STATUS" to "Status — A to Z",
+        "STATUS_DESC" to "Status — Z to A",
+        "TITLE_ENGLISH" to "Title (English) — A to Z",
+        "TITLE_ENGLISH_DESC" to "Title (English) — Z to A",
+        "TITLE_NATIVE" to "Title (native) — A to Z",
+        "TITLE_NATIVE_DESC" to "Title (native) — Z to A",
+        "TITLE_ROMAJI" to "Title (romaji) — A to Z",
+        "TITLE_ROMAJI_DESC" to "Title (romaji) — Z to A",
+        "TRENDING" to "Trending — least",
+        "TRENDING_DESC" to "Trending — most",
+        "TYPE" to "Type — A to Z",
+        "TYPE_DESC" to "Type — Z to A",
+        "UPDATED_AT" to "Recently updated — oldest",
+        "UPDATED_AT_DESC" to "Recently updated — newest",
+        "VOLUMES" to "Volumes — fewest",
+        "VOLUMES_DESC" to "Volumes — most",
+    )
+
+    /** Falls back to a tidied enum name so a new AniList value is still readable. */
+    fun sortLabel(raw: String): String = mediaSortLabels[raw]
+        ?: raw.split('_').joinToString(" ") { part ->
+            part.lowercase().replaceFirstChar { it.uppercase() }
+        }
+
+    /** Label back to the value the API expects. */
+    fun sortValue(label: String): String =
+        mediaSortList.firstOrNull { sortLabel(it) == label } ?: label
+
     val sortSpinner = mediaSortList.map {
-        MySpinnerItem(it)
+        MySpinnerItem(sortLabel(it))
     }
 
     val years = (1970 until 2025).map { MySpinnerItem(it.toString()) }.reversed().toMutableList()
@@ -233,7 +271,7 @@ object LocalData {
         SectionItem(MyApp.context.getString(R.string.my_history), R.drawable.ic_time_history),
         SectionItem(MyApp.context.getString(R.string.bookmark), R.drawable.ic_bookmark),
         SectionItem(MyApp.context.getString(R.string.message_page), R.drawable.ic_chat),
-        SectionItem(MyApp.context.getString(R.string.anilist), R.drawable.ic_bookmark),
+        SectionItem(MyApp.context.getString(R.string.anilist), R.drawable.ic_anilist_badge),
     )
     lateinit var listenerItemCategory: (isAbout: CategoryDetails) -> Unit
     fun setonClickedListenerItemCategory(listener: (isAbout: CategoryDetails) -> Unit) {

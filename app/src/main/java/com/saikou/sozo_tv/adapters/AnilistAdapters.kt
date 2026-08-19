@@ -85,7 +85,7 @@ class AnilistStatusAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         init {
-            binding.statusLabel.applyTvFocusScale(scale = 1.04f)
+            binding.statusLabel.applyTvFocusScale(scale = 1f)
         }
 
         fun bind(status: AnilistStatus) = with(binding.statusLabel) {

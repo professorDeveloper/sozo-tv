@@ -176,8 +176,12 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
         Unit
     }
 
-    suspend fun checkUpdates(): Int = withContext(Dispatchers.IO) {
-        backendForGroup(ExtGroup.CLOUDSTREAM)?.checkUpdates(null)?.optInt("count", 0) ?: 0
+    /** Updates one engine's repos. Only the tab the user is looking at is touched. */
+    suspend fun checkUpdates(
+        group: String,
+        progress: ((Int, Int) -> Unit)? = null,
+    ): Int = withContext(Dispatchers.IO) {
+        backendForGroup(group)?.checkUpdates(progress)?.optInt("count", 0) ?: 0
     }
 
     // The home screen fires banner + categories (+ genres) loads at once, each of which

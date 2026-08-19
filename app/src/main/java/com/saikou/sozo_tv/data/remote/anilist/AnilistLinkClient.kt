@@ -30,7 +30,7 @@ class AnilistLinkClient(
             try {
                 val payload = gson.toJson(mapOf("items" to items)).toRequestBody(JSON)
                 val request = Request.Builder()
-                    .url("${baseUrl.trimEnd('/')}$PATH/sync")
+                    .url("${baseUrl.trimEnd('/')}$SYNC_PATH")
                     .addHeader("Authorization", "Bearer $token")
                     .addHeader("Accept", "application/json")
                     .addHeader("Content-Type", "application/json")
@@ -96,6 +96,11 @@ class AnilistLinkClient(
 
     private companion object {
         const val PATH = "/anilist/link"
+
+        // NOT "$PATH/sync". The server mounts this as /anilist/links/sync —
+        // plural — and deriving it from PATH produced a 404 on every launch,
+        // which the caller swallowed as "nothing to sync".
+        const val SYNC_PATH = "/anilist/links/sync"
         val JSON = "application/json; charset=utf-8".toMediaType()
     }
 }

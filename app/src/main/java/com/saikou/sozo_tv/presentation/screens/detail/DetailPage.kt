@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.detail
 
+import com.saikou.sozo_tv.utils.SOZO_USER_AGENT
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
@@ -157,7 +158,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
                 .build()
 
         val okHttpDataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
-            .setDefaultRequestProperties(mapOf("User-Agent" to "ExoPlayer"))
+            .setDefaultRequestProperties(mapOf("User-Agent" to SOZO_USER_AGENT))
 
         val dataSourceFactory: DataSource.Factory =
             DefaultDataSource.Factory(requireContext(), okHttpDataSourceFactory)

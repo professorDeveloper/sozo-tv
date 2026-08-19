@@ -66,6 +66,8 @@ class SourceScreen : Fragment() {
     private var emptyText: String? = null
     private var loadError: String? = null
     private var pendingScrollToSelected: Boolean = true
+    private var countText: String? = null
+    private var updating: Boolean = false
 
     /** Groups whose curated default repos we've already tried to auto-install this session. */
     private val bootstrappedGroups = mutableSetOf<String>()
@@ -104,6 +106,8 @@ class SourceScreen : Fragment() {
     private fun bindHeader(v: SourceHeaderViews) {
         header = v
 
+        v.btnUpdateSources.setOnClickListener { updateSources() }
+
         v.btnTabServer.setOnClickListener { switchTab(ExtGroup.SERVER) }
         v.btnTabAniyomi.setOnClickListener { switchTab(ExtGroup.ANIYOMI) }
         v.btnTabCloudstream.setOnClickListener { switchTab(ExtGroup.CLOUDSTREAM) }
@@ -115,6 +119,7 @@ class SourceScreen : Fragment() {
         searchWatcher = afterTextChanged {
             searchText = it
             adapter.filter(it)
+            refreshCount()
             refreshEmptyState()
         }
         v.etSearchProvider.addTextChangedListener(searchWatcher)
@@ -164,6 +169,7 @@ class SourceScreen : Fragment() {
         if (selectedRepo == repo) return
         selectedRepo = repo
         adapter.setRepoFilter(repo)
+        refreshCount()
         refreshEmptyState()
         renderRepoChips()
     }
@@ -172,6 +178,7 @@ class SourceScreen : Fragment() {
         if (selectedMode == mode) return
         selectedMode = mode
         adapter.setModeFilter(mode)
+        refreshCount()
         refreshEmptyState()
         renderRepoChips()
     }
@@ -222,6 +229,7 @@ class SourceScreen : Fragment() {
         // Drop the previous tab's rows and its "Setting up sources…" status now: leaving them on
         // screen while the new group loads shows e.g. CloudStream providers under the Sozo tab.
         adapter.submit(emptyList(), engine.getActiveProvider())
+        countText = null
         statusText = null
         emptyText = null
         applyTabUi()
@@ -310,6 +318,7 @@ class SourceScreen : Fragment() {
             loadError = result.exceptionOrNull()?.message
             adapter.submit(result.getOrDefault(emptyList()), engine.getActiveProvider())
             renderRepoChips()
+            refreshCount()
             refreshEmptyState()
             applyHeaderState()
             scrollToSelectedIfPending()
@@ -369,6 +378,64 @@ class SourceScreen : Fragment() {
         v.progressBar.isVisible = progressVisible
         v.tvEmpty.text = emptyText.orEmpty()
         v.tvEmpty.isVisible = !emptyText.isNullOrEmpty()
+        v.tvProviderCount.text = countText.orEmpty()
+        v.tvProviderCount.isVisible = !countText.isNullOrEmpty()
+        v.btnUpdateSources.isEnabled = !updating && !progressVisible
+        v.btnUpdateSources.alpha = if (v.btnUpdateSources.isEnabled) 1f else 0.5f
+        v.btnUpdateSources.text =
+            if (updating) getString(R.string.sources_updating) else getString(R.string.sources_update)
+    }
+
+    /**
+     * Pulls fresh plugin versions for the tab in view.
+     *
+     * Scoped to one engine: refreshing every group would re-download repos the
+     * user isn't looking at and leave the visible list stale anyway.
+     */
+    private fun updateSources() {
+        if (updating || progressVisible) return
+        val group = currentGroup
+        updating = true
+        statusText = getString(R.string.sources_checking_updates)
+        applyHeaderState()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val updated = withContext(Dispatchers.IO) {
+                runCatching {
+                    engine.checkUpdates(group) { current, total ->
+                        binding.root.post {
+                            if (_binding == null || group != currentGroup) return@post
+                            statusText = getString(R.string.sources_updating_progress, current, total)
+                            header?.tvStatus?.let { it.text = statusText; it.isVisible = true }
+                        }
+                    }
+                }
+            }
+            updating = false
+            if (group != currentGroup) return@launch
+            statusText = null
+            updated.onFailure {
+                toast(getString(R.string.sources_update_failed, it.message ?: "unknown error"))
+            }.onSuccess {
+                toast(
+                    if (it > 0) resources.getQuantityString(R.plurals.sources_updated, it, it)
+                    else getString(R.string.sources_up_to_date)
+                )
+            }
+            applyHeaderState()
+            loadProviders()
+        }
+    }
+
+    /** "42 sources · 3 repos" next to the title, so the tab's scale is visible at a glance. */
+    private fun refreshCount() {
+        val providers = adapter.providerCount()
+        val repos = adapter.repos().size
+        countText = when {
+            providers <= 0 -> null
+            repos > 1 -> resources.getQuantityString(R.plurals.source_count, providers, providers) +
+                " · " + resources.getQuantityString(R.plurals.repo_count, repos, repos)
+            else -> resources.getQuantityString(R.plurals.source_count, providers, providers)
+        }
     }
 
     private fun afterTextChanged(cb: (String) -> Unit): TextWatcher = object : TextWatcher {

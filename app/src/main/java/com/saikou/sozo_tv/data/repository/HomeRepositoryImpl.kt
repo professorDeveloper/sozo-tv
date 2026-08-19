@@ -40,7 +40,13 @@ class HomeRepositoryImpl(
         return try {
             val home = engine.home() ?: return Result.failure(noSource())
             if (home.sections.isEmpty() && home.banner.isEmpty()) {
-                return Result.failure(IllegalStateException("This source returned no home content"))
+                // "no content" and "the source is down" look identical from here, and
+                // the user's next move differs: wait, or pick another source.
+                return Result.failure(
+                    IllegalStateException(
+                        "This source has no home page right now. It may be down — try another source.",
+                    )
+                )
             }
             Result.success(home.sections.map { it.toCategory() })
         } catch (e: Exception) {

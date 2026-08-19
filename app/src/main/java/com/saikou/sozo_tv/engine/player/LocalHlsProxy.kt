@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.engine.player
 
+import com.saikou.sozo_tv.utils.SOZO_USER_AGENT
 import android.util.Base64
 import fi.iki.elonen.NanoHTTPD
 import okhttp3.OkHttpClient
@@ -111,6 +112,9 @@ class LocalHlsProxy(private val client: OkHttpClient) {
         session.headers["range"]?.takeIf { it.isNotEmpty() }?.let { upstreamHeaders["Range"] = it }
         session.headers["if-range"]?.takeIf { it.isNotEmpty() }?.let { upstreamHeaders["If-Range"] = it }
         upstreamHeaders.putIfAbsent("Accept-Encoding", "identity")
+        if (upstreamHeaders.keys.none { it.equals("User-Agent", true) }) {
+            upstreamHeaders["User-Agent"] = SOZO_USER_AGENT
+        }
 
         val transformed = sess.transform?.apply(origin, resolved, upstreamHeaders)
         val requestUrl = transformed?.url ?: upstreamUrl
