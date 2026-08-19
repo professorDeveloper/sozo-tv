@@ -1,5 +1,10 @@
 package com.saikou.sozo_tv.presentation.screens.play
 
+import kotlinx.coroutines.delay
+import com.saikou.sozo_tv.data.repository.RemoteControlManager
+import com.saikou.sozo_tv.data.remote.remote.RemoteCommand
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.Lifecycle
 import eu.kanade.tachiyomi.network.interceptor.CloudflareInterceptor
 import com.saikou.sozo_tv.app.MyApp
 import com.saikou.sozo_tv.utils.SOZO_USER_AGENT
@@ -93,6 +98,7 @@ import java.util.concurrent.TimeUnit
 
 class SeriesPlayerScreen : Fragment() {
 
+    private val remote: RemoteControlManager by inject()
     private var _binding: SeriesPlayerScreenBinding? = null
     private val binding get() = _binding!!
 
@@ -333,6 +339,68 @@ class SeriesPlayerScreen : Fragment() {
         }
     }
 
+    /**
+     * Playback commands from the phone.
+     *
+     * Handled here rather than in MainActivity because this is the only place
+     * that knows whether anything is playing — and the phone's remote is
+     * useless if pressing pause depends on which screen the TV happens to show.
+     *
+     * repeatOnLifecycle(STARTED) is what stops a backgrounded player from
+     * acting on presses meant for whatever replaced it.
+     */
+    private fun observeRemote() {
+        remote.start()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch { remote.commands.collect(::handleRemote) }
+                launch { reportStateWhileVisible() }
+            }
+        }
+    }
+
+    private fun handleRemote(command: RemoteCommand) {
+        if (!::player.isInitialized) return
+        when (command.type) {
+            "play" -> player.play()
+            "pause" -> player.pause()
+            "playpause" -> if (player.isPlaying) player.pause() else player.play()
+            "stop" -> navigateBack()
+            "seek" -> command.positionMs?.let { player.seekTo(it.coerceAtLeast(0)) }
+            "seekBy" -> command.deltaMs?.let {
+                player.seekTo((player.currentPosition + it).coerceAtLeast(0))
+            }
+            "volume" -> command.value?.let {
+                player.volume = it.toFloat().coerceIn(0f, 1f)
+            }
+            "next" -> playNextEpisodeAutomatically()
+            "prev" -> playPreviousEpisode()
+        }
+    }
+
+    /**
+     * A heartbeat of what is on screen, so the phone's remote shows a moving
+     * position instead of a still one.
+     *
+     * Two seconds, not per frame: the remote renders seconds, and the report is
+     * a network call.
+     */
+    private suspend fun reportStateWhileVisible() {
+        while (true) {
+            if (::player.isInitialized && _binding != null) {
+                remote.report(
+                    screen = "player",
+                    title = args.name,
+                    episode = episodeList.getOrNull(model.currentEpIndex)?.episode?.toString(),
+                    playing = player.isPlaying,
+                    positionMs = player.currentPosition.coerceAtLeast(0),
+                    durationMs = player.duration.takeIf { it > 0 },
+                )
+            }
+            delay(2_000)
+        }
+    }
+
     private fun navigateBack() {
         if (!isAdded) return
 
@@ -346,6 +414,39 @@ class SeriesPlayerScreen : Fragment() {
     }
 
     @SuppressLint("StringFormatMatches")
+    /**
+     * The mirror of [playNextEpisodeAutomatically], for the phone's back button.
+     *
+     * Nothing on the TV itself moves backwards through episodes — the d-pad has
+     * a previous button but it seeks — so this had no reason to exist until the
+     * remote gained one.
+     */
+    private fun playPreviousEpisode() {
+        if (model.currentEpIndex <= 0) return
+        lifecycleScope.launch {
+            saveWatchHistory()
+            withContext(Dispatchers.Main) {
+                model.currentEpIndex -= 1
+                model.doNotAsk = false
+                model.lastPosition = 0
+
+                model.getCurrentEpisodeVodAnime(
+                    episodeList[model.currentEpIndex].session.toString(), args.seriesMainId,
+                    episodeNum = episodeList[model.currentEpIndex].episode ?: 0
+                )
+
+                model.currentEpisodeData.observeOnce(viewLifecycleOwner) { resource ->
+                    if (resource is Resource.Success) {
+                        playNewEpisode(resource.data.urlobj, headers = resource.data.header)
+                        binding.pvPlayer.controller.binding.filmTitle.text =
+                            getString(R.string.episode, args.name, model.currentEpIndex + 1)
+                        resetCountdownState()
+                    }
+                }
+            }
+        }
+    }
+
     private fun playNextEpisodeAutomatically() {
         if (model.currentEpIndex < episodeList.size - 1) {
             lifecycleScope.launch {
@@ -466,6 +567,7 @@ class SeriesPlayerScreen : Fragment() {
         })
 
         binding.pvPlayer.player = player
+        observeRemote()
         binding.pvPlayer.controller.binding.exoNextTenContainer.setOnClickListener {
             player.seekTo(player.currentPosition + 10_000)
         }
