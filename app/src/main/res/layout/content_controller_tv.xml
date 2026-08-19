@@ -21,11 +21,12 @@
         android:id="@+id/frameBackButton"
         android:layout_width="45dp"
         android:layout_height="45dp"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginStart="48dp"
+        android:layout_marginTop="27dp"
         android:background="@drawable/shape_play_circle"
         android:focusable="true"
         android:focusableInTouchMode="true"
+        android:nextFocusDown="@id/exo_progress"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -33,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:duplicateParentState="true"
-            android:padding="12dp"
+            android:padding="10dp"
             app:srcCompat="@drawable/ic_arrow_left"
             app:tint="@color/color_black_white_text" />
     </FrameLayout>
@@ -41,25 +42,30 @@
     <TextView
         android:id="@+id/film_title"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:ellipsize="end"
         android:fontFamily="@font/days"
+        android:gravity="center_vertical"
+        android:maxLines="1"
         android:paddingHorizontal="10dp"
         android:textColor="#fff"
         android:textSize="@dimen/tv_text_subtitle"
         app:layout_constraintBottom_toBottomOf="@+id/frameBackButton"
         app:layout_constraintEnd_toStartOf="@+id/epListContainer"
         app:layout_constraintStart_toEndOf="@+id/frameBackButton"
-        app:layout_constraintTop_toTopOf="@+id/frameBackButton" />
+        app:layout_constraintTop_toTopOf="@+id/frameBackButton"
+        app:layout_goneMarginEnd="48dp"
+        tools:text="The Boy and the Heron" />
 
     <FrameLayout
         android:id="@+id/epListContainer"
         android:layout_width="45dp"
         android:layout_height="45dp"
-        android:layout_marginEnd="20dp"
+        android:layout_marginEnd="48dp"
         android:background="@drawable/shape_play_pause_circle_bottom"
         android:focusable="true"
         android:focusableInTouchMode="true"
+        android:nextFocusDown="@id/exo_progress"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/frameBackButton"
         app:layout_constraintEnd_toEndOf="parent"
@@ -69,20 +75,22 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:duplicateParentState="true"
-            android:padding="6dp"
+            android:padding="10dp"
             app:srcCompat="@drawable/ic_more_list"
             app:tint="@color/color_black_white_text" />
     </FrameLayout>
 
 
+    <!-- 34dp, not the 48dp safe-area inset used elsewhere: DefaultTimeBar insets its own
+         track by half the largest scrubber size (28/2 = 14dp), so the drawn track lands on
+         48dp and lines up with the time labels below it. -->
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="22dp"
-        android:layout_marginEnd="22dp"
+        android:layout_marginStart="34dp"
+        android:layout_marginEnd="34dp"
         android:layout_marginBottom="4dp"
-
         android:orientation="vertical"
         app:layout_constraintBottom_toTopOf="@id/exo_bottom_bar"
         app:layout_constraintEnd_toEndOf="parent"
@@ -104,15 +112,18 @@
             class="com.saikou.sozo_tv.presentation.screens.play.TrailerPlayerScreen$ExtendedTimeBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:nextFocusDown="@id/exo_play_paused"
-            app:layout_constraintBottom_toTopOf="@id/exo_bottom_bar"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            android:nextFocusUp="@id/frameBackButton"
+            android:nextFocusDown="@id/exo_play_pause_container"
+            app:bar_height="6dp"
+            app:buffered_color="#66FFFFFF"
             app:played_color="#FE4545"
-            app:scrubber_color="#D31A1F" />
+            app:scrubber_color="#D31A1F"
+            app:scrubber_dragged_size="28dp"
+            app:scrubber_enabled_size="12dp"
+            app:touch_target_height="36dp"
+            app:unplayed_color="#40FFFFFF" />
 
 
     </LinearLayout>
@@ -122,10 +133,10 @@
         android:id="@id/exo_bottom_bar"
         android:layout_width="0dp"
         android:layout_height="68dp"
-        android:layout_marginStart="30dp"
-        android:layout_marginEnd="30dp"
+        android:layout_marginStart="48dp"
+        android:layout_marginEnd="48dp"
+        android:layout_marginBottom="27dp"
         android:paddingTop="10dp"
-        android:paddingBottom="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -191,17 +202,16 @@
                 android:layout_gravity="center"
                 android:background="@drawable/shape_play_pause_circle_bottom"
                 android:focusable="true"
-                android:focusableInTouchMode="true">
+                android:focusableInTouchMode="true"
+                android:nextFocusUp="@id/exo_progress">
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/exo_prev_ten"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_gravity="center"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:duplicateParentState="true"
-                    android:padding="12dp"
+                    android:padding="10dp"
                     app:srcCompat="@drawable/ic_prev_ten"
-
                     app:tint="@color/color_black_white_text"
                     app:tintMode="multiply" />
             </FrameLayout>
@@ -210,20 +220,19 @@
                 android:id="@+id/exo_play_pause_container"
                 android:layout_width="52dp"
                 android:layout_height="52dp"
-
+                android:layout_gravity="center"
                 android:layout_marginHorizontal="8dp"
                 android:background="@drawable/shape_play_pause_circle_bottom"
                 android:focusable="true"
-                android:focusableInTouchMode="true">
+                android:focusableInTouchMode="true"
+                android:nextFocusUp="@id/exo_progress">
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/exo_play_paused"
-                    android:layout_width="45dp"
-                    android:layout_height="45dp"
-                    android:layout_gravity="center"
-
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:duplicateParentState="true"
-                    android:padding="8dp"
+                    android:padding="13dp"
                     app:srcCompat="@drawable/ic_play"
                     app:tint="@color/color_black_white_text"
                     app:tintMode="multiply" />
@@ -236,16 +245,15 @@
                 android:layout_gravity="center"
                 android:background="@drawable/shape_play_pause_circle_bottom"
                 android:focusable="true"
-                android:focusableInTouchMode="true">
+                android:focusableInTouchMode="true"
+                android:nextFocusUp="@id/exo_progress">
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/exo_nex_ten"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-
-                    android:layout_gravity="center"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:duplicateParentState="true"
-                    android:padding="12dp"
+                    android:padding="10dp"
                     app:srcCompat="@drawable/ic_next_ten"
                     app:tint="@color/color_black_white_text"
                     app:tintMode="multiply" />
@@ -266,23 +274,16 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_gravity="center"
-                android:layout_marginTop="7dp"
-                android:layout_marginBottom="7dp"
-                android:background="@drawable/shape_play_settings"
+                android:background="@drawable/shape_play_pause_circle_bottom"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:nextFocusUp="@id/exo_progress"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                android:nextFocusUp="@id/exo_progress">
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_gravity="center"
                     android:duplicateParentState="true"
-                    android:padding="6dp"
-                    android:tint="@color/color_black_white_text"
+                    android:padding="11dp"
                     app:srcCompat="@drawable/ic_settings"
                     app:tint="@color/color_black_white_text"
                     app:tintMode="multiply" />

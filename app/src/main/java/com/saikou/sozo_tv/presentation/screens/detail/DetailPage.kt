@@ -81,6 +81,11 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     ): View {
         LocalData.trailer = ""
         LocalData.bookmark = false
+        // Process-global and only ever appended to, so a title whose own cast call had not
+        // landed yet — or failed — rendered the previous title's cast and recommendations.
+        LocalData.castList.clear()
+        LocalData.recommendedMovies.clear()
+        LocalData.recommendedMoviesCast.clear()
         _binding = DetailPageBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -90,6 +95,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         super.onViewCreated(view, savedInstanceState)
         val seasonalTheme = PreferenceManager().getSeasonalTheme()
         binding.seasonalBackground.setTheme(seasonalTheme)
+        detailsAdapter.resetInitialFocus()
         initializeAdapter()
         initializePlayer()
         showDetailLoading()
@@ -104,7 +110,6 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         detailModel.castResponseData.observe(viewLifecycleOwner) {
             detailsAdapter.submitCast(it)
         }
-        detailsAdapter.updateTrailer("GGGGG")
         detailModel.trailerData.observe(viewLifecycleOwner) {
             if (it.isNotEmpty()) {
                 trailerUrlPlayer = it
@@ -201,6 +206,9 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
 
     private fun initializeAdapter() {
         binding.vgvMovieDetails.apply {
+            // Change animations swap in a fresh ViewHolder, so every notifyItemChanged (bookmark
+            // toggle, trailer/cast/recommendation arrival) dropped D-pad focus out of the row.
+            itemAnimator = null
             adapter = detailsAdapter.apply {
                 stateRestorationPolicy =
                     RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY

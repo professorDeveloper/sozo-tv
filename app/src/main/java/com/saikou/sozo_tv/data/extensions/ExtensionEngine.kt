@@ -324,10 +324,16 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
             .filter { seen.add("${it.provider}|${it.contentUrl}") }
     }
 
+    /**
+     * Bounded like home() and searchOne(), which this was the only catalog call not to be. A
+     * dead host held the detail screen on its spinner until the user gave up on it.
+     */
     suspend fun load(provider: String, url: String): ExtDetail? = withContext(Dispatchers.IO) {
-        val b = backendForProvider(provider) ?: return@withContext null
-        b.ensureLoaded()
-        ExtParser.detail(b.loadJson(provider, url))
+        withTimeoutOrNull(DETAIL_TIMEOUT_MS) {
+            val b = backendForProvider(provider) ?: return@withTimeoutOrNull null
+            b.ensureLoaded()
+            ExtParser.detail(b.loadJson(provider, url))
+        }
     }
 
     suspend fun loadLinks(provider: String, mediaRef: String): ExtMedia = withContext(Dispatchers.IO) {
@@ -348,6 +354,7 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
         private const val KEY_PROVIDER = "active_provider"
         private const val KEY_PROVIDER_NAME = "active_provider_name"
         private const val HOME_TIMEOUT_MS = 25_000L
+        private const val DETAIL_TIMEOUT_MS = 20_000L
 
         private const val MAX_GLOBAL_PROVIDERS = 12
 

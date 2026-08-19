@@ -17,9 +17,9 @@ class ExitDialog(val data: Profile) : DialogFragment() {
     private var _binding: ExitDialogBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var noClearListener: () -> Unit
+    private var noClearListener: (() -> Unit)? = null
 
-    private lateinit var yesContinueListener: () -> Unit
+    private var yesContinueListener: (() -> Unit)? = null
 
     fun setNoClearListener(listener: () -> Unit) {
         noClearListener = listener
@@ -43,14 +43,21 @@ class ExitDialog(val data: Profile) : DialogFragment() {
         dialog!!.window?.setBackgroundDrawable(ColorDrawable(0))
         dialog!!.window?.setWindowAnimations(R.style.DialogAnimation)
         binding.notNowBtn.setOnClickListener {
-            noClearListener.invoke()
+            noClearListener?.invoke() ?: dismiss()
         }
         binding.accountName.text = data.name
         binding.coverImage.loadImage(data.avatarUrl)
         binding.yesExit.setOnClickListener {
-            yesContinueListener.invoke()
+            yesContinueListener?.invoke()
         }
 
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Signing out is the destructive half of this dialog, so start on the way out. A dialog's
+        // view is only attached once it is shown, so onViewCreated is too early to place focus.
+        binding.notNowBtn.requestFocus()
     }
 
     override fun onDestroyView() {

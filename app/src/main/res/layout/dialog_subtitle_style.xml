@@ -36,7 +36,7 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:src="@drawable/close"
-            app:tint="@color/color_item_tv_section_profile" />
+            app:tint="@color/close_icon_tint" />
     </FrameLayout>
 
     <TextView

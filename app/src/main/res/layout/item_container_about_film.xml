@@ -34,6 +34,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="7dp"
         android:layout_marginEnd="7dp"
+        android:ellipsize="end"
         android:focusable="false"
         android:focusedByDefault="false"
         android:fontFamily="@font/rubik_regular"
@@ -55,7 +56,7 @@
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="@+id/film_description_tv"
         app:layout_constraintStart_toStartOf="@+id/film_description_tv"
-        app:layout_constraintTop_toBottomOf="@+id/barrier5">
+        app:layout_constraintTop_toBottomOf="@+id/view3">
 
 
         <TextView
@@ -65,9 +66,10 @@
             android:layout_gravity="start"
             android:alpha="0.58"
             android:fontFamily="@font/inter_bold"
-            android:text="Episode 2 will be released in"
+            android:maxLines="1"
             android:textAllCaps="true"
-            android:textSize="@dimen/tv_text_subtitle" />
+            android:textSize="@dimen/tv_text_body"
+            tools:text="Episode 2 will be released in" />
 
         <TextView
             android:id="@+id/mediaCountdown"
@@ -76,9 +78,10 @@
             android:layout_gravity="start"
             android:layout_marginTop="4dp"
             android:fontFamily="@font/inter_bold"
-            android:text="00:00:00"
+            android:maxLines="1"
             android:textAllCaps="true"
-            android:textSize="18sp" />
+            android:textSize="@dimen/tv_text_subtitle"
+            tools:text="00:00:00" />
     </LinearLayout>
 
     <View

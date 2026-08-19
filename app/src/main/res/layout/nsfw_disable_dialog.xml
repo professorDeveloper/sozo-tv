@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Updated to match exact Netflix-style dialog with fixed 520dp width -->
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -22,7 +21,6 @@
         android:background="@color/netflix_dark_gray"
         android:padding="32dp">
 
-        <!-- Increased icon size back to 80dp as specified -->
         <com.saikou.sozo_tv.components.circleView.CircleWarningView
             android:id="@+id/largeWarningIcon"
             android:layout_width="80dp"
@@ -33,7 +31,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Restored title font size to 24sp for better visibility -->
         <TextView
             android:id="@+id/titleText"
             android:layout_width="0dp"
@@ -50,7 +47,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/largeWarningIcon" />
 
-        <!-- Restored message font size to 16sp and proper spacing -->
         <TextView
             android:id="@+id/messageText"
             android:layout_width="0dp"
@@ -67,7 +63,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/titleText" />
 
-        <!-- Restored button height to 56dp and proper spacing -->
         <LinearLayout
             android:id="@+id/buttonsContainer"
             android:layout_width="0dp"
@@ -82,34 +77,39 @@
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/goToSettingsButton"
                 android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="1"
-                android:fontFamily="@font/days"
-                android:text="Go to Settings"
+                android:layout_height="52dp"
                 android:layout_gravity="center"
-                android:textAllCaps="false"
-                android:gravity="center"
-                android:textColor="@color/color_black_white_text"
-                android:textSize="@dimen/tv_text_body"
-                android:background="@drawable/background_button_login"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/hideButton"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:focusable="true"
-                android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:backgroundTint="#2F2F2F"
+                android:background="@drawable/background_button_login"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="@font/days"
+                android:gravity="center"
+                android:text="Go to Settings"
+                android:textAllCaps="false"
+                android:textColor="@color/color_black_white_text"
+                android:textSize="@dimen/tv_text_body" />
+
+            <!-- Was a MaterialButton tinted the same #2F2F2F as the card behind it, with a stroke
+                 of that same colour: no button shape at rest, and on focus its label turned dark
+                 over an unchanged dark fill. background_button goes white on focus, which is what
+                 the label colour is built for. -->
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/hideButton"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_gravity="center"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:background="@drawable/background_button"
+                android:clickable="true"
+                android:focusable="true"
                 android:fontFamily="sans-serif-medium"
+                android:gravity="center"
                 android:text="Hide"
                 android:textAllCaps="false"
-                android:textColor="@color/color_item_tv_category_tv"
-                android:textSize="@dimen/tv_text_body"
-                app:cornerRadius="4dp"
-                app:strokeColor="#2F2F2F"
-                app:strokeWidth="1dp" />
+                android:textColor="@color/color_black_white_text"
+                android:textSize="@dimen/tv_text_body" />
 
         </LinearLayout>
 

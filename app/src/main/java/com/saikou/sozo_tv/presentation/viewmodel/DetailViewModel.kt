@@ -99,12 +99,10 @@ class DetailViewModel(
             val result = repo.loadAnimeRelations(id)
             if (result.isSuccess) {
                 val list = result.getOrNull().orEmpty()
-                if (list.size > 5) relationsData.postValue(list)
-                else {
-                    val random = repo.loadRandomAnime()
-                    if (random.isSuccess) relationsData.postValue(random.getOrNull().orEmpty())
-                    else errorData.postValue(random.exceptionOrNull()?.message)
-                }
+                // Anything the source actually related is worth showing. The old floor of
+                // five threw away shorter lists in favour of loadRandomAnime(), which is a
+                // stub that returns nothing — so a title with four sequels showed none.
+                relationsData.postValue(list)
             } else errorData.postValue(result.exceptionOrNull()?.message)
         }
     }

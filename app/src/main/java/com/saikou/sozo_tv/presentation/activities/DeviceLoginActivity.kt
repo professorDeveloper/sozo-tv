@@ -48,8 +48,9 @@ class DeviceLoginActivity : AppCompatActivity() {
         // A TV screensaver kicking in mid-pairing would strand the user on a dead code.
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        binding.btnRefresh.applyTvFocusScale()
-        binding.btnBack.applyTvFocusScale()
+        // Both buttons are match_parent; the default 1.08x would run them off the screen.
+        binding.btnRefresh.applyTvFocusScale(scale = 1f)
+        binding.btnBack.applyTvFocusScale(scale = 1f)
         binding.btnRefresh.setOnClickListener { model.start(userInitiated = true) }
         binding.btnBack.setOnClickListener { finish() }
         binding.btnRefresh.requestFocus()

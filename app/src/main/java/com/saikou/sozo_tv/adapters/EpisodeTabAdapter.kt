@@ -13,7 +13,7 @@ import com.saikou.sozo_tv.parser.models.Part
 class EpisodeTabAdapter(private var isFiltered: Boolean = false) :
     RecyclerView.Adapter<EpisodeTabAdapter.SeriesTabVh>() {
     private val list = ArrayList<Part>()
-    private var selectedPosition: Int = 1
+    private var selectedPosition: Int = 0
     private lateinit var focusedItemListener: (Part, Int) -> Unit
     private var lastItemClickListener: (() -> Unit)? = null
 

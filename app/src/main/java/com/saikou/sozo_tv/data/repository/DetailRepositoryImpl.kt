@@ -11,6 +11,12 @@ import com.saikou.sozo_tv.domain.model.CastDetailModel
 import com.saikou.sozo_tv.domain.model.DetailModel
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.repository.DetailRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -26,13 +32,39 @@ class DetailRepositoryImpl(
 
     private val cache = ConcurrentHashMap<Int, ExtDetail>()
 
+    /**
+     * The detail, the cast and the relations are three separate calls that all want the same
+     * payload, and they are fired back to back. Caching the resolved value only helped the
+     * second visit: within one open, all three missed the empty cache and ran a full load
+     * each. Holding the in-flight job instead means the later two await the first.
+     */
+    private val inFlight = ConcurrentHashMap<Int, Deferred<ExtDetail?>>()
+
+    /**
+     * The shared load belongs to the repository, not to whichever caller happened to ask
+     * first — otherwise that caller navigating away cancels the load the other two are
+     * waiting on.
+     */
+    private val loadScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     private suspend fun loadDetail(id: Int): ExtDetail? {
         cache[id]?.let { return it }
-        val entry = ExtensionContentRegistry.resolve(id) ?: return null
-        val detail = engine.load(entry.provider, entry.url) ?: return null
-        cache[id] = detail
-        recordAnilistId(detail)
-        return detail
+        val job = inFlight.computeIfAbsent(id) {
+            loadScope.async(start = CoroutineStart.LAZY) {
+                val entry = ExtensionContentRegistry.resolve(id)
+                    ?: return@async null
+                val detail = engine.load(entry.provider, entry.url)
+                    ?: return@async null
+                cache[id] = detail
+                recordAnilistId(detail)
+                detail
+            }
+        }
+        return try {
+            job.await()
+        } finally {
+            inFlight.remove(id, job)
+        }
     }
 
     private fun recordAnilistId(detail: ExtDetail) {

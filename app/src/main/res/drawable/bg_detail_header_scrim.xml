@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Scrim for the detail header, which sits directly on top of the playing trailer/backdrop.
+     Left-heavy so the title/description column stays legible while the right side of the
+     frame remains visible. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:centerColor="#A6141414"
+                android:endColor="#00141414"
+                android:startColor="#F2141414"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="90"
+                android:centerColor="#66141414"
+                android:endColor="#00141414"
+                android:startColor="#E6141414"
+                android:type="linear" />
+        </shape>
+    </item>
+</layer-list>

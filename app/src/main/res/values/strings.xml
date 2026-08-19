@@ -195,7 +195,9 @@
     <string name="anilist_status_empty">Nothing in “%1$s”.</string>
     <string name="anilist_exact_tracking">AniList ID</string>
     <string name="player_quality_title">Video quality</string>
-    <string name="player_quality_subtitle">Pick the resolution for the current server.</string>
+    <string name="player_quality_subtitle">Pick a resolution, or let the player follow your connection.</string>
+    <string name="quality_auto">Auto</string>
+    <string name="quality_auto_hint">Follows your connection</string>
     <string name="player_server_title">Server</string>
     <string name="player_server_subtitle">Choose which host streams this episode. Quality is picked separately.</string>
     <string name="sources_update">Update sources</string>

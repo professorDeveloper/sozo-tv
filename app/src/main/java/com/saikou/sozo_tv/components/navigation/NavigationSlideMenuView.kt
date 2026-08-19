@@ -129,9 +129,15 @@ class NavigationSlideMenuView(
     }
 
     fun close() {
+        // Collapsed, only the current destination stays reachable - it is the door back into the
+        // rail. With nothing selected that would leave the whole rail unfocusable, i.e. no way to
+        // get out of the content at all, so the first item stands in.
+        val shown = childs.filter { it.visibility == VISIBLE }
+        val entry = shown.firstOrNull { it.isSelected } ?: shown.firstOrNull()
         childs.forEach {
-            it.isFocusable = it.isSelected
-            it.isFocusableInTouchMode = it.isSelected
+            val reachable = it === entry
+            it.isFocusable = reachable
+            it.isFocusableInTouchMode = reachable
 
             it.close()
         }

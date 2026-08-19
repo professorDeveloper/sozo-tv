@@ -40,7 +40,7 @@
             android:src="@drawable/close"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/color_item_tv_section_profile" />
+            app:tint="@color/close_icon_tint" />
     </FrameLayout>
 
     <androidx.recyclerview.widget.RecyclerView

@@ -257,7 +257,8 @@ object LocalData {
         MySpinnerItem(sortLabel(it))
     }
 
-    val years = (1970 until 2025).map { MySpinnerItem(it.toString()) }.reversed().toMutableList()
+    val years = (1970..java.util.Calendar.getInstance().get(java.util.Calendar.YEAR))
+        .map { MySpinnerItem(it.toString()) }.reversed().toMutableList()
     lateinit var sFocusedGenreClickListener: (String) -> Unit
 
     fun setFocusedGenreClickListener(listener: (String) -> Unit) {
