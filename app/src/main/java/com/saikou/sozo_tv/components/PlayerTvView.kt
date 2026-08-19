@@ -25,6 +25,7 @@ class PlayerTvView @JvmOverloads constructor(
         }
 
     private var lastFocusedView: View? = null
+    private var focusRestoreInstalled = false
 
     private companion object {
         const val SEEK_STEP_MS = 10_000L
@@ -62,10 +63,16 @@ class PlayerTvView @JvmOverloads constructor(
 //        }
 
         if (controller.isVisible) {
-            // Hozirgi focus qilingan viewni saqlash
             val currentFocus = controller.findFocus()
             if (currentFocus != null) {
                 lastFocusedView = currentFocus
+                return super.dispatchKeyEvent(event)
+            }
+            // Focus is on the PlayerView itself. Its rect covers the whole screen, so it is
+            // never a directional candidate and the d-pad stays dead until the controls hide.
+            if (event.action == KeyEvent.ACTION_DOWN && isDirectionKey(event.keyCode)) {
+                restoreControllerFocus()
+                return true
             }
             return super.dispatchKeyEvent(event)
         }
@@ -122,18 +129,28 @@ class PlayerTvView @JvmOverloads constructor(
         return null
     }
 
+    private fun isDirectionKey(keyCode: Int) = when (keyCode) {
+        KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
+        KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN -> true
+
+        else -> false
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun restoreControllerFocus() {
+        val last = lastFocusedView
+        if (last != null && last.isShown && last.isFocusable && last.requestFocus()) return
+        if (findPlayPauseButton()?.requestFocus() == true) return
+        findFirstFocusableView(controller)?.requestFocus()
+    }
+
     @OptIn(UnstableApi::class)
     private fun installControllerFocusRestore() {
+        if (focusRestoreInstalled) return
+        focusRestoreInstalled = true
         controller.addVisibilityListener { visibility ->
             if (visibility != View.VISIBLE) return@addVisibilityListener
-            post {
-                val last = lastFocusedView
-                if (last != null && last.isShown && last.isFocusable && last.requestFocus()) {
-                    return@post
-                }
-                if (findPlayPauseButton()?.requestFocus() == true) return@post
-                findFirstFocusableView(controller)?.requestFocus()
-            }
+            post { restoreControllerFocus() }
         }
     }
 

@@ -35,6 +35,10 @@ class NavigationSlideView @JvmOverloads constructor(
     private var selectedListener: ((item: MenuItem) -> Boolean)? = null
     private var reselectedListener: ((item: MenuItem) -> Boolean)? = null
 
+    private val headerLayoutListener = OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+        applyMenuOffset()
+    }
+
     /**
      * Currently selected menu item ID, or zero if there is no menu.
      */
@@ -163,17 +167,28 @@ class NavigationSlideView @JvmOverloads constructor(
                 }
             }
         }
-        menuView.post {
-            val headerHeight = headerView?.height ?: 0
-            val params = menuView.layoutParams as LayoutParams
-            params.topMargin = 2 * headerHeight
-            menuView.layoutParams = params
-        }
+        applyMenuOffset()
 
+        // Derived from where focus actually is, not from the previous isOpen: a rebuild happens on
+        // every destination change, and restoring a stale isOpen leaves the rail drawn expanded
+        // while focus sits in the content.
         when {
-            isOpen -> open()
+            headerView?.hasFocus() == true || menuView.hasFocus() -> open()
             else -> close()
         }
+    }
+
+    /**
+     * The menu is offset by the header, so the offset is only right once the header has been
+     * measured. A one-shot post runs before the first layout pass, which left the items drawn on
+     * top of the header until some later rebuild happened to re-post with a real height.
+     */
+    private fun applyMenuOffset() {
+        val offset = 2 * (headerView?.height ?: 0)
+        val params = menuView.layoutParams as LayoutParams
+        if (params.topMargin == offset) return
+        params.topMargin = offset
+        menuView.layoutParams = params
     }
 
     fun addHeaderView(@LayoutRes layoutRes: Int) {
@@ -186,12 +201,14 @@ class NavigationSlideView @JvmOverloads constructor(
     fun addHeaderView(headerView: NavigationSlideHeaderView) {
         removeHeaderView()
         this.headerView = headerView
+        headerView.addOnLayoutChangeListener(headerLayoutListener)
         addView(headerView, 0)
     }
 
     fun removeHeaderView() {
-        if (headerView != null) {
-            removeView(headerView)
+        headerView?.let {
+            it.removeOnLayoutChangeListener(headerLayoutListener)
+            removeView(it)
             headerView = null
         }
     }

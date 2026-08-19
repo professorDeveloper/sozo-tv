@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.components.navigation
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Bundle
 import android.os.Parcelable
 import android.view.ViewGroup
 import androidx.appcompat.view.menu.MenuBuilder
@@ -48,13 +49,11 @@ class NavigationSlidePresenter : MenuPresenter {
 
     override fun getId(): Int = MENU_PRESENTER_ID
 
-    override fun onSaveInstanceState(): Parcelable {
-        TODO("Not yet implemented")
-    }
+    // The checked item is restored from the nav destination, so there is nothing of our own to
+    // persist - but MenuBuilder calls these blind, and throwing here took the whole window down.
+    override fun onSaveInstanceState(): Parcelable = Bundle()
 
-    override fun onRestoreInstanceState(state: Parcelable?) {
-        TODO("Not yet implemented")
-    }
+    override fun onRestoreInstanceState(state: Parcelable?) {}
 
 
     companion object {

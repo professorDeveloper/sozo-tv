@@ -86,16 +86,14 @@
             app:layout_constraintStart_toStartOf="@+id/textView5"
             app:layout_constraintTop_toBottomOf="@+id/linearLayout3">
 
+            <!-- Free to wrap: pinned to one line of 20 ems it lost the tail of the question in
+                 any language whose phrasing runs longer than the English. -->
             <TextView
                 android:id="@+id/continueTime"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:fontFamily="@font/days"
-                android:lines="1"
-                android:maxEms="20"
-                android:maxLines="1"
-                android:minLines="1"
                 android:text="Are you sure you want to exit ?"
                 android:textColor="@color/lb_tv_white"
                 android:textSize="@dimen/tv_text_subtitle" />

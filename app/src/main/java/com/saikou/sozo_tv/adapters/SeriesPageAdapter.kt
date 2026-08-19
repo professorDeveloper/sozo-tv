@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
@@ -20,7 +21,8 @@ class SeriesPageAdapter(
 ) : RecyclerView.Adapter<SeriesPageAdapter.EpisodeViewHolder>() {
 
     var episodeList: ArrayList<Data> = arrayListOf()
-    private lateinit var onItemClicked: (Data, Int) -> Unit
+    private var onItemClicked: ((Data, Int) -> Unit)? = null
+    private var renderedProgress: Map<String?, Long> = emptyMap()
 
     fun setOnItemClickedListener(listener: (Data, Int) -> Unit) {
         onItemClicked = listener
@@ -38,10 +40,31 @@ class SeriesPageAdapter(
         holder.bind(episodeList[position])
     }
 
+    // Diffed rather than notifyDataSetChanged(): a blanket rebuild rebinds every visible row and
+    // drops D-pad focus out of the grid whenever a page is re-delivered with identical contents.
     fun updateEpisodeItems(episodeList: List<Data>) {
+        val old = ArrayList(this.episodeList)
+        val oldProgress = renderedProgress
+        // Watch progress lives outside the episode payload, so it has to be part of the comparison
+        // or a row whose only change is "you watched it" would never redraw.
+        val newProgress: Map<String?, Long> =
+            localEpisode.associate { it.session to it.lastPosition }
+        val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+            override fun getOldListSize() = old.size
+            override fun getNewListSize() = episodeList.size
+
+            override fun areItemsTheSame(oldPos: Int, newPos: Int) =
+                old[oldPos].session == episodeList[newPos].session &&
+                        old[oldPos].episode == episodeList[newPos].episode
+
+            override fun areContentsTheSame(oldPos: Int, newPos: Int) =
+                old[oldPos] == episodeList[newPos] &&
+                        oldProgress[old[oldPos].session] == newProgress[episodeList[newPos].session]
+        })
         this.episodeList.clear()
         this.episodeList.addAll(episodeList)
-        notifyDataSetChanged()
+        renderedProgress = newProgress
+        diff.dispatchUpdatesTo(this)
     }
 
     inner class EpisodeViewHolder(private val binding: EpisodeItemBinding) :
@@ -50,6 +73,9 @@ class SeriesPageAdapter(
         @SuppressLint("SetTextI18n")
         fun bind(data: Data) {
             binding.apply {
+                // A recycled row can still carry the focus zoom transform (fillAfter), which would
+                // leave an unfocused episode drawn larger than its neighbours.
+                root.clearAnimation()
                 // progress data
                 val getLocalEp = localEpisode.find { it.session == data.session }
                 if (getLocalEp != null) {
@@ -62,7 +88,7 @@ class SeriesPageAdapter(
                     progressBar.gone()
                 }
                 binding.country.text = data.episode.toString()
-                root.setOnClickListener { onItemClicked.invoke(data, absoluteAdapterPosition) }
+                root.setOnClickListener { onItemClicked?.invoke(data, absoluteAdapterPosition) }
                 if (LocalData.isAnimeEnabled) {
                     topContainer.text = "Episode ${data.episode ?: 0}"
 

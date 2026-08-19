@@ -22,7 +22,9 @@ import com.saikou.sozo_tv.adapters.SeriesPageAdapter
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.EpisodeScreenBinding
+import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.Part
+import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.utils.LocalData
@@ -43,10 +45,17 @@ class EpisodeScreen : Fragment() {
     private lateinit var categoriesAdapter: EpisodeTabAdapter
     private lateinit var currentMediaId: String
     private var selectedPosition = 0
+    private var currentMedia: ShowResponse? = null
+    private var requestedPage = -1
+    private var episodeObserverBound = false
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = EpisodeScreenBinding.inflate(inflater, container, false)
+        // The fragment outlives its view (player round-trip), but the observers are bound to the
+        // view lifecycle — so the "already wired / already loaded" latches have to reset with it.
+        episodeObserverBound = false
+        requestedPage = -1
         return binding.root
     }
 
@@ -116,107 +125,120 @@ class EpisodeScreen : Fragment() {
                     binding.textView7.visible()
                     binding.textView7.startAnimation(anim)
                     currentMediaId = dataFound.data.link
-                    adapter = SeriesPageAdapter(localEpisode = viewModel.epListFromLocal)
+                    currentMedia = dataFound.data
+                    if (!::adapter.isInitialized) {
+                        adapter = SeriesPageAdapter(localEpisode = viewModel.epListFromLocal)
+                        adapter.setOnItemClickedListener { episode, index ->
+                            openEpisode(episode, index)
+                        }
+                    }
                     // "Wrong Title?" search removed — the exact selected media is loaded directly.
                     binding.wrongTitleContainer.gone()
 
-                    binding.topContainer.adapter = adapter
-                    viewModel.loadEpisodeByPage(1, currentMediaId, dataFound.data)
+                    if (binding.topContainer.adapter !== adapter) {
+                        binding.topContainer.adapter = adapter
+                    }
                     binding.placeHolder.root.gone()
                     binding.loadingLayout.gone()
-                    viewModel.episodeData.observe(viewLifecycleOwner) { result ->
-                        when (result) {
-                            is Resource.Error -> {
-                                binding.loadingLayout.gone()
-                                binding.placeHolder.root.visible()
-                                binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
-                                binding.placeHolder.placeholderTxt.text = getString(R.string.xatolik)
-                            }
+                    observeEpisodes()
+                    loadPage(selectedPosition)
+                }
 
-                            Resource.Loading -> {
-                                binding.placeHolder.root.gone()
-                                binding.loadingLayout.visible()
-                                binding.topContainer.gone()
-                                binding.loadingText.text = "Episodes are loading.."
-                            }
+                else -> {}
+            }
+        }
+    }
 
-                            is Resource.Success -> {
-                                // Always clear the loader/placeholder once episodes resolve —
-                                // the multi-page branch below previously left the spinner up.
-                                binding.loadingLayout.gone()
-                                binding.placeHolder.root.gone()
-                                if (result.data.last_page != null && result.data.data != null) {
-                                    if (result.data.last_page == 1) {
-                                        binding.tabRv.gone()
-                                        binding.topContainer.visible()
+    private fun openEpisode(episode: Data, index: Int) {
+        val media = currentMedia ?: return
+        findNavController().navigate(
+            EpisodeScreenDirections.actionEpisodeScreenToSeriesPlayerScreen(
+                id = episode.session ?: "",
+                idMal = args.malId,
+                name = media.name,
+                currentEpisode = (episode.episode ?: 0).toString(),
+                image = episode.snapshot ?: LocalData.anime404,
+                seriesMainId = currentMediaId,
+                currentPage = selectedPosition + 1,
+                currentIndex = index
+            )
+        )
+    }
 
-                                        adapter.updateEpisodeItems(result.data.data)
-                                        adapter.setOnItemClickedListener { it, currentIndex ->
-                                            findNavController().navigate(
-                                                EpisodeScreenDirections.actionEpisodeScreenToSeriesPlayerScreen(
-                                                    id = it.session ?: "",
-                                                    idMal = args.mediaId,
-                                                    name = dataFound.data.name,
-                                                    currentEpisode = (it.episode ?: 0).toString(),
-                                                    image = it.snapshot ?: LocalData.anime404,
-                                                    seriesMainId = currentMediaId,
-                                                    currentPage = selectedPosition + 1,
-                                                    currentIndex = currentIndex
-                                                )
-                                            )
-                                        }
-                                    } else {
-                                        binding.topContainer.visible()
-                                        adapter.updateEpisodeItems(result.data.data)
-                                        adapter.setOnItemClickedListener { it, index ->
-                                            findNavController().navigate(
-                                                EpisodeScreenDirections.actionEpisodeScreenToSeriesPlayerScreen(
-                                                    id = it.session ?: "",
-                                                    name = dataFound.data.name,
-                                                    currentEpisode = (it.episode ?: 0).toString(),
-                                                    image = it.snapshot ?: LocalData.anime404,
-                                                    seriesMainId = currentMediaId,
-                                                    currentPage = selectedPosition + 1,
-                                                    currentIndex = index,
-                                                    idMal = args.malId
-                                                )
-                                            )
-                                        }
-                                        val partList = ArrayList<Part>()
-                                        for (i in 1..result.data.last_page) {
-                                            partList.add(Part("Part $i", i))
-                                        }
-                                        binding.tabRv.visible()
-                                        if (!::categoriesAdapter.isInitialized) {
-                                            categoriesAdapter = EpisodeTabAdapter()
-                                        }
-                                        if (binding.tabRv.adapter !== categoriesAdapter) {
-                                            binding.tabRv.adapter = categoriesAdapter
-                                        }
-                                        categoriesAdapter.setFocusedItemListener { _, i ->
-                                            selectedPosition = i
-                                            viewModel.loadEpisodeByPage(
-                                                i + 1, currentMediaId, dataFound.data
-                                            )
-                                        }
-                                        if (categoriesAdapter.itemCount != partList.size) {
-                                            categoriesAdapter.submitList(partList)
-                                        }
-                                        categoriesAdapter.setSelectedPosition(selectedPosition)
-                                        if (!binding.tabRv.hasFocus()) {
-                                            binding.tabRv.scrollToPosition(selectedPosition)
-                                        }
-                                    }
-                                }
-                            }
+    private fun loadPage(position: Int) {
+        val media = currentMedia ?: return
+        if (requestedPage == position) return
+        requestedPage = position
+        selectedPosition = position
+        viewModel.loadEpisodeByPage(position + 1, currentMediaId, media)
+    }
 
-                            else -> {}
-                        }
+    @SuppressLint("SetTextI18n")
+    private fun observeEpisodes() {
+        // Registered once: this used to be wired up inside the dataFound observer, so every
+        // re-emission stacked another observer and re-delivered the same page repeatedly.
+        if (episodeObserverBound) return
+        episodeObserverBound = true
+        viewModel.episodeData.observe(viewLifecycleOwner) { result ->
+            when (result) {
+                is Resource.Error -> {
+                    // Clear the latch so re-selecting the same part retries instead of no-opping.
+                    requestedPage = -1
+                    binding.loadingLayout.gone()
+                    binding.placeHolder.root.visible()
+                    binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
+                    binding.placeHolder.placeholderTxt.text = getString(R.string.xatolik)
+                }
+
+                Resource.Loading -> {
+                    binding.placeHolder.root.gone()
+                    binding.loadingText.text = "Episodes are loading.."
+                    // Only take the screen over while there is nothing to show. Hiding a populated
+                    // grid on every page switch threw D-pad focus back out of the list.
+                    if (adapter.itemCount == 0) {
+                        binding.loadingLayout.visible()
+                        binding.topContainer.gone()
+                    }
+                }
+
+                is Resource.Success -> {
+                    binding.loadingLayout.gone()
+                    binding.placeHolder.root.gone()
+                    val lastPage = result.data.last_page ?: return@observe
+                    val episodes = result.data.data ?: return@observe
+                    binding.topContainer.visible()
+                    adapter.updateEpisodeItems(episodes)
+                    if (lastPage <= 1) {
+                        binding.tabRv.gone()
+                    } else {
+                        bindPartTabs(lastPage)
                     }
                 }
 
                 else -> {}
             }
+        }
+    }
+
+    private fun bindPartTabs(lastPage: Int) {
+        val partList = ArrayList<Part>()
+        for (i in 1..lastPage) {
+            partList.add(Part("Part $i", i))
+        }
+        binding.tabRv.visible()
+        if (!::categoriesAdapter.isInitialized) {
+            categoriesAdapter = EpisodeTabAdapter()
+            categoriesAdapter.setFocusedItemListener { _, i -> loadPage(i) }
+        }
+        if (binding.tabRv.adapter !== categoriesAdapter) {
+            binding.tabRv.adapter = categoriesAdapter
+        }
+        if (categoriesAdapter.itemCount != partList.size) {
+            categoriesAdapter.submitList(partList)
+        }
+        categoriesAdapter.setSelectedPosition(selectedPosition)
+        if (!binding.tabRv.hasFocus()) {
+            binding.tabRv.scrollToPosition(selectedPosition)
         }
     }
 

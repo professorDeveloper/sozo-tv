@@ -8,8 +8,8 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/pagerContainer"
         android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:layout_marginHorizontal="16dp"
+        android:layout_height="300dp"
+        android:layout_marginHorizontal="4dp"
         android:layout_marginTop="4dp"
         android:layout_marginBottom="10dp"
         app:cardCornerRadius="16dp"
@@ -21,12 +21,10 @@
 
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/viewPager"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            app:focusOutEnd="true"
-            app:focusOutFront="true"
             android:layout_width="match_parent"
-            android:layout_height="400dp" />
+            android:layout_height="match_parent"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
 
     </androidx.cardview.widget.CardView>
 
@@ -34,9 +32,8 @@
         android:id="@+id/dots_indicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal|bottom"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="10dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
         android:elevation="4dp"
         app:dotsColor="@color/dot_color"
         app:dotsCornerRadius="4dp"

@@ -15,8 +15,8 @@ class NsfwAlertDialog : DialogFragment() {
     private var _binding: NsfwDialogBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var yesContinueListener: () -> Unit
-    private lateinit var onbackPressedListener: () -> Unit
+    private var yesContinueListener: (() -> Unit)? = null
+    private var onbackPressedListener: (() -> Unit)? = null
 
     fun setYesContinueListener(listener: () -> Unit) {
         yesContinueListener = listener
@@ -41,10 +41,17 @@ class NsfwAlertDialog : DialogFragment() {
         dialog!!.window?.setBackgroundDrawable(ColorDrawable(0))
         dialog!!.window?.setWindowAnimations(R.style.DialogAnimation)
         binding.btnConfirm.setOnClickListener {
-            yesContinueListener.invoke()
+            yesContinueListener?.invoke()
         }
-        dialog?.setOnCancelListener { onbackPressedListener.invoke() }
+        dialog?.setOnCancelListener { onbackPressedListener?.invoke() ?: dismiss() }
 
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // A dialog's view is only attached once it is shown, so onViewCreated is too early to
+        // place focus deliberately instead of letting it land by traversal order.
+        binding.btnConfirm.requestFocus()
     }
 
     override fun onDestroyView() {

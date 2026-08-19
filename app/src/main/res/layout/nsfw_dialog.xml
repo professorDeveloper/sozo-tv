@@ -1,3 +1,6 @@
+<!-- Spacing here is on a budget: a 1080p panel is ~540dp tall and this dialog does not scroll,
+     so anything that pushes it past that clips the confirm button off the bottom and leaves the
+     warning unanswerable. -->
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
@@ -13,14 +16,13 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center_horizontal"
-        android:padding="20dp">
+        android:padding="16dp">
 
         <!-- Header Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="12dp"
             android:gravity="center_horizontal"
             android:orientation="vertical">
 
@@ -54,17 +56,17 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="14dp"
             android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="8dp"
                 android:background="@drawable/item_round_bg"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:padding="14dp">
+                android:padding="10dp">
 
                 <ImageView
                     android:layout_width="24dp"
@@ -103,11 +105,11 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="8dp"
                 android:background="@drawable/item_round_bg"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:padding="14dp">
+                android:padding="10dp">
 
                 <ImageView
                     android:layout_width="24dp"
@@ -149,7 +151,7 @@
                 android:background="@drawable/item_round_bg"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:padding="14dp">
+                android:padding="10dp">
 
                 <ImageView
                     android:layout_width="24dp"

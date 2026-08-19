@@ -5,8 +5,9 @@ import android.content.Context
 import android.graphics.Color
 import android.os.CountDownTimer
 import android.text.Html
+import android.text.TextUtils
 import android.text.method.LinkMovementMethod
-import android.util.Log
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -69,6 +70,16 @@ class MovieDetailsAdapter(
         const val DETAILS_ITEM_SECTION = 12
         const val DETAILS_ITEM_THIRD = 13
         const val DETAILS_ITEM_FOUR = 14
+        private const val MAX_GENRE_CHIPS = 3
+    }
+
+    // Adapter-scoped: a per-ViewHolder flag was reset whenever notifyItemChanged handed the header
+    // a fresh holder, which pulled focus back to Watch on every bookmark toggle.
+    private var initialFocusDone = false
+
+    /** Call when the screen's view is (re)created, so returning from a child screen re-lands focus. */
+    fun resetInitialFocus() {
+        initialFocusDone = false
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -112,7 +123,9 @@ class MovieDetailsAdapter(
         when (holder) {
             is ItemPlayDetailsHeaderViewHolder -> {
                 if (item is DetailCategory && item.viewType == DETAILS_ITEM_HEADER) {
-                    holder.bind(item, interfaceListener = detailsButtonListener)
+                    val claimInitialFocus = !initialFocusDone
+                    initialFocusDone = true
+                    holder.bind(item, detailsButtonListener, claimInitialFocus)
                 }
             }
 
@@ -164,39 +177,15 @@ class MovieDetailsAdapter(
         RecyclerView.ViewHolder(binding.root) {
         private var currentLayoutId: Int? = null
         private var currentItem: DetailCategory? = null
-
-        init {
-            setFocusChangeListener(
-                binding.aboutFilmTv,
-                binding.indicator1,
-                R.layout.item_container_about_film
-            )
-
-        }
+        private var airingTimer: CountDownTimer? = null
 
         fun bind(item: DetailCategory) {
-            replaceLayout(R.layout.item_container_about_film, binding.root.context)
             currentItem = item
+            // Re-inflating on every bind threw away the already-laid-out description block.
             if (currentLayoutId != R.layout.item_container_about_film) {
                 replaceLayout(R.layout.item_container_about_film, binding.root.context)
-            } else {
-                updateTextViews()
             }
-        }
-
-        private fun setFocusChangeListener(view: View, indicator: View, layoutResId: Int) {
-            view.setOnFocusChangeListener { _, hasFocus ->
-                if (hasFocus) {
-                    Log.d("GGG", "setFocusChangeListener:${layoutResId} || $currentLayoutId ")
-                    if (currentLayoutId != layoutResId) {
-                        indicator.visibility = View.VISIBLE
-                        replaceLayout(layoutResId, binding.root.context)
-                        updateTextViews()
-                    }
-                } else {
-                    indicator.visibility = View.INVISIBLE
-                }
-            }
+            updateTextViews()
         }
 
         private fun replaceLayout(layoutResId: Int, context: Context) {
@@ -218,6 +207,10 @@ class MovieDetailsAdapter(
             val image = binding.frame.findViewById<ImageView>(R.id.film_image) ?: null
             val countDown = binding.frame.findViewById<TextView>(R.id.mediaCountdownText)
             val countDownText = binding.frame.findViewById<TextView>(R.id.mediaCountdown)
+            // A rebind used to leave the previous timer running, so two of them wrote conflicting
+            // values into the same countdown field.
+            airingTimer?.cancel()
+            airingTimer = null
             if (currentItem?.content?.airingSchedule?.episode != -1 && currentItem?.content?.airingSchedule?.timeUntilAiring!! > 0) {
                 countDown.visible()
                 countDownText.visible()
@@ -226,7 +219,7 @@ class MovieDetailsAdapter(
                     "Episode ${currentItem?.content?.airingSchedule?.episode} will be released in"
                 val totalMillis = abs(timeInSeconds) * 1000L
 
-                object : CountDownTimer(totalMillis, 1000) {
+                airingTimer = object : CountDownTimer(totalMillis, 1000) {
                     override fun onTick(millisUntilFinished: Long) {
                         countDownText.text = formatCountdown(millisUntilFinished / 1000)
                     }
@@ -234,7 +227,7 @@ class MovieDetailsAdapter(
                     override fun onFinish() {
                         countDownText.text = "Aired!"
                     }
-                }.start()
+                }.also { it.start() }
             } else {
                 countDown.gone()
                 countDownText.gone()
@@ -244,15 +237,8 @@ class MovieDetailsAdapter(
                 val descriptionTextView =
                     binding.frame.findViewById<TextView>(R.id.film_description_tv)
                 descriptionTextView?.movementMethod = LinkMovementMethod.getInstance()
-                if (LocalData.isAnimeEnabled) {
-                    descriptionTextView?.text =
-                        Html.fromHtml(item.content.description, Html.FROM_HTML_MODE_COMPACT)
-                } else {
-                    descriptionTextView.text = Html.fromHtml(
-                        item.content.description + item.content.description + item.content.description + item.content.description,
-                        Html.FROM_HTML_MODE_COMPACT
-                    )
-                }
+                descriptionTextView?.text =
+                    Html.fromHtml(item.content.description, Html.FROM_HTML_MODE_COMPACT)
                 descriptionTextView?.isFocusable = false
                 // Legacy "About Movie" metadata grid labels.
                 val labelDate = binding.frame.findViewById<TextView?>(R.id.textView8)
@@ -322,10 +308,13 @@ class MovieDetailsAdapter(
         RecyclerView.ViewHolder(binding.root) {
         private var isOn = false
         private var isPlay = true
-        private var initialFocusDone = false
 
         @SuppressLint("SetTextI18n")
-        fun bind(item: DetailCategory, interfaceListener: DetailsInterface) {
+        fun bind(
+            item: DetailCategory,
+            interfaceListener: DetailsInterface,
+            claimInitialFocus: Boolean
+        ) {
             val preferenceManager = PreferenceManager()
             binding.backBtn.setOnClickListener {
                 interfaceListener.onCancelButtonClicked()
@@ -348,8 +337,6 @@ class MovieDetailsAdapter(
                     }
                 }
             }
-            binding.filmDescriptionTv.text =
-                item.content.description + " " + item.content.description + " " + item.content.description
             binding.buttonSound.setOnClickListener {
                 if (!isOn) binding.iconSound.setImageResource(R.drawable.ic_sound) else binding.iconSound.setImageResource(
                     R.drawable.ic_no_sound
@@ -365,16 +352,26 @@ class MovieDetailsAdapter(
                 isPlay = !isPlay
                 interfaceListener.onPauseButtonClicked(isPlay)
             }
+            val density = binding.root.resources.displayMetrics.density
+            fun dp(value: Int) = (value * density).toInt()
+
             fun chip(label: String): TextView = TextView(binding.root.context).apply {
                 text = label
-                textSize = 12f
+                setTextSize(
+                    TypedValue.COMPLEX_UNIT_PX,
+                    resources.getDimension(R.dimen.tv_text_caption)
+                )
                 setTextColor(Color.WHITE)
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
+                // WRAP_CONTENT: MATCH_PARENT made every chip demand the full row width, so all but
+                // the first ran off the right edge of the screen.
                 layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { rightMargin = 7 * resources.displayMetrics.density.toInt() }
+                ).apply { marginEnd = dp(6) }
                 setBackgroundResource(R.drawable.bg_cat_tv)
-                setPadding(18, 10, 18, 10)
+                setPadding(dp(8), dp(4), dp(8), dp(4))
             }
 
             val genres = item.content.genres
@@ -386,7 +383,9 @@ class MovieDetailsAdapter(
 
             // Real release year — omitted when the provider doesn't supply one.
             item.content.seasonYear?.let { if (it > 0) container.addView(chip(it.toString())) }
-            genres.forEach { container.addView(chip(it)) }
+            // Capped: the row is a single non-scrolling line inside a 40%-wide column, so extra
+            // genres would simply be clipped off the end.
+            genres.take(MAX_GENRE_CHIPS).forEach { container.addView(chip(it)) }
             // Episode count — only when known.
             item.content.episodes?.let { if (it > 0) container.addView(chip("Episodes: $it")) }
             container.isVisible = container.childCount > 0
@@ -398,8 +397,7 @@ class MovieDetailsAdapter(
             // Land initial D-pad focus on Watch, not the Back button (leanback would otherwise
             // pick backBtn as the first focusable descendant). One-shot so bookmark toggles
             // (notifyItemChanged(0)) don't steal focus back to Watch every time.
-            if (!initialFocusDone) {
-                initialFocusDone = true
+            if (claimInitialFocus) {
                 binding.watchButton.post {
                     if (!binding.root.hasFocus()) binding.watchButton.requestFocus()
                 }
@@ -471,23 +469,28 @@ class MovieDetailsAdapter(
     fun submitRecommendedMovies(movies: List<MainModel>) {
         recommendedMovies.clear()
         recommendedMovies.addAll(movies)
-        notifyItemChanged(3)
+        notifyRow(3)
     }
 
     fun submitCast(cast: List<Cast>) {
         castList.clear()
         castList.addAll(cast)
-        notifyItemChanged(2)
+        notifyRow(2)
     }
 
     fun updateTrailer(it: String) {
         trailer = it
-        notifyItemChanged(0)
+        notifyRow(0)
     }
 
     fun updateBookmark(it: Boolean?) {
         bookmark = it ?: false
-        notifyItemChanged(0)
+        notifyRow(0)
+    }
+
+    // Cast / recommendations can resolve before the detail itself, i.e. before the rows exist.
+    private fun notifyRow(position: Int) {
+        if (position in itemList.indices) notifyItemChanged(position)
     }
 //
 //    fun submitCast(cast: CastResponse?) {

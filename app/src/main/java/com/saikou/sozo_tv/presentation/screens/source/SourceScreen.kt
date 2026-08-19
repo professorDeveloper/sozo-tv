@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -55,6 +56,9 @@ class SourceScreen : Fragment() {
     /** Live reference to the currently-bound header (null while it is scrolled out / recycled). */
     private var header: SourceHeaderViews? = null
     private var searchWatcher: TextWatcher? = null
+
+    /** The filter chips currently in the header, keyed by the repo/mode they select (null = All). */
+    private val repoChips = mutableListOf<Pair<String?, TextView>>()
 
     // --- Persisted header state (re-applied whenever the header re-binds) ---
     private var currentGroup: String = ExtGroup.ANIYOMI
@@ -138,31 +142,50 @@ class SourceScreen : Fragment() {
      * Build the header filter chips for the current tab. On the Sozo (server) tab these filter
      * by delivery mode (All / Cloud / Hybrid / Local); on the extension tabs they filter by the
      * installed repo each provider came from.
+     *
+     * The chips are only torn down when the set of filters itself changes. Rebuilding them on
+     * every pick destroyed the very chip the user had just pressed, and the D-pad landed back at
+     * the top of the screen; a load finishing under a focused chip did the same.
      */
     private fun renderRepoChips() {
         val container = header?.repoFilterContainer ?: return
-        container.removeAllViews()
-        if (currentGroup == ExtGroup.SERVER) {
-            val modes = adapter.modes()
-            // Only worth showing when there's more than one mode to choose between.
-            if (modes.size < 2) {
-                container.visibility = View.GONE
-                return
-            }
-            container.visibility = View.VISIBLE
-            addChip(container, "All", selectedMode == null) { selectMode(null) }
-            modes.forEach { m -> addChip(container, modeLabel(m), selectedMode == m) { selectMode(m) } }
-            return
-        }
-        val repos = adapter.repos()
-        // Only worth showing when there's more than one repo to choose between.
-        if (repos.size < 2) {
+        val server = currentGroup == ExtGroup.SERVER
+        val values = if (server) adapter.modes() else adapter.repos()
+        // A single filter is no filter at all.
+        if (values.size < 2) {
+            container.removeAllViews()
+            repoChips.clear()
             container.visibility = View.GONE
+            // Drop any filter along with the chips: rows hidden by a control that is no longer on
+            // screen read as missing providers.
+            if (server) selectMode(null) else selectRepo(null)
             return
         }
         container.visibility = View.VISIBLE
-        addChip(container, "All", selectedRepo == null) { selectRepo(null) }
-        repos.forEach { r -> addChip(container, r, selectedRepo == r) { selectRepo(r) } }
+
+        val keys = listOf<String?>(null) + values
+        val live = repoChips.firstOrNull()?.second?.parent === container
+        if (live && repoChips.map { it.first } == keys) {
+            refreshChipSelection()
+            return
+        }
+        container.removeAllViews()
+        repoChips.clear()
+        keys.forEach { key ->
+            val label = when {
+                key == null -> "All"
+                server -> modeLabel(key)
+                else -> key
+            }
+            addChip(container, key, label) { if (server) selectMode(key) else selectRepo(key) }
+        }
+        refreshChipSelection()
+    }
+
+    /** Repaint the chips in place so the focused one survives a pick. */
+    private fun refreshChipSelection() {
+        val current = if (currentGroup == ExtGroup.SERVER) selectedMode else selectedRepo
+        repoChips.forEach { (key, chip) -> stylePill(chip, key == current) }
     }
 
     private fun selectRepo(repo: String?) {
@@ -171,7 +194,7 @@ class SourceScreen : Fragment() {
         adapter.setRepoFilter(repo)
         refreshCount()
         refreshEmptyState()
-        renderRepoChips()
+        refreshChipSelection()
     }
 
     private fun selectMode(mode: String?) {
@@ -180,7 +203,7 @@ class SourceScreen : Fragment() {
         adapter.setModeFilter(mode)
         refreshCount()
         refreshEmptyState()
-        renderRepoChips()
+        refreshChipSelection()
     }
 
     /** Friendly label for a server provider's delivery mode. */
@@ -191,26 +214,30 @@ class SourceScreen : Fragment() {
         else -> mode.replaceFirstChar { it.uppercase() }
     }
 
-    private fun addChip(container: LinearLayout, label: String, selected: Boolean, onClick: () -> Unit) {
+    private fun addChip(
+        container: LinearLayout,
+        key: String?,
+        label: String,
+        onClick: () -> Unit,
+    ) {
         val chip = TextView(requireContext()).apply {
             text = label
-            textSize = 13f
+            setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.tv_text_label))
             gravity = Gravity.CENTER
             isFocusable = true
             isClickable = true
-            setPadding(34, 16, 34, 16)
-            setBackgroundResource(
-                if (selected) R.drawable.bg_tab_selected else R.drawable.bg_tab_unselected
-            )
-            setTextColor((if (selected) 0xFF111417 else 0xFFCCCCCC).toInt())
+            setPadding(dp(18), dp(8), dp(18), dp(8))
             setOnClickListener { onClick() }
         }
         val lp = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT,
             LinearLayout.LayoutParams.WRAP_CONTENT,
-        ).apply { marginEnd = 14 }
+        ).apply { marginEnd = dp(7) }
         container.addView(chip, lp)
+        repoChips += key to chip
     }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     private fun switchTab(group: String) {
         if (group == currentGroup) return
@@ -239,17 +266,18 @@ class SourceScreen : Fragment() {
 
     private fun applyTabUi() {
         val v = header ?: return
-        styleTab(v.btnTabServer, currentGroup == ExtGroup.SERVER)
-        styleTab(v.btnTabAniyomi, currentGroup == ExtGroup.ANIYOMI)
-        styleTab(v.btnTabCloudstream, currentGroup == ExtGroup.CLOUDSTREAM)
+        stylePill(v.btnTabServer, currentGroup == ExtGroup.SERVER)
+        stylePill(v.btnTabAniyomi, currentGroup == ExtGroup.ANIYOMI)
+        stylePill(v.btnTabCloudstream, currentGroup == ExtGroup.CLOUDSTREAM)
     }
 
-    /** Selected tab = white pill with dark text; unselected = outlined with light text. */
-    private fun styleTab(tab: TextView, selected: Boolean) {
-        tab.setBackgroundResource(
+    /** Selected = white pill with dark text; unselected = outlined with light text. Both
+     *  backgrounds carry the focus stroke, so this must not be swapped for a flat colour. */
+    private fun stylePill(pill: TextView, selected: Boolean) {
+        pill.setBackgroundResource(
             if (selected) R.drawable.bg_tab_selected else R.drawable.bg_tab_unselected
         )
-        tab.setTextColor((if (selected) 0xFF111417 else 0xFFCCCCCC).toInt())
+        pill.setTextColor((if (selected) 0xFF111417 else 0xFFCCCCCC).toInt())
     }
 
     /**
@@ -380,8 +408,10 @@ class SourceScreen : Fragment() {
         v.tvEmpty.isVisible = !emptyText.isNullOrEmpty()
         v.tvProviderCount.text = countText.orEmpty()
         v.tvProviderCount.isVisible = !countText.isNullOrEmpty()
-        v.btnUpdateSources.isEnabled = !updating && !progressVisible
-        v.btnUpdateSources.alpha = if (v.btnUpdateSources.isEnabled) 1f else 0.5f
+        // Dimmed rather than disabled: a disabled View loses focus, so starting an update threw the
+        // D-pad off the button the user had just pressed. updateSources() ignores the repeat press.
+        val busy = updating || progressVisible
+        v.btnUpdateSources.alpha = if (busy) 0.5f else 1f
         v.btnUpdateSources.text =
             if (updating) getString(R.string.sources_updating) else getString(R.string.sources_update)
     }
@@ -485,7 +515,11 @@ class SourceScreen : Fragment() {
                 return super.onInterceptFocusSearch(focused, direction)
             }
             val nextPos = if (direction == View.FOCUS_DOWN) curPos + 1 else curPos - 1
-            if (nextPos < 0 || nextPos >= itemCount) return focused
+            // Going UP into the header, hand back to the default search: the header holds several
+            // controls stacked vertically and forcing focus onto the whole item skipped straight
+            // past the chips and the search field to the button at the very top.
+            if (nextPos <= 0) return super.onInterceptFocusSearch(focused, direction)
+            if (nextPos >= itemCount) return focused
             return findViewByPosition(nextPos) ?: run { scrollToPosition(nextPos); focused }
         }
     }
@@ -494,6 +528,7 @@ class SourceScreen : Fragment() {
         super.onDestroyView()
         header = null
         searchWatcher = null
+        repoChips.clear()
         _binding = null
     }
 }

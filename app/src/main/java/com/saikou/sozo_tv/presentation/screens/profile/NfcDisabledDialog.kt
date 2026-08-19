@@ -16,8 +16,8 @@ class NfcDisabledDialog : DialogFragment() {
     private val binding get() = _binding!!
 
 
-    private lateinit var yesContinueListener: () -> Unit
-    private lateinit var onbackPressedListener: () -> Unit
+    private var yesContinueListener: (() -> Unit)? = null
+    private var onbackPressedListener: (() -> Unit)? = null
 
     fun setYesContinueListener(listener: () -> Unit) {
         yesContinueListener = listener
@@ -42,12 +42,20 @@ class NfcDisabledDialog : DialogFragment() {
         dialog!!.window?.setBackgroundDrawable(ColorDrawable(0))
         dialog!!.window?.setWindowAnimations(R.style.DialogAnimation)
         binding.goToSettingsButton.setOnClickListener {
-            yesContinueListener.invoke()
+            yesContinueListener?.invoke()
         }
         binding.hideButton.setOnClickListener {
-            onbackPressedListener.invoke()
+            onbackPressedListener?.invoke() ?: dismiss()
         }
+        dialog?.setOnCancelListener { onbackPressedListener?.invoke() }
 
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // A dialog's view is only attached once it is shown, so onViewCreated is too early to
+        // place focus deliberately instead of letting it land by traversal order.
+        binding.goToSettingsButton.requestFocus()
     }
 
     override fun onDestroyView() {

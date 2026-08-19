@@ -6,14 +6,18 @@ import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
 import android.text.TextUtils
+import android.util.TypedValue
 import android.view.KeyEvent
+import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AnimationUtils
+import android.view.ViewParent
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.model.GlideUrl
@@ -42,7 +46,12 @@ import com.saikou.sozo_tv.presentation.screens.home.vh.ViewHolderFactory
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.applyTvFocusScale
 import com.saikou.sozo_tv.utils.loadImage
-import com.saikou.sozo_tv.utils.visible
+
+/** The pages live in the ViewPager2's inner RecyclerView, not as direct children. */
+private fun ViewPager2.focusPage(position: Int) {
+    val pages = getChildAt(0) as? RecyclerView ?: return
+    pages.findViewHolderForAdapterPosition(position)?.itemView?.requestFocus()
+}
 
 class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf()) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -88,6 +97,16 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
         super.onViewRecycled(holder)
         (holder as? BannerViewHolder)?.stopAutoAdvance()
+    }
+
+    override fun onViewDetachedFromWindow(holder: RecyclerView.ViewHolder) {
+        super.onViewDetachedFromWindow(holder)
+        (holder as? BannerViewHolder)?.stopAutoAdvance()
+    }
+
+    override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        (holder as? BannerViewHolder)?.startAutoAdvance()
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
@@ -175,6 +194,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
 
         private val handler = Handler(Looper.getMainLooper())
         private var childAdapter: HomeAdapter? = null
+
         private val autoAdvance = object : Runnable {
             override fun run() {
                 val adapter = childAdapter
@@ -198,16 +218,16 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             }
             adapter.submitList(banners)
 
-            handler.postDelayed(autoAdvance, AUTO_ADVANCE_MS)
+            startAutoAdvance()
 
             binding.viewPager.setOnFocusChangeListener { _, hasFocus ->
-                if (hasFocus) {
-                    val currentItem = binding.viewPager.currentItem
-                    (binding.viewPager.getChildAt(0) as? RecyclerView)?.findViewHolderForAdapterPosition(
-                        currentItem
-                    )?.itemView?.requestFocus()
-                }
+                if (hasFocus) binding.viewPager.focusPage(binding.viewPager.currentItem)
             }
+        }
+
+        fun startAutoAdvance() {
+            handler.removeCallbacks(autoAdvance)
+            handler.postDelayed(autoAdvance, AUTO_ADVANCE_MS)
         }
 
         fun stopAutoAdvance() = handler.removeCallbacks(autoAdvance)
@@ -235,65 +255,94 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             if (activity == null || activity.isDestroyed || activity.isFinishing) {
                 return
             }
-            if (item.contentItem.isMovie) {
-                val genreContainer = binding.genreButtons
-                genreContainer.removeAllViews()
-                item.contentItem.genre_ids?.forEach { imdbId ->
-                    val genre = LocalData.genreTmdb.find { imdbId == it.id }
-                    if (genre != null) {
-                        val genreView = TextView(binding.root.context).apply {
-                            text = genre.title
-                            textSize = 13f
-                            setTextColor(Color.WHITE)
-                            setPadding(16, 8, 16, 8)
-                            background =
-                                ContextCompat.getDrawable(context, R.drawable.background_button)
-                            ellipsize = TextUtils.TruncateAt.END
-                            maxLines = 1
-                            layoutParams = LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.WRAP_CONTENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT
-                            ).apply {
-                                setMargins(0, 0, 8, 0)
-                            }
-                        }
-                        genreContainer.addView(genreView)
-                    }
-                }
+            bindGenres(item)
 
+            val imageUrl = if (item.contentItem.isMovie) {
+                "${LocalData.IMDB_BACKDROP_PATH}${item.contentItem.image}"
+            } else {
+                item.contentItem.image
             }
-            if (item.contentItem.isMovie) {
-                Glide.with(MyApp.context)
-                    .load(GlideUrl("${LocalData.IMDB_BACKDROP_PATH}${item.contentItem.image}"))
-                    .diskCacheStrategy(DiskCacheStrategy.ALL).override(400).into(binding.bannerImg)
-            }
-            else {
-                Glide.with(MyApp.context).load(GlideUrl(item.contentItem.image))
-                    .diskCacheStrategy(DiskCacheStrategy.ALL).override(400).into(binding.bannerImg)
-            }
+            Glide.with(MyApp.context).load(GlideUrl(imageUrl))
+                .diskCacheStrategy(DiskCacheStrategy.ALL).into(binding.bannerImg)
 
             binding.title.text = item.contentItem.title
             binding.description.text = item.contentItem.description
-            binding.root.setOnKeyListener { v, keyCode, event ->
-                if (event.action == KeyEvent.ACTION_DOWN) {
-                    when (keyCode) {
-                        KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                            return@setOnKeyListener true
-                        }
+            binding.root.setOnKeyListener { _, keyCode, event ->
+                if (event.action != KeyEvent.ACTION_DOWN) return@setOnKeyListener false
+                val pager = binding.root.findPager() ?: return@setOnKeyListener false
+                val last = (pager.adapter?.itemCount ?: 0) - 1
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                        if (pager.currentItem < last) pager.goToPage(pager.currentItem + 1)
+                        true
+                    }
 
-                        KeyEvent.KEYCODE_DPAD_LEFT -> {
-                            binding.root.clearFocus()
-                            return@setOnKeyListener true
-                        }
-
-                        KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN -> {
-                            return@setOnKeyListener false
+                    KeyEvent.KEYCODE_DPAD_LEFT -> {
+                        if (pager.currentItem > 0) {
+                            pager.goToPage(pager.currentItem - 1)
+                            true
+                        } else {
+                            false // first banner: let focus fall out to the navigation rail
                         }
                     }
+
+                    else -> false
                 }
-                return@setOnKeyListener false
             }
 
+        }
+
+        private fun bindGenres(item: BannerItem) {
+            val container = binding.genreButtons
+            container.removeAllViews()
+            // Capped at three: the chips share the bottom edge with the page dots,
+            // and a five-genre movie runs straight under them.
+            val genres = if (item.contentItem.isMovie) {
+                item.contentItem.genre_ids.orEmpty()
+                    .mapNotNull { id -> LocalData.genreTmdb.find { it.id == id } }
+                    .take(3)
+            } else {
+                emptyList()
+            }
+            container.isVisible = genres.isNotEmpty()
+            val res = container.resources
+            val chipPadding = res.getDimensionPixelSize(R.dimen.spacing_small)
+            val chipGap = res.getDimensionPixelSize(R.dimen.spacing_xs)
+            genres.forEach { genre ->
+                val chip = TextView(container.context).apply {
+                    text = genre.title
+                    setTextSize(TypedValue.COMPLEX_UNIT_PX, res.getDimension(R.dimen.tv_text_label))
+                    setTextColor(Color.WHITE)
+                    setPadding(chipPadding, chipPadding, chipPadding, chipPadding)
+                    background = ContextCompat.getDrawable(context, R.drawable.background_button)
+                    ellipsize = TextUtils.TruncateAt.END
+                    maxLines = 1
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply { marginEnd = chipGap }
+                }
+                container.addView(chip)
+            }
+        }
+
+        /**
+         * Focus has to follow the page or it dies with the one scrolled off. The
+         * cut is deliberate: animating it fights the RecyclerView pulling the newly
+         * focused page back on screen.
+         */
+        private fun ViewPager2.goToPage(target: Int) {
+            setCurrentItem(target, false)
+            post { focusPage(target) }
+        }
+
+        private fun View.findPager(): ViewPager2? {
+            var p: ViewParent? = parent
+            while (p != null) {
+                if (p is ViewPager2) return p
+                p = p.parent
+            }
+            return null
         }
     }
 
@@ -310,7 +359,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 if (adapter !== childAdapter) adapter = childAdapter
                 childAdapter.submitList(item.list)
 
-                setItemSpacing(10)
+                setItemSpacing(resources.getDimensionPixelSize(R.dimen.home_spacing))
             }
         }
     }
@@ -320,25 +369,10 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
         fun bind(item: CategoryGenreItem) {
             Glide.with(binding.root.context).load(item.content.image).into(binding.imgGenre)
             binding.topContainer.text = item.content.title
-            binding.root.setOnFocusChangeListener { view, hasFocus ->
-                if (bindingAdapterPosition != 0) {
-                    val animation = when {
-                        hasFocus -> AnimationUtils.loadAnimation(
-                            binding.root.context, R.anim.zoom_in
-                        )
-
-                        else -> AnimationUtils.loadAnimation(
-                            binding.root.context, R.anim.zoom_out
-                        )
-                    }
-                    binding.root.startAnimation(animation)
-                    animation.fillAfter = true
-                }
-                binding.root.setOnClickListener {
-                    LocalData.sFocusedGenreClickListener.invoke(item.content.title)
-                }
+            binding.root.applyTvFocusScale()
+            binding.root.setOnClickListener {
+                LocalData.sFocusedGenreClickListener.invoke(item.content.title)
             }
-
         }
     }
 
@@ -353,7 +387,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 if (adapter !== childAdapter) adapter = childAdapter
                 childAdapter.submitList(item.list)
 
-                setItemSpacing(10)
+                setItemSpacing(resources.getDimensionPixelSize(R.dimen.home_spacing))
             }
         }
     }
@@ -368,7 +402,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 if (adapter !== childAdapter) adapter = childAdapter
                 childAdapter.submitList(item.list)
 
-                setItemSpacing(10)
+                setItemSpacing(resources.getDimensionPixelSize(R.dimen.home_spacing))
             }
         }
     }
@@ -379,10 +413,13 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
         fun onBind(item: HistoryHomeItem) {
             binding.apply {
                 val getLocalEp = item.content
-                progressBar.visible()
                 binding.topContainer.text = getLocalEp.title
-                progressBar.max = getLocalEp.totalDuration.toInt()
-                progressBar.progress = getLocalEp.lastPosition.toInt()
+                val total = getLocalEp.totalDuration.toInt()
+                progressBar.isVisible = total > 0
+                if (total > 0) {
+                    progressBar.max = total
+                    progressBar.progress = getLocalEp.lastPosition.toInt().coerceIn(0, total)
+                }
                 binding.country.text = if (getLocalEp.currentSourceName.isNotEmpty()) {
                     "Ep: ${getLocalEp.epIndex + 1} || ${getLocalEp.currentSourceName}"
                 } else {
@@ -421,28 +458,15 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
         fun bind(item: CategoryDetails) {
             binding.topContainer.text = item.content.title.english
             binding.root.apply {
-
+                applyTvFocusScale()
                 setOnClickListener {
                     LocalData.listenerItemCategory.invoke(item)
                 }
-                setOnFocusChangeListener { view, hasFocus ->
-                    val animation = when {
-                        hasFocus -> AnimationUtils.loadAnimation(
-                            binding.root.context, R.anim.zoom_in
-                        )
-
-                        else -> AnimationUtils.loadAnimation(
-                            binding.root.context, R.anim.zoom_out
-                        )
-                    }
-                    binding.root.startAnimation(animation)
-                    animation.fillAfter = true
-
-                }
             }
-            binding.genreTv.text =
-                "${item.content.source.name} · ${item.content.id} · ${item.content.format.name}"
-//
+            // Was "SOURCE · <internal id> · FORMAT" - the id is a database key the
+            // viewer has no use for, and source is a constant for every extension card.
+            binding.genreTv.text = item.content.format.name
+                .takeUnless { it.startsWith("UNKNOWN") }.orEmpty().replace('_', ' ')
             binding.itemImg.loadImage(item.content.coverImage.large)
 
         }
@@ -467,7 +491,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
                 if (adapter !== childAdapter) adapter = childAdapter
                 childAdapter.submitList(listWithViewAll)
-                setItemSpacing(10)
+                setItemSpacing(resources.getDimensionPixelSize(R.dimen.home_spacing))
             }
         }
     }
@@ -481,15 +505,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
 
         fun bind(item: ViewAllData) {
             binding.root.apply {
-                setOnFocusChangeListener { _, hasFocus ->
-                    val animation = when {
-                        hasFocus -> AnimationUtils.loadAnimation(context, R.anim.zoom_in)
-                        else -> AnimationUtils.loadAnimation(context, R.anim.zoom_out)
-                    }
-                    startAnimation(animation)
-                    animation.fillAfter = true
-                }
-
+                applyTvFocusScale()
                 setOnClickListener {
                     LocalData.viewAllClickListenerrr.invoke(item)
                 }
@@ -530,11 +546,38 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                     }
 
                     oldItem is CategoryDetails && newItem is CategoryDetails -> {
-                        oldItem.content.idMal == newItem.content.idMal
+                        // idMal is -1 for every extension-provided card, which made them
+                        // all compare equal; id is the stable per-card identity.
+                        oldItem.content.id == newItem.content.id
                     }
 
                     oldItem is CategoryGenreItem && newItem is CategoryGenreItem -> {
                         oldItem.content.image == newItem.content.image
+                    }
+
+                    oldItem is CategoryChannelItem && newItem is CategoryChannelItem -> {
+                        oldItem.content.playLink == newItem.content.playLink
+                    }
+
+                    oldItem is HistoryHomeItem && newItem is HistoryHomeItem -> {
+                        oldItem.content.categoryid == newItem.content.categoryid &&
+                                oldItem.content.epIndex == newItem.content.epIndex
+                    }
+
+                    oldItem is ViewAllData && newItem is ViewAllData -> {
+                        oldItem.rowId == newItem.rowId
+                    }
+
+                    oldItem is CategoryGenre && newItem is CategoryGenre -> {
+                        oldItem.name == newItem.name
+                    }
+
+                    oldItem is CategoryChannel && newItem is CategoryChannel -> {
+                        oldItem.name == newItem.name
+                    }
+
+                    oldItem is HistoryHome && newItem is HistoryHome -> {
+                        oldItem.name == newItem.name
                     }
 
                     else -> false

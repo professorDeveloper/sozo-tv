@@ -80,6 +80,11 @@ class MyAccountPage : Fragment() {
         settingsViewModel.profileData.observe(viewLifecycleOwner) {
             binding.profileNameTextView.text = it.name
             binding.accountType.text = it.email ?: getString(R.string.guest_account)
+            // The placeholder was left at the layout's literal "G", so a signed-in user without an
+            // avatar was shown a guest's initial.
+            it.name.trim().firstOrNull()?.let { c ->
+                binding.avatarInitials.text = c.uppercase()
+            }
             // Only swap the initials placeholder for a real image when there IS one: loadImage()
             // paints the 404 wallpaper on a blank URL, which a guest would otherwise get as both
             // their avatar and their banner.

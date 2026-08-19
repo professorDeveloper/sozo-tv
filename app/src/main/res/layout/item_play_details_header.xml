@@ -9,7 +9,7 @@
         <View
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:background="@drawable/bg_home_fragment_tv"
+            android:background="@drawable/bg_detail_header_scrim"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -56,7 +56,6 @@
             android:ellipsize="end"
             android:fontFamily="@font/days"
             android:maxLines="2"
-            android:text="Joker"
             android:textColor="#fff"
             android:textSize="50sp"
             app:layout_constraintEnd_toStartOf="@+id/guideline27"
@@ -91,7 +90,6 @@
             android:lines="4"
             android:maxLines="4"
             android:minLines="4"
-            android:text="Joker filmining davomi (2019). Film nomiga kiritilgan folie à deux atamasi psixiatrik sindromni bildiradi, unda ikki shaxsda bir xil mazmundagi delusional g'oyalar kuzatiladi. Film Arkham boshpanasida bo'lib o'tadi, u erda Xarli Joker laqabini olgan jinoyatchi Artur Flek bilan uchrashadi."
             android:textColor="#fff"
             android:textSize="@dimen/tv_text_subtitle"
             app:layout_constraintEnd_toStartOf="@+id/guideline27"
@@ -112,15 +110,15 @@
 
             <LinearLayout
                 android:id="@+id/watch_button"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:layout_weight="1"
                 android:background="@drawable/background_button"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:gravity="center"
+                android:minWidth="150dp"
                 android:orientation="horizontal"
-                android:paddingHorizontal="5dp"
+                android:paddingHorizontal="16dp"
                 app:layout_constraintStart_toStartOf="@+id/guideline25"
                 app:layout_constraintTop_toBottomOf="@id/barrier2">
 
@@ -138,6 +136,7 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:layout_gravity="center_vertical"
+                    android:layout_marginStart="8dp"
                     android:duplicateParentState="true"
                     app:srcCompat="@drawable/ic_play_for_button"
                     app:tint="@color/login_button_text_color" />
@@ -147,7 +146,7 @@
             <LinearLayout
                 android:id="@+id/bookmark"
                 android:layout_width="wrap_content"
-                android:layout_height="38dp"
+                android:layout_height="40dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="7dp"
                 android:background="@drawable/background_button"
@@ -174,8 +173,7 @@
                 android:id="@+id/space"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:visibility="gone" />
+                android:layout_weight="1" />
         </LinearLayout>
 
 
