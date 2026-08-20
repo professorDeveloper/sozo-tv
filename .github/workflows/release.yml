@@ -139,6 +139,7 @@ jobs:
           echo "::notice title=Releasing::${NEW_NAME} (versionCode ${NEW_CODE})"
 
       - name: Commit and tag
+        id: commit
         if: steps.resolve.outputs.bumped == 'yes'
         env:
           NAME: ${{ steps.resolve.outputs.name }}
@@ -171,16 +172,46 @@ jobs:
           git commit -am "chore: ${NAME} (${CODE})"
           git tag "${TAG}"
 
-          if ! git push origin HEAD:"${GITHUB_REF_NAME}"; then
-            echo "::error title=Push rejected::The default branch is protected and this run is not an admin. Add a RELEASE_PAT secret (a fine-grained PAT with Contents: read and write) so the version bump can land. Nothing was tagged."
-            git tag -d "${TAG}"
-            exit 1
+          # A rejected push must not cancel the release.
+          #
+          # The default branch is protected and GITHUB_TOKEN is not an admin, so
+          # without a RELEASE_PAT this push is refused — and refusing to build
+          # because a bookkeeping commit could not land is the wrong trade. The
+          # version is already resolved and already written into the working
+          # tree, so the build below ships exactly the version it says it does.
+          # What is lost is the record in git, which is worth a loud warning and
+          # nothing more.
+          if git push origin HEAD:"${GITHUB_REF_NAME}"; then
+            git push origin "${TAG}" || echo "::warning title=Tag not pushed::${TAG} could not be pushed."
+            echo "pushed=yes" >> "$GITHUB_OUTPUT"
+          else
+            git tag -d "${TAG}" || true
+            echo "pushed=no" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Version bump not committed::The default branch is protected and this run is not an admin, so ${NAME} was NOT written back to git — this build still ships as ${NAME}, but the repo still says the old one. Add a RELEASE_PAT secret (fine-grained PAT, Contents: read and write) to close the gap."
+            {
+              echo "### ⚠️ Version bump was not committed"
+              echo ""
+              echo "This build ships as **${NAME}**, but the repository still records the previous version."
+              echo "Add a \`RELEASE_PAT\` secret (fine-grained PAT with **Contents: read and write**) so the bump can land."
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
-          git push origin "${TAG}"
 
+      # The build must check out a commit the remote actually has.
+      #
+      # When the bump could not be pushed, the commit exists only on this
+      # runner — checking it out in the next job fails with "reference is not a
+      # tree", which is a far more confusing failure than the rejected push it
+      # came from. So: the pushed commit when there is one, otherwise the commit
+      # the run started from, and the build applies the version itself.
       - name: Record the commit the build job will use
         id: sha
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        run: |
+          set -euo pipefail
+          if [ "${{ steps.commit.outputs.pushed }}" = "yes" ]; then
+            echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          fi
 
   apk:
     needs: version
@@ -190,6 +221,30 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.version.outputs.sha }}
+
+      # Applied here rather than trusted from the checkout. When the bump could
+      # not be committed, the checked-out tree still carries the OLD version —
+      # and an apk whose versionCode disagrees with the release it was cut as is
+      # invisible to the in-app updater. Idempotent: a no-op when the commit did
+      # land.
+      - name: Stamp the resolved version into the build
+        env:
+          NAME: ${{ needs.version.outputs.name }}
+          CODE: ${{ needs.version.outputs.code }}
+        run: |
+          set -euo pipefail
+          python3 - "$NAME" "$CODE" <<'PY'
+          import re, sys
+          name, code = sys.argv[1], sys.argv[2]
+          path = 'app/build.gradle.kts'
+          src = open(path, encoding='utf-8').read()
+          src, n1 = re.subn(r'(?m)^(\s*versionCode\s*=\s*)\d+', rf'\g<1>{code}', src, count=1)
+          src, n2 = re.subn(r'(?m)^(\s*versionName\s*=\s*)"[^"]*"', rf'\g<1>"{name}"', src, count=1)
+          if n1 != 1 or n2 != 1:
+              sys.exit(f'expected one versionCode and one versionName, replaced {n1}/{n2}')
+          open(path, 'w', encoding='utf-8').write(src)
+          PY
+          grep -E '^\s*version(Code|Name)\s*=' app/build.gradle.kts
 
       - uses: actions/setup-java@v4
         with:
@@ -278,15 +333,22 @@ jobs:
 
   deliver:
     needs: [version, apk]
-    if: ${{ always() && !cancelled() && needs.apk.result == 'success' }}
+    # Always, even when the build failed. A release that goes quiet is
+    # indistinguishable from one nobody started, and the whole point of this job
+    # is that somebody finds out.
+    if: ${{ always() && !cancelled() }}
     runs-on: ubuntu-latest
     steps:
+      # Not fatal: when the build failed there is no artifact, and the message
+      # saying so is exactly what this job now exists to send.
       - uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: sozo-tv-apk
           path: dist
 
       - name: Send to Telegram
+        if: always()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
@@ -304,6 +366,24 @@ jobs:
           API="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}"
           MAX=$((49 * 1024 * 1024))   # Bot API sendDocument limit is 50 MB
           RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+          # Nothing built. Say that, rather than announcing a version that does
+          # not exist and attaching nothing to it.
+          if ! ls dist/*.apk >/dev/null 2>&1; then
+            MSG="$(printf '⚠️ Sozo TV %s — release YIQILDI, APK chiqmadi.\n\n🔎 %s' \
+                   "${VERSION_NAME:-?}" "${RUN_URL}")"
+            IFS=',' read -ra CHATS <<< "${TELEGRAM_CHAT_IDS}"
+            for raw in "${CHATS[@]}"; do
+              chat="$(echo "${raw}" | xargs)"
+              [ -z "${chat}" ] && continue
+              curl -sS -X POST "${API}/sendMessage" \
+                --data-urlencode "chat_id=${chat}" \
+                --data-urlencode "text=${MSG}" \
+                --data "disable_web_page_preview=true" -o /dev/null || true
+            done
+            echo "::warning title=Nothing to deliver::The build produced no APK; a failure notice was sent instead."
+            exit 0
+          fi
 
           HEAD="$(printf '📺 Sozo TV %s (versionCode %s)' "${VERSION_NAME}" "${VERSION_CODE}")"
           if [ -n "${RELEASE_NOTES}" ]; then
