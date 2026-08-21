@@ -124,7 +124,7 @@ class CastDetailAdapter(
             Log.d("GGG", "bind:fuck WHy not shoewn ${model.media} ")
             val adapter = CategoriesPageAdapter(isDetail = true)
             adapter.setClickDetail {
-                LocalData.focusChangedListenerPlayerg.invoke(it)
+                LocalData.focusChangedListenerPlayerg?.invoke(it)
             }
             adapter.setCategoriesPageInterface(object :
                 CategoriesPageAdapter.CategoriesPageInterface {

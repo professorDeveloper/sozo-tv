@@ -151,7 +151,7 @@ class MovieDetailsAdapter(
         private val recommendedAdapter = CategoriesPageAdapter(isDetail = true)
         fun bind() {
             recommendedAdapter.setClickDetail {
-                LocalData.focusChangedListenerPlayerg.invoke(it)
+                LocalData.focusChangedListenerPlayerg?.invoke(it)
             }
             recommendedAdapter.updateCategoriesAll(recommendedMovies as ArrayList<MainModel>)
             recommendedAdapter.setCategoriesPageInterface(object :
