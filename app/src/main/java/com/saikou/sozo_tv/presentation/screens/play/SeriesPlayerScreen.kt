@@ -31,7 +31,10 @@ import androidx.annotation.OptIn
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.media3.common.Tracks
+import com.saikou.sozo_tv.data.model.SubTitle
 import com.saikou.sozo_tv.domain.player.NativeQualities
+import com.saikou.sozo_tv.domain.player.NativeTracks
 import com.saikou.sozo_tv.domain.player.VideoOptionGroups
 import com.saikou.sozo_tv.adapters.VideoServersAdapter
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
@@ -107,6 +110,9 @@ class SeriesPlayerScreen : Fragment() {
     @OptIn(UnstableApi::class)
     private var trackSelector: DefaultTrackSelector? = null
     private var selectedNativeQuality: NativeQualities.Variant? = null
+    private var selectedAudio: NativeTracks.Option? = null
+    private var selectedText: NativeTracks.Option? = null
+    private var playbackSpeed = 1.0f
     private lateinit var dataSourceFactory: DataSource.Factory
     private var okHttpClient: OkHttpClient? = null
 
@@ -518,6 +524,26 @@ class SeriesPlayerScreen : Fragment() {
         }
 
         player.addListener(object : Player.Listener {
+            /**
+             * What a stream carries is only known once it has been parsed, so the
+             * controls that depend on it are decided here rather than at bind
+             * time — a dual-audio release and a mono one get different buttons.
+             */
+            @OptIn(UnstableApi::class)
+            override fun onTracksChanged(tracks: Tracks) {
+                // release() fires this on the way down, and it runs before
+                // _binding is cleared — so the view may already be gone.
+                val b = _binding ?: return
+                val audio = NativeTracks.audio(tracks)
+                b.pvPlayer.controller.binding.exoAudio.isVisible = audio.size > 1
+                // A track the user picked cannot outlive the stream that
+                // declared it; the groups belong to that stream.
+                if (selectedAudio != null && audio.none { it.label == selectedAudio?.label }) {
+                    selectedAudio = null
+                }
+                refreshSubtitleButton()
+            }
+
             override fun onPlayerError(error: PlaybackException) {
                 Log.e("PLAYER_ERR", "code=${error.errorCodeName}", error)
                 showBuffering(false)
@@ -600,7 +626,6 @@ class SeriesPlayerScreen : Fragment() {
     }
 
     private var currentResizeIdx = 0
-    private var currentSpeedIdx = 2
 
     /** Wire the ⚙ settings button → screen-size (resize mode) + playback-speed menus. */
     @OptIn(UnstableApi::class)
@@ -628,19 +653,6 @@ class SeriesPlayerScreen : Fragment() {
             .setSingleChoiceItems(labels, currentResizeIdx) { d, i ->
                 currentResizeIdx = i
                 binding.pvPlayer.resizeMode = modes[i]
-                d.dismiss()
-            }
-            .show()
-    }
-
-    private fun showSpeedDialog() {
-        val speeds = floatArrayOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
-        val labels = speeds.map { if (it == 1f) "Normal (1x)" else "${it}x" }.toTypedArray()
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle("Playback speed")
-            .setSingleChoiceItems(labels, currentSpeedIdx) { d, i ->
-                currentSpeedIdx = i
-                player.setPlaybackSpeed(speeds[i])
                 d.dismiss()
             }
             .show()
@@ -839,7 +851,11 @@ class SeriesPlayerScreen : Fragment() {
         // Track groups belong to the stream that declared them, so a pinned rendition cannot
         // survive a reload. Back to auto rather than to a stale override.
         selectedNativeQuality = null
+        selectedAudio = null
+        selectedText = null
         applyNativeQuality()
+        // Speed is the user's, not the stream's, so it is deliberately kept.
+        if (playbackSpeed != 1.0f) player.setPlaybackSpeed(playbackSpeed)
         player.prepare()
         player.seekTo(resumePos)
         player.play()
@@ -881,6 +897,157 @@ class SeriesPlayerScreen : Fragment() {
                 applyNativeQuality()
             }
         }.show(parentFragmentManager, "NativeQualityDialog")
+    }
+
+    /**
+     * Picks the audio track.
+     *
+     * No "auto" entry: unlike video quality there is nothing to adapt to — the
+     * player just follows the preferred-language list, which is a guess the user
+     * is now overruling. Listing the tracks and marking the current one is the
+     * whole of it.
+     */
+    @OptIn(UnstableApi::class)
+    private fun showAudioDialog() {
+        val options = NativeTracks.audio(player.currentTracks)
+        if (options.isEmpty()) return
+
+        val rows = options.map {
+            VideoServersAdapter.ServerRow(name = it.label, qualities = it.detail)
+        }
+        val current = selectedAudio?.let { chosen ->
+            options.indexOfFirst { it.label == chosen.label && it.detail == chosen.detail }
+        } ?: options.indexOfFirst { isPlaying(it) }
+
+        VideoServerDialog(
+            rows,
+            current.coerceAtLeast(0),
+            titleRes = R.string.player_audio_title,
+            subtitleRes = R.string.player_audio_subtitle,
+        ).apply {
+            setOnRowPicked { index ->
+                selectedAudio = options.getOrNull(index)
+                applyTrack(C.TRACK_TYPE_AUDIO, selectedAudio)
+            }
+        }.show(parentFragmentManager, "AudioTrackDialog")
+    }
+
+    /** Which track the player settled on, so the tick starts in the right place. */
+    @OptIn(UnstableApi::class)
+    private fun isPlaying(option: NativeTracks.Option): Boolean =
+        runCatching { option.group.isTrackSelected(option.index) }.getOrDefault(false)
+
+    /**
+     * Playback speed.
+     *
+     * Native to the player, so it costs nothing and survives a track change —
+     * and on a dubbed catalogue where a lot of the audio is slow, it is asked
+     * for more than most of what is already here.
+     */
+    private fun showSpeedDialog() {
+        val speeds = listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f)
+        val rows = speeds.map {
+            VideoServersAdapter.ServerRow(
+                name = if (it == 1.0f) getString(R.string.player_speed_normal) else "${it}x",
+                qualities = "",
+            )
+        }
+        VideoServerDialog(
+            rows,
+            speeds.indexOfFirst { it == playbackSpeed }.coerceAtLeast(0),
+            titleRes = R.string.player_speed_title,
+            subtitleRes = R.string.player_speed_subtitle,
+        ).apply {
+            setOnRowPicked { index ->
+                playbackSpeed = speeds.getOrNull(index) ?: 1.0f
+                if (::player.isInitialized) player.setPlaybackSpeed(playbackSpeed)
+            }
+        }.show(parentFragmentManager, "PlaybackSpeedDialog")
+    }
+
+    /**
+     * Pins one track of [type], or hands the choice back to the player.
+     *
+     * Overrides are cleared by type rather than wholesale, so choosing an audio
+     * track cannot silently undo a pinned resolution.
+     */
+    @OptIn(UnstableApi::class)
+    private fun applyTrack(type: Int, option: NativeTracks.Option?) {
+        val selector = trackSelector ?: return
+        selector.setParameters(
+            selector.buildUponParameters()
+                .clearOverridesOfType(type)
+                // A text override means subtitles are wanted; without this the
+                // renderer stays disabled and the track is chosen but silent.
+                .setTrackTypeDisabled(type, false)
+                .apply { option?.let { addOverride(NativeTracks.overrideFor(it)) } }
+        )
+    }
+
+    /** The extractor's own subtitle files, if this episode came with any. */
+    private var extractorSubtitles: List<SubTitle> = emptyList()
+
+    @OptIn(UnstableApi::class)
+    private fun refreshSubtitleButton() {
+        if (!::player.isInitialized) return
+        val b = _binding ?: return
+        val embedded = NativeTracks.text(player.currentTracks)
+        b.pvPlayer.controller.binding.exoSubtidtle.isVisible =
+            extractorSubtitles.isNotEmpty() || embedded.isNotEmpty()
+    }
+
+    /**
+     * The subtitle tracks inside the stream, plus off.
+     *
+     * Separate from the extractor's dialog because the two are not the same
+     * operation: one is a track override the player applies instantly, the
+     * other rebuilds the media source around a downloaded file.
+     */
+    @OptIn(UnstableApi::class)
+    private fun showEmbeddedSubtitleDialog() {
+        val options = NativeTracks.text(player.currentTracks)
+        if (options.isEmpty()) return
+
+        val rows = buildList {
+            add(
+                VideoServersAdapter.ServerRow(
+                    name = getString(R.string.off),
+                    qualities = getString(R.string.player_subtitle_off_hint),
+                )
+            )
+            options.forEach { add(VideoServersAdapter.ServerRow(it.label, it.detail)) }
+        }
+        val current = selectedText
+            ?.let { chosen -> options.indexOfFirst { it.label == chosen.label } + 1 }
+            ?.coerceAtLeast(0) ?: 0
+
+        VideoServerDialog(
+            rows,
+            current,
+            titleRes = R.string.player_subtitle_title,
+            subtitleRes = R.string.player_subtitle_subtitle,
+        ).apply {
+            setOnRowPicked { index ->
+                selectedText = if (index == 0) null else options.getOrNull(index - 1)
+                val selector = trackSelector
+                if (index == 0 && selector != null) {
+                    // Off means off: clearing the override alone would let the
+                    // player pick a track again on the next selection pass.
+                    selector.setParameters(
+                        selector.buildUponParameters()
+                            .clearOverridesOfType(C.TRACK_TYPE_TEXT)
+                            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+                    )
+                } else {
+                    applyTrack(C.TRACK_TYPE_TEXT, selectedText)
+                }
+                binding.pvPlayer.subtitleView?.visibility =
+                    if (index == 0) View.GONE else View.VISIBLE
+                binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(
+                    if (index == 0) R.drawable.ic_subtitle else R.drawable.ic_subtitle_fill
+                )
+            }
+        }.show(parentFragmentManager, "EmbeddedSubtitleDialog")
     }
 
     @OptIn(UnstableApi::class)
@@ -933,13 +1100,29 @@ class SeriesPlayerScreen : Fragment() {
 
             player.play()
 
-            binding.pvPlayer.controller.binding.exoSubtidtle.isVisible = isSubtitleHave
+            // Visible when EITHER kind exists. It used to key off the extractor's
+            // list alone, so a stream carrying its own subtitle tracks showed no
+            // subtitle button at all — the tracks were parsed, selectable, and
+            // unreachable.
+            extractorSubtitles = subtitles
+            refreshSubtitleButton()
+
+            binding.pvPlayer.controller.binding.exoAudio.setOnClickListener { showAudioDialog() }
+            binding.pvPlayer.controller.binding.exoSpeed.setOnClickListener { showSpeedDialog() }
 
             binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(
                 if (player.isPlaying) R.drawable.anim_play_to_pause else R.drawable.anim_pause_to_play
             )
 
             binding.pvPlayer.controller.binding.exoSubtidtle.setOnClickListener {
+                // A stream's own subtitle tracks need no reload — they are
+                // already there, and picking one is a track override. Only the
+                // extractor's separate files require rebuilding the source, so
+                // that path is left exactly as it was.
+                if (subtitles.isEmpty()) {
+                    showEmbeddedSubtitleDialog()
+                    return@setOnClickListener
+                }
                 val currentSelected = subtitles.getOrNull(model.currentSubEpIndex)
                 val dialog =
                     SubtitleChooserDialog.newInstance(subtitles, currentSelected, isSubtitleHave)
