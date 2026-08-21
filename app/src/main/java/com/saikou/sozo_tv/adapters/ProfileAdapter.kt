@@ -85,8 +85,8 @@ class ProfileAdapter(
                 binding.accountImg.loadImage(account.avatarUrl)
             }
 
-            binding.phoneTxt.textSize = 10f
-            binding.phoneTxt.alpha = 0.7f
+            binding.phoneTxt.textSize = 13f
+            binding.phoneTxt.alpha = 0.85f
             binding.root.isFocusable = true
             binding.root.isFocusableInTouchMode = true
         }

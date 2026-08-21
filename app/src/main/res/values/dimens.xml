@@ -53,7 +53,7 @@
     <dimen name="filter_button_height">48dp</dimen>
     <dimen name="url_count_corner_radius">4dp</dimen>
 
-    <dimen name="tv_text_caption">11sp</dimen>
+    <dimen name="tv_text_caption">12sp</dimen>
     <dimen name="tv_text_label">13sp</dimen>
     <dimen name="tv_text_body">15sp</dimen>
     <dimen name="tv_text_subtitle">17sp</dimen>

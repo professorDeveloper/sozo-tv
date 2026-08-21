@@ -97,7 +97,7 @@
         app:shimmer_ribbon_ribbonRadius="4dp"
         app:shimmer_ribbon_text="Now Playing"
         app:shimmer_ribbon_textColor="@android:color/white"
-        app:shimmer_ribbon_textSize="6sp"
+        app:shimmer_ribbon_textSize="12sp"
         app:shimmer_ribbon_textStyle="bold"
         app:shimmer_shape="radial" />
 
@@ -116,7 +116,7 @@
         app:shimmer_ribbon_rotation="-45"
         app:shimmer_ribbon_text="Now Playing"
         app:shimmer_ribbon_textColor="@android:color/white"
-        app:shimmer_ribbon_textSize="4sp"
+        app:shimmer_ribbon_textSize="12sp"
         app:shimmer_ribbon_textStyle="bold"
         app:shimmer_shape="radial" />
 
