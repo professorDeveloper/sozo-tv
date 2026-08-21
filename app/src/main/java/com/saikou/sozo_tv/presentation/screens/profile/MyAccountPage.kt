@@ -101,6 +101,14 @@ class MyAccountPage : Fragment() {
         setupLoginButton()
         setupAnilistRow()
 
+        // Counted on this device, so it reflects what is actually here rather
+        // than what the account has somewhere else.
+        settingsViewModel.accountStats.observe(viewLifecycleOwner) { stats ->
+            binding.statWatched.text = stats.watched.toString()
+            binding.statSaved.text = stats.saved.toString()
+        }
+        settingsViewModel.loadStats()
+
         setupAppearanceSection()
         setupContentControlsSection()
     }

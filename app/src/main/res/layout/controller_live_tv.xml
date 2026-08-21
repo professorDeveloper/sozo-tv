@@ -251,6 +251,28 @@
 
 
             <FrameLayout
+                android:id="@+id/exo_audio"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/shape_play_pause_circle_bottom"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:visibility="gone">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:duplicateParentState="true"
+                    android:padding="11dp"
+                    app:srcCompat="@drawable/ic_audio_track"
+                    app:tint="@color/color_black_white_text"
+                    app:tintMode="multiply" />
+
+            </FrameLayout>
+
+            <FrameLayout
                 android:id="@+id/bookmarkBtn"
                 android:layout_width="44dp"
                 android:layout_height="44dp"

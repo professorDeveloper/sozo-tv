@@ -629,35 +629,99 @@ class SeriesPlayerScreen : Fragment() {
 
     private var currentResizeIdx = 0
 
-    /** Wire the ⚙ settings button → screen-size (resize mode) + playback-speed menus. */
+    private val resizeLabels get() = listOf(
+        getString(R.string.player_resize_fit),
+        getString(R.string.player_resize_zoom),
+        getString(R.string.player_resize_stretch),
+    )
+
+    /**
+     * The ⚙ menu, as one place that says what everything is currently set to.
+     *
+     * It used to be a bare AlertDialog listing two words, which on a leanback
+     * screen is both out of place and hard to aim at — and it told you nothing
+     * about the state you were changing. Every row now carries its current
+     * value, so the menu answers "what is this set to" without being opened
+     * twice.
+     *
+     * Audio and subtitles live here as well as on their own buttons. The buttons
+     * hide themselves when a stream offers no choice, which is right, but it
+     * also means there is no fixed place to look — the menu is that place.
+     */
     @OptIn(UnstableApi::class)
     private fun setupPlayerSettings() {
         binding.pvPlayer.controller.binding.exoSettings.setOnClickListener {
-            androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle("Player settings")
-                .setItems(arrayOf("Screen size", "Playback speed")) { _, which ->
-                    if (which == 0) showResizeDialog() else showSpeedDialog()
-                }
-                .show()
+            val audio = if (::player.isInitialized) NativeTracks.audio(player.currentTracks) else emptyList()
+            val text = if (::player.isInitialized) NativeTracks.text(player.currentTracks) else emptyList()
+
+            val rows = mutableListOf<VideoServersAdapter.ServerRow>()
+            val actions = mutableListOf<() -> Unit>()
+
+            rows += VideoServersAdapter.ServerRow(
+                getString(R.string.player_resize_title),
+                resizeLabels.getOrElse(currentResizeIdx) { "" },
+            )
+            actions += { showResizeDialog() }
+
+            rows += VideoServersAdapter.ServerRow(
+                getString(R.string.player_speed_title),
+                if (playbackSpeed == 1.0f) getString(R.string.player_speed_normal) else "${playbackSpeed}x",
+            )
+            actions += { showSpeedDialog() }
+
+            if (audio.isNotEmpty()) {
+                val current = selectedAudio?.label
+                    ?: audio.firstOrNull { isPlaying(it) }?.label
+                    ?: audio.first().label
+                rows += VideoServersAdapter.ServerRow(getString(R.string.player_audio_title), current)
+                actions += { showAudioDialog() }
+            }
+
+            if (text.isNotEmpty()) {
+                rows += VideoServersAdapter.ServerRow(
+                    getString(R.string.player_subtitle_title),
+                    selectedText?.label ?: getString(R.string.off),
+                )
+                actions += { showEmbeddedSubtitleDialog() }
+            }
+
+            VideoServerDialog(
+                rows,
+                0,
+                titleRes = R.string.player_settings_title,
+                subtitleRes = R.string.player_settings_subtitle,
+            ).apply {
+                setOnRowPicked { index -> actions.getOrNull(index)?.invoke() }
+            }.show(parentFragmentManager, "PlayerSettingsDialog")
         }
     }
 
     @OptIn(UnstableApi::class)
     private fun showResizeDialog() {
-        val labels = arrayOf("Fit (letterbox)", "Fill (zoom)", "Stretch")
         val modes = intArrayOf(
             androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT,
             androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
             androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FILL,
         )
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle("Screen size")
-            .setSingleChoiceItems(labels, currentResizeIdx) { d, i ->
+        val hints = listOf(
+            getString(R.string.player_resize_fit_hint),
+            getString(R.string.player_resize_zoom_hint),
+            getString(R.string.player_resize_stretch_hint),
+        )
+        val rows = resizeLabels.mapIndexed { i, label ->
+            VideoServersAdapter.ServerRow(label, hints[i])
+        }
+        VideoServerDialog(
+            rows,
+            currentResizeIdx,
+            titleRes = R.string.player_resize_title,
+            subtitleRes = R.string.player_resize_subtitle,
+        ).apply {
+            setOnRowPicked { i ->
                 currentResizeIdx = i
                 binding.pvPlayer.resizeMode = modes[i]
-                d.dismiss()
             }
-            .show()
+        }.show(parentFragmentManager, "ResizeModeDialog")
     }
 
     private fun bindQualityObserversOnce() {

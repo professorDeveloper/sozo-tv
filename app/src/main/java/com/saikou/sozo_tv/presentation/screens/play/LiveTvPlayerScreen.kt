@@ -10,6 +10,11 @@ import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.fragment.app.Fragment
 import androidx.media3.common.AudioAttributes
+import androidx.media3.common.Tracks
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.core.view.isVisible
+import com.saikou.sozo_tv.adapters.VideoServersAdapter
+import com.saikou.sozo_tv.domain.player.NativeTracks
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -31,6 +36,17 @@ class LiveTvPlayerScreen : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var player: ExoPlayer
+
+    /**
+     * Needed for track selection, which this player had no way to do.
+     *
+     * IPTV channels are routinely multi-audio — the same feed in Hindi, Tamil,
+     * Telugu and English — and without a selector the viewer got whichever one
+     * the manifest happened to list first.
+     */
+    @OptIn(UnstableApi::class)
+    private var trackSelector: DefaultTrackSelector? = null
+    private var selectedAudio: NativeTracks.Option? = null
 
     private var hasBeenReady = false
     private lateinit var dataSourceFactory: DefaultHttpDataSource.Factory
@@ -71,7 +87,10 @@ class LiveTvPlayerScreen : Fragment() {
 
     @SuppressLint("UnsafeOptInUsageError")
     private fun initializePlayer() {
+        val selector = DefaultTrackSelector(requireContext())
+        trackSelector = selector
         player = ExoPlayer.Builder(requireContext())
+            .setTrackSelector(selector)
             .build()
             .also { player ->
                 binding.pvPlayer.player = player
@@ -91,6 +110,8 @@ class LiveTvPlayerScreen : Fragment() {
                 player.setWakeMode(C.WAKE_MODE_LOCAL)
 
                 player.addListener(object : Player.Listener {
+                    override fun onTracksChanged(tracks: Tracks) = onLiveTracksChanged(tracks)
+
                     override fun onPlayerError(error: PlaybackException) {
                         super.onPlayerError(error)
                         handlePlayerError(error)
@@ -118,6 +139,8 @@ class LiveTvPlayerScreen : Fragment() {
                     }
                 })
             }
+        binding.pvPlayer.controller.binding.exoAudio.setOnClickListener { showAudioDialog() }
+
         binding.pvPlayer.controller.binding.frameBackButton.setOnClickListener {
             if (isAdded) {
                 findNavController().navigateUp()
@@ -212,6 +235,48 @@ class LiveTvPlayerScreen : Fragment() {
         if (::player.isInitialized) {
             player.stop()
         }
+    }
+
+
+    /**
+     * Reveals the audio button only when the channel actually carries a choice,
+     * and drops a pick that belonged to a stream we have left.
+     */
+    @OptIn(UnstableApi::class)
+    private fun onLiveTracksChanged(tracks: Tracks) {
+        val b = _binding ?: return
+        val audio = NativeTracks.audio(tracks)
+        b.pvPlayer.controller.binding.exoAudio.isVisible = audio.size > 1
+        if (selectedAudio != null && audio.none { it.label == selectedAudio?.label }) {
+            selectedAudio = null
+        }
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun showAudioDialog() {
+        val options = NativeTracks.audio(player.currentTracks)
+        if (options.isEmpty()) return
+        val rows = options.map { VideoServersAdapter.ServerRow(it.label, it.detail) }
+        val current = selectedAudio?.let { c -> options.indexOfFirst { it.label == c.label } }
+            ?: options.indexOfFirst {
+                runCatching { it.group.isTrackSelected(it.index) }.getOrDefault(false)
+            }
+        VideoServerDialog(
+            rows,
+            current.coerceAtLeast(0),
+            titleRes = R.string.player_audio_title,
+            subtitleRes = R.string.player_audio_subtitle,
+        ).apply {
+            setOnRowPicked { index ->
+                selectedAudio = options.getOrNull(index)
+                val sel = trackSelector ?: return@setOnRowPicked
+                sel.setParameters(
+                    sel.buildUponParameters()
+                        .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
+                        .apply { selectedAudio?.let { addOverride(NativeTracks.overrideFor(it)) } }
+                )
+            }
+        }.show(parentFragmentManager, "LiveAudioDialog")
     }
 
     override fun onDestroyView() {

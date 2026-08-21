@@ -13,7 +13,9 @@ import com.saikou.sozo_tv.data.repository.AnilistRepository
 import com.saikou.sozo_tv.data.repository.DeviceAuthRepository
 import com.saikou.sozo_tv.data.repository.WatchHistorySyncRepository
 import com.saikou.sozo_tv.data.repository.UserListsRepository
+import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.ProfileRepository
+import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.domain.repository.SettingsRepository
 import com.saikou.sozo_tv.utils.LocalData
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,6 +30,8 @@ class SettingsViewModel(
     private val userLists: UserListsRepository,
     private val historySync: WatchHistorySyncRepository,
     private val anilist: AnilistRepository,
+    private val history: WatchHistoryRepository,
+    private val bookmarks: MovieBookmarkRepository,
 ) : ViewModel() {
 
     val contentMode: StateFlow<ContentMode> =
@@ -42,6 +46,28 @@ class SettingsViewModel(
     val deviceSession: StateFlow<DeviceSession?> get() = deviceAuth.session
 
     val profileData = MutableLiveData<Profile>()
+
+    /**
+     * What the account actually has on this box.
+     *
+     * Counts only, and deliberately: total watch time would need a duration
+     * field on the history row, and inventing a number for a profile screen is
+     * worse than not showing one.
+     */
+    data class AccountStats(val watched: Int, val saved: Int)
+
+    val accountStats = MutableLiveData<AccountStats>()
+
+    fun loadStats() {
+        viewModelScope.launch {
+            runCatching {
+                AccountStats(
+                    watched = history.getAllHistory().size,
+                    saved = bookmarks.getAllBookmarks().size,
+                )
+            }.onSuccess { accountStats.postValue(it) }
+        }
+    }
 
     /** The linked AniList account, for surfaces that want to show who is connected. */
     val anilistConnection: StateFlow<AnilistConnection> get() = anilist.connection
