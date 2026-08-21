@@ -50,13 +50,23 @@ class AnilistGraphQlClient(
     }
 
     suspend fun viewer(token: String): AnilistViewer {
-        val data = run("query { Viewer { id name avatar { large } } }", token = token)
+        val data = run(
+            "query { Viewer { id name avatar { large } bannerImage " +
+                "statistics { anime { count episodesWatched minutesWatched meanScore } } } }",
+            token = token,
+        )
         val v = data.optJSONObject("Viewer")
             ?: throw AnilistException("AniList did not recognise this account")
+        val anime = v.optJSONObject("statistics")?.optJSONObject("anime")
         return AnilistViewer(
             id = v.optInt("id"),
             name = v.optString("name"),
             avatarUrl = v.optJSONObject("avatar")?.optStringOrNull("large"),
+            bannerUrl = v.optStringOrNull("bannerImage"),
+            animeCount = anime?.optInt("count") ?: 0,
+            episodesWatched = anime?.optInt("episodesWatched") ?: 0,
+            minutesWatched = anime?.optInt("minutesWatched") ?: 0,
+            meanScore = anime?.optDouble("meanScore", 0.0) ?: 0.0,
         )
     }
 

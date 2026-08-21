@@ -325,6 +325,17 @@
                         android:text="@string/anilist_connect_on_phone"
                         android:textColor="@color/netflix_gray"
                         android:textSize="@dimen/tv_text_label" />
+
+                    <TextView
+                        android:id="@+id/anilistStats"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="@color/netflix_gray"
+                        android:textSize="@dimen/tv_text_caption"
+                        android:visibility="gone" />
                 </LinearLayout>
             </LinearLayout>
 

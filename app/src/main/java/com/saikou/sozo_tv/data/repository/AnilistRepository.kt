@@ -43,8 +43,11 @@ class AnilistRepository(
                     ?.let { AnilistConnection.Connected(it) }
                     ?: AnilistConnection.NotConnected
                 _connection.value = state
-                if (state is AnilistConnection.Connected) syncLinks()
-                state
+                if (state is AnilistConnection.Connected) {
+                    syncLinks()
+                    enrichViewer()
+                }
+                _connection.value
             }
             is ApiResult.Http -> {
                 if (result.code == 401) {
@@ -55,6 +58,30 @@ class AnilistRepository(
             }
             is ApiResult.Network -> _connection.value
         }
+    }
+
+    /**
+     * Fills in what the link cannot carry.
+     *
+     * The backend link stores an id, a name and an avatar — enough to say who is
+     * connected and nothing more. The banner and the watch statistics belong to
+     * AniList, so they are fetched from AniList with the user's own token once
+     * the connection is known to be good.
+     *
+     * Silent on failure and never destructive: a profile fetch that does not
+     * come back leaves the link's own viewer in place, so the screen still says
+     * who is connected.
+     */
+    private suspend fun enrichViewer() {
+        val accessToken = token ?: return
+        val current = (_connection.value as? AnilistConnection.Connected)?.viewer ?: return
+        if (current.hasStats) return
+        runCatching { api.viewer(accessToken) }
+            .onSuccess { full ->
+                if (_connection.value is AnilistConnection.Connected) {
+                    _connection.value = AnilistConnection.Connected(full)
+                }
+            }
     }
 
     suspend fun syncLinks() {

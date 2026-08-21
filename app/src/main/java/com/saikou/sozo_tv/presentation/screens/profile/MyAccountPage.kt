@@ -20,6 +20,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
+import androidx.core.view.isVisible
+import com.saikou.sozo_tv.data.remote.anilist.AnilistViewer
 import com.saikou.sozo_tv.data.repository.AnilistConnection
 import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.databinding.MyAccountPageBinding
@@ -127,10 +129,40 @@ class MyAccountPage : Fragment() {
                         ?: getString(R.string.anilist_connect_on_phone)
                     val avatar = viewer?.avatarUrl
                     if (!avatar.isNullOrBlank()) binding.anilistAvatar.loadImage(avatar)
+
+                    // What the account actually holds, once the profile has been
+                    // fetched. Hidden rather than shown as zeroes while it is on
+                    // its way — a row of noughts reads as an empty list, not as
+                    // "still loading".
+                    binding.anilistStats.isVisible = viewer?.hasStats == true
+                    if (viewer?.hasStats == true) {
+                        binding.anilistStats.text = anilistStatsLine(viewer)
+                    }
+
+                    // The Sozo profile ships no banner, so the header strip has
+                    // always been empty. AniList publishes one — when it is
+                    // connected, the account finally looks like somebody's.
+                    val banner = viewer?.bannerUrl
+                    if (!banner.isNullOrBlank()) binding.bannerImageView.loadImage(banner)
                 }
             }
         }
     }
+
+
+    /** "142 anime · 1,208 episodes · 8.4 avg · 21d watched" — only the parts that exist. */
+    private fun anilistStatsLine(viewer: AnilistViewer): String = buildList {
+        if (viewer.animeCount > 0) add(getString(R.string.anilist_stat_titles, viewer.animeCount))
+        if (viewer.episodesWatched > 0) {
+            add(getString(R.string.anilist_stat_episodes, viewer.episodesWatched))
+        }
+        if (viewer.meanScore > 0.0) {
+            add(getString(R.string.anilist_stat_score, viewer.meanScore / 10.0))
+        }
+        // Minutes are how AniList stores it and days are how people think of it.
+        val days = viewer.minutesWatched / 1440
+        if (days > 0) add(getString(R.string.anilist_stat_days, days))
+    }.joinToString(" · ")
 
     private fun setupLoginButton() {
         binding.loginButton.setOnClickListener {

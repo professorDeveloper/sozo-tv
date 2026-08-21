@@ -4,7 +4,20 @@ data class AnilistViewer(
     val id: Int,
     val name: String,
     val avatarUrl: String? = null,
-)
+    /**
+     * Everything below is only present when the viewer came from AniList
+     * itself. The copy the backend link hands back carries an id, a name and an
+     * avatar and nothing else, so these stay null until the profile is fetched.
+     */
+    val bannerUrl: String? = null,
+    val animeCount: Int = 0,
+    val episodesWatched: Int = 0,
+    val minutesWatched: Int = 0,
+    val meanScore: Double = 0.0,
+) {
+    /** True once the profile has been fetched and there is something to show. */
+    val hasStats: Boolean get() = animeCount > 0 || episodesWatched > 0
+}
 
 data class AnilistAiring(
     val episode: Int,

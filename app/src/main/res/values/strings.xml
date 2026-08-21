@@ -208,6 +208,10 @@
     <string name="voice_error_not_heard">Didn’t catch that. Try again.</string>
     <string name="voice_error_permission">Microphone permission is off for Sozo.</string>
     <string name="voice_error_generic">Voice search is unavailable right now.</string>
+    <string name="anilist_stat_titles">%1$d anime</string>
+    <string name="anilist_stat_episodes">%1$d episodes</string>
+    <string name="anilist_stat_score">%1$.1f avg</string>
+    <string name="anilist_stat_days">%1$dd watched</string>
     <string name="error_generic">Something went wrong. Please try again.</string>
     <string name="error_network">Could not reach the server. Check your connection.</string>
     <string name="error_no_internet">No internet connection.</string>
