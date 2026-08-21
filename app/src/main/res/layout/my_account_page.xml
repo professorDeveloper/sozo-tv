@@ -663,7 +663,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:expanded="true"
-                app:sectionSubtitle="Demo themes (no real color change)"
+                app:sectionSubtitle="@string/theme_section_subtitle"
                 app:sectionTitle="Theme">
 
                 <LinearLayout

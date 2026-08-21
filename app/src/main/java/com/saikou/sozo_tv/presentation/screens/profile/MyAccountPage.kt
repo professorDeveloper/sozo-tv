@@ -237,7 +237,6 @@ class MyAccountPage : Fragment() {
                     SeasonalTheme.WINTER -> "Winter"
                 }
             )
-            binding.themeDropdown.setBadge("DEMO")
             ignoreWinterToggleCallback = true
             binding.winterToggleRow.setChecked(theme == SeasonalTheme.WINTER)
             ignoreWinterToggleCallback = false

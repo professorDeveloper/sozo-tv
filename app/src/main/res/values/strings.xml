@@ -203,6 +203,7 @@
     <string name="account_meta_watched">watched</string>
     <string name="account_meta_saved">saved</string>
     <string name="account_meta_unread">unread</string>
+    <string name="theme_section_subtitle">Seasonal background — Winter adds falling snow</string>
     <string name="error_generic">Something went wrong. Please try again.</string>
     <string name="error_network">Could not reach the server. Check your connection.</string>
     <string name="error_no_internet">No internet connection.</string>
