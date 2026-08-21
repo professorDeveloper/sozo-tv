@@ -194,6 +194,14 @@
     <string name="anilist_library_empty">Your AniList list is empty.</string>
     <string name="anilist_status_empty">Nothing in “%1$s”.</string>
     <string name="anilist_exact_tracking">AniList ID</string>
+    <string name="player_audio_title">Ovoz</string>
+    <string name="player_audio_subtitle">Oqim ichidagi ovoz yo\'llari — dublyaj yoki original.</string>
+    <string name="player_speed_title">Tezlik</string>
+    <string name="player_speed_subtitle">Ijro tezligi. Epizod almashsa ham saqlanadi.</string>
+    <string name="player_speed_normal">Oddiy</string>
+    <string name="player_subtitle_title">Subtitr</string>
+    <string name="player_subtitle_subtitle">Oqim ichidagi subtitr yo\'llari.</string>
+    <string name="player_subtitle_off_hint">Subtitrsiz</string>
     <string name="player_quality_title">Video quality</string>
     <string name="player_quality_subtitle">Pick a resolution, or let the player follow your connection.</string>
     <string name="quality_auto">Auto</string>

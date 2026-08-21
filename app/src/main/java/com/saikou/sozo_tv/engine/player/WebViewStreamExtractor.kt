@@ -54,11 +54,18 @@ object WebViewStreamExtractor {
         "googletagmanager.com", "doubleclick.net", "googlesyndication.com", "adservice",
     )
 
+    // Player-page path segments. An /embed/<token> url carries no extension, so the
+    // suffix checks below cannot see it. Kept deliberately narrow — a short alias
+    // like "/e/" also appears mid-path on plain CDNs, and a false positive here
+    // costs a 20s WebView on a url ExoPlayer could have played directly.
+    private val PAGE_SEGMENTS = listOf("/embed/", "/player/")
+
     /** True when [url] is an HTML page we must open in a WebView to discover the real stream. */
     fun needsExtraction(url: String): Boolean {
         val path = url.substringBefore('?').lowercase()
         // Already a direct stream/file → no extraction.
         if (DIRECT_EXT.any { path.contains(it) }) return false
+        if (PAGE_SEGMENTS.any { path.contains(it) }) return true
         // Only clear content pages need sniffing. Extensionless/query endpoints are usually
         // already-direct streams — don't spend a 20s WebView on them (false positive penalty).
         return path.endsWith(".html") || path.endsWith(".htm") ||
@@ -75,11 +82,19 @@ object WebViewStreamExtractor {
         pageUrl: String,
         pageHeaders: Map<String, String> = emptyMap(),
         timeoutMs: Long = 20_000L,
+        patterns: List<String> = STREAM_PATS,
+        blockHosts: List<String> = emptyList(),
     ): ExtractedStream? = suspendCancellableCoroutine { cont ->
         val main = Handler(Looper.getMainLooper())
         var webView: WebView? = null
         val settled = java.util.concurrent.atomic.AtomicBoolean(false)
         val hit = java.util.concurrent.atomic.AtomicReference<ExtractedStream?>(null)
+        // Position in [pats] of the current hit. Patterns are PRIORITY-ordered, so a
+        // late .m3u8 still displaces an .mp4 ad creative that arrived first.
+        val hitRank = java.util.concurrent.atomic.AtomicInteger(Int.MAX_VALUE)
+
+        val pats = patterns.ifEmpty { STREAM_PATS }.map { it.lowercase() }
+        val block = BLOCK + blockHosts.map { it.lowercase() }
 
         val cleanup = {
             main.post {
@@ -133,11 +148,13 @@ object WebViewStreamExtractor {
                     val url = request.url.toString()
                     val lower = url.lowercase()
 
-                    if (BLOCK.any { lower.contains(it) }) {
+                    if (block.any { lower.contains(it) }) {
                         return WebResourceResponse("text/plain", "utf-8", ByteArrayInputStream(ByteArray(0)))
                     }
                     if (settled.get()) return null
-                    STREAM_PATS.firstOrNull { lower.substringBefore('?').contains(it) } ?: return null
+                    val bare = lower.substringBefore('?')
+                    val rank = pats.indexOfFirst { bare.contains(it) }
+                    if (rank < 0 || rank >= hitRank.get()) return null
 
                     val headers = buildMap {
                         request.requestHeaders
@@ -148,13 +165,13 @@ object WebViewStreamExtractor {
                         put("Referer", streamReferer)
                         putIfAbsent("Origin", streamOrigin)
                     }
-                    val playType = if (lower.substringBefore('?').contains(".mp4")) "mp4" else "hls"
+                    val playType = if (bare.contains(".mp4")) "mp4" else "hls"
                     android.util.Log.i("StreamExtract", "captured $playType: $url")
                     android.util.Log.i("StreamExtract", "replaying headers: ${headers.keys.sorted()}")
 
-                    if (hit.compareAndSet(null, ExtractedStream(url, headers, playType))) {
-                        main.postDelayed(settle, SETTLE_MS)
-                    }
+                    val isFirst = hitRank.getAndSet(rank) == Int.MAX_VALUE
+                    hit.set(ExtractedStream(url, headers, playType))
+                    if (isFirst) main.postDelayed(settle, SETTLE_MS)
                     return null
                 }
             }

@@ -246,11 +246,14 @@ class PlayAnimeViewModel(
                 if (option.useWebViewSniff ||
                     com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.needsExtraction(url)
                 ) {
+                    val directive = parseSniff(option.sniff)
                     val sniffed = com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.extract(
                         context = com.saikou.sozo_tv.app.MyApp.context,
                         pageUrl = url,
-                        pageHeaders = option.headers,
-                        timeoutMs = sniffTimeoutMs(option.sniff),
+                        pageHeaders = option.headers + directive.headers,
+                        timeoutMs = directive.timeoutMs,
+                        patterns = directive.patterns,
+                        blockHosts = directive.blockHosts,
                     )
                     if (sniffed != null) {
                         url = sniffed.url
@@ -346,19 +349,43 @@ class PlayAnimeViewModel(
     }
 
     /**
-     * `sniff.timeoutMs` from the server's directive, clamped.
+     * The server's `sniff` directive: which requests count as the stream, which ad
+     * hosts to swallow, and how long to wait. Every field is optional and falls back
+     * to the extractor's own defaults, so an older backend keeps working unchanged.
      *
-     * Clamped rather than trusted: this value decides how long playback sits on a
-     * spinner, and a bad/hostile payload must not be able to hang the player. The
-     * default matches WebViewStreamExtractor's own.
+     * `timeoutMs` is clamped rather than trusted: it decides how long playback sits
+     * on a spinner, and a bad payload must not be able to hang the player.
      */
-    private fun sniffTimeoutMs(sniffJson: String?): Long {
-        val fallback = 20_000L
+    private data class SniffDirective(
+        val timeoutMs: Long,
+        val patterns: List<String>,
+        val blockHosts: List<String>,
+        val headers: Map<String, String>,
+    )
+
+    private fun parseSniff(sniffJson: String?): SniffDirective {
+        val fallback = SniffDirective(20_000L, emptyList(), emptyList(), emptyMap())
         if (sniffJson.isNullOrBlank()) return fallback
         return runCatching {
-            val v = org.json.JSONObject(sniffJson).optLong("timeoutMs", fallback)
-            v.coerceIn(5_000L, 45_000L)
+            val o = org.json.JSONObject(sniffJson)
+            SniffDirective(
+                timeoutMs = o.optLong("timeoutMs", fallback.timeoutMs).coerceIn(5_000L, 45_000L),
+                patterns = o.optJSONArray("patterns").strings(),
+                blockHosts = o.optJSONArray("blockHosts").strings(),
+                headers = o.optJSONObject("headers")?.let { h ->
+                    h.keys().asSequence().mapNotNull { k ->
+                        h.optString(k).takeIf { v -> v.isNotEmpty() }?.let { v -> k to v }
+                    }.toMap()
+                } ?: emptyMap(),
+            )
         }.getOrDefault(fallback)
+    }
+
+    private fun org.json.JSONArray?.strings(): List<String> {
+        val arr = this ?: return emptyList()
+        return (0 until arr.length()).mapNotNull { i ->
+            arr.optString(i).takeIf { it.isNotEmpty() }
+        }
     }
 
     private fun asException(t: Throwable): Exception = (t as? Exception) ?: Exception(t)
