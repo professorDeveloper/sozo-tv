@@ -69,6 +69,7 @@ class PlayerSettingsPopup : DialogFragment() {
             attributes = attributes.apply { x = 28; y = 28 }
         }
         showRoot()
+        installBackHandling()
     }
 
     private fun showRoot() {
@@ -102,11 +103,25 @@ class PlayerSettingsPopup : DialogFragment() {
         }
     }
 
-    /** Back closes the sub-list first, the menu second. */
-    fun onBackPressedHandled(): Boolean {
-        if (openRow == null) return false
-        showRoot()
-        return true
+    /**
+     * Back closes the sub-list first, the menu second.
+     *
+     * Wired to the dialog itself rather than exposed for a caller to remember:
+     * the first version of this was a public method nobody called, so Back
+     * always closed the whole menu and the second level may as well not have
+     * existed.
+     */
+    private fun installBackHandling() {
+        dialog?.setOnKeyListener { _, keyCode, event ->
+            if (keyCode != android.view.KeyEvent.KEYCODE_BACK) return@setOnKeyListener false
+            if (event.action != android.view.KeyEvent.ACTION_UP) return@setOnKeyListener true
+            if (openRow == null) {
+                dismiss()
+            } else {
+                showRoot()
+            }
+            true
+        }
     }
 
     override fun onDestroyView() {

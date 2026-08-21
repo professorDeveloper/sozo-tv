@@ -170,6 +170,25 @@ class SearchScreen : Fragment() {
         }
     }
 
+
+    /**
+     * What to tell someone whose voice search failed.
+     *
+     * SpeechRecognizer's own strings name an Android API — "Client side error",
+     * "RecognitionService busy" — which is not something a viewer did or can act
+     * on. Only the cases they can do something about are worth distinguishing.
+     */
+    private fun voiceErrorText(error: Int): String = getString(
+        when (error) {
+            SpeechRecognizer.ERROR_NO_MATCH,
+            SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> R.string.voice_error_not_heard
+            SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> R.string.voice_error_permission
+            SpeechRecognizer.ERROR_NETWORK,
+            SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> R.string.error_network
+            else -> R.string.voice_error_generic
+        }
+    )
+
     private fun createRecognitionListener(isTV: Boolean): RecognitionListener {
         return object : RecognitionListener {
             override fun onReadyForSpeech(params: Bundle?) {
@@ -237,7 +256,7 @@ class SearchScreen : Fragment() {
                     } else if (error != SpeechRecognizer.ERROR_NO_MATCH &&
                         error != SpeechRecognizer.ERROR_SPEECH_TIMEOUT
                     ) {
-                        binding.voiceListeningOverlay.listeningTxt.text = "Error: $errorMessage"
+                        binding.voiceListeningOverlay.listeningTxt.text = voiceErrorText(error)
                         showVoiceOverlay(true)
                         binding.voiceListeningOverlay.root.postDelayed({
                             showVoiceOverlay(false)

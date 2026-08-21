@@ -186,7 +186,7 @@ class LiveTvPlayerScreen : Fragment() {
             PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ->
                 "Stream format error. The live stream may be temporarily unavailable."
 
-            else -> "Playback error: ${error.message}"
+            else -> getString(R.string.player_error_generic)
         }
 
         binding.errorText.text = errorMessage
