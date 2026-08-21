@@ -77,7 +77,7 @@ class EpisodeScreen : Fragment() {
             binding.placeHolder.root.visible()
             binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_source)
             binding.placeHolder.placeholderTxt.text =
-                "No Source Selected \n Please Select a Source first"
+                getString(R.string.empty_no_source)
             binding.placeHolder.placeHolderBtn.visible()
             binding.placeHolder.placeHolderBtn.setOnClickListener {
                 val intent = Intent(requireActivity(), ProfileActivity::class.java)

@@ -51,7 +51,7 @@
     <string name="main_menu_sources">Sources</string>
     <string name="ushbu_kodni_kiriting">telefon raqamiga 6 xonali kod yuborildi, ushbu kodni kiriting!</string>
     <string name="online_tv">Onlayn Tv</string>
-    <string name="xatolik">Kutilmagan xatolik sodir bo\'ldi!</string>
+    <string name="xatolik">Something went wrong. Please try again.</string>
     <string name="retry_loading_button">Retry</string>
     <string name="obuna">Obuna</string>
     <string name="tv_kanallar">Tv Kanallar</string>
@@ -200,6 +200,16 @@
     <string name="player_error_generic">Playback failed. Try another server or quality.</string>
     <string name="account_stat_watched">WATCHED</string>
     <string name="account_stat_saved">SAVED</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="error_network">Could not reach the server. Check your connection.</string>
+    <string name="error_no_internet">No internet connection.</string>
+    <string name="error_timeout">The server took too long to answer.</string>
+    <string name="error_secure_connection">Secure connection failed.</string>
+    <string name="empty_no_results">No results found</string>
+    <string name="empty_no_categories">No categories available for this source</string>
+    <string name="empty_no_source">No source selected — choose one first</string>
+    <string name="empty_not_found">Nothing matched that title</string>
+    <string name="action_go_to_settings">Go to Settings</string>
     <string name="player_settings_title">Settings</string>
     <string name="player_settings_subtitle">Current values shown beside each item.</string>
     <string name="player_resize_title">Screen size</string>

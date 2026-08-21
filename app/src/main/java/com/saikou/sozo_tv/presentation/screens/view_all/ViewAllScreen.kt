@@ -9,6 +9,7 @@ import android.view.animation.AnimationUtils
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.saikou.sozo_tv.utils.humanError
 import com.saikou.sozo_tv.databinding.ViewAllScreenBinding
 import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
@@ -91,7 +92,7 @@ class ViewAllScreen : Fragment() {
                 is Resource.Error -> {
                     binding.progressBar.visibility = View.GONE
                     binding.errorTv.visibility = View.VISIBLE
-                    binding.errorTv.text = resource.throwable.message ?: "Xatolik yuz berdi"
+                    binding.errorTv.text = requireContext().humanError(resource.throwable)
                 }
             }
         }

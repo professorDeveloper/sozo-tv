@@ -49,7 +49,7 @@
             android:duplicateParentState="true"
             android:fontFamily="@font/days"
             android:gravity="center"
-            android:text="Go to Settings"
+            android:text="@string/action_go_to_settings"
             android:textColor="@color/login_button_text_color"
             android:textSize="@dimen/tv_text_body" />
 

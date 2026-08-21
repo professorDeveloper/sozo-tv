@@ -23,6 +23,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.saikou.sozo_tv.utils.humanError
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.SearchAdapter
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
@@ -478,7 +479,7 @@ class SearchScreen : Fragment() {
             } else {
                 hideResultsGrid()
                 binding.placeHolder.root.visibility = View.VISIBLE
-                binding.placeHolder.placeholderTxt.text = "No results found"
+                binding.placeHolder.placeholderTxt.text = getString(R.string.empty_no_results)
                 binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_place_holder_search)
             }
         }
@@ -498,7 +499,7 @@ class SearchScreen : Fragment() {
             model.errorData.observe(viewLifecycleOwner) { errorMessage ->
                 hideResultsGrid()
                 binding.placeHolder.root.visibility = View.VISIBLE
-                binding.placeHolder.placeholderTxt.text = errorMessage
+                binding.placeHolder.placeholderTxt.text = requireContext().humanError(errorMessage)
                 binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
             }
         }
