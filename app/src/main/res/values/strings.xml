@@ -190,7 +190,7 @@
     <string name="anilist_caught_up">Caught up</string>
     <string name="anilist_saving">Saving…</string>
     <string name="anilist_n_new">%1$d new</string>
-    <string name="anilist_connect_on_phone">AniList is not connected.\n\nConnect it in the Sozo phone app under Profile → Connections. This TV picks it up automatically — no sign-in needed here.</string>
+    <string name="anilist_connect_on_phone">Not connected — connect it in the Sozo phone app under Profile → Connections</string>
     <string name="anilist_library_empty">Your AniList list is empty.</string>
     <string name="anilist_status_empty">Nothing in “%1$s”.</string>
     <string name="anilist_exact_tracking">AniList ID</string>
@@ -200,6 +200,9 @@
     <string name="player_error_generic">Playback failed. Try another server or quality.</string>
     <string name="account_stat_watched">WATCHED</string>
     <string name="account_stat_saved">SAVED</string>
+    <string name="account_meta_watched">watched</string>
+    <string name="account_meta_saved">saved</string>
+    <string name="account_meta_unread">unread</string>
     <string name="error_generic">Something went wrong. Please try again.</string>
     <string name="error_network">Could not reach the server. Check your connection.</string>
     <string name="error_no_internet">No internet connection.</string>
