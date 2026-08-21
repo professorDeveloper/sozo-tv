@@ -358,7 +358,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:ellipsize="end"
-                        android:maxLines="1"
+                        android:maxLines="2"
+                        android:lineSpacingMultiplier="1.05"
                         android:text="@string/anilist_connect_on_phone"
                         android:textColor="@color/netflix_gray"
                         android:textSize="@dimen/tv_text_label" />
