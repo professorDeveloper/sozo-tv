@@ -194,6 +194,10 @@
     <string name="anilist_library_empty">Your AniList list is empty.</string>
     <string name="anilist_status_empty">Nothing in “%1$s”.</string>
     <string name="anilist_exact_tracking">AniList ID</string>
+    <string name="player_switching_source">Bu format qurilmada ochilmadi — boshqa manbaga o\'tilmoqda…</string>
+    <string name="player_error_codec">Bu qurilma shu video formatini (HEVC) ocholmaydi. Boshqa sifat yoki serverni tanlang.</string>
+    <string name="player_error_network">Tarmoq uzildi. Ulanishni tekshirib qayta urining.</string>
+    <string name="player_error_generic">Video ochilmadi. Boshqa server yoki sifatni tanlab ko\'ring.</string>
     <string name="player_audio_title">Ovoz</string>
     <string name="player_audio_subtitle">Oqim ichidagi ovoz yo\'llari — dublyaj yoki original.</string>
     <string name="player_speed_title">Tezlik</string>

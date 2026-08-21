@@ -33,6 +33,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.media3.common.Tracks
 import com.saikou.sozo_tv.data.model.SubTitle
+import com.saikou.sozo_tv.utils.snackString
 import com.saikou.sozo_tv.domain.player.NativeQualities
 import com.saikou.sozo_tv.domain.player.NativeTracks
 import com.saikou.sozo_tv.domain.player.VideoOptionGroups
@@ -548,6 +549,7 @@ class SeriesPlayerScreen : Fragment() {
                 Log.e("PLAYER_ERR", "code=${error.errorCodeName}", error)
                 showBuffering(false)
                 Bugsnag.notify(Exception("GGGG:${model.seriesResponse?.urlobj} || ${model.parser.name}" + error.message))
+                handlePlaybackError(error)
             }
 
             @SuppressLint("SwitchIntDef")
@@ -852,6 +854,7 @@ class SeriesPlayerScreen : Fragment() {
         // survive a reload. Back to auto rather than to a stale override.
         selectedNativeQuality = null
         selectedAudio = null
+        autoFallbackTries = 0
         selectedText = null
         applyNativeQuality()
         // Speed is the user's, not the stream's, so it is deliberately kept.
@@ -907,6 +910,52 @@ class SeriesPlayerScreen : Fragment() {
      * is now overruling. Listing the tracks and marking the current one is the
      * whole of it.
      */
+
+    /**
+     * What to do when playback dies.
+     *
+     * It used to log, notify Bugsnag, and stop — leaving a black screen with no
+     * explanation and no way forward. The most common cause on TV boxes is a
+     * codec the device does not have: an HEVC release plays on one stick and
+     * not on the next, and ExoPlayer says so precisely
+     * (format_supported=NO_EXCEEDS_CAPABILITIES) before failing.
+     *
+     * Another source usually carries the same episode in a format this box CAN
+     * decode, so the first response is to move to one rather than to ask the
+     * user to. Only when there is nothing left to try does it explain itself.
+     */
+    @OptIn(UnstableApi::class)
+    private fun handlePlaybackError(error: PlaybackException) {
+        val options = model.videoOptionsData.value.orEmpty()
+        val decodeProblem = error.errorCode == PlaybackException.ERROR_CODE_DECODING_FAILED ||
+            error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ||
+            error.errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED
+
+        val next = model.currentSelectedVideoOptionIndex + 1
+        if (decodeProblem && next in options.indices && autoFallbackTries < MAX_AUTO_FALLBACK) {
+            autoFallbackTries++
+            model.currentSelectedVideoOptionIndex = next
+            ignoreNextEpisodeSuccess = true
+            snackString(getString(R.string.player_switching_source), requireActivity())
+            model.updateQualityByIndex()
+            return
+        }
+
+        val message = when {
+            decodeProblem -> getString(R.string.player_error_codec)
+            error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
+                error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ->
+                getString(R.string.player_error_network)
+            else -> getString(R.string.player_error_generic)
+        }
+        snackString(message, requireActivity())
+    }
+
+    /** Reset per episode: a new stream deserves its own budget of attempts. */
+    private var autoFallbackTries = 0
+
+    private val MAX_AUTO_FALLBACK = 2
+
     @OptIn(UnstableApi::class)
     private fun showAudioDialog() {
         val options = NativeTracks.audio(player.currentTracks)
