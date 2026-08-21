@@ -153,12 +153,28 @@ class SearchScreen : Fragment() {
         }
     }
 
+    /**
+     * Runs [block] on the UI thread only while there is still a view to touch.
+     *
+     * The speech recognizer is not lifecycle-aware: its callbacks keep arriving
+     * after the user has pressed Back, and both `requireActivity()` and the
+     * `binding` getter throw once the fragment is detached. One site was already
+     * guarded by hand, which is how this was found — the other five were not.
+     */
+    private inline fun onUi(crossinline block: () -> Unit) {
+        if (!isAdded || _binding == null) return
+        activity?.runOnUiThread {
+            if (!isAdded || _binding == null) return@runOnUiThread
+            block()
+        }
+    }
+
     private fun createRecognitionListener(isTV: Boolean): RecognitionListener {
         return object : RecognitionListener {
             override fun onReadyForSpeech(params: Bundle?) {
                 Log.d("SearchScreen", "Ready for speech")
                 isListening = true
-                requireActivity().runOnUiThread {
+                onUi {
                     showVoiceOverlay(true)
                     binding.voiceListeningOverlay.listeningTxt.text = "Listening..."
                     binding.micBtn.setImageResource(R.drawable.ic_mic)
@@ -167,7 +183,7 @@ class SearchScreen : Fragment() {
 
             override fun onBeginningOfSpeech() {
                 Log.d("SearchScreen", "Beginning of speech")
-                requireActivity().runOnUiThread {
+                onUi {
                     binding.voiceListeningOverlay.listeningTxt.text = "Listening... Speak now"
                 }
             }
@@ -180,7 +196,7 @@ class SearchScreen : Fragment() {
             override fun onEndOfSpeech() {
                 Log.d("SearchScreen", "End of speech")
                 isListening = false
-                requireActivity().runOnUiThread {
+                onUi {
                     binding.micBtn.setImageResource(R.drawable.ic_mic)
                 }
             }
@@ -202,7 +218,7 @@ class SearchScreen : Fragment() {
 
                 Log.e("SearchScreen", "Speech recognition error: $errorMessage")
 
-                requireActivity().runOnUiThread {
+                onUi {
                     showVoiceOverlay(false)
                     binding.micBtn.setImageResource(R.drawable.ic_mic)
 
@@ -238,7 +254,7 @@ class SearchScreen : Fragment() {
 
                 Log.d("SearchScreen", "Speech results: $spokenText")
 
-                requireActivity().runOnUiThread {
+                onUi {
                     showVoiceOverlay(false)
                     binding.micBtn.setImageResource(R.drawable.ic_mic)
 
@@ -269,8 +285,7 @@ class SearchScreen : Fragment() {
                     ?.firstOrNull()
                     ?.takeIf { it.isNotBlank() }
                     ?: return
-                requireActivity().runOnUiThread {
-                    if (_binding == null) return@runOnUiThread
+                onUi {
                     binding.voiceListeningOverlay.listeningTxt.text = partial
                 }
             }

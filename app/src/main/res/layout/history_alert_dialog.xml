@@ -56,7 +56,7 @@
                 android:layout_height="80dp"
                 android:scaleType="centerCrop"
                 android:src="@drawable/delete_all"
-                android:tint="@color/red" />
+                app:tint="@color/red" />
 
 
         </LinearLayout>

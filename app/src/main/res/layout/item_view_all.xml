@@ -31,7 +31,7 @@
                 android:layout_height="22dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_next"
-                android:tint="@color/netflix_white" />
+                app:tint="@color/netflix_white" />
         </FrameLayout>
 
         <TextView

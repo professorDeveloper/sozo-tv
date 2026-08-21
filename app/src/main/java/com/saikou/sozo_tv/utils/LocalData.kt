@@ -16,12 +16,24 @@ import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.domain.model.MySpinnerItem
 
 object LocalData {
-    lateinit var historyItemClickListenerr: (WatchHistoryEntity) -> Unit
+
+    /*
+     * These callbacks are process-global and nothing clears them, so a screen
+     * that sets one keeps a reference to itself long after its view is gone —
+     * and two screens setting the same one means the last to run owns it.
+     *
+     * Nullable rather than lateinit: "no screen has claimed this yet" is an
+     * ordinary state, and lateinit turned it into an
+     * UninitializedPropertyAccessException at the first click. The screens that
+     * share one re-claim it in onResume, so whichever is actually on screen is
+     * the one that hears about it.
+     */
+    var historyItemClickListenerr: ((WatchHistoryEntity) -> Unit)? = null
     fun setHistoryItemClickListener(listener: (WatchHistoryEntity) -> Unit) {
         historyItemClickListenerr = listener
     }
 
-    lateinit var viewAllClickListenerrr: (ViewAllData) -> Unit
+    var viewAllClickListenerrr: ((ViewAllData) -> Unit)? = null
     fun setViewAllClickListenerf(listener: (ViewAllData) -> Unit) {
         viewAllClickListenerrr = listener
     }
@@ -259,7 +271,7 @@ object LocalData {
 
     val years = (1970..java.util.Calendar.getInstance().get(java.util.Calendar.YEAR))
         .map { MySpinnerItem(it.toString()) }.reversed().toMutableList()
-    lateinit var sFocusedGenreClickListener: (String) -> Unit
+    var sFocusedGenreClickListener: ((String) -> Unit)? = null
 
     fun setFocusedGenreClickListener(listener: (String) -> Unit) {
         sFocusedGenreClickListener = listener
@@ -274,12 +286,12 @@ object LocalData {
         SectionItem(MyApp.context.getString(R.string.message_page), R.drawable.ic_chat),
         SectionItem(MyApp.context.getString(R.string.anilist), R.drawable.ic_anilist_badge),
     )
-    lateinit var listenerItemCategory: (isAbout: CategoryDetails) -> Unit
+    var listenerItemCategory: ((isAbout: CategoryDetails) -> Unit)? = null
     fun setonClickedListenerItemCategory(listener: (isAbout: CategoryDetails) -> Unit) {
         listenerItemCategory = listener
     }
 
-    lateinit var listenerItemBanner: (isAbout: BannerItem) -> Unit
+    var listenerItemBanner: ((isAbout: BannerItem) -> Unit)? = null
     fun setonClickedlistenerItemBanner(listener: (isAbout: BannerItem) -> Unit) {
         listenerItemBanner = listener
     }
@@ -287,13 +299,13 @@ object LocalData {
     val recommendedMovies: MutableList<MainModel> = mutableListOf()
     val recommendedMoviesCast: MutableList<MainModel> = mutableListOf()
     val castList: MutableList<Cast> = mutableListOf()
-    lateinit var focusChangedListenerPlayerg: (MainModel) -> Unit
+    var focusChangedListenerPlayerg: ((MainModel) -> Unit)? = null
 
     fun setFocusChangedListenerPlayer(listener: (MainModel) -> Unit) {
         focusChangedListenerPlayerg = listener
     }
 
-    lateinit var channnelItemClickListener: (ChannelResponseItem) -> Unit
+    var channnelItemClickListener: ((ChannelResponseItem) -> Unit)? = null
     fun setChannelItemClickListener(listener: (ChannelResponseItem) -> Unit) {
         channnelItemClickListener = listener
     }

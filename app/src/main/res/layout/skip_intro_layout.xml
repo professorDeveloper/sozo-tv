@@ -58,7 +58,7 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    Auto-skip button - shown when auto-skip is ENABLED
+    <!-- Auto-skip button - shown when auto-skip is ENABLED -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/skip_intro_button"
         android:layout_width="wrap_content"

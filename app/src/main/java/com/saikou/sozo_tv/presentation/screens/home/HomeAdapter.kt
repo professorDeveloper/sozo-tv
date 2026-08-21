@@ -246,7 +246,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
         @SuppressLint("SetTextI18n")
         fun bind(item: BannerItem) {
             binding.root.setOnClickListener {
-                LocalData.listenerItemBanner.invoke(
+                LocalData.listenerItemBanner?.invoke(
                     item
                 )
 
@@ -371,7 +371,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             binding.topContainer.text = item.content.title
             binding.root.applyTvFocusScale()
             binding.root.setOnClickListener {
-                LocalData.sFocusedGenreClickListener.invoke(item.content.title)
+                LocalData.sFocusedGenreClickListener?.invoke(item.content.title)
             }
         }
     }
@@ -427,7 +427,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
                 }
                 binding.root.applyTvFocusScale()
                 binding.root.setOnClickListener {
-                    LocalData.historyItemClickListenerr.invoke(getLocalEp)
+                    LocalData.historyItemClickListenerr?.invoke(getLocalEp)
                 }
                 itemImg.loadImage(getLocalEp.image)
 
@@ -442,7 +442,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             binding.channelName.text = item.content.title
             binding.channelGroup.text = item.content.country
             binding.root.setOnClickListener {
-                LocalData.channnelItemClickListener.invoke(item.content)
+                LocalData.channnelItemClickListener?.invoke(item.content)
             }
             binding.root.applyTvFocusScale()
 
@@ -460,7 +460,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             binding.root.apply {
                 applyTvFocusScale()
                 setOnClickListener {
-                    LocalData.listenerItemCategory.invoke(item)
+                    LocalData.listenerItemCategory?.invoke(item)
                 }
             }
             // Was "SOURCE · <internal id> · FORMAT" - the id is a database key the
@@ -507,7 +507,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
             binding.root.apply {
                 applyTvFocusScale()
                 setOnClickListener {
-                    LocalData.viewAllClickListenerrr.invoke(item)
+                    LocalData.viewAllClickListenerrr?.invoke(item)
                 }
             }
         }

@@ -136,13 +136,7 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
             val fourItem = details.copy(viewType = MovieDetailsAdapter.DETAILS_ITEM_FOUR)
             currentList.addAll(listOf(headerItem, sectionItem, thirdItem, fourItem))
             detailsAdapter.submitList(currentList)
-            LocalData.setFocusChangedListenerPlayer {
-                val intent = Intent(binding.root.context, PlayerActivity::class.java)
-                intent.putExtra("model", it.id)
-                intent.putExtra("isMovie", !it.isSeries)
-                requireActivity().startActivity(intent)
-                requireActivity().finishDeferred()
-            }
+            claimFocusToPlay()
         }
 
 
@@ -327,6 +321,31 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
                 item.id
             ),
         )
+    }
+
+
+    /**
+     * Claims the shared focus-to-play callback for this screen.
+     *
+     * It lives in LocalData, one slot for the whole process, and Detail and
+     * CastDetail both write to it — so whichever ran last used to own it. Going
+     * Detail -> cast -> Back left the callback pointing at a fragment whose view
+     * was already gone. Re-claimed on every resume, so the screen the user is
+     * actually looking at is the one that hears about it.
+     */
+    private fun claimFocusToPlay() {
+        LocalData.setFocusChangedListenerPlayer {
+            val intent = Intent(requireContext(), PlayerActivity::class.java)
+            intent.putExtra("model", it.id)
+            intent.putExtra("isMovie", !it.isSeries)
+            requireActivity().startActivity(intent)
+            requireActivity().finishDeferred()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        claimFocusToPlay()
     }
 
     override fun onDestroyView() {
