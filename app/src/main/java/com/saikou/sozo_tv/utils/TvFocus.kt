@@ -109,11 +109,21 @@ fun View.isDescendantOf(ancestor: View): Boolean {
     return false
 }
 
+/**
+ * Keeps focus where it was across a rebuild of this subtree.
+ *
+ * Only where it was. findFocus() returns null when focus is somewhere else
+ * entirely — the navigation rail, most often — and the fallback then treated
+ * that as "nothing has focus, take it", so a list refreshing behind the rail
+ * pulled the user out of the rail and onto its first row. There was no focus
+ * here to keep alive; the honest answer is to leave it alone.
+ */
 fun View.keepFocusAlive(block: () -> Unit) {
     val previouslyFocused = findFocus()
     block()
+    if (previouslyFocused == null) return
     post {
-        if (previouslyFocused?.isShown == true && previouslyFocused.requestFocus()) return@post
+        if (previouslyFocused.isShown && previouslyFocused.requestFocus()) return@post
         if (!isShown) return@post
         if (isFocusable && requestFocus()) return@post
         (this as? android.view.ViewGroup)?.requestFocus(View.FOCUS_DOWN)

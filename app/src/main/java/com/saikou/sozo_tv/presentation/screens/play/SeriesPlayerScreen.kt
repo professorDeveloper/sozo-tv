@@ -34,6 +34,8 @@ import androidx.fragment.app.Fragment
 import androidx.media3.common.Tracks
 import com.saikou.sozo_tv.data.model.SubTitle
 import com.saikou.sozo_tv.utils.snackString
+import com.saikou.sozo_tv.adapters.SettingRow
+import com.saikou.sozo_tv.presentation.screens.play.dialog.PlayerSettingsPopup
 import com.saikou.sozo_tv.domain.player.NativeQualities
 import com.saikou.sozo_tv.domain.player.NativeTracks
 import com.saikou.sozo_tv.domain.player.VideoOptionGroups
@@ -536,7 +538,6 @@ class SeriesPlayerScreen : Fragment() {
                 // _binding is cleared — so the view may already be gone.
                 val b = _binding ?: return
                 val audio = NativeTracks.audio(tracks)
-                b.pvPlayer.controller.binding.exoAudio.isVisible = audio.size > 1
                 // A track the user picked cannot outlive the stream that
                 // declared it; the groups belong to that stream.
                 if (selectedAudio != null && audio.none { it.label == selectedAudio?.label }) {
@@ -629,70 +630,152 @@ class SeriesPlayerScreen : Fragment() {
 
     private var currentResizeIdx = 0
 
+    /** One entry in the ⚙ menu: how to label it, what it offers, what to do. */
+    private class Setting(
+        val label: String,
+        val value: String,
+        val options: List<SettingRow>,
+        val apply: (Int) -> Unit,
+    )
+
+    private val resizeModes = intArrayOf(
+        androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT,
+        androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
+        androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FILL,
+    )
+
+    /**
+     * Everything the ⚙ menu can change, built fresh so values are never stale.
+     *
+     * The control bar had grown to eleven buttons and stopped fitting — the
+     * bookmark star was drawing on top of fast-forward. Quality, server, audio,
+     * subtitles and speed live here now; the bar keeps the transport controls
+     * and the things you press without looking.
+     */
+    @OptIn(UnstableApi::class)
+    private fun buildSettings(): List<Setting> {
+        val out = mutableListOf<Setting>()
+        val controls = binding.pvPlayer.controller.binding
+        val options = model.videoOptionsData.value.orEmpty()
+
+        // Server and quality keep their existing wiring — the buttons are hidden,
+        // not removed, so there is one implementation rather than two.
+        val servers = VideoOptionGroups.servers(options)
+        if (servers.size > 1) {
+            out += Setting(
+                getString(R.string.player_server_title),
+                VideoOptionGroups.serverOf(options, model.currentSelectedVideoOptionIndex),
+                emptyList(),
+            ) { controls.exoServer.performClick() }
+        }
+
+        val variants = if (::player.isInitialized) NativeQualities.of(player.currentTracks) else emptyList()
+        if (variants.isNotEmpty()) {
+            val rows = buildList {
+                add(SettingRow(getString(R.string.quality_auto), getString(R.string.quality_auto_hint),
+                    ticked = selectedNativeQuality == null))
+                variants.forEach {
+                    add(SettingRow("${it.height}p", NativeQualities.bitrateLabel(it.bitrate),
+                        ticked = selectedNativeQuality == it))
+                }
+            }
+            out += Setting(
+                getString(R.string.player_quality_title),
+                selectedNativeQuality?.let { "${it.height}p" } ?: getString(R.string.quality_auto),
+                rows,
+            ) { i ->
+                selectedNativeQuality = if (i == 0) null else variants.getOrNull(i - 1)
+                applyNativeQuality()
+            }
+        } else if (options.isNotEmpty()) {
+            out += Setting(getString(R.string.player_quality_title), "", emptyList()) {
+                controls.exoQuality.performClick()
+            }
+        }
+
+        val audio = if (::player.isInitialized) NativeTracks.audio(player.currentTracks) else emptyList()
+        if (audio.isNotEmpty()) {
+            val playing = audio.firstOrNull { isPlaying(it) }
+            out += Setting(
+                getString(R.string.player_audio_title),
+                (selectedAudio ?: playing)?.label.orEmpty(),
+                audio.map { SettingRow(it.label, it.detail, ticked = it == (selectedAudio ?: playing)) },
+            ) { i ->
+                selectedAudio = audio.getOrNull(i)
+                applyTrack(C.TRACK_TYPE_AUDIO, selectedAudio)
+            }
+        }
+
+        val embedded = if (::player.isInitialized) NativeTracks.text(player.currentTracks) else emptyList()
+        if (embedded.isNotEmpty()) {
+            val rows = buildList {
+                add(SettingRow(getString(R.string.off), ticked = selectedText == null))
+                embedded.forEach { add(SettingRow(it.label, it.detail, ticked = it == selectedText)) }
+            }
+            out += Setting(
+                getString(R.string.player_subtitle_title),
+                selectedText?.label ?: getString(R.string.off),
+                rows,
+            ) { i -> applySubtitleChoice(if (i == 0) null else embedded.getOrNull(i - 1)) }
+        } else if (extractorSubtitles.isNotEmpty()) {
+            out += Setting(getString(R.string.player_subtitle_title), "", emptyList()) {
+                controls.exoSubtidtle.performClick()
+            }
+        }
+
+        val speeds = listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f)
+        out += Setting(
+            getString(R.string.player_speed_title),
+            if (playbackSpeed == 1.0f) getString(R.string.player_speed_normal) else "${playbackSpeed}x",
+            speeds.map {
+                SettingRow(
+                    if (it == 1.0f) getString(R.string.player_speed_normal) else "${it}x",
+                    ticked = it == playbackSpeed,
+                )
+            },
+        ) { i ->
+            playbackSpeed = speeds.getOrNull(i) ?: 1.0f
+            if (::player.isInitialized) player.setPlaybackSpeed(playbackSpeed)
+        }
+
+        out += Setting(
+            getString(R.string.player_resize_title),
+            resizeLabels.getOrElse(currentResizeIdx) { "" },
+            resizeLabels.mapIndexed { i, label ->
+                SettingRow(label, resizeHints[i], ticked = i == currentResizeIdx)
+            },
+        ) { i ->
+            currentResizeIdx = i
+            binding.pvPlayer.resizeMode = resizeModes[i]
+        }
+        return out
+    }
+
     private val resizeLabels get() = listOf(
         getString(R.string.player_resize_fit),
         getString(R.string.player_resize_zoom),
         getString(R.string.player_resize_stretch),
     )
 
-    /**
-     * The ⚙ menu, as one place that says what everything is currently set to.
-     *
-     * It used to be a bare AlertDialog listing two words, which on a leanback
-     * screen is both out of place and hard to aim at — and it told you nothing
-     * about the state you were changing. Every row now carries its current
-     * value, so the menu answers "what is this set to" without being opened
-     * twice.
-     *
-     * Audio and subtitles live here as well as on their own buttons. The buttons
-     * hide themselves when a stream offers no choice, which is right, but it
-     * also means there is no fixed place to look — the menu is that place.
-     */
+    private val resizeHints get() = listOf(
+        getString(R.string.player_resize_fit_hint),
+        getString(R.string.player_resize_zoom_hint),
+        getString(R.string.player_resize_stretch_hint),
+    )
+
     @OptIn(UnstableApi::class)
     private fun setupPlayerSettings() {
         binding.pvPlayer.controller.binding.exoSettings.setOnClickListener {
-            val audio = if (::player.isInitialized) NativeTracks.audio(player.currentTracks) else emptyList()
-            val text = if (::player.isInitialized) NativeTracks.text(player.currentTracks) else emptyList()
-
-            val rows = mutableListOf<VideoServersAdapter.ServerRow>()
-            val actions = mutableListOf<() -> Unit>()
-
-            rows += VideoServersAdapter.ServerRow(
-                getString(R.string.player_resize_title),
-                resizeLabels.getOrElse(currentResizeIdx) { "" },
-            )
-            actions += { showResizeDialog() }
-
-            rows += VideoServersAdapter.ServerRow(
-                getString(R.string.player_speed_title),
-                if (playbackSpeed == 1.0f) getString(R.string.player_speed_normal) else "${playbackSpeed}x",
-            )
-            actions += { showSpeedDialog() }
-
-            if (audio.isNotEmpty()) {
-                val current = selectedAudio?.label
-                    ?: audio.firstOrNull { isPlaying(it) }?.label
-                    ?: audio.first().label
-                rows += VideoServersAdapter.ServerRow(getString(R.string.player_audio_title), current)
-                actions += { showAudioDialog() }
-            }
-
-            if (text.isNotEmpty()) {
-                rows += VideoServersAdapter.ServerRow(
-                    getString(R.string.player_subtitle_title),
-                    selectedText?.label ?: getString(R.string.off),
-                )
-                actions += { showEmbeddedSubtitleDialog() }
-            }
-
-            VideoServerDialog(
-                rows,
-                0,
-                titleRes = R.string.player_settings_title,
-                subtitleRes = R.string.player_settings_subtitle,
-            ).apply {
-                setOnRowPicked { index -> actions.getOrNull(index)?.invoke() }
-            }.show(parentFragmentManager, "PlayerSettingsDialog")
+            var settings = buildSettings()
+            PlayerSettingsPopup().apply {
+                rootRows = {
+                    settings = buildSettings()
+                    settings.map { SettingRow(it.label, it.value) }
+                }
+                optionsFor = { i -> settings.getOrNull(i)?.options.orEmpty() }
+                onOption = { row, option -> settings.getOrNull(row)?.apply?.invoke(option) }
+                onImmediate = { i -> settings.getOrNull(i)?.apply?.invoke(0) }
+            }.show(parentFragmentManager, "PlayerSettingsPopup")
         }
     }
 
@@ -735,7 +818,6 @@ class SeriesPlayerScreen : Fragment() {
             val servers = VideoOptionGroups.servers(options)
 
             // Only worth a button when there is a choice to make.
-            controls.exoServer.isVisible = servers.size > 1
 
             controls.exoServer.setOnClickListener {
                 if (servers.size < 2) return@setOnClickListener
@@ -1105,8 +1187,8 @@ class SeriesPlayerScreen : Fragment() {
         if (!::player.isInitialized) return
         val b = _binding ?: return
         val embedded = NativeTracks.text(player.currentTracks)
-        b.pvPlayer.controller.binding.exoSubtidtle.isVisible =
-            extractorSubtitles.isNotEmpty() || embedded.isNotEmpty()
+        // Left hidden on purpose: subtitles are reached from the ⚙ menu now.
+        // The view stays so its click handler remains the single implementation.
     }
 
     /**
@@ -1161,6 +1243,26 @@ class SeriesPlayerScreen : Fragment() {
                 )
             }
         }.show(parentFragmentManager, "EmbeddedSubtitleDialog")
+    }
+
+    /** Applies an embedded subtitle choice, or turns them off. */
+    @OptIn(UnstableApi::class)
+    private fun applySubtitleChoice(option: NativeTracks.Option?) {
+        selectedText = option
+        val selector = trackSelector
+        if (option == null && selector != null) {
+            selector.setParameters(
+                selector.buildUponParameters()
+                    .clearOverridesOfType(C.TRACK_TYPE_TEXT)
+                    .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+            )
+        } else {
+            applyTrack(C.TRACK_TYPE_TEXT, option)
+        }
+        binding.pvPlayer.subtitleView?.visibility = if (option == null) View.GONE else View.VISIBLE
+        binding.pvPlayer.controller.binding.exoSubtitlee.setImageResource(
+            if (option == null) R.drawable.ic_subtitle else R.drawable.ic_subtitle_fill
+        )
     }
 
     @OptIn(UnstableApi::class)
@@ -1221,7 +1323,6 @@ class SeriesPlayerScreen : Fragment() {
             refreshSubtitleButton()
 
             binding.pvPlayer.controller.binding.exoAudio.setOnClickListener { showAudioDialog() }
-            binding.pvPlayer.controller.binding.exoSpeed.setOnClickListener { showSpeedDialog() }
 
             binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(
                 if (player.isPlaying) R.drawable.anim_play_to_pause else R.drawable.anim_pause_to_play

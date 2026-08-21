@@ -27,6 +27,7 @@ import com.saikou.sozo_tv.parser.models.Part
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
+import com.saikou.sozo_tv.utils.autoFitColumns
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.SOURCE
 import com.saikou.sozo_tv.utils.Resource
@@ -136,6 +137,10 @@ class EpisodeScreen : Fragment() {
                     binding.wrongTitleContainer.gone()
 
                     if (binding.topContainer.adapter !== adapter) {
+        // Five columns was fixed, so on a 1080p panel the row ended well short
+        // of the right edge. The count follows the width now, the same way the
+        // AniList grid already does.
+        binding.topContainer.autoFitColumns(itemWidthDp = 210, min = 3, max = 7)
                         binding.topContainer.adapter = adapter
                     }
                     binding.placeHolder.root.gone()
