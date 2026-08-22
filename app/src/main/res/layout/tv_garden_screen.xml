@@ -57,6 +57,14 @@
             app:layoutManager="androidx.recyclerview.widget.GridLayoutManager" />
 
         <include
+            android:id="@+id/placeHolder"
+            layout="@layout/bookmark_place_holder"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:visibility="gone" />
+
+        <include
             android:id="@+id/progressBar"
             layout="@layout/layout_is_loading" />
     </LinearLayout>

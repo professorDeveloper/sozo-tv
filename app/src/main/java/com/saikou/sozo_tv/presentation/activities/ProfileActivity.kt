@@ -50,7 +50,7 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             viewBinding.navProfile.isFocusedByDefault = true
         }
-        isSettingsOpen = intent.getBooleanExtra("isSettings", false)
+        isSettingsOpen = intent.getBooleanExtra(EXTRA_OPEN_SETTINGS, false)
         setUpRv()
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -254,6 +254,13 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
 
     companion object {
         const val HOME_BUTTON = -1
+
+        /**
+         * Shared so the two ends cannot drift apart again: the sender wrote
+         * "openSettings" and the reader looked for "isSettings", so the only
+         * deep link into Settings has never once opened Settings.
+         */
+        const val EXTRA_OPEN_SETTINGS = "openSettings"
     }
 
     override fun openLogin() {

@@ -337,6 +337,13 @@ class MovieDetailsAdapter(
                     }
                 }
             }
+            // No trailer means no player behind these two, so they toggled their own
+            // icons and controlled nothing. On a TV that is worse than a no-op: they
+            // sit in the D-pad path and swallow a focus stop on the way to Watch.
+            val hasTrailer = trailer.isNotBlank()
+            binding.buttonSound.isVisible = hasTrailer
+            binding.buttonPlay.isVisible = hasTrailer
+
             binding.buttonSound.setOnClickListener {
                 if (!isOn) binding.iconSound.setImageResource(R.drawable.ic_sound) else binding.iconSound.setImageResource(
                     R.drawable.ic_no_sound

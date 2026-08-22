@@ -20,6 +20,8 @@ import com.saikou.sozo_tv.presentation.activities.LiveTvActivity
 import com.saikou.sozo_tv.presentation.screens.category.CategoryTabAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.TvGardenViewModel
+import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.utils.humanError
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.gone
@@ -81,6 +83,7 @@ class TvGardenScreen : Fragment() {
         model.countries.observe(viewLifecycleOwner) { it ->
             when (it) {
                 Resource.Loading -> {
+                    binding.placeHolder.root.gone()
                     binding.progressBar.pbIsLoading.visible()
                     binding.progressBar.root.visible()
                     binding.bookmarkRv.gone()
@@ -103,14 +106,18 @@ class TvGardenScreen : Fragment() {
                     }
                 }
 
-                else -> {
+                is Resource.Error -> showGardenError(it.throwable) {
+                    model.loadChannelCountries()
+                }
 
+                else -> {
                 }
             }
         }
         model.categories.observe(viewLifecycleOwner) { it ->
             when (it) {
                 Resource.Loading -> {
+                    binding.placeHolder.root.gone()
                     binding.progressBar.pbIsLoading.visible()
                     binding.progressBar.root.visible()
                     binding.bookmarkRv.gone()
@@ -135,8 +142,11 @@ class TvGardenScreen : Fragment() {
                     }
                 }
 
-                else -> {
+                is Resource.Error -> showGardenError(it.throwable) {
+                    model.loadChannelCategories()
+                }
 
+                else -> {
                 }
             }
 
@@ -192,6 +202,29 @@ class TvGardenScreen : Fragment() {
             binding.bookmarkRv.setNumColumns(4)
             binding.bookmarkRv.visibility = if (it.isEmpty()) View.GONE else View.VISIBLE
         }
+    }
+
+
+    /**
+     * The two lists used to fall into an empty `else`, so a failed fetch left the
+     * spinner turning with nothing behind it. Failing visibly, with a way back,
+     * is the difference between a broken tab and a retryable one.
+     */
+    private fun showGardenError(cause: Throwable?, retry: () -> Unit) {
+        val b = _binding ?: return
+        b.progressBar.pbIsLoading.gone()
+        b.progressBar.root.gone()
+        b.tabRv.gone()
+        b.bookmarkRv.gone()
+        b.placeHolder.root.visible()
+        b.placeHolder.placeholderTxt.text = requireContext().humanError(cause)
+        b.placeHolder.placeHolderBtn.visible()
+        b.placeHolder.customButton.text = getString(R.string.retry)
+        b.placeHolder.placeHolderBtn.setOnClickListener {
+            b.placeHolder.root.gone()
+            retry()
+        }
+        b.placeHolder.placeHolderBtn.requestFocus()
     }
 
 }

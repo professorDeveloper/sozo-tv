@@ -81,7 +81,7 @@ class EpisodeScreen : Fragment() {
             binding.placeHolder.placeHolderBtn.visible()
             binding.placeHolder.placeHolderBtn.setOnClickListener {
                 val intent = Intent(requireActivity(), ProfileActivity::class.java)
-                intent.putExtra("openSettings", true)
+                intent.putExtra(ProfileActivity.EXTRA_OPEN_SETTINGS, true)
                 requireActivity().startActivity(intent)
             }
         } else {
