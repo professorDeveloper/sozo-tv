@@ -10,12 +10,12 @@
         android:id="@+id/textView6"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="12dp"
         android:fontFamily="@font/days"
         android:text="@string/my_history"
         android:textColor="#FFFFFF"
-        android:textSize="18sp"
+        android:textSize="@dimen/tv_text_screen_title"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

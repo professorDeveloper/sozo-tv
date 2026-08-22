@@ -10,12 +10,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
         android:fontFamily="@font/days"
         android:paddingVertical="4dp"
         android:text="@string/bookmark"
         android:textColor="@color/netflix_text_primary"
-        android:textSize="20sp" />
+        android:textSize="@dimen/tv_text_screen_title" />
 
     <include
         android:id="@+id/topBar"
@@ -31,7 +31,7 @@
         android:layout_weight="1"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:paddingHorizontal="8dp"
+        android:paddingHorizontal="@dimen/tv_grid_inset"
         android:paddingBottom="16dp"
         app:focusOutEnd="true"
         app:focusOutFront="true"

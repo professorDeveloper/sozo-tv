@@ -17,10 +17,15 @@
     <dimen name="tv_card_width">220dp</dimen>
     <dimen name="tv_card_height">120dp</dimen>
     <dimen name="tv_card_margin">4dp</dimen>
+    <!-- 12dp + the 4dp card margin lands the first card on the 16dp screen edge. -->
+    <dimen name="tv_grid_inset">12dp</dimen>
     <dimen name="tv_text_size_large">22sp</dimen>
     <dimen name="tv_text_size_medium">17sp</dimen>
     <dimen name="tv_text_size_small">13sp</dimen>
     <dimen name="tv_padding_large">24dp</dimen>
+    <!-- Nothing readable should sit closer than this to the panel edge. -->
+    <dimen name="tv_screen_edge">24dp</dimen>
+    <dimen name="tv_screen_edge_vertical">16dp</dimen>
     <dimen name="tv_padding_medium">16dp</dimen>
     <dimen name="tv_padding_small">8dp</dimen>
     <dimen name="tv_corner_radius">8dp</dimen>
@@ -57,6 +62,7 @@
     <dimen name="tv_text_label">13sp</dimen>
     <dimen name="tv_text_body">15sp</dimen>
     <dimen name="tv_text_subtitle">17sp</dimen>
+    <dimen name="tv_text_screen_title">20sp</dimen>
 
     <!--
       On-screen keyboard. Narrow keys, tall keys: the widest row is ten of them
