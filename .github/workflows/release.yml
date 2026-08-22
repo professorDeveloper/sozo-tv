@@ -21,11 +21,12 @@ run-name: >-
 #                             cannot message a person by @username; each
 #                             recipient must press Start on the bot once.
 #
-# The keystore MUST be the one already on devices (CN=Sozo Tv, O=Sozo LLC). A
-# different certificate cannot be installed over an existing copy: users get
-# "package conflicts with an existing package" and have to uninstall, losing
-# their history. The build verifies the fingerprint and refuses to ship anything
-# else — see EXPECTED_CERT_SHA256 below.
+# The signing key was replaced on 22 Aug 2026 because the original was lost, and
+# the version line restarted at 1.0.0 with it. A different certificate cannot be
+# installed over an existing copy: anyone still running a pre-1.0.0 build gets
+# "package conflicts with an existing package" and has to uninstall first. The
+# build still verifies the fingerprint and refuses to ship anything signed by
+# another key — see EXPECTED_CERT_SHA256 below.
 
 on:
   workflow_dispatch:
@@ -272,7 +273,7 @@ jobs:
 
       - name: Verify the APK is signed by the expected certificate
         env:
-          EXPECTED_CERT_SHA256: cc23741adc1f7df57f62107bdd65d8bd15197ef34605dec5bfa7fae57ed620f8
+          EXPECTED_CERT_SHA256: c952cee4c758db729767b5499cfd63cca17a51a319142e4d30fcb4e3237ca07f
         run: |
           set -euo pipefail
           APKSIGNER="$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/build-tools" -name apksigner | sort | tail -1)"
