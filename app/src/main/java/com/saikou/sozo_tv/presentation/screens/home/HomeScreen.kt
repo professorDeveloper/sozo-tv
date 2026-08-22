@@ -23,6 +23,7 @@ import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.HomeViewModel
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.humanError
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.UiState
@@ -173,12 +174,11 @@ class HomeScreen : Fragment() {
             binding.isLoading.gIsLoadingRetry.isVisible = true
             binding.isLoading.root.isVisible = true
             binding.isLoading.tvIsLoadingError.text =
-                getString(R.string.xatolik)
+                requireContext().humanError(state.message)
             binding.isLoading.pbIsLoading.isVisible = false
             binding.isLoading.btnIsLoadingRetry.requestFocus()
             binding.isLoading.btnIsLoadingRetry.setOnClickListener {
-                homeViewModel.loadBanners()
-                homeViewModel.loadCategories()
+                homeViewModel.retry()
             }
         }
 

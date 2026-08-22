@@ -9,6 +9,7 @@ import android.view.WindowManager
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.DialogFragment
+import com.saikou.sozo_tv.utils.humanError
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.WrongTitleSearchAdapter
 import com.saikou.sozo_tv.databinding.WrongTitleDialogBinding
@@ -80,7 +81,7 @@ class WrongTitleDialog : DialogFragment() {
         model.dataFound.observe(viewLifecycleOwner) { result ->
             when (result) {
                 is Resource.Error -> {
-                    binding.placeholderTxt.placeholderTxt.text = result.throwable.message
+                    binding.placeholderTxt.placeholderTxt.text = requireContext().humanError(result.throwable)
                     binding.bookmarkPlaceHolder.visible()
                     binding.loadingPlaceHolder.gone()
                     binding.vgvSearch.gone()
@@ -99,7 +100,7 @@ class WrongTitleDialog : DialogFragment() {
                     hideKeyboard()
                     if (result.data.isEmpty()) {
                         binding.bookmarkPlaceHolder.visible()
-                        binding.placeholderTxt.placeholderTxt.text = "Result Not Found"
+                        binding.placeholderTxt.placeholderTxt.text = getString(R.string.empty_not_found)
                         binding.loadingPlaceHolder.gone()
                         binding.vgvSearch.gone()
                     } else {

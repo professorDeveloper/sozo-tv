@@ -34,6 +34,51 @@ class BookmarkScreen : Fragment() {
     private val characterAdapter = CharactersPageAdapter()
 
     private var bookmarkType = BookmarkType.MEDIA
+
+    /**
+     * All three tabs share one grid and one placeholder, and all three observers
+     * fire whether or not their tab is showing. Each used to set that shared
+     * visibility from its own condition, so an empty Bookmarks tab had its
+     * placeholder wiped the moment the character list arrived. The observers now
+     * only record what they loaded; [renderTab] alone decides what is on screen.
+     */
+    private var mediaCount = 0
+    private var characterCount = 0
+    private var channelCount = 0
+    private val channelsAdapter by lazy {
+        ChannelsAdapter {
+            val intent = Intent(requireContext(), LiveTvActivity::class.java)
+            intent.putExtra("url", it.iptvUrls[0])
+            intent.putExtra("title", it.name)
+            intent.putExtra("data", it)
+            requireActivity().startActivity(intent)
+        }
+    }
+
+    private fun renderTab() {
+        val b = _binding ?: return
+        val count = when (bookmarkType) {
+            BookmarkType.MEDIA -> mediaCount
+            BookmarkType.CHARACTER -> characterCount
+            BookmarkType.TV_CHANNEL -> channelCount
+        }
+        b.bookmarkRv.adapter = when (bookmarkType) {
+            BookmarkType.MEDIA -> animeAdapter
+            BookmarkType.CHARACTER -> characterAdapter
+            BookmarkType.TV_CHANNEL -> channelsAdapter
+        }
+        b.bookmarkRv.setNumColumns(4)
+        b.bookmarkRv.visibility = if (count == 0) View.GONE else View.VISIBLE
+        b.bookmarkPlaceHolder.root.visibility = if (count == 0) View.VISIBLE else View.GONE
+        // Saying "no movie or serial" on the Characters tab describes the wrong list.
+        b.bookmarkPlaceHolder.placeholderTxt.setText(
+            when (bookmarkType) {
+                BookmarkType.MEDIA -> R.string.place_holder_text
+                BookmarkType.CHARACTER -> R.string.empty_no_characters
+                BookmarkType.TV_CHANNEL -> R.string.empty_no_channels
+            }
+        )
+    }
     private var lastScrollY = 0
 
     override fun onCreateView(
@@ -49,52 +94,28 @@ class BookmarkScreen : Fragment() {
         model.getAllBookmarks()
         setupVerticalGridView()
 
-        binding.bookmarkRv.adapter = animeAdapter
         updateTabSelection()
+        renderTab()
 
         animeAdapter.setClickDetail { openPlayer(it.id) }
         characterAdapter.setClickListener { openPlayerCharacter(it.id) }
 
 
         model.bookmarkData.observe(viewLifecycleOwner) { list ->
-            if (isAnimeEnabled) {
-                val domainList =
-                    list.map { it.toDomain() }.filter { it.isAnime } as ArrayList<MainModel>
-                animeAdapter.updateCategoriesAll(domainList)
-                binding.bookmarkPlaceHolder.root.visibility =
-                    if (domainList.isEmpty() && bookmarkType == BookmarkType.MEDIA) View.VISIBLE else View.GONE
-                binding.bookmarkRv.visibility =
-                    if (domainList.isEmpty() && bookmarkType == BookmarkType.MEDIA) View.GONE else View.VISIBLE
-            } else {
-                val domainList =
-                    list.map { it.toDomain() }.filter { !it.isAnime } as ArrayList<MainModel>
-                animeAdapter.updateCategoriesAll(domainList)
-                binding.bookmarkPlaceHolder.root.visibility =
-                    if (domainList.isEmpty() && bookmarkType == BookmarkType.MEDIA) View.VISIBLE else View.GONE
-                binding.bookmarkRv.visibility =
-                    if (domainList.isEmpty() && bookmarkType == BookmarkType.MEDIA) View.GONE else View.VISIBLE
-            }
+            val domainList = list.map { it.toDomain() }
+                .filter { it.isAnime == isAnimeEnabled } as ArrayList<MainModel>
+            mediaCount = domainList.size
+            animeAdapter.updateCategoriesAll(domainList)
+            renderTab()
         }
 
         model.characterData.observe(viewLifecycleOwner) { characters ->
+            characterCount = characters.size
             characterAdapter.updateCharacters(characters)
-            binding.bookmarkPlaceHolder.root.visibility =
-                if (characters.isEmpty() && bookmarkType != BookmarkType.MEDIA) View.VISIBLE else View.GONE
-            binding.bookmarkRv.visibility =
-                if (characters.isEmpty() && bookmarkType != BookmarkType.MEDIA) View.GONE else View.VISIBLE
+            renderTab()
         }
-        val channelsAdapter = ChannelsAdapter {
-            val intent = Intent(requireContext(), LiveTvActivity::class.java)
-            intent.putExtra("url", it.iptvUrls[0])
-            intent.putExtra("title", it.name)
-            intent.putExtra("data", it)
-            requireActivity().startActivity(intent)
-        }
+
         model.channelData.observe(viewLifecycleOwner) { channels ->
-            binding.bookmarkRv.visible()
-            binding.bookmarkPlaceHolder.root.visibility =
-                if (channels.isEmpty() && bookmarkType == BookmarkType.TV_CHANNEL) View.VISIBLE else View.GONE
-            binding.bookmarkRv.adapter = channelsAdapter
             val channelList = channels.map {
                 Channel(
                     it.id,
@@ -106,31 +127,32 @@ class BookmarkScreen : Fragment() {
                     it.isGeoBlocked
                 )
             }
-            binding.bookmarkRv.setNumColumns(4)
-            binding.bookmarkRv.visibility = if (channelList.isEmpty()) View.GONE else View.VISIBLE
+            channelCount = channelList.size
             channelsAdapter.updateChannels(channelList)
-
+            renderTab()
         }
+
         binding.topBar.navAnime.setOnClickListener {
             bookmarkType = BookmarkType.MEDIA
-            binding.bookmarkRv.adapter = animeAdapter
             model.getAllBookmarks()
             updateTabSelection()
+            renderTab()
             showTopBar()
         }
 
         binding.topBar.movieTxt.text = if (isAnimeEnabled) "Anime" else "Movie"
         binding.topBar.navCharacters.setOnClickListener {
             bookmarkType = BookmarkType.CHARACTER
-            binding.bookmarkRv.adapter = characterAdapter
             model.getAllCharacterBookmarks()
             updateTabSelection()
+            renderTab()
             showTopBar()
         }
         binding.topBar.navChannels.setOnClickListener {
             bookmarkType = BookmarkType.TV_CHANNEL
             model.getAllChannelBookmarks()
             updateTabSelection()
+            renderTab()
             showTopBar()
         }
 

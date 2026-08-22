@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.saikou.sozo_tv.utils.humanError
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.CategoriesScreenBinding
@@ -128,7 +129,7 @@ class CategoriesScreen : Fragment() {
                     binding.topContainer.gone()
                     binding.placeHolder.root.visible()
                     binding.tabRv.requestFocus()
-                    binding.placeHolder.placeholderTxt.text = state.message
+                    binding.placeHolder.placeholderTxt.text = requireContext().humanError(state.message)
                     binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_place_holder_search)
                 }
 
@@ -193,7 +194,7 @@ class CategoriesScreen : Fragment() {
             binding.isLoadingContainer.root.isVisible = false
             binding.topContainer.gone()
             binding.placeHolder.root.visible()
-            binding.placeHolder.placeholderTxt.text = "No categories available for this source"
+            binding.placeHolder.placeholderTxt.text = getString(R.string.empty_no_categories)
             binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_place_holder_search)
             return
         }

@@ -87,7 +87,7 @@
                 android:maxEms="20"
                 android:maxLines="1"
                 android:minLines="1"
-                android:text="Are you sue Clear History ? "
+                android:text="@string/clear_history_confirm"
                 android:textColor="@color/lb_tv_white"
                 android:textSize="@dimen/tv_text_subtitle" />
 

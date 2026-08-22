@@ -17,12 +17,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="12dp"
             android:fontFamily="@font/days"
             android:paddingVertical="4dp"
             android:text="@string/main_menu_tvgarden"
             android:textColor="#FFFFFF"
-            android:textSize="20sp" />
+            android:textSize="@dimen/tv_text_screen_title" />
 
         <androidx.leanback.widget.HorizontalGridView
             android:id="@+id/tabRv"
@@ -50,11 +50,19 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             android:nextFocusUp="@id/tabRv"
-            android:paddingHorizontal="8dp"
+            android:paddingHorizontal="@dimen/tv_grid_inset"
             android:paddingBottom="16dp"
             android:visibility="visible"
             app:focusOutFront="true"
             app:layoutManager="androidx.recyclerview.widget.GridLayoutManager" />
+
+        <include
+            android:id="@+id/placeHolder"
+            layout="@layout/bookmark_place_holder"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:visibility="gone" />
 
         <include
             android:id="@+id/progressBar"

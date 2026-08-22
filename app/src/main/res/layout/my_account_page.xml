@@ -158,77 +158,114 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
+                <!-- One line instead of three blocks. Status and
+                     notifications used to sit in weighted columns pushed to
+                     opposite edges of a 1080p panel, with the counts on a
+                     centred strip below them and a divider between — three
+                     rows of chrome for six words. -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="4dp"
+                    android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <View
+                        android:layout_width="6dp"
+                        android:layout_height="6dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/netflix_status_dot" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:text="@string/visitor"
+                        android:textColor="@color/netflix_white"
+                        android:textSize="@dimen/tv_text_body"
+                        />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="6dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:letterSpacing="0.1"
-                            android:text="@string/status"
-                            android:textColor="@color/netflix_gray"
-                            android:textSize="@dimen/tv_text_label" />
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <View
-                                android:layout_width="6dp"
-                                android:layout_height="6dp"
-                                android:layout_marginEnd="8dp"
-                                android:background="@drawable/netflix_status_dot" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif"
-                                android:text="@string/visitor"
-                                android:textColor="@color/netflix_white"
-                                android:textSize="@dimen/tv_text_body" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="end"
-                        android:orientation="vertical">
+                        android:layout_marginHorizontal="9dp"
+                        android:text="·"
+                        android:textColor="@color/netflix_gray"
+                        android:textSize="@dimen/tv_text_body" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="6dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:letterSpacing="0.1"
-                            android:text="@string/notifications"
-                            android:textColor="@color/netflix_gray"
-                            android:textSize="@dimen/tv_text_label" />
+                    <TextView
+                        android:id="@+id/statWatched"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/netflix_white"
+                        android:textSize="@dimen/tv_text_body"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="—"
+                        />
 
-                        <TextView
-                            android:id="@+id/unreadCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif"
-                            android:text="@string/_0_unread"
-                            android:textColor="@color/netflix_white"
-                            android:textSize="@dimen/tv_text_body" />
-                    </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/account_meta_watched"
+                        android:textColor="@color/netflix_gray"
+                        android:textSize="@dimen/tv_text_body"
+                        android:layout_marginStart="5dp"
+                        />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="9dp"
+                        android:text="·"
+                        android:textColor="@color/netflix_gray"
+                        android:textSize="@dimen/tv_text_body" />
+
+                    <TextView
+                        android:id="@+id/statSaved"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/netflix_white"
+                        android:textSize="@dimen/tv_text_body"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="—"
+                        />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/account_meta_saved"
+                        android:textColor="@color/netflix_gray"
+                        android:textSize="@dimen/tv_text_body"
+                        android:layout_marginStart="5dp"
+                        />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="9dp"
+                        android:text="·"
+                        android:textColor="@color/netflix_gray"
+                        android:textSize="@dimen/tv_text_body" />
+
+                    <TextView
+                        android:id="@+id/unreadCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/netflix_white"
+                        android:textSize="@dimen/tv_text_body"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="0"
+                        />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/account_meta_unread"
+                        android:textColor="@color/netflix_gray"
+                        android:textSize="@dimen/tv_text_body"
+                        android:layout_marginStart="5dp"
+                        />
+
                 </LinearLayout>
 
             </LinearLayout>
@@ -242,13 +279,7 @@
             android:layout_marginBottom="16dp"
             android:orientation="vertical"
             android:paddingHorizontal="20dp"
-            android:paddingVertical="24dp">
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginBottom="16dp"
-                android:background="@color/netflix_divider" />
+            android:paddingVertical="12dp">
 
             <LinearLayout
                 android:id="@+id/anilistRow"
@@ -290,10 +321,21 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:ellipsize="end"
-                        android:maxLines="1"
+                        android:maxLines="2"
                         android:text="@string/anilist_connect_on_phone"
                         android:textColor="@color/netflix_gray"
                         android:textSize="@dimen/tv_text_label" />
+
+                    <TextView
+                        android:id="@+id/anilistStats"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="@color/netflix_gray"
+                        android:textSize="@dimen/tv_text_caption"
+                        android:visibility="gone" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -632,7 +674,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:expanded="true"
-                app:sectionSubtitle="Demo themes (no real color change)"
+                app:sectionSubtitle="@string/theme_section_subtitle"
                 app:sectionTitle="Theme">
 
                 <LinearLayout

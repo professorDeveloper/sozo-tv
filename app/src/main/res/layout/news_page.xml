@@ -13,12 +13,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
         android:fontFamily="@font/days"
         android:paddingVertical="4dp"
         android:text="@string/message_page"
         android:textColor="#FFFFFF"
-        android:textSize="18sp" />
+        android:textSize="@dimen/tv_text_screen_title" />
 
     <androidx.leanback.widget.VerticalGridView
         android:id="@+id/verticalGridView"
@@ -29,6 +29,14 @@
         tools:listitem="@layout/item_featured_news"
         app:focusOutEnd="true"
         app:focusOutFront="true" />
+
+    <ProgressBar
+        android:id="@+id/newsLoading"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/emptyNews"

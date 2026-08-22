@@ -343,7 +343,8 @@
                 android:background="@drawable/shape_play_pause_circle_bottom"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:nextFocusUp="@id/exo_progress">
+                android:nextFocusUp="@id/exo_progress"
+                android:visibility="gone">
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:layout_width="match_parent"
@@ -388,7 +389,8 @@
                 android:background="@drawable/shape_play_pause_circle_bottom"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:nextFocusUp="@id/exo_progress">
+                android:nextFocusUp="@id/exo_progress"
+                android:visibility="gone">
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:layout_width="match_parent"
