@@ -31,6 +31,7 @@ import com.saikou.sozo_tv.utils.autoFitColumns
 import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.LocalData.SOURCE
 import com.saikou.sozo_tv.utils.Resource
+import com.saikou.sozo_tv.utils.humanError
 import com.saikou.sozo_tv.utils.gone
 import com.saikou.sozo_tv.utils.visible
 import org.koin.android.ext.android.inject
@@ -103,9 +104,9 @@ class EpisodeScreen : Fragment() {
             when (dataFound) {
                 is Resource.Error -> {
                     binding.loadingLayout.gone()
-                    binding.placeHolder.root.visible()
-                    binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
-                    binding.placeHolder.placeholderTxt.text = getString(R.string.xatolik)
+                    showEpisodeError(dataFound.throwable) {
+                        viewModel.loadMedia(args.mediaId, args.episodeTitle)
+                    }
                 }
 
                 Resource.Loading -> {
@@ -188,11 +189,12 @@ class EpisodeScreen : Fragment() {
             when (result) {
                 is Resource.Error -> {
                     // Clear the latch so re-selecting the same part retries instead of no-opping.
+                    val failedPage = requestedPage
                     requestedPage = -1
                     binding.loadingLayout.gone()
-                    binding.placeHolder.root.visible()
-                    binding.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
-                    binding.placeHolder.placeholderTxt.text = getString(R.string.xatolik)
+                    showEpisodeError(result.throwable) {
+                        if (failedPage >= 0) loadPage(failedPage)
+                    }
                 }
 
                 Resource.Loading -> {
@@ -285,6 +287,27 @@ class EpisodeScreen : Fragment() {
             }
         }
         return spannable
+    }
+
+
+    /**
+     * A dead end is not an error state. Both failures painted the same
+     * "something went wrong" with no way forward, on a screen whose only exit
+     * was Back — and the placeholder button still carried whatever listener the
+     * no-source path last attached to it.
+     */
+    private fun showEpisodeError(cause: Throwable?, retry: () -> Unit) {
+        val b = _binding ?: return
+        b.placeHolder.root.visible()
+        b.placeHolder.placeHolderImg.setImageResource(R.drawable.ic_network_error)
+        b.placeHolder.placeholderTxt.text = requireContext().humanError(cause)
+        b.placeHolder.placeHolderBtn.visible()
+        b.placeHolder.customButton.text = getString(R.string.retry)
+        b.placeHolder.placeHolderBtn.setOnClickListener {
+            b.placeHolder.root.gone()
+            retry()
+        }
+        b.placeHolder.placeHolderBtn.requestFocus()
     }
 
 }

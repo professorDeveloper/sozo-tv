@@ -15,6 +15,7 @@ import com.saikou.sozo_tv.domain.model.MainModel
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.screens.category.CategoriesPageAdapter
 import com.saikou.sozo_tv.presentation.viewmodel.ViewAllViewModel
+import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.setupGridLayoutForCategories
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -77,9 +78,18 @@ class ViewAllScreen : Fragment() {
 
                 is Resource.Success -> {
                     binding.progressBar.visibility = View.GONE
-                    binding.errorTv.visibility = View.GONE
 
                     adapter.updateCategoriesAll(ArrayList(resource.data))
+
+                    // A source that returns nothing used to hide the spinner and
+                    // leave the screen blank — indistinguishable from still loading.
+                    if (resource.data.isEmpty()) {
+                        binding.errorTv.visibility = View.VISIBLE
+                        binding.errorTv.text = getString(R.string.empty_no_results)
+                        binding.viewAllRv.visibility = View.GONE
+                        return@observe
+                    }
+                    binding.errorTv.visibility = View.GONE
 
                     if (binding.viewAllRv.visibility != View.VISIBLE) {
                         binding.viewAllRv.visibility = View.VISIBLE

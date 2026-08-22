@@ -217,6 +217,8 @@
     <string name="error_no_internet">No internet connection.</string>
     <string name="error_timeout">The server took too long to answer.</string>
     <string name="error_secure_connection">Secure connection failed.</string>
+    <string name="empty_no_characters">No saved characters yet</string>
+    <string name="empty_no_channels">No saved channels yet</string>
     <string name="empty_no_results">No results found</string>
     <string name="empty_no_categories">No categories available for this source</string>
     <string name="empty_no_source">No source selected — choose one first</string>

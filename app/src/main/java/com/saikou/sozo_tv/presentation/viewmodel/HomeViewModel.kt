@@ -129,6 +129,17 @@ class HomeViewModel(
     }
 
     init {
+        retry()
+    }
+
+    /**
+     * The home state is a combine of three loads, and any one of them failing
+     * shows the error. Retry only re-ran two of them, so a genres failure left
+     * genresState on Error forever and the button could never clear the screen
+     * it was offered on. Whatever is retried has to be everything the state is
+     * built from.
+     */
+    fun retry() {
         loadBanners()
         loadCategories()
         loadGenres()

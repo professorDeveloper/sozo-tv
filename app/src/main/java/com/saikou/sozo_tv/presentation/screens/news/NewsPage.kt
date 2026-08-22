@@ -11,7 +11,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.saikou.sozo_tv.adapters.NewsAdapter
 import com.saikou.sozo_tv.data.local.pref.NewsPreferences
+import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.model.NewsItem
+import com.saikou.sozo_tv.utils.humanError
+import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.databinding.NewsPageBinding
 import com.saikou.sozo_tv.presentation.viewmodel.NewsViewModel
 import com.saikou.sozo_tv.utils.requestInitialFocus
@@ -48,10 +51,23 @@ class NewsPage : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.news.collectLatest { list ->
-                    adapter.update(list)
-                    renderEmptyState(list.isEmpty())
-                    updateUnreadCount()
+                viewModel.news.collectLatest { state ->
+                    when (state) {
+                        is Resource.Success -> {
+                            adapter.update(state.data)
+                            renderState(loading = false, message = null, isEmpty = state.data.isEmpty())
+                            updateUnreadCount()
+                        }
+
+                        is Resource.Error -> renderState(
+                            loading = false,
+                            message = requireContext().humanError(state.throwable),
+                            isEmpty = true,
+                        )
+
+                        Resource.Loading -> renderState(loading = true, message = null, isEmpty = false)
+                        Resource.Idle -> Unit
+                    }
                 }
             }
         }
@@ -59,11 +75,13 @@ class NewsPage : Fragment() {
         viewModel.loadNews()
     }
 
-    private fun renderEmptyState(isEmpty: Boolean) {
+    private fun renderState(loading: Boolean, message: String?, isEmpty: Boolean) {
         val b = _binding ?: return
-        b.emptyNews.isVisible = isEmpty
-        b.verticalGridView.isVisible = !isEmpty
-        if (!isEmpty) b.verticalGridView.requestInitialFocus()
+        b.newsLoading.isVisible = loading
+        b.emptyNews.isVisible = !loading && isEmpty
+        b.verticalGridView.isVisible = !loading && !isEmpty
+        b.emptyNews.text = message ?: getString(R.string.news_empty)
+        if (!loading && !isEmpty) b.verticalGridView.requestInitialFocus()
     }
 
     private fun handleNewsItemClick(newsItem: NewsItem, position: Int) {
