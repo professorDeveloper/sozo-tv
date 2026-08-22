@@ -52,7 +52,7 @@ class SplashViewModel(
                 ?.takeIf { it.isActionable && (it.version ?: 0L) > current }
                 ?.toAppUpdate()
 
-            if (update != null) getAppUpdateInfo.value = update
+            update?.let { getAppUpdateInfo.value = it }
             isUpdateAvailableLiveData.value = update != null
         }
     }
