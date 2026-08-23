@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.EpisodeItemLittleBinding
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.utils.gone
@@ -28,15 +29,18 @@ class EpisodePlayerAdapter(
         fun onBind(data: Data, position: Int) {
             itemBinding.apply {
                 if (position == currentIndex) {
-                    itemBinding.shimmerRibbonView.visible()
+                    itemBinding.nowPlayingBadge.visible()
                 } else {
-                    itemBinding.shimmerRibbonView.gone()
+                    itemBinding.nowPlayingBadge.gone()
                 }
 
                 itemBinding.itemImg.loadImage(data.snapshot ?: defaultImg)
 
-                topContainer.text = "Episode ${position + 1}"
-                shimmerTopRibbon.ribbon.text = "Episode ${data.episode ?: -1}"
+                // The real episode number, not the row's position: with the list
+                // paged, row 0 of the second page is episode 101, and labelling
+                // it "Episode 1" is worse than no label.
+                val number = data.episode?.takeIf { it > 0 } ?: (position + 1)
+                topContainer.text = root.context.getString(R.string.episode_n, number)
                 root.setOnClickListener {
                     val previousIndex = currentIndex
                     currentIndex = position

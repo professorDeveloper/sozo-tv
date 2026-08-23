@@ -38,10 +38,12 @@ import com.saikou.sozo_tv.adapters.SettingRow
 import com.saikou.sozo_tv.presentation.screens.play.dialog.PlayerSettingsPopup
 import com.saikou.sozo_tv.domain.player.NativeQualities
 import com.saikou.sozo_tv.domain.player.NativeTracks
+import com.saikou.sozo_tv.domain.player.SubtitleNormalizer
 import com.saikou.sozo_tv.domain.player.VideoOptionGroups
 import com.saikou.sozo_tv.adapters.VideoServersAdapter
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.data.repository.AnilistTracker
+import com.saikou.sozo_tv.data.repository.MalTracker
 import org.koin.android.ext.android.inject
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
@@ -124,8 +126,9 @@ class SeriesPlayerScreen : Fragment() {
     private val extensionEngine: ExtensionEngine by inject()
 
     private val anilistTracker: AnilistTracker by inject()
+    private val malTracker: MalTracker by inject()
 
-    private val anilistReported = HashSet<Int>()
+    private val trackersReported = HashSet<Int>()
 
     private lateinit var mediaSession: MediaSession
     private val args by navArgs<SeriesPlayerScreenArgs>()
@@ -296,8 +299,8 @@ class SeriesPlayerScreen : Fragment() {
                         if (remainingTime in 9001..10000 && !countdownShown && !isCountdownActive) {
                             showNextEpisodeCountdown()
                         }
-                        if (currentPosition >= duration * ANILIST_WATCHED_FRACTION) {
-                            reportToAnilist()
+                        if (currentPosition >= duration * TRACKER_WATCHED_FRACTION) {
+                            reportToTrackers()
                         }
                     }
                 }
@@ -307,18 +310,32 @@ class SeriesPlayerScreen : Fragment() {
         progressHandler?.post(progressRunnable!!)
     }
 
-    private fun reportToAnilist() {
+    /**
+     * Reports the episode to every connected tracker.
+     *
+     * The guard set is shared across trackers rather than kept per tracker. One
+     * episode is one event; a MAL write that fails must not be retried by the
+     * next tick, which is exactly what a second set would cause.
+     */
+    private fun reportToTrackers() {
         val episodeNumber = model.currentEpIndex + 1
-        if (episodeNumber <= 0 || !anilistReported.add(episodeNumber)) return
+        if (episodeNumber <= 0 || !trackersReported.add(episodeNumber)) return
 
         val contentId = args.seriesMainId
         if (contentId.isBlank()) {
-            anilistReported.remove(episodeNumber)
+            trackersReported.remove(episodeNumber)
             return
         }
 
+        val provider = extensionEngine.getActiveProvider().orEmpty()
         anilistTracker.reportEpisodeAsync(
-            provider = extensionEngine.getActiveProvider().orEmpty(),
+            provider = provider,
+            contentId = contentId,
+            title = args.name,
+            episodeNumber = episodeNumber,
+        )
+        malTracker.reportEpisodeAsync(
+            provider = provider,
             contentId = contentId,
             title = args.name,
             episodeNumber = episodeNumber,
@@ -503,7 +520,7 @@ class SeriesPlayerScreen : Fragment() {
         val trackSelector = DefaultTrackSelector(requireContext()).apply {
             setParameters(
                 buildUponParameters()
-                    .setPreferredAudioLanguages("hin", "jpn", "eng") // Hindi > Japanese > English
+                    .setPreferredAudioLanguages(*preferredAudioLanguages())
             )
         }
         this.trackSelector = trackSelector
@@ -538,10 +555,26 @@ class SeriesPlayerScreen : Fragment() {
                 // _binding is cleared — so the view may already be gone.
                 val b = _binding ?: return
                 val audio = NativeTracks.audio(tracks)
+                // The button is `gone` in the layout and, unlike the Live TV controller,
+                // nothing here ever revealed it — so a dual-audio release played whatever
+                // the language list matched and the switcher was simply not on screen.
+                b.pvPlayer.controller.binding.exoAudio.isVisible = audio.size > 1
                 // A track the user picked cannot outlive the stream that
                 // declared it; the groups belong to that stream.
                 if (selectedAudio != null && audio.none { it.label == selectedAudio?.label }) {
                     selectedAudio = null
+                }
+                // The Option objects died with the previous stream, but the viewer's
+                // language did not. Re-resolve it against what this stream carries so a
+                // dub choice survives the next episode instead of silently reverting.
+                if (selectedAudio == null) {
+                    val want = PreferenceManager(requireContext()).getAudioLanguage()
+                    if (!want.isNullOrBlank()) {
+                        audio.firstOrNull { it.language.equals(want, ignoreCase = true) }?.let {
+                            selectedAudio = it
+                            applyTrack(C.TRACK_TYPE_AUDIO, it)
+                        }
+                    }
                 }
                 refreshSubtitleButton()
             }
@@ -702,6 +735,7 @@ class SeriesPlayerScreen : Fragment() {
                 audio.map { SettingRow(it.label, it.detail, ticked = it == (selectedAudio ?: playing)) },
             ) { i ->
                 selectedAudio = audio.getOrNull(i)
+                rememberAudioChoice(selectedAudio)
                 applyTrack(C.TRACK_TYPE_AUDIO, selectedAudio)
             }
         }
@@ -947,8 +981,12 @@ class SeriesPlayerScreen : Fragment() {
             u.contains(".mpd") -> MimeTypes.APPLICATION_MPD
             u.contains(".mp4") -> MimeTypes.VIDEO_MP4
             u.contains(".mkv") || u.contains(".webm") -> MimeTypes.VIDEO_WEBM
-            // Declared a manifest but the URL is clearly not one → let ExoPlayer sniff.
-            declared == MimeTypes.APPLICATION_M3U8 || declared == MimeTypes.APPLICATION_MPD -> null
+            // A manifest is routinely served from an extensionless, path-style url
+            // (".../m3u8/<hash>"). The server's own declaration is stronger evidence than the
+            // url's shape, and throwing it away left ExoPlayer holding only the progressive
+            // extractors — none of which can read a playlist — so playback could never recover.
+            declared == MimeTypes.APPLICATION_M3U8 || declared == MimeTypes.APPLICATION_MPD -> declared
+            u.contains("/m3u8/") || u.contains("/hls/") -> MimeTypes.APPLICATION_M3U8
             else -> declared
         }
         android.util.Log.i("PlayerSrc", "mime: url=$u declared=$declared -> $resolved")
@@ -1122,6 +1160,7 @@ class SeriesPlayerScreen : Fragment() {
         ).apply {
             setOnRowPicked { index ->
                 selectedAudio = options.getOrNull(index)
+                rememberAudioChoice(selectedAudio)
                 applyTrack(C.TRACK_TYPE_AUDIO, selectedAudio)
             }
         }.show(parentFragmentManager, "AudioTrackDialog")
@@ -1167,6 +1206,30 @@ class SeriesPlayerScreen : Fragment() {
      * track cannot silently undo a pinned resolution.
      */
     @OptIn(UnstableApi::class)
+    /**
+     * Audio languages in the order this viewer wants them.
+     *
+     * The list used to be a hardcoded "hin, jpn, eng", so every dual-audio release played
+     * Hindi no matter who was watching or what they had picked last time. Their own choice
+     * comes first now, then the device's language, and only then the usual fallbacks.
+     */
+    private fun preferredAudioLanguages(): Array<String> {
+        val out = LinkedHashSet<String>()
+        PreferenceManager(requireContext()).getAudioLanguage()
+            ?.takeIf { it.isNotBlank() }?.let { out += it.lowercase() }
+        val locale = resources.configuration.locales.takeIf { !it.isEmpty }?.get(0)
+        locale?.isO3Language?.takeIf { it.isNotBlank() }?.let { out += it.lowercase() }
+        locale?.language?.takeIf { it.isNotBlank() }?.let { out += it.lowercase() }
+        out += listOf("jpn", "eng")
+        return out.toTypedArray()
+    }
+
+    /** Persist the language behind a pick so the next episode can honour it. */
+    private fun rememberAudioChoice(option: NativeTracks.Option?) {
+        val code = option?.language?.takeIf { it.isNotBlank() } ?: return
+        PreferenceManager(requireContext()).setAudioLanguage(code)
+    }
+
     private fun applyTrack(type: Int, option: NativeTracks.Option?) {
         val selector = trackSelector ?: return
         selector.setParameters(
@@ -1177,6 +1240,27 @@ class SeriesPlayerScreen : Fragment() {
                 .setTrackTypeDisabled(type, false)
                 .apply { option?.let { addOverride(NativeTracks.overrideFor(it)) } }
         )
+    }
+
+    /**
+     * Turns the text renderer itself on or off.
+     *
+     * Choosing "Off" in the embedded-track dialog disables the renderer, and
+     * nothing used to turn it back on: the extractor path attaches a subtitle
+     * FILE to the media item, which a disabled renderer will never play. One
+     * "Off" and subtitles were dead for the rest of the session, on every
+     * source and every episode — the file was fetched, attached, and silent.
+     */
+    @OptIn(UnstableApi::class)
+    private fun setTextRendererEnabled(enabled: Boolean) {
+        if (!::player.isInitialized) return
+        player.trackSelectionParameters = player.trackSelectionParameters
+            .buildUpon()
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !enabled)
+            // A stale override points at a track from the previous media item;
+            // the freshly attached file is the one that should win.
+            .apply { if (enabled) clearOverridesOfType(C.TRACK_TYPE_TEXT) }
+            .build()
     }
 
     /** The extractor's own subtitle files, if this episode came with any. */
@@ -1306,6 +1390,7 @@ class SeriesPlayerScreen : Fragment() {
 
             player.setMediaSource(finalSource)
             player.prepare()
+            setTextRendererEnabled(useSubtitles)
 
             if (!model.doNotAsk) {
                 if (lastPosition > 0) player.seekTo(lastPosition)
@@ -1366,6 +1451,7 @@ class SeriesPlayerScreen : Fragment() {
                         }
                         player.setMediaSource(newSource)
                         player.prepare()
+                        setTextRendererEnabled(enabled)
                         player.seekTo(previousPos)
                         player.play()
                     }
@@ -1442,17 +1528,13 @@ class SeriesPlayerScreen : Fragment() {
                             }
                         }
 
-                        val text = tmp.readText()
-
-                        val fixedFile = if (!text.startsWith("WEBVTT")) {
-                            tmp.writeText("WEBVTT\n\n$text")
-                            tmp
-                        } else tmp
+                        val (fixedFile, subMime) = normalizeSubtitle(tmp)
 
                         val subConfig = MediaItem.SubtitleConfiguration.Builder(
                             Uri.fromFile(fixedFile)
                         )
-                            .setMimeType(MimeTypes.TEXT_VTT)
+                            .setMimeType(subMime)
+                            .setLanguage(list[idx].label.takeIf { it.isNotBlank() })
                             .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
                             .build()
 
@@ -1471,6 +1553,20 @@ class SeriesPlayerScreen : Fragment() {
 
         return DefaultMediaSourceFactory(dataSourceFactory)
             .createMediaSource(finalItem)
+    }
+
+    /**
+     * Write the fetched subtitle out in a form the player can parse.
+     * The conversion itself lives in [SubtitleNormalizer], where it is unit-tested.
+     */
+    @SuppressLint("UnsafeOptInUsageError")
+    private fun normalizeSubtitle(raw: File): Pair<File, String> {
+        val r = SubtitleNormalizer.normalize(raw.readText())
+        val ext = if (r.kind == SubtitleNormalizer.Kind.SSA) "ass" else "vtt"
+        val out = File(raw.parentFile, raw.nameWithoutExtension + ".fixed." + ext)
+        out.writeText(r.text)
+        val mime = if (r.kind == SubtitleNormalizer.Kind.SSA) MimeTypes.TEXT_SSA else MimeTypes.TEXT_VTT
+        return out to mime
     }
 
     @SuppressLint("UnsafeOptInUsageError")
@@ -2011,6 +2107,6 @@ class SeriesPlayerScreen : Fragment() {
     }
 
     private companion object {
-        const val ANILIST_WATCHED_FRACTION = 0.85
+        const val TRACKER_WATCHED_FRACTION = 0.85
     }
 }

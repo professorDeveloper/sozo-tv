@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The MyAnimeList mark: the "MAL" wordmark on MAL's blue (#2E51A2).
+
+  Drawn as paths rather than set as text, because a vector drawable has no text
+  primitive and an <item> with a TextView would not survive being used as a
+  src. Block letterforms, since this renders at 40dp on a television where fine
+  detail is lost anyway.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <path
+        android:fillColor="#2E51A2"
+        android:pathData="M8,0 L40,0 A8,8 0 0 1 48,8 L48,40 A8,8 0 0 1 40,48 L8,48 A8,8 0 0 1 0,40 L0,8 A8,8 0 0 1 8,0 Z" />
+
+    <!-- M -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M6,32 L6,16 L9.2,16 L11.6,21.4 L14,16 L17.2,16 L17.2,32 L14.4,32 L14.4,22.3 L11.6,27.6 L8.8,22.3 L8.8,32 Z" />
+
+    <!-- A, with its counter cut out -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M19,32 L23.6,16 L26.8,16 L31.4,32 L28.4,32 L27.6,29.1 L22.8,29.1 L22,32 Z M23.5,26.4 L26.9,26.4 L25.2,20.4 Z" />
+
+    <!-- L -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M33,32 L33,16 L35.8,16 L35.8,29.2 L42.6,29.2 L42.6,32 Z" />
+</vector>

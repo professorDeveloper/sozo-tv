@@ -12,6 +12,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.OptIn
+import com.saikou.sozo_tv.presentation.screens.search.SearchScreen
+import com.saikou.sozo_tv.R
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -314,11 +317,17 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
 
     override fun onCastItemClicked(item: Cast) {
         isBookmarkClicked = false
-        Log.d("GGG", "onCastItemClicked:${item.id} ")
-        Log.d("GGG", "onCastItemClicked:${item.name} ")
+        // The cast detail screen is a dead end behind extensions - characterDetail() and
+        // creditDetail() both fail unconditionally - so opening it only ever showed "not
+        // available". Searching every source for the person is the thing a viewer actually
+        // wanted from tapping a face, and it uses a path that works.
+        val name = item.name.trim()
+        if (name.isEmpty()) return
         findNavController().navigate(
-            DetailPageDirections.actionDetailPage2ToCastDetailScreen(
-                item.id
+            R.id.search,
+            bundleOf(
+                SearchScreen.ARG_QUERY to name,
+                SearchScreen.ARG_SEARCH_ALL to true,
             ),
         )
     }

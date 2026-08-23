@@ -94,6 +94,9 @@ class PlayerSettingsPopup : DialogFragment() {
     private fun render(title: String, rows: List<SettingRow>, onPick: (Int) -> Unit) {
         val b = _binding ?: return
         b.popupTitle.text = title
+        // BACK closes this too, but a visible way out is what a remote user
+        // looks for — every other panel in the app has one.
+        b.close.setOnClickListener { dismiss() }
         b.popupList.adapter = PlayerSettingsAdapter(rows, onPick)
         b.popupList.post {
             if (_binding == null) return@post

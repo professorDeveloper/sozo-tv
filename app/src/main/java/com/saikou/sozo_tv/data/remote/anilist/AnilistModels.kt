@@ -32,6 +32,14 @@ data class AnilistAiring(
 
 data class AnilistMedia(
     val id: Int,
+    /**
+     * The same show's id on MyAnimeList, when AniList knows one.
+     *
+     * Carried so that linking a title ONCE serves both trackers: AniList is the
+     * only side that can match a translated or transliterated source title, and
+     * it happens to hold MAL's id for the same entry.
+     */
+    val idMal: Int? = null,
     val romajiTitle: String? = null,
     val englishTitle: String? = null,
     val nativeTitle: String? = null,

@@ -29,11 +29,15 @@ class CastAdapter : RecyclerView.Adapter<CastAdapter.CastVh>() {
             binding.characterTxt.isVisible = cast.role.isNotBlank()
             binding.characterTxt.text = cast.role
             binding.accountImg.loadImage(cast.image)
-            // Nothing behind extensions can serve a person page: the repository's
-            // characterDetail/creditDetail both fail unconditionally, so every cast card
-            // opened a "not available" placeholder. The row stays informational.
-            binding.root.isClickable = false
-            binding.root.isFocusable = false
+            // Making the card unfocusable to keep it out of a dead person-detail screen turned
+            // the whole row into a D-pad dead zone: the names and roles were on screen and
+            // could not be reached, let alone scrolled. Keep it reachable, and send a press
+            // somewhere that actually resolves - a search for the person across sources.
+            binding.root.isFocusable = true
+            binding.root.isClickable = true
+            binding.root.setOnClickListener {
+                if (::itemClickkedListener.isInitialized) itemClickkedListener(cast)
+            }
         }
     }
 

@@ -66,11 +66,23 @@ class MainActivity : AppCompatActivity() {
         remote.start()
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    // Sticky: a command that arrived while this screen was not
+                    // showing is still worth acting on the moment it is — that
+                    // is what "Play on TV" from a phone means.
+                    remote.navigation.collect { command ->
+                        if (command == null) return@collect
+                        when (command.type) {
+                            "text" -> command.text?.let(::openSearch)
+                            "open" ->
+                                command.title?.takeIf { it.isNotBlank() }?.let(::openSearch)
+                            "home" -> navigateHome()
+                        }
+                        remote.consumeNavigation(command)
+                    }
+                }
                 remote.commands.collect { command ->
                     when (command.type) {
-                        "text" -> command.text?.let(::openSearch)
-                        "open" -> command.title?.takeIf { it.isNotBlank() }?.let { openSearch(it) }
-                        "home" -> navigateHome()
                         "back" -> onBackPressedDispatcher.onBackPressed()
                         "dpad" -> command.direction?.let(::sendDpad)
                     }

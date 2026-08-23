@@ -34,6 +34,8 @@ class PreferenceManager(context: Context = MyApp.context) {
         private const val KEY_APPEARANCE_EXPANDED = "appearance_expanded"
         private const val KEY_CONTENT_CONTROLS_EXPANDED = "content_controls_expanded"
 
+        private const val KEY_AUDIO_LANGUAGE = "audio_language"
+
         private const val KEY_SEASONAL_THEME = "seasonal_theme"
 
         private const val KEY_DEMO_THEME_LEGACY = "demo_theme"
@@ -46,6 +48,17 @@ class PreferenceManager(context: Context = MyApp.context) {
     fun isSkipIntroEnabled() = prefs.getBoolean(KEY_SKIP_INTRO_ENABLED, false)
     fun setSkipIntroEnabled(enabled: Boolean) =
         prefs.edit().putBoolean(KEY_SKIP_INTRO_ENABLED, enabled).apply()
+
+    /**
+     * The audio language the viewer last chose, as an ISO code — null until they pick one.
+     *
+     * Persisted because the track objects cannot be: they belong to the stream that declared
+     * them, so every new episode rebuilt them from scratch and the choice was silently lost.
+     */
+    fun getAudioLanguage(): String? = prefs.getString(KEY_AUDIO_LANGUAGE, null)
+    fun setAudioLanguage(code: String?) = prefs.edit().apply {
+        if (code.isNullOrBlank()) remove(KEY_AUDIO_LANGUAGE) else putString(KEY_AUDIO_LANGUAGE, code)
+    }.apply()
 
     fun isNsfwEnabled() = prefs.getBoolean(KEY_NSFW_ENABLED, false)
     fun setNsfwEnabled(enabled: Boolean) =

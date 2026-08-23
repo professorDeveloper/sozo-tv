@@ -17,6 +17,9 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
+import android.content.Intent
+import com.saikou.sozo_tv.app.MyApp
+import com.saikou.sozo_tv.presentation.activities.MainActivity
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import java.io.IOException
@@ -49,6 +52,24 @@ class RemoteControlManager(
 
     private val _connected = MutableStateFlow(false)
     val connected: StateFlow<Boolean> get() = _connected
+
+    /**
+     * The last "take me somewhere" command, held until something acts on it.
+     *
+     * [_commands] has no replay, and a SharedFlow with no subscriber drops what
+     * it is given — so a phone pressing "Play on TV" while the TV sat on the
+     * profile page or in the player sent a command that landed nowhere, and the
+     * phone still said it had been sent. Playback commands are right to be
+     * dropped (a play from three minutes ago is not worth honouring); navigation
+     * is not, because it is the whole point of the button.
+     */
+    private val _navigation = MutableStateFlow<RemoteCommand?>(null)
+    val navigation: StateFlow<RemoteCommand?> get() = _navigation
+
+    /** Call once a navigation command has been acted on. */
+    fun consumeNavigation(command: RemoteCommand) {
+        _navigation.compareAndSet(command, null)
+    }
 
     /** Starts following the session. Safe to call more than once. */
     fun start() {
@@ -85,6 +106,13 @@ class RemoteControlManager(
                         backoffMs = MIN_BACKOFF_MS
                     },
                     onCommand = { command ->
+                        if (command.type in NAVIGATION_TYPES) {
+                            _navigation.value = command
+                            // Whatever is on screen, the phone asked for this TV
+                            // to go somewhere — so bring the screen that can do
+                            // it forward instead of waiting to be returned to.
+                            bringMainToFront()
+                        }
                         if (!_commands.tryEmit(command)) {
                             Log.w(TAG, "command dropped, nobody listening: ${command.type}")
                         }
@@ -140,9 +168,32 @@ class RemoteControlManager(
         }
     }
 
+    /**
+     * Puts the navigating screen in front, from wherever the TV happens to be.
+     *
+     * REORDER_TO_FRONT rather than a fresh start: MainActivity is already in the
+     * task in every normal case, and restarting it would throw away the back
+     * stack the viewer built.
+     */
+    private fun bringMainToFront() {
+        val context = MyApp.context
+        val intent = Intent(context, MainActivity::class.java).apply {
+            addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP,
+            )
+        }
+        runCatching { context.startActivity(intent) }
+            .onFailure { Log.w(TAG, "could not bring the main screen forward: ${it.message}") }
+    }
+
     companion object {
         private const val TAG = "RemoteControl"
         private const val MIN_BACKOFF_MS = 2_000L
         private const val MAX_BACKOFF_MS = 60_000L
+
+        /** Commands that move the TV around, as opposed to driving playback. */
+        private val NAVIGATION_TYPES = setOf("open", "text", "home")
     }
 }

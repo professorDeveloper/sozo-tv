@@ -132,13 +132,81 @@ class ServerHost(
             detail = webjs.callProvider(m!!.extractorName!!, m.extractorVersion, "getDetail", JSONArray().put(url))
             episodes = webjs.callProvider(m.extractorName!!, m.extractorVersion, "getEpisodes", JSONArray().put(url))
         } else {
-            detail = client.get("/contents/detail", mapOf("provider" to b, "url" to url))
-            episodes = client.get(
-                "/contents/episodes",
-                mapOf("provider" to b, "url" to url, "page" to "1", "size" to "100", "sort" to "asc"),
-            )
+            detail = fetchDetail(b, url)
+            episodes = fetchAllEpisodes(b, url)
         }
         return translateDetail(detail, episodes, b, url)
+    }
+
+    /**
+     * The detail payload, retried once with the trailing-slash form of the url.
+     *
+     * `/watch/one-piece` currently fails upstream where `/watch/one-piece/` — the
+     * same page — succeeds, which took One Piece and a handful of other titles
+     * off the app entirely. The retry costs one request on a path that has
+     * already failed, and nothing at all on the ones that work.
+     */
+    private suspend fun fetchDetail(bareProvider: String, url: String): String? {
+        val first = runCatching {
+            client.get("/contents/detail", mapOf("provider" to bareProvider, "url" to url))
+        }.getOrNull()
+        if (!first.isNullOrBlank() && parseObject(first).optString("title").isNotEmpty()) return first
+
+        val alt = if (url.endsWith("/")) url.dropLast(1) else "$url/"
+        android.util.Log.w("ServerHost", "detail empty for $url — retrying as $alt")
+        return runCatching {
+            client.get("/contents/detail", mapOf("provider" to bareProvider, "url" to alt))
+        }.getOrNull() ?: first
+    }
+
+    /**
+     * Every episode, not the first hundred.
+     *
+     * The call asked for page 1 with a size of 100 and used whatever came back,
+     * so a long-running series simply stopped at episode 100 with no indication
+     * that there was more. The first page reports how many there are; the rest
+     * are fetched in order and appended.
+     */
+    private suspend fun fetchAllEpisodes(bareProvider: String, url: String): String? {
+        suspend fun page(n: Int, target: String) = runCatching {
+            client.get(
+                "/contents/episodes",
+                mapOf(
+                    "provider" to bareProvider,
+                    "url" to target,
+                    "page" to n.toString(),
+                    "size" to EPISODE_PAGE_SIZE.toString(),
+                    "sort" to "asc",
+                ),
+            )
+        }.getOrNull()
+
+        var target = url
+        var firstBody = page(1, target)
+        if (firstBody.isNullOrBlank()) {
+            target = if (url.endsWith("/")) url.dropLast(1) else "$url/"
+            firstBody = page(1, target) ?: return null
+        }
+
+        val first = parseObject(firstBody)
+        val merged = first.optJSONArray("episodes") ?: JSONArray()
+        val totalPages = first.optInt("totalPages", 1)
+        // A cap, because a broken pager reporting thousands of pages must not
+        // turn one screen into a thousand requests.
+        val last = minOf(totalPages, MAX_EPISODE_PAGES)
+        for (n in 2..last) {
+            val body = page(n, target) ?: break
+            val arr = parseObject(body).optJSONArray("episodes") ?: break
+            if (arr.length() == 0) break
+            for (i in 0 until arr.length()) merged.put(arr.opt(i))
+        }
+        if (last < totalPages) {
+            android.util.Log.w(
+                "ServerHost",
+                "episode list capped at ${merged.length()} of ${first.optInt("total", 0)}",
+            )
+        }
+        return first.put("episodes", merged).put("size", merged.length()).toString()
     }
 
     suspend fun loadLinksJson(provider: String, data: String): String {
@@ -396,5 +464,10 @@ class ServerHost(
             if (v.isNotEmpty()) return v
         }
         return null
+    }
+
+    private companion object {
+        const val EPISODE_PAGE_SIZE = 100
+        const val MAX_EPISODE_PAGES = 30
     }
 }

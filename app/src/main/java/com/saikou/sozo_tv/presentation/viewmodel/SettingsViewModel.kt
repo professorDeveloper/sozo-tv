@@ -10,6 +10,8 @@ import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.data.model.anilist.Profile
 import com.saikou.sozo_tv.data.repository.AnilistConnection
 import com.saikou.sozo_tv.data.repository.AnilistRepository
+import com.saikou.sozo_tv.data.remote.mal.MalConnection
+import com.saikou.sozo_tv.data.repository.MalRepository
 import com.saikou.sozo_tv.data.repository.DeviceAuthRepository
 import com.saikou.sozo_tv.data.repository.WatchHistorySyncRepository
 import com.saikou.sozo_tv.data.repository.UserListsRepository
@@ -30,6 +32,7 @@ class SettingsViewModel(
     private val userLists: UserListsRepository,
     private val historySync: WatchHistorySyncRepository,
     private val anilist: AnilistRepository,
+    private val mal: MalRepository,
     private val history: WatchHistoryRepository,
     private val bookmarks: MovieBookmarkRepository,
 ) : ViewModel() {
@@ -78,6 +81,13 @@ class SettingsViewModel(
      */
     fun refreshAnilist() {
         viewModelScope.launch { runCatching { anilist.refresh() } }
+    }
+
+    /** The linked MyAnimeList account. Same story as AniList: linked on the phone. */
+    val malConnection: StateFlow<MalConnection> get() = mal.connection
+
+    fun refreshMal() {
+        viewModelScope.launch { runCatching { mal.refresh() } }
     }
 
     init {

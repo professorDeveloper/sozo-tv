@@ -47,12 +47,20 @@ class DetailRepositoryImpl(
      */
     private val loadScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    /** Thrown when the id itself cannot be traced back to a source page. */
+    private class UnknownContent : IllegalStateException(
+        "This title is no longer registered — go back and open it again."
+    )
+
     private suspend fun loadDetail(id: Int): ExtDetail? {
         cache[id]?.let { return it }
         val job = inFlight.computeIfAbsent(id) {
             loadScope.async(start = CoroutineStart.LAZY) {
+                // Two very different failures used to arrive as the same null:
+                // an id the registry has forgotten, and a source that could not
+                // produce the page. Only the first is recoverable by going back.
                 val entry = ExtensionContentRegistry.resolve(id)
-                    ?: return@async null
+                    ?: throw UnknownContent()
                 val detail = engine.load(entry.provider, entry.url)
                     ?: return@async null
                 cache[id] = detail
@@ -91,7 +99,11 @@ class DetailRepositoryImpl(
     private suspend fun detailResult(id: Int): Result<DetailModel> {
         return try {
             val detail = loadDetail(id)
-                ?: return Result.failure(IllegalStateException("Content not found for this source."))
+                ?: return Result.failure(
+                    IllegalStateException(
+                        "This source could not load the title. It may be slow right now — try again, or pick another source."
+                    )
+                )
             Result.success(detail.toDetailModel(id))
         } catch (e: Exception) {
             Result.failure(e)

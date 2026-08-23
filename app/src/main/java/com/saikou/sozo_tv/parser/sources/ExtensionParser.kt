@@ -58,9 +58,20 @@ class ExtensionParser : BaseParser() {
         val (encoded, url) = untag(id)
         val p = encoded ?: activeProvider() ?: return null
         val detail = engine.load(p, url) ?: return null
-        val list = detail.episodes.mapIndexed { index, ep ->
+        // Paged here, not by the source. The engine hands over the whole list —
+        // a long-running series is a thousand episodes — and returning it as one
+        // page meant the screen hid its part tabs (`last_page = 1`) and left the
+        // viewer to D-pad through the lot. Chunking restores the tabs that are
+        // already built for exactly this.
+        val all = detail.episodes
+        val lastPage = ((all.size + EPISODE_PAGE_SIZE - 1) / EPISODE_PAGE_SIZE).coerceAtLeast(1)
+        val current = page.coerceIn(1, lastPage)
+        val fromIndex = (current - 1) * EPISODE_PAGE_SIZE
+        val toIndex = (fromIndex + EPISODE_PAGE_SIZE).coerceAtMost(all.size)
+        val slice = if (fromIndex >= all.size) emptyList() else all.subList(fromIndex, toIndex)
+        val list = slice.mapIndexed { index, ep ->
             Data(
-                episode = if (ep.episode > 0) ep.episode else index + 1,
+                episode = if (ep.episode > 0) ep.episode else fromIndex + index + 1,
                 episode2 = ep.episode,
                 title = ep.label,
                 session = tag(p, ep.mediaRef),
@@ -70,15 +81,15 @@ class ExtensionParser : BaseParser() {
             )
         }
         return EpisodeData(
-            current_page = 1,
+            current_page = current,
             data = list,
-            from = 1,
-            last_page = 1,
+            from = fromIndex + 1,
+            last_page = lastPage,
             next_page_url = null,
-            per_page = list.size.coerceAtLeast(1),
+            per_page = EPISODE_PAGE_SIZE,
             prev_page_url = null,
-            to = list.size,
-            total = list.size,
+            to = fromIndex + list.size,
+            total = all.size,
         )
     }
 
@@ -115,6 +126,9 @@ class ExtensionParser : BaseParser() {
     override suspend fun extractVideo(url: String): Video = Video(url, arrayListOf(), emptyMap())
 
     companion object {
+        /** Episodes per part tab. Also what the tab labels are numbered from. */
+        const val EPISODE_PAGE_SIZE = 100
+
         // Separator between the encoded provider id and the value. U+0001 (SOH)
         // never appears in URLs / mediaRefs, so the split is collision-free. Built
         // from the char code to avoid an invisible control char in the source file.

@@ -4,20 +4,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
+    android:layout_margin="3dp"
 
     android:background="@drawable/episode_bg"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:padding="8dp"
+    android:padding="6dp"
     tools:layout_gravity="center">
 
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
-        android:layout_width="123dp"
-        android:layout_height="85dp"
-        android:layout_margin="4dp"
+        android:layout_width="104dp"
+        android:layout_height="72dp"
+        android:layout_margin="3dp"
         app:cardCornerRadius="10dp"
         app:cardElevation="0dp"
         app:layout_constraintDimensionRatio="2.5:1.6"
@@ -73,7 +73,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="2dp"
         android:fontFamily="@font/rubik_regular"
-        android:text="01:15:27 daqiqada to’xtatildi"
+        android:text="Stopped at 01:15:27"
         android:textColor="@color/lb_grey"
         android:textSize="@dimen/tv_text_caption"
         android:textStyle="bold"
@@ -82,42 +82,26 @@
         app:layout_constraintStart_toStartOf="@+id/cardView"
         app:layout_constraintTop_toBottomOf="@+id/topContainer" />
 
-    <com.skydoves.androidribbon.ShimmerRibbonView
-        android:id="@+id/shimmerRibbonView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/cardView"
-        app:layout_constraintEnd_toEndOf="@+id/cardView"
-        app:layout_constraintStart_toStartOf="@+id/cardView"
-        app:shimmer_base_alpha="1.0"
-        app:shimmer_highlight_alpha="1"
-        app:shimmer_repeat_count="0"
-        app:shimmer_ribbon_background_color="@color/red"
-        app:shimmer_ribbon_ribbonRadius="4dp"
-        app:shimmer_ribbon_text="Now Playing"
-        app:shimmer_ribbon_textColor="@android:color/white"
-        app:shimmer_ribbon_textSize="12sp"
-        app:shimmer_ribbon_textStyle="bold"
-        app:shimmer_shape="radial" />
-
-    <com.skydoves.androidribbon.ShimmerRibbonView
-        android:id="@+id/shimmerTopRibbon"
+    <!-- Marks the episode being watched. A small pill anchored to the corner,
+         rather than a ribbon sized by its own text: the previous one wrapped
+         onto two lines in a narrow cell and covered the whole thumbnail, and
+         the diagonal one above it repeated the episode number already printed
+         under the card. -->
+    <TextView
+        android:id="@+id/nowPlayingBadge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="visible"
-        app:layout_constraintStart_toStartOf="@+id/cardView"
-        app:layout_constraintTop_toTopOf="@+id/cardView"
-        app:shimmer_base_alpha="1.0"
-        app:shimmer_highlight_alpha="1"
-        app:shimmer_repeat_count="0"
-        app:shimmer_ribbon_background_color="@color/red"
-        app:shimmer_ribbon_ribbonRadius="2dp"
-        app:shimmer_ribbon_rotation="-45"
-        app:shimmer_ribbon_text="Now Playing"
-        app:shimmer_ribbon_textColor="@android:color/white"
-        app:shimmer_ribbon_textSize="12sp"
-        app:shimmer_ribbon_textStyle="bold"
-        app:shimmer_shape="radial" />
+        android:layout_margin="5dp"
+        android:background="@drawable/now_playing_badge"
+        android:fontFamily="sans-serif-medium"
+        android:paddingHorizontal="5dp"
+        android:paddingVertical="2dp"
+        android:text="@string/now_playing"
+        android:textColor="@android:color/white"
+        android:textSize="8sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/cardView"
+        app:layout_constraintStart_toStartOf="@+id/cardView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

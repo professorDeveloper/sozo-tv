@@ -190,6 +190,7 @@ class AnilistGraphQlClient(
         }
         return AnilistMedia(
             id = optInt("id"),
+            idMal = optIntOrNull("idMal"),
             romajiTitle = title?.optStringOrNull("romaji"),
             englishTitle = title?.optStringOrNull("english"),
             nativeTitle = title?.optStringOrNull("native"),
@@ -201,6 +202,27 @@ class AnilistGraphQlClient(
             format = optStringOrNull("format"),
             nextAiring = airing,
         )
+    }
+
+    /**
+     * The MyAnimeList id for an AniList media, or null when there is none.
+     *
+     * Exists so a title the user linked BY HAND on the phone reaches MAL too.
+     * That link is the only thing that works for a translated source title - no
+     * search will ever match one - so without this lookup MAL would silently
+     * track nothing for exactly the titles that needed the manual link.
+     *
+     * Needs no token: media reads are public.
+     */
+    suspend fun malIdFor(mediaId: Int): Int? {
+        if (mediaId <= 0) return null
+        val data = run(
+            query = "query (${'$'}id: Int) { Media(id: ${'$'}id, type: ANIME) { idMal } }",
+            variables = JSONObject().put("id", mediaId),
+            token = null,
+        )
+        val media = data.optJSONObject("Media") ?: return null
+        return media.optIntOrNull("idMal")?.takeIf { it > 0 }
     }
 
     private fun JSONObject.optStringOrNull(key: String): String? =
@@ -226,6 +248,7 @@ class AnilistGraphQlClient(
 
         const val MEDIA_FIELDS = """
             id
+            idMal
             episodes
             averageScore
             seasonYear

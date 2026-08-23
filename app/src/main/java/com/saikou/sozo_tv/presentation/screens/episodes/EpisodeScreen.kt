@@ -24,6 +24,7 @@ import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.EpisodeScreenBinding
 import com.saikou.sozo_tv.parser.models.Data
 import com.saikou.sozo_tv.parser.models.Part
+import com.saikou.sozo_tv.parser.sources.ExtensionParser
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
@@ -218,7 +219,7 @@ class EpisodeScreen : Fragment() {
                     if (lastPage <= 1) {
                         binding.tabRv.gone()
                     } else {
-                        bindPartTabs(lastPage)
+                        bindPartTabs(lastPage, result.data.total ?: 0)
                     }
                 }
 
@@ -227,10 +228,20 @@ class EpisodeScreen : Fragment() {
         }
     }
 
-    private fun bindPartTabs(lastPage: Int) {
+    /**
+     * One chip per block of episodes, labelled by the range it holds.
+     *
+     * "1-100" says where it lands; "Part 2" only says it is the second of
+     * something. On a series with a thousand episodes that is the difference
+     * between finding episode 640 and hunting for it.
+     */
+    private fun bindPartTabs(lastPage: Int, total: Int) {
+        val size = ExtensionParser.EPISODE_PAGE_SIZE
         val partList = ArrayList<Part>()
         for (i in 1..lastPage) {
-            partList.add(Part("Part $i", i))
+            val first = (i - 1) * size + 1
+            val last = if (total > 0) minOf(i * size, total) else i * size
+            partList.add(Part("$first-$last", i))
         }
         binding.tabRv.visible()
         if (!::categoriesAdapter.isInitialized) {

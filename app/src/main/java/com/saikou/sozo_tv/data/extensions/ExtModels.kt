@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.data.extensions
 
+import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -140,6 +141,8 @@ data class ExtMedia(
 
 internal object ExtParser {
 
+    private const val TAG = "ExtParser"
+
     private fun JSONObject.headersMap(key: String): Map<String, String> {
         val o = optJSONObject(key) ?: return emptyMap()
         val out = LinkedHashMap<String, String>()
@@ -163,8 +166,12 @@ internal object ExtParser {
 
     private fun cards(arr: JSONArray?): List<ExtCard> {
         if (arr == null) return emptyList()
+        // Only contentUrl is load-bearing — it is what opens the title. A name is decoration:
+        // several providers (NetMirror's Netflix/Prime/Hotstar rows among them) ship
+        // poster-only cards with no name at all, and also demanding a title discarded an
+        // entire, working home page as "this source has no home page right now".
         return (0 until arr.length()).mapNotNull { arr.optJSONObject(it)?.let(::card) }
-            .filter { it.contentUrl.isNotEmpty() && it.title.isNotEmpty() }
+            .filter { it.contentUrl.isNotEmpty() }
     }
 
     fun providers(json: String): List<ExtProvider> {
@@ -198,7 +205,14 @@ internal object ExtParser {
     }
 
     fun home(json: String): ExtHome {
-        val o = runCatching { JSONObject(json) }.getOrNull() ?: JSONObject()
+        // A parse failure used to fall through to an empty JSONObject without a word, so a
+        // provider whose host said "5 sections, 12 banner" reached the UI as "this source has
+        // no home page". Say which of the two actually happened.
+        val parsed = runCatching { JSONObject(json) }
+        parsed.exceptionOrNull()?.let {
+            Log.e(TAG, "home(): malformed JSON (${json.length} chars): ${it.message}")
+        }
+        val o = parsed.getOrNull() ?: JSONObject()
         val sections = o.optJSONArray("sections")
         val list = if (sections == null) emptyList() else (0 until sections.length()).mapNotNull { i ->
             val s = sections.optJSONObject(i) ?: return@mapNotNull null
@@ -211,7 +225,21 @@ internal object ExtParser {
                 items = items,
             )
         }
-        return ExtHome(o.optString("provider"), cards(o.optJSONArray("banner")), list)
+        val banner = cards(o.optJSONArray("banner"))
+        val rawSections = sections?.length() ?: 0
+        val rawBanner = o.optJSONArray("banner")?.length() ?: 0
+        if ((rawSections > 0 || rawBanner > 0) && list.isEmpty() && banner.isEmpty()) {
+            // Everything the host sent was discarded on the way in. Without this the drop is
+            // invisible and looks like a dead source.
+            Log.e(
+                TAG,
+                "home(): dropped every card - raw sections=$rawSections banner=$rawBanner; " +
+                    "every card lacked a usable contentUrl/slug; first raw card = " +
+                    (o.optJSONArray("banner")?.optJSONObject(0)
+                        ?: sections?.optJSONObject(0)?.optJSONArray("items")?.optJSONObject(0))
+            )
+        }
+        return ExtHome(o.optString("provider"), banner, list)
     }
 
     fun page(json: String): ExtPage {

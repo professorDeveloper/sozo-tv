@@ -114,7 +114,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="2dp"
         android:fontFamily="@font/rubik_regular"
-        android:text="01:15:27 daqiqada to’xtatildi"
+        android:text="Stopped at 01:15:27"
         android:textColor="@color/lb_grey"
         android:textSize="@dimen/tv_text_caption"
         android:textStyle="bold"

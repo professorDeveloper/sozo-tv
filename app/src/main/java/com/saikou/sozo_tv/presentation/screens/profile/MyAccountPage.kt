@@ -23,6 +23,7 @@ import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import androidx.core.view.isVisible
 import com.saikou.sozo_tv.data.remote.anilist.AnilistViewer
 import com.saikou.sozo_tv.data.repository.AnilistConnection
+import com.saikou.sozo_tv.data.remote.mal.MalConnection
 import com.saikou.sozo_tv.data.model.SeasonalTheme
 import com.saikou.sozo_tv.databinding.MyAccountPageBinding
 import com.saikou.sozo_tv.presentation.viewmodel.SettingsViewModel
@@ -102,6 +103,7 @@ class MyAccountPage : Fragment() {
         }
         setupLoginButton()
         setupAnilistRow()
+        setupMalRow()
 
         // Counted on this device, so it reflects what is actually here rather
         // than what the account has somewhere else.
@@ -149,6 +151,28 @@ class MyAccountPage : Fragment() {
         }
     }
 
+
+    /**
+     * The MyAnimeList counterpart of [setupAnilistRow].
+     *
+     * No stats line: the backend link carries a name and an avatar, and MAL's
+     * own statistics would be a second network call for a row nobody navigates
+     * to. Who is connected is the whole job here.
+     */
+    private fun setupMalRow() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsViewModel.refreshMal()
+                settingsViewModel.malConnection.collect { connection ->
+                    val viewer = (connection as? MalConnection.Connected)?.viewer
+                    binding.malAccount.text = viewer?.name
+                        ?: getString(R.string.mal_connect_on_phone)
+                    val avatar = viewer?.avatarUrl
+                    if (!avatar.isNullOrBlank()) binding.malAvatar.loadImage(avatar)
+                }
+            }
+        }
+    }
 
     /** "142 anime · 1,208 episodes · 8.4 avg · 21d watched" — only the parts that exist. */
     private fun anilistStatsLine(viewer: AnilistViewer): String = buildList {

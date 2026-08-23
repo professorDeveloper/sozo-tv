@@ -30,6 +30,8 @@ import kotlinx.coroutines.launch
 
 class ExtensionEngine(private val appContext: Context = MyApp.context) {
 
+    private val TAG = "ExtensionEngine"
+
     private val aniyomiHost by lazy { AniyomiHost(appContext) }
     private val aniyomiRepos by lazy { AniyomiRepoManager(appContext, aniyomiHost) }
     private val csHost by lazy { PluginHost(appContext) }
@@ -45,6 +47,7 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
     }
 
     private val prefs by lazy { appContext.getSharedPreferences("ext_engine", Context.MODE_PRIVATE) }
+    private val KEY_DEFAULTS_DONE = "defaults_installed"
 
     private val homeMutex = Mutex()
     @Volatile private var homeCache: Pair<String, ExtHome>? = null
@@ -113,6 +116,7 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
         }
         // Install the curated default repos for any repo-backed group missing them. SERVER has
         // no repos (empty ShortcodeRegistry entries) so it's a no-op there.
+        var allInstalled = true
         for (group in groups) {
             val installed = runCatching { listRepos(group).map { it.url }.toSet() }
                 .getOrDefault(emptySet())
@@ -121,9 +125,13 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
                 .forEach { entry ->
                     runCatching {
                         addRepo(group, entry.url) { c, t -> progress?.invoke(entry.name, c, t) }
+                    }.onFailure {
+                        allInstalled = false
+                        Log.e(TAG, "default repo ${entry.name} (${entry.url}) failed: ${it.message}")
                     }
                 }
         }
+        if (allInstalled) prefs.edit().putBoolean(KEY_DEFAULTS_DONE, true).apply()
         // Fallback: if the server was unreachable, activate the first provider that did install.
         if (getActiveProvider() == null) {
             groups.firstNotNullOfOrNull { group ->
@@ -148,6 +156,14 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
 
     /** True once a source has been picked — used to decide whether first-launch setup is needed. */
     fun hasActiveProvider(): Boolean = getActiveProvider() != null
+
+    /**
+     * True once every curated default repo has actually installed. Distinct from
+     * [hasActiveProvider]: our own SERVER catalogue activates a provider within a second,
+     * long before the CloudStream/Aniyomi repos finish downloading, so an active source is
+     * no evidence that the rest ever landed.
+     */
+    fun defaultsInstalled(): Boolean = prefs.getBoolean(KEY_DEFAULTS_DONE, false)
 
     suspend fun providers(group: String): List<ExtProvider> = withContext(Dispatchers.IO) {
         val b = backendForGroup(group) ?: return@withContext emptyList()
@@ -329,11 +345,25 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
      * dead host held the detail screen on its spinner until the user gave up on it.
      */
     suspend fun load(provider: String, url: String): ExtDetail? = withContext(Dispatchers.IO) {
-        withTimeoutOrNull(DETAIL_TIMEOUT_MS) {
+        val started = System.currentTimeMillis()
+        val detail = withTimeoutOrNull(DETAIL_TIMEOUT_MS) {
             val b = backendForProvider(provider) ?: return@withTimeoutOrNull null
             b.ensureLoaded()
             ExtParser.detail(b.loadJson(provider, url))
         }
+        // A null here reads the same to the caller whether the source has no
+        // such title or the load simply ran out of time — and the screen says
+        // "could not load" either way. The elapsed time is what tells them
+        // apart in a bug report.
+        if (detail == null) {
+            val ms = System.currentTimeMillis() - started
+            Log.w(
+                "ExtensionEngine",
+                "detail load returned nothing after ${ms}ms " +
+                    "(timeout=${DETAIL_TIMEOUT_MS}ms) provider=$provider url=$url",
+            )
+        }
+        detail
     }
 
     suspend fun loadLinks(provider: String, mediaRef: String): ExtMedia = withContext(Dispatchers.IO) {
@@ -354,7 +384,13 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
         private const val KEY_PROVIDER = "active_provider"
         private const val KEY_PROVIDER_NAME = "active_provider_name"
         private const val HOME_TIMEOUT_MS = 25_000L
-        private const val DETAIL_TIMEOUT_MS = 20_000L
+
+        // 45s, not 20s: a long-running series is one page with a thousand
+        // episodes on it, and parsing that on a TV box legitimately takes
+        // longer than a season of twelve. One Piece and Slime failed on
+        // AnimeKai for no reason other than this ceiling, while the same
+        // titles loaded on the phone.
+        private const val DETAIL_TIMEOUT_MS = 45_000L
 
         private const val MAX_GLOBAL_PROVIDERS = 12
 

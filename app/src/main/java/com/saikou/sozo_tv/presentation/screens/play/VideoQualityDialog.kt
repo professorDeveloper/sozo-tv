@@ -35,6 +35,7 @@ class VideoQualityDialog(private val list: List<VideoOption>, private var curren
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.close.setOnClickListener { dismiss() }
         dialog!!.window?.setBackgroundDrawable(ColorDrawable(0))
         dialog!!.window?.setWindowAnimations(R.style.DialogAnimation)
         val adapter = VideoOptionsAdapter(list) { video, i ->

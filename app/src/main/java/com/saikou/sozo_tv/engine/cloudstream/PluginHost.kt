@@ -134,9 +134,30 @@ class PluginHost(private val appContext: Context) {
     private fun pluginLoadContext(): Context =
         MyApp.currentActivity as? AppCompatActivity ?: appContext
 
-    /** Load a downloaded .cs3; returns the provider names it registered. */
+    /**
+     * Load a downloaded .cs3; returns the provider names it registered.
+     *
+     * Serialised, and deliberately so. Two things here are not thread-safe and
+     * both were being run concurrently:
+     *
+     *  - the `loaded[internalName]` guard is a check-then-act, and the value is
+     *    only published AFTER `load()` returns. Two callers both passed it and
+     *    both registered the plugin, which is where
+     *    `providers=[Netflix, Prime Video, Netflix, Prime Video, ...]` came from.
+     *  - the before/after diff over `APIHolder.allProviders` is GLOBAL. With two
+     *    plugins loading at once, one plugin's providers land inside the other's
+     *    `added` list, so `metas`/`providerIcons` get attributed to the wrong
+     *    plugin and removing a repo takes the wrong providers with it.
+     *
+     * Plugin loading is a handful of seconds once per process, so a lock costs
+     * nothing that matters and is the only way that diff can be correct.
+     */
     fun loadCs3(file: File, internalName: String, iconUrl: String? = null, repo: String? = null): List<String> {
         // Already loaded this process → don't register twice (avoids duplicates).
+        loaded[internalName]?.let { return pluginProviders[internalName] ?: emptyList() }
+        if (internalName in failed) return emptyList()
+        synchronized(loadLock) {
+        // Re-checked under the lock: the fast path above is what both racers pass.
         loaded[internalName]?.let { return pluginProviders[internalName] ?: emptyList() }
         if (internalName in failed) return emptyList()
         return try {
@@ -148,7 +169,12 @@ class PluginHost(private val appContext: Context) {
             val className = manifest.pluginClassName ?: run {
                 Log.e(TAG, "no pluginClassName in ${file.name}"); return emptyList()
             }
-            val before = APIHolder.allProviders.map { it.name }.toSet()
+            // The library ships allProviders as a synchronized list and documents that
+            // iterating it must hold its monitor — a plugin registering from its own
+            // thread mid-iteration is a ConcurrentModificationException otherwise.
+            val before = synchronized(APIHolder.allProviders) {
+                APIHolder.allProviders.map { it.name }.toSet()
+            }
 
             val instance = loader.loadClass(className)
                 .getDeclaredConstructor().newInstance() as BasePlugin
@@ -166,7 +192,9 @@ class PluginHost(private val appContext: Context) {
             if (instance is Plugin) instance.load(pluginLoadContext()) else instance.load()
             loaded[internalName] = instance
 
-            val added = APIHolder.allProviders.map { it.name }.filter { it !in before }
+            val added = synchronized(APIHolder.allProviders) {
+                APIHolder.allProviders.map { it.name }
+            }.filter { it !in before }
             pluginProviders[internalName] = added
             added.forEach { metas[it] = Meta(it, iconUrl, internalName, file.absolutePath, repo) }
             if (!iconUrl.isNullOrEmpty()) added.forEach { providerIcons[it] = iconUrl }
@@ -177,13 +205,21 @@ class PluginHost(private val appContext: Context) {
             Log.e(TAG, "failed to load ${file.name}: ${Log.getStackTraceString(t)}")
             emptyList()
         }
+        }
     }
+
+    /** Guards the load + provider-diff critical section. See [loadCs3]. */
+    private val loadLock = Any()
 
     /** Remove providers by name (loaded or lazy) — used when a repo is removed. */
     fun removeProviders(names: List<String>) {
         if (names.isEmpty()) return
         val set = names.toSet()
-        try { APIHolder.allProviders.removeAll { it.name in set } } catch (_: Throwable) {}
+        try {
+            synchronized(APIHolder.allProviders) {
+                APIHolder.allProviders.removeAll { it.name in set }
+            }
+        } catch (_: Throwable) {}
         names.forEach { providerIcons.remove(it); metas.remove(it) }
         // Drop any loaded plugins whose providers are now all gone.
         val internalNames = pluginProviders.filterValues { it.any { n -> n in set } }.keys.toList()
@@ -194,7 +230,9 @@ class PluginHost(private val appContext: Context) {
     private fun apiByName(name: String): MainAPI? {
         val n = name.removePrefix("cs:")
         ensurePluginLoaded(n)
-        return APIHolder.allProviders.firstOrNull { it.name == n }
+        return synchronized(APIHolder.allProviders) {
+            APIHolder.allProviders.firstOrNull { it.name == n }
+        }
     }
 
     private fun slugify(s: String): String =

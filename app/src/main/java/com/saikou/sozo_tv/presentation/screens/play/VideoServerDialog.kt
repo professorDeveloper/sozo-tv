@@ -47,6 +47,7 @@ class VideoServerDialog(
         dialog?.window?.setWindowAnimations(R.style.DialogAnimation)
 
         binding.dialogTitle.text = getString(titleRes)
+        binding.close.setOnClickListener { dismiss() }
         binding.dialogSubtitle.text = getString(subtitleRes)
 
         binding.videOptionRv.adapter = VideoServersAdapter(servers, currentIndex) { row, index ->

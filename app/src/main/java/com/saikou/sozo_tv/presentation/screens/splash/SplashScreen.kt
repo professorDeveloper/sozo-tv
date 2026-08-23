@@ -206,6 +206,11 @@ class SplashScreen : Fragment() {
      */
     private fun runFirstLaunchSetupThenEnter() {
         if (engine.hasActiveProvider()) {
+            // An active source is not proof the defaults landed: our SERVER catalogue activates
+            // one within a second, while the CloudStream/Aniyomi repos are still downloading —
+            // and if the app was closed before they finished, this early return used to mean
+            // they never got a second chance. Resume the install behind Home instead.
+            if (!engine.defaultsInstalled()) engine.installDefaultsAsync()
             navigateToMain()
             return
         }

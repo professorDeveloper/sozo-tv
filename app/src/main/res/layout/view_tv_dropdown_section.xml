@@ -11,10 +11,10 @@
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:gravity="center_vertical"
-        android:minHeight="56dp"
+        android:minHeight="48dp"
         android:orientation="horizontal"
         android:paddingHorizontal="16dp"
-        android:paddingVertical="11dp">
+        android:paddingVertical="8dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -35,7 +35,7 @@
                     android:layout_weight="1"
                     android:fontFamily="sans-serif-medium"
                     android:textColor="@color/netflix_white"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -54,21 +54,25 @@
 
             <TextView
                 android:id="@+id/dropdown_subtitle"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
                 android:fontFamily="sans-serif"
+                android:maxLines="1"
                 android:textColor="@color/netflix_gray"
-                android:textSize="@dimen/tv_text_body" />
+                android:textSize="@dimen/tv_text_label" />
 
             <TextView
                 android:id="@+id/dropdown_summary"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="3dp"
+                android:ellipsize="end"
                 android:fontFamily="sans-serif"
+                android:maxLines="1"
                 android:textColor="@color/netflix_text_secondary"
-                android:textSize="@dimen/tv_text_label"
+                android:textSize="@dimen/tv_text_caption"
                 android:visibility="gone" />
         </LinearLayout>
 

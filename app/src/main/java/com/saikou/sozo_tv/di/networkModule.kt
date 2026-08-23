@@ -7,6 +7,11 @@ import com.saikou.sozo_tv.data.local.pref.DeviceSessionStore
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.data.remote.anilist.AnilistGraphQlClient
 import com.saikou.sozo_tv.data.remote.anilist.AnilistLinkClient
+import com.saikou.sozo_tv.data.remote.mal.MalApiClient
+import com.saikou.sozo_tv.data.remote.mal.MalLinkClient
+import com.saikou.sozo_tv.data.repository.MalLinkStore
+import com.saikou.sozo_tv.data.repository.MalRepository
+import com.saikou.sozo_tv.data.repository.MalTracker
 import com.saikou.sozo_tv.data.remote.device.DeviceAuthClient
 import com.saikou.sozo_tv.data.remote.version.AppVersionClient
 import com.saikou.sozo_tv.data.remote.history.WatchHistorySyncClient
@@ -101,6 +106,34 @@ val NetworkModule = module {
     single { AnilistSourceRegistry(context = androidContext()) }
     single { AnilistRepository(linkClient = get(), api = get(), links = get()) }
     single { AnilistTracker(repository = get(), links = get()) }
+
+    // MyAnimeList. No connect flow here: the link is made on the phone and this
+    // device inherits it from the account, exactly as AniList does.
+    //
+    // MalTracker holds the AniList side as a MATCHER — AniList search and media
+    // reads need no token, and AniList publishes the MAL id for the same entry,
+    // so a title matched once serves both trackers instead of being matched
+    // twice, which is also matched wrong twice.
+    single {
+        MalLinkClient(
+            okHttpClient = get(named("authOkHttp")),
+            gson = get(),
+            baseUrl = BuildConfig.SOZO_API_BASE_URL,
+            tokenProvider = { get<DeviceAuthRepository>().accessToken() },
+        )
+    }
+    single { MalApiClient(okHttpClient = get(named("authOkHttp"))) }
+    single { MalLinkStore(context = androidContext()) }
+    single { MalRepository(linkClient = get(), api = get(), links = get()) }
+    single {
+        MalTracker(
+            repository = get(),
+            links = get(),
+            anilistLinks = get(),
+            anilistTracker = get(),
+            anilistApi = get(),
+        )
+    }
 
     single {
         AppVersionClient(

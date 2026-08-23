@@ -1,8 +1,5 @@
 package com.saikou.sozo_tv.app
 
-//import com.ipsat.ipsat_tv.di.NetworkModule
-//import com.ipsat.ipsat_tv.di.firebaseModule
-//import com.ipsat.ipsat_tv.di.koinModule
 import android.app.Activity
 import android.app.Application
 import android.content.Context
@@ -18,6 +15,7 @@ import com.saikou.sozo_tv.di.koinModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import com.saikou.sozo_tv.data.repository.AnilistRepository
+import com.saikou.sozo_tv.data.repository.MalRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -42,19 +40,32 @@ class MyApp : Application() {
         FirebaseApp.initializeApp(this)
         BugsnagPerformance.start(this)
         CloudStreamApp.attach(this)
+        // The library's own WebViewResolver builds its offscreen WebView from
+        // `com.lagradost.api.getContext()`, which is null until this is called —
+        // so every plugin that resolves a stream through a WebView (and every
+        // Cloudflare challenge that needs one) threw instead of loading.
+        com.lagradost.api.setContext(java.lang.ref.WeakReference(this))
         trackForegroundActivity()
         startKoin {
             androidContext(this@MyApp)
             androidLogger()
             modules(NetworkModule, koinModule, firebaseModule)
         }
-        warmAnilistLink()
+        warmTrackerLinks()
 
     }
 
-    private fun warmAnilistLink() {
+    /**
+     * Pulls both tracker links from the account at launch.
+     *
+     * For MyAnimeList this is also what renews the token — the backend refreshes
+     * on read, so a TV that has been unplugged for a month comes back able to
+     * write rather than failing on the first episode.
+     */
+    private fun warmTrackerLinks() {
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             runCatching { get<AnilistRepository>().refresh() }
+            runCatching { get<MalRepository>().refresh() }
         }
     }
 

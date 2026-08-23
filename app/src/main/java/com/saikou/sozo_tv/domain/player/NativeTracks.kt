@@ -25,11 +25,21 @@ object NativeTracks {
         val detail: String,
         val group: Tracks.Group,
         val index: Int,
+        /** Raw BCP-47/ISO code, "" when the manifest declares none. Labels are a
+         *  publisher's free text and differ between releases of the same show, so
+         *  a remembered choice is matched on this instead. */
+        val language: String = "",
     )
 
     /** Empty when there is nothing to choose between — one track is not a choice. */
     fun audio(tracks: Tracks): List<Option> = collect(tracks, C.TRACK_TYPE_AUDIO) { format ->
         languageOf(format) to audioDetail(format)
+    }
+
+    /** Normalised language code for [format], "" when it declares none. */
+    fun codeOf(format: Format): String {
+        val code = format.language?.trim().orEmpty()
+        return if (code.isEmpty() || code == "und") "" else code.lowercase()
     }
 
     /**
@@ -58,7 +68,7 @@ object NativeTracks {
                 if (!group.isTrackSupported(i)) continue
                 val format = group.getTrackFormat(i)
                 val (label, detail) = describe(format)
-                out += Option(label, detail, group, i)
+                out += Option(label, detail, group, i, codeOf(format))
             }
         }
         // Same language twice with the same detail is a manifest artefact, not
@@ -78,7 +88,7 @@ object NativeTracks {
     private fun languageOf(format: Format): String {
         format.label?.trim()?.takeIf { it.isNotEmpty() }?.let { return it }
         val code = format.language?.trim().orEmpty()
-        if (code.isEmpty() || code == "und") return "Noma'lum"
+        if (code.isEmpty() || code == "und") return "Unknown"
         val display = runCatching { Locale.forLanguageTag(code).displayLanguage }
             .getOrNull().orEmpty()
         return if (display.isNotEmpty() && !display.equals(code, ignoreCase = true)) {
@@ -98,14 +108,14 @@ object NativeTracks {
         }
         codecName(format.codecs)?.let { add(it) }
         if (format.bitrate > 0) add("${format.bitrate / 1000} kbps")
-        if (format.roleFlags and C.ROLE_FLAG_DESCRIBES_VIDEO != 0) add("Audio-tavsif")
+        if (format.roleFlags and C.ROLE_FLAG_DESCRIBES_VIDEO != 0) add("Audio description")
     }.joinToString(" · ")
 
     private fun textDetail(format: Format): String = buildList {
-        if (format.roleFlags and C.ROLE_FLAG_SUBTITLE != 0) add("Subtitr")
+        if (format.roleFlags and C.ROLE_FLAG_SUBTITLE != 0) add("Subtitle")
         if (format.roleFlags and C.ROLE_FLAG_CAPTION != 0) add("CC")
-        if (format.selectionFlags and C.SELECTION_FLAG_FORCED != 0) add("Majburiy")
-        add("Oqim ichida")
+        if (format.selectionFlags and C.SELECTION_FLAG_FORCED != 0) add("Forced")
+        add("Embedded")
     }.joinToString(" · ")
 
     /** The bit of a codec string worth showing — "mp4a.40.2" tells a viewer nothing. */
