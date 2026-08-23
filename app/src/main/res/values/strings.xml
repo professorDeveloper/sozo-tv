@@ -201,6 +201,7 @@
     <string name="player_switching_source">This device cannot play that format — trying another source…</string>
     <string name="player_error_codec">This device cannot decode this video format (HEVC). Pick another quality or server.</string>
     <string name="player_error_network">Connection lost. Check your network and try again.</string>
+    <string name="player_error_source">This link is no longer playable. Trying another source.</string>
     <string name="player_error_generic">Playback failed. Try another server or quality.</string>
     <string name="account_stat_watched">WATCHED</string>
     <string name="account_stat_saved">SAVED</string>

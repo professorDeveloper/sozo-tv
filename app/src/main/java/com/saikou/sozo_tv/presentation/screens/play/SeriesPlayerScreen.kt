@@ -1115,8 +1115,24 @@ class SeriesPlayerScreen : Fragment() {
             error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ||
             error.errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED
 
+        // The link itself is unplayable rather than the box being unable to decode it: a dead,
+        // expired or region-blocked host answers an HTML error page under a video/* content
+        // type, and no extractor can read that. The remedy is the same as for a missing codec
+        // - move to the next source - but this whole class used to stop at a generic message.
+        val badSource = error.errorCode in setOf(
+            PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED,
+            PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED,
+            PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED,
+            PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED,
+            PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS,
+            PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND,
+            PlaybackException.ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE,
+        )
+
         val next = model.currentSelectedVideoOptionIndex + 1
-        if (decodeProblem && next in options.indices && autoFallbackTries < MAX_AUTO_FALLBACK) {
+        if ((decodeProblem || badSource) && next in options.indices &&
+            autoFallbackTries < MAX_AUTO_FALLBACK
+        ) {
             autoFallbackTries++
             model.currentSelectedVideoOptionIndex = next
             ignoreNextEpisodeSuccess = true
@@ -1127,6 +1143,7 @@ class SeriesPlayerScreen : Fragment() {
 
         val message = when {
             decodeProblem -> getString(R.string.player_error_codec)
+            badSource -> getString(R.string.player_error_source)
             error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
                 error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ->
                 getString(R.string.player_error_network)
