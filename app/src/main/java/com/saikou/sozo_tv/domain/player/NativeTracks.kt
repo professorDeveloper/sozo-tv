@@ -72,9 +72,48 @@ object NativeTracks {
             }
         }
         // Same language twice with the same detail is a manifest artefact, not
-        // two choices.
-        val distinct = out.distinctBy { it.label to it.detail }
-        return if (keepSingle || distinct.size > 1) distinct else emptyList()
+        // two choices — but the language CODE has to be part of that judgement.
+        // A dual-audio release routinely gives both renditions the identical
+        // NAME ("Audio") and differs only by LANGUAGE, and keying on
+        // (label, detail) alone folded those two into one, dropped below the
+        // "more than one is a choice" line, and hid the audio menu entirely —
+        // exactly the case the menu exists for.
+        val distinct = out.distinctBy { Triple(it.language, it.label, it.detail) }
+        val resolved = nameApart(distinct)
+        return if (keepSingle || resolved.size > 1) resolved else emptyList()
+    }
+
+    /**
+     * Gives colliding rows names a person can tell apart.
+     *
+     * Two rows both reading "Audio" is a menu nobody can use. The language is
+     * what actually separates them, so it goes in the label; a number is the
+     * last resort for a stream that declares nothing at all. Rows whose label is
+     * already unique are left exactly as the publisher wrote them.
+     */
+    private fun nameApart(options: List<Option>): List<Option> {
+        val collides = options.groupingBy { it.label }.eachCount()
+            .filterValues { it > 1 }.keys
+        if (collides.isEmpty()) return options
+
+        val named = options.map { o ->
+            if (o.label !in collides) return@map o
+            val language = displayName(o.language)
+            if (language.isEmpty() || o.label.contains(language, ignoreCase = true)) o
+            else o.copy(label = "${o.label} · $language")
+        }
+
+        // Anything still sharing a name gets numbered, so every row is distinct
+        // even when the manifest gave us nothing to distinguish them by.
+        val still = named.groupingBy { it.label }.eachCount().filterValues { it > 1 }.keys
+        if (still.isEmpty()) return named
+        val used = mutableMapOf<String, Int>()
+        return named.map { o ->
+            if (o.label !in still) return@map o
+            val n = (used[o.label] ?: 0) + 1
+            used[o.label] = n
+            o.copy(label = "${o.label} $n")
+        }
     }
 
     /**
@@ -89,13 +128,16 @@ object NativeTracks {
         format.label?.trim()?.takeIf { it.isNotEmpty() }?.let { return it }
         val code = format.language?.trim().orEmpty()
         if (code.isEmpty() || code == "und") return "Unknown"
+        return displayName(code).ifEmpty { code.uppercase() }
+    }
+
+    /** "ja" -> "Japanese"; "" when the code is missing or not a real language. */
+    private fun displayName(code: String): String {
+        if (code.isEmpty() || code == "und") return ""
         val display = runCatching { Locale.forLanguageTag(code).displayLanguage }
             .getOrNull().orEmpty()
-        return if (display.isNotEmpty() && !display.equals(code, ignoreCase = true)) {
-            display.replaceFirstChar { it.uppercase() }
-        } else {
-            code.uppercase()
-        }
+        if (display.isEmpty() || display.equals(code, ignoreCase = true)) return ""
+        return display.replaceFirstChar { it.uppercase() }
     }
 
     private fun audioDetail(format: Format): String = buildList {

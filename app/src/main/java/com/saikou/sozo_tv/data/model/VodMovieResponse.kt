@@ -22,4 +22,6 @@ data class SubTitle(
     val file: String,
     val label: String,
     val flag: String = "",
+    /** Headers for the subtitle request itself; empty for sources that need none. */
+    val headers: Map<String, String> = emptyMap(),
 )

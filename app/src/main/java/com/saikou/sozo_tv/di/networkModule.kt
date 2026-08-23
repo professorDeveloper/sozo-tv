@@ -13,6 +13,8 @@ import com.saikou.sozo_tv.data.repository.MalLinkStore
 import com.saikou.sozo_tv.data.repository.MalRepository
 import com.saikou.sozo_tv.data.repository.MalTracker
 import com.saikou.sozo_tv.data.remote.device.DeviceAuthClient
+import com.saikou.sozo_tv.data.remote.device.DeviceTokenAuthenticator
+import okhttp3.Authenticator
 import com.saikou.sozo_tv.data.remote.version.AppVersionClient
 import com.saikou.sozo_tv.data.remote.history.WatchHistorySyncClient
 import com.saikou.sozo_tv.data.remote.lists.UserListsClient
@@ -41,7 +43,16 @@ val NetworkModule = module {
 
     // Device sign-in. Deliberately on its OWN client — see createAuthOkHttpClient().
     single { DeviceSessionStore(androidContext()) }
-    single(named("authOkHttp")) { createAuthOkHttpClient() }
+    // The refresher is resolved lazily inside the lambda on purpose: DeviceAuthRepository
+    // needs DeviceAuthClient, which needs this very client. Resolving at call time instead
+    // of at construction breaks that cycle.
+    single(named("authOkHttp")) {
+        createAuthOkHttpClient(
+            authenticator = DeviceTokenAuthenticator {
+                get<DeviceAuthRepository>().refreshNow()
+            },
+        )
+    }
     single {
         DeviceAuthClient(
             okHttpClient = get(named("authOkHttp")),
@@ -153,7 +164,7 @@ val NetworkModule = module {
  * Read timeout sits above the server's own 15s request timeout so a 504 arrives as a real
  * response (retryable) rather than as a client-side abort.
  */
-fun createAuthOkHttpClient(): OkHttpClient {
+fun createAuthOkHttpClient(authenticator: Authenticator? = null): OkHttpClient {
     val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC
         else HttpLoggingInterceptor.Level.NONE
@@ -166,6 +177,7 @@ fun createAuthOkHttpClient(): OkHttpClient {
         .callTimeout(25, TimeUnit.SECONDS)
         .addInterceptor(loggingInterceptor)
         .retryOnConnectionFailure(true)
+        .apply { if (authenticator != null) authenticator(authenticator) }
         .build()
 }
 

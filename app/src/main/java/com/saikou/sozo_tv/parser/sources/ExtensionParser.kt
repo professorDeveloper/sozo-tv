@@ -97,7 +97,7 @@ class ExtensionParser : BaseParser() {
         val (encoded, mediaRef) = untag(epId)
         val p = encoded ?: activeProvider() ?: return emptyList()
         val media = engine.loadLinks(p, mediaRef)
-        val tracks = media.subtitles.map { MegaTrack(it.file, it.label, "captions") }
+        val tracks = media.subtitles.map { MegaTrack(it.file, it.label, "captions", it.headers) }
         return media.sources.map { s ->
             VideoOption(
                 videoUrl = s.videoUrl,
@@ -106,7 +106,14 @@ class ExtensionParser : BaseParser() {
                 audioType = AudioType.SUB,
                 quality = s.quality,
                 isActive = s.isDefault,
-                mimeTypes = if (s.type == "hls") MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4,
+                // "dash" used to fall in with everything else and be played as a
+                // progressive file, so a .mpd source never opened. The extension
+                // hosts emit the type; honour all three.
+                mimeTypes = when (s.type) {
+                    "hls" -> MimeTypes.APPLICATION_M3U8
+                    "dash" -> MimeTypes.APPLICATION_MPD
+                    else -> MimeTypes.VIDEO_MP4
+                },
                 fullText = s.quality,
                 tracks = tracks,
                 // Merge media-level headers (Referer/User-Agent the extractor often sets globally)

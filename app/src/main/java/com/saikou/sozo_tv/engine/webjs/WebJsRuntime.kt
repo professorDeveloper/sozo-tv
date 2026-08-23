@@ -2,6 +2,7 @@ package com.saikou.sozo_tv.engine.webjs
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -69,6 +70,11 @@ class WebJsRuntime(
         if (ready) return@withContext
         val loaded = CompletableDeferred<Unit>()
         val wv = WebView(context)
+        // This WebView only ever executes JS - it is never attached to a view hierarchy, so it
+        // needs no GPU surface. Asking for one is what killed the app: on a device whose driver
+        // reports no ES 3.1 (the TV emulator, and weak TV GPUs), eglCreateContext fails and
+        // Chromium aborts the whole process with SIGTRAP, taking search down with it.
+        wv.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
         wv.settings.javaScriptEnabled = true
         wv.settings.domStorageEnabled = true
         wv.addJavascriptInterface(FetchBridge(), "AndroidFetch")

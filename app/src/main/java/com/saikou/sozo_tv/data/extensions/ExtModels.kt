@@ -126,7 +126,18 @@ data class ExtVideoSource(
     val sniff: String? = null,             // raw JSON: patterns/timeoutMs/headers/blockHosts
 )
 
-data class ExtSubtitle(val label: String, val file: String, val default: Boolean)
+/**
+ * @property headers Sent when FETCHING the subtitle, not when playing the video.
+ * A subtitle url is a separate request that inherits nothing from the stream, and
+ * CloudStream sources routinely serve tracks that 403 without the extractor's
+ * Referer — so the header map has to travel with the file.
+ */
+data class ExtSubtitle(
+    val label: String,
+    val file: String,
+    val default: Boolean,
+    val headers: Map<String, String> = emptyMap(),
+)
 
 data class ExtMedia(
     val videoUrl: String?,
@@ -333,7 +344,12 @@ internal object ExtParser {
         val subs = if (subArr == null) emptyList() else (0 until subArr.length()).mapNotNull { i ->
             val s = subArr.optJSONObject(i) ?: return@mapNotNull null
             val file = s.optString("file").ifEmpty { return@mapNotNull null }
-            ExtSubtitle(s.optString("label").ifEmpty { "Subtitle" }, file, s.optBoolean("default", false))
+            ExtSubtitle(
+                s.optString("label").ifEmpty { "Subtitle" },
+                file,
+                s.optBoolean("default", false),
+                s.headersMap("headers"),
+            )
         }
         // Seek-preview thumbnails: soplay emits a bare VTT url String or a {url,type,template,...}
         // object. Forward the url so the player's VttSpriteThumbnailLoader can render it again.

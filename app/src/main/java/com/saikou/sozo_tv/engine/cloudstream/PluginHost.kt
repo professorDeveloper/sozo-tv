@@ -18,6 +18,7 @@ import com.lagradost.cloudstream3.TvSeriesLoadResponse
 import com.lagradost.cloudstream3.plugins.BasePlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.ExtractorLinkType
 import com.lagradost.nicehttp.ignoreAllSSLErrors
 import dalvik.system.PathClassLoader
 import org.json.JSONArray
@@ -468,9 +469,14 @@ class PluginHost(private val appContext: Context) {
         }.toString()
     }
 
+    // AudioFile is @Prerelease in the CloudStream library; the annotation is an
+    // IDE hint with BINARY retention, so reading the list a plugin may have filled
+    // costs nothing at runtime and is empty for every plugin that sets none.
+    @OptIn(com.lagradost.cloudstream3.Prerelease::class)
     suspend fun loadLinksJson(providerName: String, data: String): String {
         val api = apiByName(providerName)
-        val videoSources = JSONArray()
+        // (quality, source) pairs so the list can be ordered before it is emitted.
+        val collected = ArrayList<Pair<Int, JSONObject>>()
         val subs = JSONArray()
         val seenUrls = HashSet<String>()
         val seenSubs = HashSet<String>()
@@ -483,30 +489,69 @@ class PluginHost(private val appContext: Context) {
                         if (sf.url.isNotEmpty() && seenSubs.add(sf.url)) {
                             subs.put(JSONObject().apply {
                                 put("label", sf.lang); put("file", sf.url); put("default", false)
+                                // A subtitle is fetched on its own, so it inherits none of
+                                // the stream's headers. Plenty of CloudStream sources hand
+                                // out tracks that 403 without the Referer the extractor
+                                // set, and SubtitleFile has carried those headers since
+                                // v4.7 — dropping them is why a provider could return
+                                // subtitles and the player still show none.
+                                sf.headers?.takeIf { it.isNotEmpty() }?.let {
+                                    put("headers", JSONObject(it as Map<*, *>))
+                                }
                             })
                         }
                     },
                     callback = { link: ExtractorLink ->
-                        // Only accept absolute http(s) URLs. Some extractors emit relative links
-                        // (e.g. "dl.php?id=…") which ExoPlayer treats as a local file and fails
-                        // with a Source error — skipping them lets a valid source play instead.
-                        if (link.url.startsWith("http", ignoreCase = true) && seenUrls.add(link.url)) {
-                            val headers = JSONObject(link.headers as Map<*, *>)
-                            if (link.referer.isNotEmpty()) headers.put("Referer", link.referer)
+                        // Torrents and magnets are not streams. Passed through as an
+                        // ordinary source they reached the player as a bare "Source
+                        // error"; the honest thing is to not offer them. Relative urls
+                        // ("dl.php?id=…") go for the same reason — ExoPlayer resolves
+                        // those as a local file path.
+                        val streamable = link.type != ExtractorLinkType.TORRENT &&
+                                link.type != ExtractorLinkType.MAGNET
+                        if (streamable && link.url.startsWith("http", ignoreCase = true) &&
+                            seenUrls.add(link.url)
+                        ) {
+                            // getAllHeaders() folds in the referer exactly the way
+                            // CloudStream's own player does, instead of us overwriting a
+                            // Referer an extractor had deliberately set.
+                            val headers = JSONObject(link.getAllHeaders() as Map<*, *>)
                             // quality is a resolution int (e.g. 1080) or a Qualities
                             // sentinel; build a readable, distinct "<host> · <res>p".
                             val q = link.quality
                             val res = if (q in 144..4320) "${q}p" else null
                             val nm = link.name.ifBlank { "Source" }
                             val label = if (res != null) "$nm · $res" else nm
-                            videoSources.put(JSONObject().apply {
+                            collected.add((if (q in 144..4320) q else 0) to JSONObject().apply {
                                 put("quality", label)
                                 put("videoUrl", link.url)
-                                put("type", if (link.isM3u8) "hls" else "http")
+                                // DASH used to fall into the `else` branch and be handed
+                                // over as a plain progressive file, so every .mpd source
+                                // failed to open.
+                                put("type", when (link.type) {
+                                    ExtractorLinkType.M3U8 -> "hls"
+                                    ExtractorLinkType.DASH -> "dash"
+                                    else -> "http"
+                                })
                                 put("host", link.name)
-                                put("isDefault", videoSources.length() == 0)
                                 put("accessible", true)
                                 put("headers", headers)
+                                // Separate audio renditions the extractor says belong with
+                                // this video. A dual-audio release puts its dub here rather
+                                // than in the manifest, so discarding them left the player
+                                // with one track and nothing to switch to.
+                                if (link.audioTracks.isNotEmpty()) {
+                                    put("audioTracks", JSONArray().apply {
+                                        link.audioTracks.forEach { a ->
+                                            put(JSONObject().apply {
+                                                put("url", a.url)
+                                                a.headers?.takeIf { it.isNotEmpty() }?.let {
+                                                    put("headers", JSONObject(it as Map<*, *>))
+                                                }
+                                            })
+                                        }
+                                    })
+                                }
                             })
                         }
                     }
@@ -514,7 +559,18 @@ class PluginHost(private val appContext: Context) {
             } catch (t: Throwable) {
                 Log.e(TAG, "loadLinks ${api.name}: ${t.javaClass.simpleName}: ${t.message}")
             }
-            Log.i(TAG, "loadLinks ${api.name}: ${videoSources.length()} source(s), ${subs.length()} sub(s)")
+            Log.i(TAG, "loadLinks ${api.name}: ${collected.size} source(s), ${subs.length()} sub(s)")
+        }
+        // Best first. Extractors call back in whatever order they finish, so the
+        // default source used to be a race: a 360p mirror that resolved quickly
+        // won over a 1080p one that took a moment longer. CloudStream's own
+        // player orders by quality for the same reason. The sort is stable, so
+        // sources of equal quality keep the order the provider produced them in.
+        collected.sortByDescending { it.first }
+        val videoSources = JSONArray()
+        collected.forEachIndexed { i, entry ->
+            entry.second.put("isDefault", i == 0)
+            videoSources.put(entry.second)
         }
         // Shape matches MediaResolveModel.fromJson (videoUrl/type/headers + videoSources + subtitles).
         val first = if (videoSources.length() > 0) videoSources.getJSONObject(0) else null

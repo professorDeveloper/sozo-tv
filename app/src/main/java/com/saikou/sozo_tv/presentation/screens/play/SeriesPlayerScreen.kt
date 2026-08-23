@@ -1535,9 +1535,19 @@ class SeriesPlayerScreen : Fragment() {
                         val tmp =
                             File(requireContext().cacheDir, "sub_${System.currentTimeMillis()}.vtt")
 
+                        // The source's own headers first, our agent only if it
+                        // named none. A CloudStream subtitle is frequently gated on
+                        // the extractor's Referer, and fetching it bare returned 403
+                        // — which this catch then swallowed into "no subtitles".
                         val request = Request.Builder()
                             .url(subUrl)
-                            .header("User-Agent", SOZO_USER_AGENT)
+                            .apply {
+                                val subHeaders = list[idx].headers
+                                subHeaders.forEach { (k, v) -> header(k, v) }
+                                if (subHeaders.keys.none { it.equals("user-agent", true) }) {
+                                    header("User-Agent", SOZO_USER_AGENT)
+                                }
+                            }
                             .build()
 
                         client.newCall(request).execute().use { response ->

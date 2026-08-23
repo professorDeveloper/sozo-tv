@@ -115,6 +115,28 @@ class DeviceAuthRepository(
         if (System.currentTimeMillis() < current.accessExpiresAtMs - REFRESH_SKEW_MS) {
             return current.accessToken
         }
+        doRefresh(current)
+    }
+
+    /**
+     * Refreshes regardless of what the stored expiry claims.
+     *
+     * [accessToken] only refreshes near `exp`, which is right for the ordinary case and wrong for
+     * the one that stranded this device: a token the SERVER rejects while its own `exp` still says
+     * it is valid — after a signing-secret change, or a session invalidated server-side. Nothing
+     * then ever asked for a new one, so AniList, MyAnimeList, watch-history sync, clear-history and
+     * the phone remote all answered 401 forever while the TV still believed it was signed in.
+     *
+     * The phone has always recovered from this because its Dio interceptor refreshes on a 401; the
+     * TV had no equivalent. [DeviceTokenAuthenticator] is that equivalent, and this is what it
+     * calls.
+     */
+    suspend fun refreshNow(): String? = refreshMutex.withLock {
+        val current = store.current() ?: return null
+        doRefresh(current)
+    }
+
+    private suspend fun doRefresh(current: DeviceSession): String? =
         // The server overwrites the stored refresh hash BEFORE it answers, so the old token is
         // dead the instant the response exists. Cancellation must not be able to land between
         // that response and the write below, or the TV keeps a token the server already killed
@@ -144,7 +166,6 @@ class DeviceAuthRepository(
                 is ApiResult.Network -> current.accessToken
             }
         }
-    }
 
     /** Best-effort refresh on app start. Callers must cap it — this can hit the network. */
     suspend fun bootstrap() {

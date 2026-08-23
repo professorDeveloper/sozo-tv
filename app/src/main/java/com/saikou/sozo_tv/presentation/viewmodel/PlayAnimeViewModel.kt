@@ -265,7 +265,7 @@ class PlayAnimeViewModel(
 
                 VodMovieResponse(
                     authInfo = "",
-                    subtitleList = option.tracks.map { SubTitle(it.file, it.label ?: "") },
+                    subtitleList = option.tracks.map { SubTitle(it.file, it.label ?: "", headers = it.headers) },
                     urlobj = url,
                     header = headers,
                     type = mime,
@@ -282,7 +282,7 @@ class PlayAnimeViewModel(
                     authInfo = "",
                     subtitleList = option.tracks.map {
                         if (!it.file.contains("thumbnail")) SubTitle(
-                            it.file, it.label ?: ""
+                            it.file, it.label ?: "", headers = it.headers
                         ) else null
                     }.filterNotNull(),
                     urlobj = option.videoUrl,

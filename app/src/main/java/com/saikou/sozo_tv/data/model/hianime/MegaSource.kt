@@ -7,7 +7,9 @@ data class MegaSource(
 data class MegaTrack(
     val file: String,
     val label: String? = "",
-    val kind: String
+    val kind: String,
+    /** Headers for fetching this track — see [com.saikou.sozo_tv.data.extensions.ExtSubtitle]. */
+    val headers: Map<String, String> = emptyMap(),
 )
 data class MegaResponse(
     val sources: List<MegaSource>,
