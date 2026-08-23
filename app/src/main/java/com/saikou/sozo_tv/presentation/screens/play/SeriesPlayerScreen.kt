@@ -989,7 +989,9 @@ class SeriesPlayerScreen : Fragment() {
             u.contains("/m3u8/") || u.contains("/hls/") -> MimeTypes.APPLICATION_M3U8
             else -> declared
         }
-        android.util.Log.i("PlayerSrc", "mime: url=$u declared=$declared -> $resolved")
+        // Log the url as it was given: lowercasing it mangles the base64 many hosts encode
+        // their stream path with, which makes a failing link undecodable after the fact.
+        android.util.Log.i("PlayerSrc", "mime: url=$url declared=$declared -> $resolved")
         return resolved
     }
 
