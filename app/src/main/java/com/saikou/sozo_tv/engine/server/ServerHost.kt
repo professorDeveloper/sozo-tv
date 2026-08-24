@@ -44,6 +44,13 @@ class ServerHost(
                 put("group", "server")
                 put("nsfw", false)
                 put("mode", mode)
+                // Forwarded raw: the backend is the only thing that knows a
+                // source's media has gone away while its catalog still answers,
+                // and dropping the flag here is what kept it invisible.
+                if (o.optBoolean("browseOnly", false)) {
+                    put("browseOnly", true)
+                    firstNonEmpty(o, "browseOnlyReason")?.let { put("browseOnlyReason", it) }
+                }
                 if (ext != null) {
                     put("extractor", JSONObject().apply {
                         put("name", ext.optString("name"))

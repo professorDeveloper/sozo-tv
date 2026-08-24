@@ -25,7 +25,7 @@ class RepoManager(private val context: Context, private val host: PluginHost) {
 
     companion object {
         private const val TAG = "CloudStreamRepo"
-        private val UA = SOZO_USER_AGENT
+        private val UA get() = SOZO_USER_AGENT
     }
 
     private val cs3Dir: File = File(context.filesDir, "cs3").apply { mkdirs() }

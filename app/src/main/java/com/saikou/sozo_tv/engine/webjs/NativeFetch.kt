@@ -113,6 +113,6 @@ class NativeFetch(context: Context) {
     }.toString()
 
     companion object {
-        private val UA = SOZO_USER_AGENT
+        private val UA get() = SOZO_USER_AGENT
     }
 }

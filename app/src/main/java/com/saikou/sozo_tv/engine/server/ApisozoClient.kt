@@ -49,6 +49,6 @@ class ApisozoClient(private val baseUrl: String = BuildConfig.APISOZO_BASE_URL) 
     }
 
     companion object {
-        private val UA = SOZO_USER_AGENT
+        private val UA get() = SOZO_USER_AGENT
     }
 }

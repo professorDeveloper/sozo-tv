@@ -22,6 +22,15 @@ data class ExtProvider(
     val repo: String? = null,
     val group: String,
     val mode: String = "client",
+    /**
+     * The source can be browsed but nothing on it will play.
+     *
+     * Set by the backend when a provider's catalog still answers while its
+     * media has gone away at the source. Carried so the list can say so up
+     * front rather than letting a user find out by opening an episode.
+     */
+    val browseOnly: Boolean = false,
+    val browseOnlyReason: String? = null,
     val extractorName: String? = null,
     val extractorScope: String? = null,
 ) {
@@ -201,6 +210,8 @@ internal object ExtParser {
                 repo = o.strOrNull("repo"),
                 group = o.optString("group").ifEmpty { if (id.startsWith("an:")) "aniyomi" else "cloudstream" },
                 mode = o.optString("mode").ifEmpty { "client" },
+                browseOnly = o.optBoolean("browseOnly", false),
+                browseOnlyReason = o.strOrNull("browseOnlyReason"),
                 extractorName = extractor?.strOrNull("name"),
                 extractorScope = extractor?.strOrNull("scope"),
             )

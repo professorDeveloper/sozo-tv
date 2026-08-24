@@ -12,7 +12,7 @@ class AniyomiRepoManager(private val context: Context, private val host: Aniyomi
 
     companion object {
         private const val TAG = "AniyomiRepo"
-        private val UA = SOZO_USER_AGENT
+        private val UA get() = SOZO_USER_AGENT
     }
 
     private val prefs = context.getSharedPreferences("aniyomi", Context.MODE_PRIVATE)

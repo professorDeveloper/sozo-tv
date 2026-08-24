@@ -22,7 +22,7 @@ class AniyomiHost(private val context: Context) {
 
     companion object {
         private const val TAG = "AniyomiHost"
-        private val UA = SOZO_USER_AGENT
+        private val UA get() = SOZO_USER_AGENT
     }
 
     private data class SourceMeta(

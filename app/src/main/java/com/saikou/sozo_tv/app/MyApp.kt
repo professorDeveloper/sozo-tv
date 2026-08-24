@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.app
 
+import com.saikou.sozo_tv.utils.initSozoUserAgent
 import android.app.Activity
 import android.app.Application
 import android.content.Context
@@ -35,6 +36,11 @@ class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        // Before anything makes a request: adopt this device's own WebView
+        // User-Agent. A Cloudflare managed challenge compares the header
+        // against the engine behind it, so a hard-coded version that does not
+        // match this device's WebView is a mismatch it never clears.
+        initSozoUserAgent(this)
         Bugsnag.start(this)
         AndroidThreeTen.init(this)
         FirebaseApp.initializeApp(this)

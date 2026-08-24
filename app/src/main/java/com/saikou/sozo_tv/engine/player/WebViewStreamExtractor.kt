@@ -32,7 +32,7 @@ data class ExtractedStream(
  */
 object WebViewStreamExtractor {
 
-    private val MOBILE_UA = SOZO_USER_AGENT
+    private val MOBILE_UA get() = SOZO_USER_AGENT
 
     private const val SETTLE_MS = 3_000L
 
