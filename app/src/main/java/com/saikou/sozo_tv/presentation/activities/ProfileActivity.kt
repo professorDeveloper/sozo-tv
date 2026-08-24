@@ -47,9 +47,11 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         model.loadProfile()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            viewBinding.navProfile.isFocusedByDefault = true
-        }
+        // Deliberately NOT `navProfile.isFocusedByDefault = true`. This screen is a
+        // navigation rail with a content pane; marking the PANE as the window's default
+        // focus put it in a race with the rail's own placement below and with the
+        // adapter's first-bind requestFocus, so which one won came down to whether
+        // View.post drained before or after first layout. The rail owns first focus.
         isSettingsOpen = intent.getBooleanExtra(EXTRA_OPEN_SETTINGS, false)
         setUpRv()
         lifecycleScope.launch {
@@ -69,7 +71,7 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
             when (backPressCount) {
                 0 -> {
                     Log.d("GGG", "onCreate: ${backPressCount} ")
-                    focusRecyclerViewToPosition(0)
+                    focusRailToPosition(0)
                     backPressCount = 1
                 }
 
@@ -97,13 +99,22 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
         if (builtSignedIn != deviceAuth.isSignedIn()) recreate()
     }
 
-    private fun focusRecyclerViewToPosition(position: Int) {
-        viewBinding.apply {
-            profileRv.post {
-                profileRv.requestFocus()
-                profileRv.smoothScrollToPosition(position)
-                profileRv.requestFocus()
-            }
+    /**
+     * Puts the rail on [position] and gives it the D-pad — once.
+     *
+     * The old body was `requestFocus(); smoothScrollToPosition(); requestFocus()`.
+     * `smoothScrollToPosition` is a RecyclerView call that moves pixels and is
+     * asynchronous; it does not change the leanback grid's own selected index. So the
+     * second `requestFocus()` ran before the target row existed and handed focus to
+     * whichever child happened to be attached. `selectedPosition` is the property the
+     * grid tracks, and setting it moves both the scroll and the selection, so the one
+     * `requestFocus()` afterwards lands where we asked.
+     */
+    private fun focusRailToPosition(position: Int) {
+        viewBinding.profileRv.post {
+            if (isFinishing || isDestroyed) return@post
+            viewBinding.profileRv.selectedPosition = position
+            viewBinding.profileRv.requestFocus()
         }
     }
 
@@ -135,7 +146,12 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
         }
 
         val accountList = arrayListOf<Profile>()
-        val newSectionList = sectionList
+        // A COPY. This used to alias LocalData.sectionList, the process-global list, and
+        // then mutate it in place with no notifyItem* at all. On the recreate() path in
+        // onStart the outgoing activity's RecyclerView is still attached to that same
+        // instance while the incoming one edits it — the exact setup for RecyclerView's
+        // "Inconsistency detected. Invalid item position" crash.
+        val newSectionList = ArrayList(sectionList)
         val isSignedIn = deviceAuth.isSignedIn()
         builtSignedIn = isSignedIn
         // LocalData.sectionList is process-global, so this has to be idempotent in BOTH directions:
@@ -151,34 +167,22 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
             isSignedIn = isSignedIn
         ).also { viewBinding.profileRv.adapter = it }
 
-        if (!isHistoryItemClicked) {
-            viewBinding.apply {
-                profileRv.post {
-                    profileRv.requestFocus()
-                    val sectionPosition = accountList.size + 2
-                    profileRv.smoothScrollToPosition(sectionPosition)
-                    profileRv.requestFocus()
-                }
-            }
-            focusRecyclerViewToPosition(accountList.size + 2)
-        } else {
-            focusRecyclerViewToPosition(accountList.size + 4)
-            viewBinding.apply {
-                profileRv.post {
-                    profileRv.requestFocus()
-                    val sectionPosition = accountList.size + 4
-                    profileRv.smoothScrollToPosition(sectionPosition)
-                    profileRv.requestFocus()
-                }
-            }
-
-        }
+        // One placement, not two. Each branch used to run this AND an inline
+        // `profileRv.post { ... }` doing the same thing, and the inline copy read
+        // `accountList.size` at run time while the call read it eagerly — so if the
+        // profile fetch resolved between them the two posts aimed at different rows
+        // and issued conflicting scrolls.
+        focusRailToPosition(accountList.size + if (isHistoryItemClicked) 4 else 2)
         if (!isSignedIn) {
             profileAdapter.updateAccountType("Guest")
             profileAdapter.setAccount()
         }
 
-        profileAdapter.setSectionSelected(if (isSettingsOpen) 3 else 0)
+        // Index 1 is Sources (LocalData.sectionList: 0 My info, 1 Sources, 2 History,
+        // 3 Bookmark, ...). It was 3, so "no source installed — go install one" from
+        // EpisodeScreen opened Bookmarks. The comment on EXTRA_OPEN_SETTINGS below
+        // says this deep link was fixed; only the extra's KEY had been.
+        profileAdapter.setSectionSelected(if (isSettingsOpen) SECTION_SOURCES else SECTION_MY_INFO)
 
         profileAdapter.sectionClickListener { _, position ->
             // The rail navigates 300ms after focus settles, so this can fire once the
@@ -261,6 +265,10 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
          * deep link into Settings has never once opened Settings.
          */
         const val EXTRA_OPEN_SETTINGS = "openSettings"
+
+        /** Positions in [com.saikou.sozo_tv.utils.LocalData.sectionList]. */
+        private const val SECTION_MY_INFO = 0
+        private const val SECTION_SOURCES = 1
     }
 
     override fun openLogin() {

@@ -1807,7 +1807,10 @@ class SeriesPlayerScreen : Fragment() {
                     "",
                     0.0,
                     args.currentPage,
-                    "2024/01/01",
+                    // release_year, and there is no year to hand it here. It
+                    // used to be the literal "2024/01/01", which the history
+                    // card printed under every poster as "- 2024/01/01".
+                    "",
                     model.seriesResponse?.urlobj.toString(),
                     totalDuration = player.duration,
                     lastPosition = player.currentPosition,

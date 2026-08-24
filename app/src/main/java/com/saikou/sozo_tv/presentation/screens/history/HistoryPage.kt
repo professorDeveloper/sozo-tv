@@ -15,6 +15,7 @@ import com.saikou.sozo_tv.databinding.HistoryPageBinding
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.PlayAnimeViewModel
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.utils.keepFocusAlive
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,13 +46,11 @@ class HistoryPage : Fragment() {
 
         binding.clearHistoryBtn.setOnClickListener {
             val dialog = HistoryAlertDialog()
-            dialog.setNoClearListener {
+            dialog.setOnClear {
                 dialog.dismiss()
                 clearHistory()
             }
-            dialog.setYesContinueListener {
-                dialog.dismiss()
-            }
+            dialog.setOnKeep { dialog.dismiss() }
             dialog.show(parentFragmentManager, "ConfirmationDialog")
         }
     }
@@ -65,10 +64,18 @@ class HistoryPage : Fragment() {
                 } else model.getAllWatchHistory()
                 .filter { !it.isAnime }
             if (watchHistoryList.isNotEmpty()) {
-                binding.historyGroup.visibility = View.VISIBLE
-                binding.placeHolder.root.visibility = View.GONE
-                historyAdapter.submitList(watchHistoryList)
-                binding.historyRv.adapter = historyAdapter
+                // renderHistory() runs twice on entry: once from the local DB, then
+                // again after syncHistoryNow() returns. The second pass reassigned the
+                // adapter and notifyDataSetChanged'd the list, so a user who had
+                // already moved into the grid during the sync lost focus to the rail.
+                binding.root.keepFocusAlive {
+                    binding.historyGroup.visibility = View.VISIBLE
+                    binding.placeHolder.root.visibility = View.GONE
+                    historyAdapter.submitList(watchHistoryList)
+                    if (binding.historyRv.adapter !== historyAdapter) {
+                        binding.historyRv.adapter = historyAdapter
+                    }
+                }
                 historyAdapter.setItemHistoryListener {
                     if (it.isEpisode) {
                         if (isAnimeEnabled) {
@@ -114,9 +121,11 @@ class HistoryPage : Fragment() {
                 model.getAllWatchHistory()
             }
             if (watchHistoryList.isNotEmpty()) {
-                binding.historyGroup.visibility = View.VISIBLE
-                binding.placeHolder.root.visibility = View.GONE
-                historyAdapter.submitList(watchHistoryList)
+                binding.root.keepFocusAlive {
+                    binding.historyGroup.visibility = View.VISIBLE
+                    binding.placeHolder.root.visibility = View.GONE
+                    historyAdapter.submitList(watchHistoryList)
+                }
             } else {
                 showEmptyState()
             }
@@ -125,8 +134,18 @@ class HistoryPage : Fragment() {
 
     private fun showEmptyState() {
         if (!isAdded) return
+        // Nothing in the placeholder is focusable, so an empty history really has no
+        // target on this page and the rail is the honest place to land. But ONLY if
+        // the D-pad was here to begin with: this fired on every empty result, so a
+        // user still navigating the rail — or anywhere else in the content pane — got
+        // yanked back to the rail the moment the history read returned nothing.
+        val focusWasHere = binding.root.findFocus() != null
         binding.placeHolder.root.visibility = View.VISIBLE
         binding.historyGroup.visibility = View.GONE
-        requireActivity().findViewById<View>(R.id.profileRv)?.requestFocus()
+        if (!focusWasHere) return
+        // Posted: the view that held focus is being hidden in this same frame.
+        binding.root.post {
+            if (isAdded) requireActivity().findViewById<View>(R.id.profileRv)?.requestFocus()
+        }
     }
 }

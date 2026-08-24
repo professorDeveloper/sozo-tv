@@ -271,4 +271,13 @@
         <item quantity="one">%1$d repo</item>
         <item quantity="other">%1$d repos</item>
     </plurals>
+    <!-- Watch history -->
+    <string name="play">Play</string>
+    <string name="history_almost_finished">Almost finished</string>
+    <string name="history_finished">Finished</string>
+    <!-- "00:13 of 1:48:53" — where you stopped, against how long it runs. -->
+    <string name="history_progress_of">%1$s of %2$s</string>
+    <string name="history_clear_title">Clear watch history</string>
+    <string name="history_clear_keep">Keep it</string>
+    <string name="history_clear_confirm_btn">Clear history</string>
 </resources>

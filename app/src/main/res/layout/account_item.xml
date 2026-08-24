@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Nothing INSIDE this row may be focusable. A LinearLayout defaults to
+  FOCUS_AFTER_DESCENDANTS, and ViewGroup.addFocusables leaves the parent out of the
+  focusables list once a descendant is focusable — so while userNameTxt declared
+  focusable, the D-pad stopped on the TextView and this root never became focused.
+  Its state_focused white fill and every duplicateParentState child therefore never
+  lit up: the account row was an invisible focus stop.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -38,11 +46,8 @@
             android:id="@+id/userNameTxt"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:clickable="true"
             android:duplicateParentState="true"
             android:ellipsize="marquee"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
             android:fontFamily="@font/days"
             android:marqueeRepeatLimit="marquee_forever"
             android:maxLines="1"

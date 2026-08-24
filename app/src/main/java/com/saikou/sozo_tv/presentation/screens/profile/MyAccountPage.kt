@@ -76,8 +76,15 @@ class MyAccountPage : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 settingsViewModel.deviceSession.collect { session ->
+                    val signedOut = session == null
+                    // Sign-in can land while the guest is standing on this button.
+                    // Move the D-pad somewhere real first; Android's own recovery
+                    // walks the whole window and lands on the rail.
+                    if (!signedOut && binding.loginButton.hasFocus()) {
+                        binding.loginButton.focusSearch(View.FOCUS_DOWN)?.requestFocus()
+                    }
                     binding.loginButton.visibility =
-                        if (session == null) View.VISIBLE else View.GONE
+                        if (signedOut) View.VISIBLE else View.GONE
                 }
             }
         }

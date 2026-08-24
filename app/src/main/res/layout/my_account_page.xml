@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+  FocusableScrollView, not a bare ScrollView. The bare one jump-scrolls when focus
+  moves and its onRequestFocusInDescendants refuses any off-screen descendant, which
+  is what made recovery from a cleared focus land outside this page instead of back
+  where the user was. This subclass already existed in components/ and no layout had
+  ever used it. The root's own focusable="true" is gone with it: descendantFocusability
+  is afterDescendants and this page always has focusable descendants, so the root could
+  never take focus anyway.
+-->
+<com.saikou.sozo_tv.components.FocusableScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/accountScroll"
@@ -8,8 +17,6 @@
     android:background="@android:color/transparent"
     android:descendantFocusability="afterDescendants"
     android:fillViewport="true"
-    android:focusable="true"
-    android:focusableInTouchMode="true"
     android:overScrollMode="never"
     android:scrollbars="none"
     tools:context=".presentation.screens.profile.MyAccountPage">
@@ -22,17 +29,28 @@
         <!--
              A hero, and only a hero. It used to also hold the avatar, the name
              and the stats line, which is why the artwork stopped halfway down
-             and left the avatar straddling the card's bottom edge: a
-             wrap_content frame does not reliably stretch a match_parent image
-             to a taller sibling's height, so the art measured short while the
-             text kept going. A fixed height removes the ambiguity entirely, and
-             the profile block below now sits on the page where it reads.
+             and left the avatar straddling the card's bottom edge: the art
+             measured short while the text kept going. Moving them out removed
+             that ambiguity.
+
+             The height that replaced it was a flat 200dp, which is right for
+             artwork and far too tall for what is actually in here — two lines of
+             text, centred, with about 65dp of dead black above and the same
+             below. A guest has no banner image at all, so the band was simply an
+             empty stripe taking a third of the screen before the page began.
+
+             wrap_content + minHeight instead: the text sets the height, the
+             minimum keeps it reading as a band when a banner does load, and
+             FrameLayout's own second pass for match_parent children is what
+             stretches the image and scrim to whatever that height turns out to
+             be — the case it handles by design.
         -->
         <FrameLayout
             android:id="@+id/accountBannerSection"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_marginTop="20dp"
+            android:layout_height="wrap_content"
+            android:minHeight="120dp"
+            android:layout_marginTop="12dp"
             android:layout_marginBottom="8dp"
             android:background="@drawable/banner_round_bg"
             android:clipToOutline="true"
@@ -59,10 +77,12 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:gravity="center_vertical"
                 android:orientation="vertical"
-                android:paddingHorizontal="20dp">
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="22dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -161,10 +181,20 @@
                         android:textSize="@dimen/tv_text_body" />
                 </LinearLayout>
 
+                <!--
+                  Starts hidden. It inflates as the page's FIRST focusable, and for a
+                  signed-in user the deviceSession collector hides it a moment later —
+                  after focus may already be on it. Hiding a focused view makes Android
+                  clear focus and hand the D-pad to the first focusable in the WINDOW,
+                  which is the profile rail, so opening My Account bounced the user
+                  straight back out. VISIBLE is now the exception the collector asks for,
+                  not the state we start in and hope to leave in time.
+                -->
                 <TextView
                     android:id="@+id/loginButton"
                     android:layout_width="wrap_content"
                     android:layout_height="44dp"
+                    android:visibility="gone"
                     android:background="@drawable/tv_theme_card_selector"
                     android:clickable="true"
                     android:focusable="true"
@@ -302,6 +332,8 @@
                 android:id="@+id/anilistRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
                 android:layout_marginBottom="16dp"
                 android:background="@drawable/netflix_focusable_background"
                 android:gravity="center_vertical"
@@ -363,6 +395,8 @@
                 android:id="@+id/malRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
                 android:background="@drawable/netflix_focusable_background"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
@@ -804,4 +838,4 @@
         </LinearLayout>
     </LinearLayout>
 
-</ScrollView>
+</com.saikou.sozo_tv.components.FocusableScrollView>

@@ -31,8 +31,10 @@ class ProfileAdapter(
     // only wired after the profile fetch succeeds. A no-op default prevents a crash (was
     // lateinit -> UninitializedPropertyAccessException) if Exit is pressed before/without it.
     private var exitItemListener: () -> Unit = {}
-    private lateinit var itemListener: () -> Unit
-    private lateinit var onSectionClick: (SectionItem, Int) -> Unit
+    // Same reasoning as exitItemListener above: the rail can act before the profile
+    // fetch has wired this up (the OK handler below is immediate, not debounced), and
+    // a bare lateinit turns that into a crash rather than a no-op.
+    private var onSectionClick: ((SectionItem, Int) -> Unit)? = null
 
     private var selectedSectionIndex: Int = RecyclerView.NO_POSITION
 
@@ -42,6 +44,11 @@ class ProfileAdapter(
     /** Deferred selection repaint; see setSectionSelected. */
     private var pendingSelectionNotify: Runnable? = null
     private var pendingNav: Runnable? = null
+
+    private fun cancelPendingNav() {
+        pendingNav?.let { recyclerView.removeCallbacks(it) }
+        pendingNav = null
+    }
 
     fun setOnExitClickListener(listener: () -> Unit) {
         exitItemListener = listener
@@ -66,7 +73,7 @@ class ProfileAdapter(
             binding.root.isFocusableInTouchMode = true
             binding.root.setOnClickListener {
                 val item = SectionItem("", 1)
-                onSectionClick(item, ProfileActivity.HOME_BUTTON)
+                onSectionClick?.invoke(item, ProfileActivity.HOME_BUTTON)
             }
         }
     }
@@ -74,9 +81,15 @@ class ProfileAdapter(
     inner class AccountViewHolder(private val binding: AccountItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(account: Profile) {
+            // The name goes in the primary slot. `userNameTxt` kept its hardcoded XML
+            // placeholder and the real name was written into the secondary line, so
+            // every account row read "Account" over the person's name.
             binding.userNameTxt.isSelected = true
             binding.userNameTxt.visibility = View.VISIBLE
-            binding.phoneTxt.text = account.name
+            binding.userNameTxt.text = account.name
+            val secondary = account.email?.takeIf { it.isNotBlank() }
+            binding.phoneTxt.text = secondary.orEmpty()
+            binding.phoneTxt.visibility = if (secondary == null) View.GONE else View.VISIBLE
             // Keyed on the avatar, not on a guest id sentinel: a linked account may have no photo,
             // and loadImage() paints the 404 wallpaper for a blank URL — which would read as a
             // broken avatar rather than the tinted placeholder this view already shows.
@@ -155,10 +168,18 @@ class ProfileAdapter(
                     // Debounce: passing focus THROUGH rail items must not load every screen
                     // (each navigate() instantiates a fragment, some of which fetch network data).
                     // Only the item focus settles on for 300ms actually navigates.
-                    pendingNav?.let { recyclerView.removeCallbacks(it) }
-                    val r = Runnable { onSectionClick(section, sectionPosition) }
+                    cancelPendingNav()
+                    val r = Runnable { onSectionClick?.invoke(section, sectionPosition) }
                     pendingNav = r
                     recyclerView.postDelayed(r, 300)
+                } else {
+                    // Leaving the rail cancels it too. Cancellation used to happen only
+                    // when ANOTHER row took focus, so pressing RIGHT into the content pane
+                    // within the 300ms window still fired: navigate() swapped the fragment
+                    // out from under the view that had just taken focus, and the D-pad was
+                    // left holding a detached view. Focus-lost is dispatched before
+                    // focus-gained, so a move between two rows still re-arms correctly.
+                    cancelPendingNav()
                 }
             }
 
@@ -171,7 +192,14 @@ class ProfileAdapter(
                 layoutParams.topMargin = defaultTopMargin
                 layoutParams.bottomMargin = defaultBottomMargin
                 binding.root.layoutParams = layoutParams
-                binding.root.setOnClickListener(null)
+                // Was setOnClickListener(null) — which still calls setClickable(true),
+                // so every navigation row was clickable with no handler and pressing OK
+                // did nothing. Navigation was reachable only by waiting out the 300ms
+                // dwell, and a remote user presses OK.
+                binding.root.setOnClickListener {
+                    cancelPendingNav()
+                    onSectionClick?.invoke(section, sectionPosition)
+                }
             } else {
                 binding.spaceVw1.visibility = View.VISIBLE
                 binding.spaceVw2.visibility = View.VISIBLE

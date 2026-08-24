@@ -22,6 +22,7 @@ import com.saikou.sozo_tv.presentation.viewmodel.BookmarkViewModel
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
 import com.saikou.sozo_tv.utils.LocalData.isBookmarkClicked
 import com.saikou.sozo_tv.data.model.toDomain
+import com.saikou.sozo_tv.utils.keepFocusAlive
 import com.saikou.sozo_tv.utils.visible
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -62,14 +63,24 @@ class BookmarkScreen : Fragment() {
             BookmarkType.CHARACTER -> characterCount
             BookmarkType.TV_CHANNEL -> channelCount
         }
-        b.bookmarkRv.adapter = when (bookmarkType) {
+        val nextAdapter = when (bookmarkType) {
             BookmarkType.MEDIA -> animeAdapter
             BookmarkType.CHARACTER -> characterAdapter
             BookmarkType.TV_CHANNEL -> channelsAdapter
         }
-        b.bookmarkRv.setNumColumns(4)
-        b.bookmarkRv.visibility = if (count == 0) View.GONE else View.VISIBLE
-        b.bookmarkPlaceHolder.root.visibility = if (count == 0) View.VISIBLE else View.GONE
+        // renderTab() runs from THREE independent Room observers (media, characters,
+        // channels), each firing whenever its own query lands regardless of which tab
+        // is showing. RecyclerView.setAdapter has no identity short-circuit — it
+        // recycles and detaches every child, including the one holding the D-pad — so
+        // a character query resolving a second after the media grid painted tore focus
+        // out of the poster the user had just moved to and dropped it on the rail.
+        // HomeAdapter.kt:359 and EpisodeScreen.kt:159 guard the same way.
+        b.root.keepFocusAlive {
+            if (b.bookmarkRv.adapter !== nextAdapter) b.bookmarkRv.adapter = nextAdapter
+            b.bookmarkRv.setNumColumns(4)
+            b.bookmarkRv.visibility = if (count == 0) View.GONE else View.VISIBLE
+            b.bookmarkPlaceHolder.root.visibility = if (count == 0) View.VISIBLE else View.GONE
+        }
         // Saying "no movie or serial" on the Characters tab describes the wrong list.
         b.bookmarkPlaceHolder.placeholderTxt.setText(
             when (bookmarkType) {

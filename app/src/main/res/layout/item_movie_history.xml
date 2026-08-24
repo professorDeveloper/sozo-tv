@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  A history card says four things, and each one has exactly one place:
+  the poster, where you stopped (over the bar that shows it), what the title
+  is, and which episode/source it came from. Everything used to be stacked on
+  the poster at once — a two-line red badge across the top, a stray date at the
+  bottom — so the artwork was unreadable and the card said less, not more.
+-->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -31,34 +38,39 @@
                 android:scaleType="centerCrop"
                 android:src="@drawable/joker" />
 
-
         </FrameLayout>
 
-
+        <!--
+          A state, not a label. It only appears when you are at the end of
+          something, which is the one thing worth putting over the artwork.
+          Capped and single-line so a long word can never wrap it into a block.
+        -->
         <TextView
             android:id="@+id/movieStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start|top"
-            android:layout_marginStart="5dp"
-            android:layout_marginTop="7dp"
+            android:layout_marginStart="6dp"
+            android:layout_marginTop="6dp"
             android:background="@drawable/background_text_movie_status"
+            android:ellipsize="end"
             android:fontFamily="@font/rubik_regular"
             android:gravity="center"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="2dp"
-            android:text="Almost finish"
+            android:maxLines="1"
+            android:maxWidth="120dp"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="1dp"
             android:textColor="#fff"
             android:textSize="@dimen/tv_text_caption"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            tools:text="Almost finished" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|start"
             android:orientation="vertical"
-            android:paddingVertical="3dp"
-            android:paddingEnd="2dp">
+            android:paddingBottom="3dp">
 
             <TextView
                 android:id="@+id/info_item"
@@ -67,60 +79,64 @@
                 android:ellipsize="end"
                 android:fontFamily="@font/rubik_regular"
                 android:maxLines="1"
-                android:paddingStart="10dp"
-                android:text="2020 \u2022 Detektiv \u2022 Ispaniya"
+                android:paddingHorizontal="8dp"
+                android:paddingBottom="3dp"
+                android:shadowColor="#000000"
+                android:shadowRadius="4"
                 android:textColor="#fff"
                 android:textSize="@dimen/tv_text_caption"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:text="00:13 of 1:48:53" />
 
             <androidx.core.widget.ContentLoadingProgressBar
                 android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
                 android:layout_height="3dp"
                 android:layout_gravity="bottom|center"
                 android:layout_marginHorizontal="8dp"
-                android:layout_marginTop="3dp"
-                android:layout_marginBottom="2dp"
                 android:indeterminate="false"
                 android:max="100"
-                android:progress="20"
-                android:progressDrawable="@drawable/custom_progress" />
+                android:progressDrawable="@drawable/custom_progress"
+                tools:progress="20" />
         </LinearLayout>
-
 
     </androidx.cardview.widget.CardView>
 
-
+    <!-- The name a person recognises: the show, never the episode label. -->
     <TextView
         android:id="@+id/movieTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="2dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="6dp"
         android:ellipsize="marquee"
-        android:marqueeRepeatLimit="marquee_forever"
         android:fontFamily="@font/rubik_regular"
+        android:marqueeRepeatLimit="marquee_forever"
         android:maxLines="1"
-        android:text="Hokkeynie papi"
         android:textColor="#ffffff"
         android:textSize="@dimen/tv_text_label"
         app:layout_constraintEnd_toEndOf="@+id/cardView"
         app:layout_constraintStart_toStartOf="@+id/cardView"
-        app:layout_constraintTop_toBottomOf="@+id/cardView" />
+        app:layout_constraintTop_toBottomOf="@+id/cardView"
+        tools:text="The Odyssey" />
 
+    <!-- Which episode, from which source. Hidden entirely when it is neither. -->
     <TextView
         android:id="@+id/timeStr"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="2dp"
+        android:layout_marginTop="1dp"
+        android:ellipsize="end"
         android:fontFamily="@font/rubik_regular"
-        android:text="Stopped at 01:15:27"
+        android:maxLines="1"
         android:textColor="@color/lb_grey"
         android:textSize="@dimen/tv_text_caption"
-        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="@+id/movieTitle"
         app:layout_constraintStart_toStartOf="@+id/movieTitle"
-        app:layout_constraintTop_toBottomOf="@+id/movieTitle" />
+        app:layout_constraintTop_toBottomOf="@+id/movieTitle"
+        tools:text="Episode 1 · VidAPI" />
 
     <LinearLayout
         android:id="@+id/playContainer"
@@ -141,7 +157,7 @@
             android:layout_gravity="center"
             android:duplicateParentState="true"
             android:fontFamily="@font/rubik_regular"
-            android:text="Play"
+            android:text="@string/play"
             android:textColor="@color/color_item_tv_category_tv"
             android:textSize="@dimen/tv_text_label" />
 

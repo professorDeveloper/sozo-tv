@@ -41,6 +41,14 @@ class TvToggleRowView @JvmOverloads constructor(
         container.setOnClickListener { switchView.toggle() }
         container.setOnKeyListener { _, keyCode, event ->
             if (event.action != KeyEvent.ACTION_DOWN) return@setOnKeyListener false
+            // Same guard as TvDropdownSectionView: a held OK repeats ACTION_DOWN, and
+            // without this the switch flipped on every repeat. On the 18+ row that
+            // meant re-showing NsfwAlertDialog in a loop for as long as the button was
+            // down. Repeats are consumed so they cannot leak upward either.
+            if (event.repeatCount != 0) {
+                return@setOnKeyListener keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                        keyCode == KeyEvent.KEYCODE_ENTER
+            }
             when (keyCode) {
                 KeyEvent.KEYCODE_DPAD_CENTER,
                 KeyEvent.KEYCODE_ENTER -> {

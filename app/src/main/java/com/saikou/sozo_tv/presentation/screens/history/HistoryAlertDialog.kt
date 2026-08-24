@@ -15,16 +15,18 @@ class HistoryAlertDialog : DialogFragment() {
     private var _binding: HistoryAlertDialogBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var noClearListener: () -> Unit
+    // Named for what they do. `noClearListener` was the one that CLEARED and
+    // `yesContinueListener` the one that cancelled, which is a good way to wire
+    // a destructive action to the wrong button on the next edit.
+    private var onClear: (() -> Unit)? = null
+    private var onKeep: (() -> Unit)? = null
 
-    private lateinit var yesContinueListener: () -> Unit
-
-    fun setNoClearListener(listener: () -> Unit) {
-        noClearListener = listener
+    fun setOnClear(listener: () -> Unit) {
+        onClear = listener
     }
 
-    fun setYesContinueListener(listener: () -> Unit) {
-        yesContinueListener = listener
+    fun setOnKeep(listener: () -> Unit) {
+        onKeep = listener
     }
 
     override fun onCreateView(
@@ -40,12 +42,8 @@ class HistoryAlertDialog : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         dialog!!.window?.setBackgroundDrawable(ColorDrawable(0))
         dialog!!.window?.setWindowAnimations(R.style.DialogAnimation)
-        binding.noContinueBtn.setOnClickListener {
-            noClearListener.invoke()
-        }
-        binding.yesContinueBtn.setOnClickListener {
-            yesContinueListener.invoke()
-        }
+        binding.clearBtn.setOnClickListener { onClear?.invoke() }
+        binding.keepBtn.setOnClickListener { onKeep?.invoke() }
     }
 
     override fun onDestroyView() {
