@@ -19,6 +19,7 @@ import com.saikou.sozo_tv.parser.sources.AnimeSources
 import com.saikou.sozo_tv.parser.sources.SourceManager
 import com.saikou.sozo_tv.utils.Resource
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 
 class PlayAnimeViewModel(
@@ -258,6 +259,7 @@ class PlayAnimeViewModel(
                     if (sniffed != null) {
                         url = sniffed.url
                         headers = option.headers + sniffed.headers
+                        url = applyRewrite(directive.rewrite, url, headers)
                         mime = if (sniffed.playType == "hls") MimeTypes.APPLICATION_M3U8
                         else MimeTypes.VIDEO_MP4
                     }
@@ -361,6 +363,21 @@ class PlayAnimeViewModel(
         val patterns: List<String>,
         val blockHosts: List<String>,
         val headers: Map<String, String>,
+        val rewrite: UrlRewrite? = null,
+    )
+
+    /**
+     * How to turn the url that was sniffed into the one worth playing.
+     *
+     * Some players ask for a single rendition and never for the master, so what
+     * the sniffer sees is one fixed quality — the ladder exists, the page just
+     * never requests it. When the master's url is derivable from the variant's,
+     * the backend says so here rather than this app knowing which site it is.
+     */
+    private data class UrlRewrite(
+        val pattern: String,
+        val replace: String,
+        val verify: Boolean,
     )
 
     private fun parseSniff(sniffJson: String?): SniffDirective {
@@ -377,8 +394,47 @@ class PlayAnimeViewModel(
                         h.optString(k).takeIf { v -> v.isNotEmpty() }?.let { v -> k to v }
                     }.toMap()
                 } ?: emptyMap(),
+                rewrite = o.optJSONObject("rewrite")?.let { r ->
+                    val pattern = r.optString("pattern")
+                    val replace = r.optString("replace")
+                    if (pattern.isEmpty()) null
+                    else UrlRewrite(pattern, replace, r.optBoolean("verify", true))
+                },
             )
         }.getOrDefault(fallback)
+    }
+
+    /**
+     * Swap a sniffed url for the one the directive says is worth playing.
+     *
+     * A derived url is a guess about someone else's naming, so it is fetched
+     * before it is trusted: anything that is not a playlist leaves the sniffed
+     * url in place. One request, and only when a rule was sent at all.
+     */
+    private suspend fun applyRewrite(
+        rule: UrlRewrite?,
+        url: String,
+        headers: Map<String, String>,
+    ): String = withContext(Dispatchers.IO) {
+        if (rule == null) return@withContext url
+        val candidate = runCatching {
+            val re = Regex(rule.pattern)
+            if (!re.containsMatchIn(url)) null else re.replaceFirst(url, rule.replace)
+        }.getOrNull()
+        if (candidate.isNullOrEmpty() || candidate == url) return@withContext url
+        if (!rule.verify) return@withContext candidate
+
+        runCatching {
+            val client = okhttp3.OkHttpClient.Builder()
+                .callTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                .build()
+            val b = okhttp3.Request.Builder().url(candidate)
+            headers.forEach { (k, v) -> b.header(k, v) }
+            client.newCall(b.build()).execute().use { res ->
+                val head = res.body?.source()?.peek()?.readUtf8Line().orEmpty()
+                if (res.isSuccessful && head.trimStart().startsWith("#EXTM3U")) candidate else url
+            }
+        }.getOrDefault(url)
     }
 
     private fun org.json.JSONArray?.strings(): List<String> {
