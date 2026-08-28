@@ -18,3 +18,6 @@ local.properties
 key.properties
 *.jks
 *.keystore
+
+# Sozo Glass design-system working docs (generated)
+/.glass-spec

@@ -29,6 +29,11 @@ object NativeTracks {
          *  publisher's free text and differ between releases of the same show, so
          *  a remembered choice is matched on this instead. */
         val language: String = "",
+        /** `Format.id`, "" when none was declared. The player merges a sideloaded
+         *  subtitle FILE into the same track list as the manifest's own tracks, and
+         *  the id is the only thing that tells the two apart — see
+         *  `SeriesPlayerScreen.SIDELOADED_SUBTITLE_ID`. */
+        val id: String = "",
     )
 
     /** Empty when there is nothing to choose between — one track is not a choice. */
@@ -68,7 +73,7 @@ object NativeTracks {
                 if (!group.isTrackSupported(i)) continue
                 val format = group.getTrackFormat(i)
                 val (label, detail) = describe(format)
-                out += Option(label, detail, group, i, codeOf(format))
+                out += Option(label, detail, group, i, codeOf(format), format.id.orEmpty())
             }
         }
         // Same language twice with the same detail is a manifest artefact, not

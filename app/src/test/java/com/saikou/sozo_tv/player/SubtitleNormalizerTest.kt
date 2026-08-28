@@ -5,6 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.Locale
 
 /**
  * The samples here are the shapes that actually reached the player and produced
@@ -82,5 +83,41 @@ class SubtitleNormalizerTest {
 
         assertEquals(SubtitleNormalizer.Kind.SSA, r.kind)
         assertFalse(r.text.startsWith("WEBVTT"))
+        assertEquals(1, r.cues)
+    }
+
+    @Test
+    fun `an error page served as a subtitle reports no cues`() {
+        // A subtitle CDN that rejects the request routinely answers 200 with HTML. This used to
+        // be wrapped in a WEBVTT header and attached as a track that drew nothing.
+        val html = "<!DOCTYPE html>\n<html><body><h1>403 Forbidden</h1></body></html>\n"
+
+        assertEquals(0, SubtitleNormalizer.normalize(html).cues)
+    }
+
+    @Test
+    fun `hour-less webvtt timings are passed through and still counted`() {
+        // WebVTT allows MM:SS.mmm. The rewriting regex requires hours, so these lines go out
+        // verbatim — and if they were not counted the whole file would look like an error page.
+        val vtt = "WEBVTT\n\n00:05.000 --> 00:06.000\nNo hours here\n"
+
+        val r = SubtitleNormalizer.normalize(vtt)
+
+        assertEquals(1, r.cues)
+        assertTrue(r.text.contains("00:05.000 --> 00:06.000"))
+    }
+
+    @Test
+    fun `timestamps are ascii digits whatever the device locale`() {
+        // `%02d` under an Arabic/Persian/Bengali locale emits that locale's own digits, which
+        // WebVTT does not accept — every cue in the file was dropped on exactly those devices.
+        val previous = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.forLanguageTag("ar-EG-u-nu-arab"))
+            val r = SubtitleNormalizer.normalize("1\n00:00:06,376 --> 00:00:46,876\nHello\n")
+            assertTrue(r.text.contains("00:00:06.376 --> 00:00:46.876"))
+        } finally {
+            Locale.setDefault(previous)
+        }
     }
 }

@@ -140,7 +140,11 @@ class SeriesPlayerScreen : Fragment() {
     private var progressRunnable: Runnable? = null
 
     private val handler = Handler()
-    private lateinit var skipIntroView: SkipIntroView
+
+    // Exactly one for the whole screen. It used to be rebuilt on every STATE_READY and
+    // its view was never removed from the PlayerView, so each rebuffer, seek and quality
+    // switch left another full-screen child behind.
+    private var skipIntroView: SkipIntroView? = null
 
     private var lastHeaders: Map<String, String> = emptyMap()
 
@@ -597,21 +601,25 @@ class SeriesPlayerScreen : Fragment() {
                         startProgressTracking()
 
                         val dur = player.duration
-                        if (::skipIntroView.isInitialized) {
-                            skipIntroView.cleanup()
-                        }
 
+                        // Attach once, then only re-target. STATE_READY also fires on
+                        // rebuffer and seek; bindEpisode() ignores a re-bind of the
+                        // episode already bound, so an in-progress skip is not reset.
                         runCatching {
-                            skipIntroView = SkipIntroView(
+                            val skip = skipIntroView ?: SkipIntroView(
                                 binding.pvPlayer,
                                 player,
                                 model,
-                                handler,
+                                handler
+                            ).also {
+                                it.attach()
+                                skipIntroView = it
+                            }
+                            skip.bindEpisode(
                                 args.idMal,
                                 episodeList.getOrNull(model.currentEpIndex)?.episode ?: 0,
                                 dur / 1000
                             )
-                            skipIntroView.initialize()
                         }.onFailure {
                             Log.w("SeriesPlayerScreen", "SkipIntro init failed: ${it.message}")
                         }
@@ -999,9 +1007,7 @@ class SeriesPlayerScreen : Fragment() {
     private fun playNewEpisode(videoUrl: String, headers: Map<String, String>) {
         initializeVideo(headers)
 
-        if (::skipIntroView.isInitialized) {
-            skipIntroView.resetSkippedTimestamps()
-        }
+        skipIntroView?.resetSkippedTimestamps()
 
         resetCountdownState()
         stopProgressTracking()
@@ -1010,11 +1016,20 @@ class SeriesPlayerScreen : Fragment() {
         player.clearMediaItems()
 
         val mime = model.videoOptions.getOrNull(model.currentSelectedVideoOptionIndex)?.mimeTypes
-        val mediaSource = createMediaSource(effectiveStreamUrl(videoUrl), mime)
+        val url = effectiveStreamUrl(videoUrl)
+        adoptSubtitleList(model.seriesResponse?.subtitleList.orEmpty())
 
-        player.setMediaSource(mediaSource)
-        player.prepare()
-        player.play()
+        // Off the main thread because the new episode's subtitle file has to be fetched before
+        // the source exists; this used to call createMediaSource() directly, which is why every
+        // episode after the first played with no subtitles at all.
+        lifecycleScope.launch {
+            val source = withContext(Dispatchers.IO) { buildPlaybackSource(url, mime) }
+            if (!::player.isInitialized || _binding == null) return@launch
+            player.setMediaSource(source)
+            player.prepare()
+            setTextRendererEnabled(subtitlesEnabled)
+            player.play()
+        }
     }
 
     @OptIn(UnstableApi::class)
@@ -1030,24 +1045,31 @@ class SeriesPlayerScreen : Fragment() {
         player.stop()
         player.clearMediaItems()
 
-        val mediaSource = createMediaSource(
-            effectiveStreamUrl(videoUrl),
-            mimeType
-                ?: model.seriesResponse?.type
-        )
-        player.setMediaSource(mediaSource)
+        val url = effectiveStreamUrl(videoUrl)
+        val mime = mimeType ?: model.seriesResponse?.type
+        adoptSubtitleList(model.seriesResponse?.subtitleList.orEmpty())
+
         // Track groups belong to the stream that declared them, so a pinned rendition cannot
         // survive a reload. Back to auto rather than to a stale override.
         selectedNativeQuality = null
         selectedAudio = null
         autoFallbackTries = 0
         selectedText = null
-        applyNativeQuality()
-        // Speed is the user's, not the stream's, so it is deliberately kept.
-        if (playbackSpeed != 1.0f) player.setPlaybackSpeed(playbackSpeed)
-        player.prepare()
-        player.seekTo(resumePos)
-        player.play()
+
+        // Same reason as playNewEpisode: the source has to carry the subtitle, so building it
+        // means a network round trip. Switching quality used to silently drop subtitles.
+        lifecycleScope.launch {
+            val source = withContext(Dispatchers.IO) { buildPlaybackSource(url, mime) }
+            if (!::player.isInitialized || _binding == null) return@launch
+            player.setMediaSource(source)
+            applyNativeQuality()
+            setTextRendererEnabled(subtitlesEnabled)
+            // Speed is the user's, not the stream's, so it is deliberately kept.
+            if (playbackSpeed != 1.0f) player.setPlaybackSpeed(playbackSpeed)
+            player.prepare()
+            player.seekTo(resumePos)
+            player.play()
+        }
     }
 
     @OptIn(UnstableApi::class)
@@ -1285,14 +1307,38 @@ class SeriesPlayerScreen : Fragment() {
     /** The extractor's own subtitle files, if this episode came with any. */
     private var extractorSubtitles: List<SubTitle> = emptyList()
 
-    @OptIn(UnstableApi::class)
-    private fun refreshSubtitleButton() {
-        if (!::player.isInitialized) return
-        val b = _binding ?: return
-        val embedded = NativeTracks.text(player.currentTracks)
-        // Left hidden on purpose: subtitles are reached from the ⚙ menu now.
-        // The view stays so its click handler remains the single implementation.
+    /**
+     * Points the remembered subtitle choice at [list], the incoming stream's own subtitles.
+     *
+     * `currentSubEpIndex` lives in the view model and outlives the episode it was chosen for.
+     * Nothing re-anchored it, so the index picked for a five-language episode was reused
+     * verbatim on a two-language one, fell outside the list, and the attach was skipped in
+     * silence. Matching on the label first keeps the viewer's language across an episode
+     * change even when the provider reorders the list.
+     */
+    private fun adoptSubtitleList(list: List<SubTitle>) {
+        extractorSubtitles = list
+        // Nothing to anchor to. The index is left as it is rather than cleared, so a source
+        // that ships no subtitle files for one episode does not erase the choice for the next.
+        if (list.isEmpty()) return
+
+        if (!subtitlesEnabled) {
+            model.currentSubEpIndex = -1
+            return
+        }
+
+        val previous = extractorSubtitleLabel
+        val match = previous?.let { label -> list.indexOfFirst { it.label == label } } ?: -1
+        model.currentSubEpIndex = when {
+            match >= 0 -> match
+            model.currentSubEpIndex in list.indices -> model.currentSubEpIndex
+            else -> 0
+        }
+        extractorSubtitleLabel = list[model.currentSubEpIndex].label
     }
+
+    /** The label behind [PlayAnimeViewModel.currentSubEpIndex]; see [adoptSubtitleList]. */
+    private var extractorSubtitleLabel: String? = null
 
     /**
      * The subtitle tracks inside the stream, plus off.
@@ -1301,9 +1347,23 @@ class SeriesPlayerScreen : Fragment() {
      * operation: one is a track override the player applies instantly, the
      * other rebuilds the media source around a downloaded file.
      */
+    /**
+     * The stream's OWN text tracks — the sideloaded file excluded.
+     *
+     * Once the extractor's subtitle is merged in, the player reports it as just another text
+     * track. Every caller here means "what the manifest brought", and counting our own file
+     * among them made the menu offer the track it had already selected while hiding the
+     * extractor's language list behind an `else` that could then never run.
+     */
+    @OptIn(UnstableApi::class)
+    private fun embeddedTextTracks(): List<NativeTracks.Option> {
+        if (!::player.isInitialized) return emptyList()
+        return NativeTracks.text(player.currentTracks).filter { it.id != SIDELOADED_SUBTITLE_ID }
+    }
+
     @OptIn(UnstableApi::class)
     private fun showEmbeddedSubtitleDialog() {
-        val options = NativeTracks.text(player.currentTracks)
+        val options = embeddedTextTracks()
         if (options.isEmpty()) return
 
         val rows = buildList {
@@ -1327,6 +1387,7 @@ class SeriesPlayerScreen : Fragment() {
         ).apply {
             setOnRowPicked { index ->
                 selectedText = if (index == 0) null else options.getOrNull(index - 1)
+                subtitlesEnabled = selectedText != null
                 val selector = trackSelector
                 if (index == 0 && selector != null) {
                     // Off means off: clearing the override alone would let the
@@ -1352,6 +1413,8 @@ class SeriesPlayerScreen : Fragment() {
     @OptIn(UnstableApi::class)
     private fun applySubtitleChoice(option: NativeTracks.Option?) {
         selectedText = option
+        // A standing preference, so the next episode and the next quality switch honour it.
+        subtitlesEnabled = option != null
         val selector = trackSelector
         if (option == null && selector != null) {
             selector.setParameters(
@@ -1386,8 +1449,10 @@ class SeriesPlayerScreen : Fragment() {
 
             val videoUrl = effectiveStreamUrl(vod.urlobj)
             val subtitles = vod.subtitleList.orEmpty()
-            var isSubtitleHave = subtitles.isNotEmpty()
-            val useSubtitles = isSubtitleHave
+            // The chosen index belongs to the PREVIOUS episode's list — it lives in the view
+            // model and nothing reset it. A shorter list left it out of range and the attach
+            // was skipped without a word; a longer one attached a different language.
+            adoptSubtitleList(subtitles)
 
             val lastPosition = model.getWatchedHistoryEntity?.lastPosition ?: 0L
 
@@ -1402,14 +1467,17 @@ class SeriesPlayerScreen : Fragment() {
             setupOrUpdatePreviewThumbnails(vod.thumbnail, vod.header)
 
             val finalSource = withContext(Dispatchers.IO) {
-                buildMediaSourceWithSubtitle(videoUrl, useSubtitles)
+                buildPlaybackSource(videoUrl, vod.type)
             }
 
             applySubtitleStyleToPlayer(binding.pvPlayer, PreferenceManager())
 
             player.setMediaSource(finalSource)
             player.prepare()
-            setTextRendererEnabled(useSubtitles)
+            // Not `useSubtitles`: a stream with no sideloaded FILES can still carry its own
+            // text tracks, and gating the renderer on the extractor's list is what kept those
+            // permanently dark. Only the viewer's own "Off" turns text off now.
+            setTextRendererEnabled(subtitlesEnabled)
 
             if (!model.doNotAsk) {
                 if (lastPosition > 0) player.seekTo(lastPosition)
@@ -1418,13 +1486,6 @@ class SeriesPlayerScreen : Fragment() {
             }
 
             player.play()
-
-            // Visible when EITHER kind exists. It used to key off the extractor's
-            // list alone, so a stream carrying its own subtitle tracks showed no
-            // subtitle button at all — the tracks were parsed, selectable, and
-            // unreachable.
-            extractorSubtitles = subtitles
-            refreshSubtitleButton()
 
             binding.pvPlayer.controller.binding.exoAudio.setOnClickListener { showAudioDialog() }
 
@@ -1442,16 +1503,31 @@ class SeriesPlayerScreen : Fragment() {
                     return@setOnClickListener
                 }
                 val currentSelected = subtitles.getOrNull(model.currentSubEpIndex)
-                val dialog =
-                    SubtitleChooserDialog.newInstance(subtitles, currentSelected, isSubtitleHave)
+                // The dialog's third argument is "are subtitles ON", not "does this episode
+                // have any" — passing the latter opened it claiming subtitles were on when
+                // the viewer had turned them off.
+                val dialog = SubtitleChooserDialog.newInstance(
+                    subtitles, currentSelected, subtitlesEnabled && currentSelected != null
+                )
 
                 dialog.setSubtitleSelectionListener { selectedSubtitle ->
                     val enabled = selectedSubtitle?.file?.isNotEmpty() == true
 
                     val newIndex = if (enabled) subtitles.indexOf(selectedSubtitle) else -1
-                    if (model.currentSubEpIndex == newIndex) return@setSubtitleSelectionListener
+                    // The state check matters as much as the index: after "Off" the index is
+                    // -1, but re-picking the language that was showing before leaves the index
+                    // unchanged, and the old guard returned early — the dialog closed and
+                    // subtitles stayed off.
+                    if (model.currentSubEpIndex == newIndex && subtitlesEnabled == enabled) {
+                        return@setSubtitleSelectionListener
+                    }
 
                     model.currentSubEpIndex = newIndex
+                    subtitlesEnabled = enabled
+                    extractorSubtitleLabel = selectedSubtitle?.label
+                    // The file about to be attached is the choice now; any override left over
+                    // from the stream's own tracks would fight it.
+                    selectedText = null
 
                     binding.pvPlayer.subtitleView?.visibility =
                         if (enabled) View.VISIBLE else View.GONE
@@ -1462,11 +1538,9 @@ class SeriesPlayerScreen : Fragment() {
                     val previousPos = player.currentPosition
                     player.pause()
 
-                    isSubtitleHave = enabled
-
                     lifecycleScope.launch {
                         val newSource = withContext(Dispatchers.IO) {
-                            buildMediaSourceWithSubtitle(videoUrl, isSubtitleHave)
+                            buildPlaybackSource(videoUrl, vod.type)
                         }
                         player.setMediaSource(newSource)
                         player.prepare()
@@ -2105,9 +2179,9 @@ class SeriesPlayerScreen : Fragment() {
         thumbLoader?.clear()
         thumbLoader = null
 
-        if (::skipIntroView.isInitialized) {
-            skipIntroView.cleanup()
-        }
+        // cleanup() detaches the pill from the PlayerView; the binding goes away next.
+        skipIntroView?.cleanup()
+        skipIntroView = null
 
         if (::player.isInitialized) {
             if (player.currentPosition > 10) {
@@ -2140,5 +2214,18 @@ class SeriesPlayerScreen : Fragment() {
 
     private companion object {
         const val TRACKER_WATCHED_FRACTION = 0.85
+
+        /**
+         * `Format.id` stamped on the extractor's own subtitle file.
+         *
+         * Once a sideloaded subtitle is merged in, `player.currentTracks` lists it beside the
+         * manifest's text tracks and nothing else distinguishes them — which is how the ⚙
+         * menu ended up offering the file we just attached as though it were an in-stream
+         * track, and hiding the extractor's language list behind it.
+         */
+        const val SIDELOADED_SUBTITLE_ID = "sozo-sideloaded-subtitle"
+
+        /** A subtitle is tens of KB; it must not hold the first frame back the way a stream can. */
+        const val SUBTITLE_TIMEOUT_S = 10L
     }
 }

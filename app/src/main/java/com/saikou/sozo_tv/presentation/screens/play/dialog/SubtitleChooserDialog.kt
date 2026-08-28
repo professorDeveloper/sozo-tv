@@ -70,7 +70,14 @@ class SubtitleChooserDialog : DialogFragment() {
         setEnabledState(subtitlesEnabled, updateFocus = true)
 
         binding.subtitleToggleOff.setOnClickListener { commit(null) }
-        binding.subtitleToggleOn.setOnClickListener { setEnabledState(true) }
+        binding.subtitleToggleOn.setOnClickListener {
+            setEnabledState(true)
+            // "On" has to reach the player by itself. It used to only repaint this panel and
+            // reveal the list, so a viewer who pressed On and then Back had changed nothing:
+            // the toggle showed "on" and the subtitles stayed off. The dialog deliberately
+            // stays open afterwards, so the language can still be picked from the list.
+            currentSelected?.let { onSelected?.invoke(it) }
+        }
 
         binding.subtitleStyleBtn.setOnClickListener {
             SubtitleStyleDialog.newInstance().apply {

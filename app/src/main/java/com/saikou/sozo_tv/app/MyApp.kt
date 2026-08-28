@@ -36,20 +36,13 @@ class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        // Before anything makes a request: adopt this device's own WebView
-        // User-Agent. A Cloudflare managed challenge compares the header
-        // against the engine behind it, so a hard-coded version that does not
-        // match this device's WebView is a mismatch it never clears.
+
         initSozoUserAgent(this)
         Bugsnag.start(this)
         AndroidThreeTen.init(this)
         FirebaseApp.initializeApp(this)
         BugsnagPerformance.start(this)
         CloudStreamApp.attach(this)
-        // The library's own WebViewResolver builds its offscreen WebView from
-        // `com.lagradost.api.getContext()`, which is null until this is called —
-        // so every plugin that resolves a stream through a WebView (and every
-        // Cloudflare challenge that needs one) threw instead of loading.
         com.lagradost.api.setContext(java.lang.ref.WeakReference(this))
         trackForegroundActivity()
         startKoin {
