@@ -2,18 +2,15 @@ package com.saikou.sozo_tv.presentation.screens.play.dialog
 
 import android.graphics.Color
 import android.graphics.Typeface
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.DialogFragment
 import com.saikou.sozo_tv.R
-import com.saikou.sozo_tv.utils.requestInitialFocus
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.DialogSubtitleStyleBinding
 
@@ -41,7 +38,7 @@ class SubtitleStyleDialog : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupDialogWindow()
+        dialog?.applyGlassWindow()
 
         binding.close.setOnClickListener { dismiss() }
 
@@ -50,19 +47,14 @@ class SubtitleStyleDialog : DialogFragment() {
             onStyleChanged?.invoke()
         }
 
-        binding.subtitleFontDefault.requestInitialFocus()
-    }
-
-    private fun setupDialogWindow() {
-        dialog?.window?.apply {
-            setWindowAnimations(R.style.DialogAnimation)
-            setBackgroundDrawable(ColorDrawable(0))
-            setFlags(
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-            )
-            clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        val font = prefs.getSubtitleStyle().font
+        val focusTarget = when (font) {
+            PreferenceManager.Font.POPPINS -> binding.subtitleFontPoppins
+            PreferenceManager.Font.DAYS -> binding.subtitleFontDays
+            PreferenceManager.Font.MONO -> binding.subtitleFontMono
+            PreferenceManager.Font.DEFAULT -> binding.subtitleFontDefault
         }
+        focusTarget.post { focusTarget.requestFocus() }
     }
 
     private fun setupSubtitleStyleUi(
@@ -75,32 +67,41 @@ class SubtitleStyleDialog : DialogFragment() {
 
         fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
 
-        fun fontName(font: PreferenceManager.Font): String = when (font) {
-            PreferenceManager.Font.DEFAULT -> "Default"
-            PreferenceManager.Font.POPPINS -> "Poppins"
-            PreferenceManager.Font.DAYS -> "Days"
-            PreferenceManager.Font.MONO -> "Mono"
-        }
+        fun fontName(font: PreferenceManager.Font): String = getString(
+            when (font) {
+                PreferenceManager.Font.DEFAULT -> R.string.subtitle_font_default
+                PreferenceManager.Font.POPPINS -> R.string.poppins
+                PreferenceManager.Font.DAYS -> R.string.days
+                PreferenceManager.Font.MONO -> R.string.subtitle_font_mono
+            }
+        )
 
         fun colorName(color: Int): String {
             val ctx = preview.context
-            return when (color) {
-                ContextCompat.getColor(ctx, R.color.netflix_white) -> "White"
-                ContextCompat.getColor(ctx, R.color.orange) -> "Orange"
-                ContextCompat.getColor(ctx, R.color.netflix_gray) -> "Gray"
-                ContextCompat.getColor(ctx, R.color.netflix_green) -> "Green"
-                ContextCompat.getColor(ctx, R.color.netflix_red) -> "Red"
-                ContextCompat.getColor(ctx, R.color.cta_button_normal) -> "Blue"
-                else -> "#%06X".format(0xFFFFFF and color)
+            val named = when (color) {
+                ContextCompat.getColor(ctx, R.color.netflix_white) -> R.string.subtitle_color_white
+                ContextCompat.getColor(ctx, R.color.orange) -> R.string.subtitle_color_orange
+                ContextCompat.getColor(ctx, R.color.netflix_gray) -> R.string.subtitle_color_gray
+                ContextCompat.getColor(ctx, R.color.netflix_green) -> R.string.subtitle_color_green
+                ContextCompat.getColor(ctx, R.color.netflix_red) -> R.string.subtitle_color_red
+                ContextCompat.getColor(ctx, R.color.cta_button_normal) -> R.string.subtitle_color_blue
+                else -> null
             }
+            return named?.let { getString(it) } ?: "#%06X".format(0xFFFFFF and color)
         }
 
+        fun onOff(enabled: Boolean): String =
+            getString(if (enabled) R.string.on else R.string.off)
+
         fun updateSummary() {
-            val summary =
-                "${fontName(state.font)} • ${state.sizeSp}sp • ${colorName(state.color)} • " +
-                        "BG ${if (state.background) "On" else "Off"} • " +
-                        "Outline ${if (state.outline) "On" else "Off"}"
-            binding.styleSummary.text = summary
+            binding.styleSummary.text = getString(
+                R.string.subtitle_style_summary,
+                fontName(state.font),
+                state.sizeSp,
+                colorName(state.color),
+                onOff(state.background),
+                onOff(state.outline),
+            )
         }
 
         fun resolveTypeface(): Typeface {
@@ -144,11 +145,9 @@ class SubtitleStyleDialog : DialogFragment() {
             onChanged?.invoke()
         }
 
-        // initial
         applyPreview()
         updateSummary()
 
-        // Fonts
         val fonts = mapOf(
             binding.subtitleFontDefault to PreferenceManager.Font.DEFAULT,
             binding.subtitleFontPoppins to PreferenceManager.Font.POPPINS,
@@ -165,14 +164,12 @@ class SubtitleStyleDialog : DialogFragment() {
             }
         }
 
-        // Size
         binding.subtitleSizeStepper.setValue(state.sizeSp)
         binding.subtitleSizeStepper.setOnValueChangedListener {
             state = state.copy(sizeSp = it)
             commit()
         }
 
-        // Colors
         val ctx = preview.context
         val colorMap = mapOf(
             binding.subtitleColorWhite to ContextCompat.getColor(ctx, R.color.netflix_white),
@@ -192,7 +189,6 @@ class SubtitleStyleDialog : DialogFragment() {
         }
         colorMap.forEach { (v, c) -> v.setOnClickListener { selectColor(v, c) } }
 
-        // BG
         binding.subtitleBgOn.isSelected = state.background
         binding.subtitleBgOff.isSelected = !state.background
         binding.subtitleBgOff.setOnClickListener {
@@ -208,7 +204,6 @@ class SubtitleStyleDialog : DialogFragment() {
             commit()
         }
 
-        // Outline
         binding.subtitleOutlineOn.isSelected = state.outline
         binding.subtitleOutlineOff.isSelected = !state.outline
         binding.subtitleOutlineOff.setOnClickListener {

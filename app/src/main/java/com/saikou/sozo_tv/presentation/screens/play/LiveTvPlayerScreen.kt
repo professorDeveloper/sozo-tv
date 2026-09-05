@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.fragment.app.Fragment
 import androidx.media3.common.AudioAttributes
@@ -37,13 +36,6 @@ class LiveTvPlayerScreen : Fragment() {
 
     private lateinit var player: ExoPlayer
 
-    /**
-     * Needed for track selection, which this player had no way to do.
-     *
-     * IPTV channels are routinely multi-audio — the same feed in Hindi, Tamil,
-     * Telugu and English — and without a selector the viewer got whichever one
-     * the manifest happened to list first.
-     */
     @OptIn(UnstableApi::class)
     private var trackSelector: DefaultTrackSelector? = null
     private var selectedAudio: NativeTracks.Option? = null
@@ -103,14 +95,19 @@ class LiveTvPlayerScreen : Fragment() {
                 val hlsMediaSource = HlsMediaSource.Factory(dataSourceFactory)
                     .createMediaSource(MediaItem.fromUri(liveStreamUrl))
 
-                // Prepare and start playback
                 player.setMediaSource(hlsMediaSource)
                 player.playWhenReady = true
                 player.prepare()
-                player.setWakeMode(C.WAKE_MODE_LOCAL)
+                player.setWakeMode(C.WAKE_MODE_NETWORK)
 
                 player.addListener(object : Player.Listener {
                     override fun onTracksChanged(tracks: Tracks) = onLiveTracksChanged(tracks)
+
+                    override fun onIsPlayingChanged(isPlaying: Boolean) {
+                        _binding?.pvPlayer?.controller?.binding?.exoPlayPaused?.setImageResource(
+                            if (isPlaying) R.drawable.ic_player_pause else R.drawable.ic_player_play
+                        )
+                    }
 
                     override fun onPlayerError(error: PlaybackException) {
                         super.onPlayerError(error)
@@ -150,10 +147,8 @@ class LiveTvPlayerScreen : Fragment() {
         binding.pvPlayer.controller.binding.exoPlayPauseContainer.setOnClickListener {
             if (player.isPlaying) {
                 player.pause()
-                binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_play_to_pause)
             } else {
                 player.play()
-                binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_pause_to_play)
             }
 
         }
@@ -162,7 +157,7 @@ class LiveTvPlayerScreen : Fragment() {
     @SuppressLint("UnsafeOptInUsageError")
     private fun setupPlayerControls() {
         val exoProgress: TrailerPlayerScreen.ExtendedTimeBar =
-            binding.pvPlayer.findViewById(R.id.exo_progress)
+            binding.pvPlayer.findViewById(androidx.media3.ui.R.id.exo_progress)
         exoProgress.setForceDisabled(true)
         binding.pvPlayer.useController = true
         binding.pvPlayer.controllerAutoShow = true
@@ -176,21 +171,18 @@ class LiveTvPlayerScreen : Fragment() {
         binding.progressBar.visibility = View.GONE
         binding.pvPlayer.visibility = View.GONE
         binding.errorLayout.visibility = View.VISIBLE
-        val errorMessage = when (error.errorCode) {
-            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ->
-                "Network connection failed. Please check your internet connection."
-
+        val message = when (error.errorCode) {
+            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
             PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ->
-                "Connection timeout. Please try again."
+                R.string.player_error_network
 
             PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ->
-                "Stream format error. The live stream may be temporarily unavailable."
+                R.string.player_error_live_stream
 
-            else -> getString(R.string.player_error_generic)
+            else -> R.string.player_error_generic
         }
 
-        binding.errorText.text = errorMessage
-        Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show()
+        binding.errorText.setText(message)
     }
 
     @SuppressLint("UnsafeOptInUsageError")
@@ -237,11 +229,6 @@ class LiveTvPlayerScreen : Fragment() {
         }
     }
 
-
-    /**
-     * Reveals the audio button only when the channel actually carries a choice,
-     * and drops a pick that belonged to a stream we have left.
-     */
     @OptIn(UnstableApi::class)
     private fun onLiveTracksChanged(tracks: Tracks) {
         val b = _binding ?: return

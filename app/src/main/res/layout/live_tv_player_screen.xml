@@ -17,6 +17,7 @@
         android:nextFocusLeft="@id/topContainer"
         android:visibility="visible"
         app:controller_layout_id="@layout/controller_live_tv"
+        app:animation_enabled="false"
         app:resize_mode="fit"
         app:show_buffering="always"
         app:show_next_button="false"
@@ -42,7 +43,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/days"
             android:padding="8dp"
-            android:text="Channel is loading..."
+            android:text="@string/player_loading"
             android:textAlignment="center"
 
             android:textColor="@color/lb_tv_white" />
@@ -73,7 +74,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:gravity="center"
-            android:text="Connection Error"
+            android:text="@string/player_error_live_generic"
             android:textColor="@android:color/white"
             android:textSize="@dimen/tv_text_subtitle" />
 
@@ -81,7 +82,7 @@
             android:id="@+id/retryButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:backgroundTint="#FF0000"
+            android:backgroundTint="@color/netflix_red"
             android:text="@string/retry"
             android:textColor="@android:color/white" />
 

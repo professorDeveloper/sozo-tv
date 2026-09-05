@@ -16,22 +16,21 @@
             android:layout_height="0dp"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:visibility="gone"
             app:bar_height="90dp"
+            app:animation_enabled="false"
             app:controller_layout_id="@layout/content_controller_tv_series"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:resize_mode="fit"
-            app:show_buffering="always"
+            app:show_buffering="never"
             app:show_next_button="true"
             app:show_previous_button="true"
             app:show_subtitle_button="true"
             app:show_timeout="5000"
             app:show_vr_button="true" />
-        <!-- Placed before loading_layout so the opaque resolve overlay covers it when
-             both would otherwise be up. -->
+
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/bufferingIndicator"
             android:layout_width="wrap_content"
@@ -47,125 +46,167 @@
             app:trackColor="#33FFFFFF"
             app:trackThickness="4dp" />
 
-        <LinearLayout
+        <FrameLayout
             android:id="@+id/loading_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:background="@color/black"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="10dp">
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-            <TextView
-                android:id="@+id/loadingText"
+            <ImageView
+                android:id="@+id/loadingPoster"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#D9000000" />
+
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/days"
-                android:padding="8dp"
-                android:text="Movie is loading..."
-                android:textAlignment="center"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="vertical">
 
-                android:textColor="@color/lb_tv_white" />
+                <TextView
+                    android:id="@+id/loadingText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/days"
+                    android:padding="8dp"
+                    android:text="@string/player_loading"
+                    android:textAlignment="center"
+                    android:textColor="@color/netflix_white"
+                    android:textSize="@dimen/tv_text_subtitle" />
 
-            <com.google.android.material.progressindicator.LinearProgressIndicator
-                android:layout_width="250dp"
-                android:layout_height="wrap_content"
-                android:indeterminate="true"
-                android:paddingHorizontal="20dp"
-                android:paddingVertical="4dp"
-                app:indicatorColor="@color/white40"
-                app:trackColor="@color/red" />
-        </LinearLayout>
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:layout_width="250dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:indeterminate="true"
+                    app:indicatorColor="@color/netflix_red"
+                    app:trackColor="#33FFFFFF" />
+
+                <com.saikou.sozo_tv.components.TvOptionChipView
+                    android:id="@+id/loadingSwitchSource"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="22dp"
+                    android:paddingHorizontal="20dp"
+                    android:text="@string/player_loading_try_server"
+                    android:textSize="@dimen/tv_text_body"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </FrameLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-    <com.saikou.sozo_tv.components.CountdownOverlayView
-        android:id="@+id/countdown_overlay"
+
+    <com.saikou.sozo_tv.components.UpNextOverlayView
+        android:id="@+id/up_next_overlay"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/sidebar_right"
         android:layout_width="320dp"
         android:layout_height="match_parent"
         android:layout_gravity="end"
-        android:background="@drawable/item_movie_history_bg"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/glass_sidebar_bg"
         android:elevation="8dp"
         android:orientation="vertical"
+        android:paddingStart="8dp"
         android:paddingEnd="8dp"
         android:translationX="380dp"
-
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:visibility="gone">
 
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="4dp">
-
-            <FrameLayout
-                android:id="@+id/btn_hide_menu_right"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end|center"
-
-                android:layout_marginTop="4dp"
-                android:layout_marginEnd="4dp"
-                android:background="@drawable/shape_play_pause_circle_bottom"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:nextFocusDown="@id/episodeRv"
-
-                android:padding="2dp"
-                android:visibility="visible">
-
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:duplicateParentState="true"
-                    app:srcCompat="@drawable/close"
-                    app:tint="@color/color_black_white_text" />
-            </FrameLayout>
-
+            android:padding="8dp">
 
             <TextView
                 android:id="@+id/textView9"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="start|center_vertical"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:fontFamily="@font/days"
+                android:fontFamily="sans-serif-medium"
                 android:padding="8dp"
-                android:text="Episode List"
-                android:textColor="#FFFFFF"
-                android:textSize="@dimen/tv_text_body"
-                android:textStyle="bold" />
+                android:text="@string/episode_list"
+                android:textColor="@color/netflix_white"
+                android:textSize="@dimen/tv_text_body" />
+
+            <FrameLayout
+                android:id="@+id/btn_hide_menu_right"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="end|center_vertical"
+                android:background="@drawable/glass_chip_bg"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:nextFocusDown="@id/episodeRv"
+                android:padding="8dp">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:duplicateParentState="true"
+                    app:srcCompat="@drawable/close"
+                    app:tint="@color/color_black_white_text" />
+            </FrameLayout>
         </FrameLayout>
 
         <androidx.leanback.widget.VerticalGridView
             android:id="@+id/episodeRv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:clipToPadding="false"
             android:descendantFocusability="afterDescendants"
             android:focusedByDefault="false"
             android:nextFocusDown="@id/btn_hide_menu_right"
             android:nextFocusUp="@id/btn_hide_menu_right"
-            android:orientation="horizontal"
-            app:focusOutFront="true"
             android:padding="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/guideline26"
-            app:layout_constraintTop_toTopOf="parent"
+            app:focusOutFront="true"
             app:numberOfColumns="2"
             tools:itemCount="12"
             tools:listitem="@layout/episode_item_little" />
 
-
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/player_toast"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/glass_pill_bg"
+        android:elevation="14dp"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif-medium"
+        android:maxLines="2"
+        android:maxWidth="520dp"
+        android:paddingHorizontal="18dp"
+        android:paddingVertical="10dp"
+        android:textColor="@color/netflix_white"
+        android:textSize="@dimen/tv_text_body"
+        android:visibility="gone"
+        tools:text="Switching to 1080p…"
+        tools:visibility="visible" />
+
+    <include
+        android:id="@+id/player_error"
+        layout="@layout/view_player_error"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 
 </FrameLayout>

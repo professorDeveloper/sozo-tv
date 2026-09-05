@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The "now playing" mark on an episode thumbnail. A pill, not a panel: it
-     names the current episode without hiding the frame it belongs to. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="@color/red" />
+    <solid android:color="@color/netflix_red" />
     <corners android:radius="4dp" />
 </shape>

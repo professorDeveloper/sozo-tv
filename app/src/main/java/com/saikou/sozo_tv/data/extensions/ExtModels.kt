@@ -218,6 +218,14 @@ internal object ExtParser {
         }
     }
 
+    /** `{internalName: reason}` from a backend's [ExtBackend.loadErrorsJson]. */
+    fun loadErrors(json: String): Map<String, String> {
+        val o = runCatching { JSONObject(json) }.getOrNull() ?: return emptyMap()
+        val out = LinkedHashMap<String, String>()
+        o.keys().forEach { k -> o.optString(k).ifEmpty { null }?.let { out[k] = it } }
+        return out
+    }
+
     fun repos(json: String): List<ExtRepo> {
         val arr = runCatching { JSONArray(json) }.getOrNull() ?: return emptyList()
         return (0 until arr.length()).mapNotNull {

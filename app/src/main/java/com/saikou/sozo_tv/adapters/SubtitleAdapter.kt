@@ -1,9 +1,10 @@
 package com.saikou.sozo_tv.adapters
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
+import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.model.SubTitle
 import com.saikou.sozo_tv.databinding.SubtitleItemBinding
 import com.saikou.sozo_tv.utils.loadImage
@@ -19,21 +20,18 @@ class SubtitleAdapter(
 
     val selectedIndex: Int get() = selectedPosition
 
-    var selected: SubTitle?
-        get() = subtitles.getOrNull(selectedPosition)
-        set(value) = setSelectedIndex(value?.let { subtitles.indexOf(it) } ?: -1)
-
     inner class ViewHolder(val binding: SubtitleItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(subtitle: SubTitle, position: Int) = with(binding) {
             tvLanguage.text = subtitle.label
-            tvInfo.text = extractInfo(subtitle)
+            tvInfo.text = root.context.getString(originOf(subtitle))
 
             val isSelected = position == selectedPosition
-            imgSelected.visibility = if (isSelected) View.VISIBLE else View.GONE
+            imgSelected.isVisible = isSelected
             root.isSelected = isSelected
 
+            flagUrl.isVisible = subtitle.flag.isNotEmpty()
             if (subtitle.flag.isNotEmpty()) flagUrl.loadImage(subtitle.flag)
 
             root.setOnClickListener { onItemClick(subtitle) }
@@ -61,5 +59,13 @@ class SubtitleAdapter(
         if (selectedPosition in subtitles.indices) notifyItemChanged(selectedPosition)
     }
 
-    private fun extractInfo(subtitle: SubTitle): String = "From: ${subtitle.label}"
+    private fun originOf(subtitle: SubTitle): Int = when {
+        subtitle.label.trimEnd().endsWith(AI_SUFFIX) -> R.string.subtitle_origin_ai
+        subtitle.headers.isNotEmpty() -> R.string.subtitle_origin_source
+        else -> R.string.subtitle_origin_downloaded
+    }
+
+    private companion object {
+        const val AI_SUFFIX = "(AI)"
+    }
 }

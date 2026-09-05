@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="700dp"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:background="@drawable/glass_panel_bg"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/subtitle_search_title"
+            android:textColor="@color/netflix_white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/close"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="end|center"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/close_bg"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:padding="10dp"
+            android:src="@drawable/close"
+            app:tint="@color/close_icon_tint" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <androidx.leanback.widget.SearchEditText
+            android:id="@+id/search_query"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:background="@drawable/netflix_search_background_focused"
+            android:cursorVisible="true"
+            android:drawableStart="@drawable/ic_search"
+            android:drawablePadding="12dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center_vertical"
+            android:hint="@string/subtitle_search_hint"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLines="1"
+            android:paddingHorizontal="14dp"
+            android:textColor="@color/netflix_white"
+            android:textColorHint="@color/netflix_gray"
+            android:textCursorDrawable="@null"
+            android:textSize="@dimen/tv_text_body" />
+
+        <com.saikou.sozo_tv.components.TvOptionChipView
+            android:id="@+id/search_btn"
+            android:layout_width="120dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/subtitle_search_go"
+            android:textSize="@dimen/tv_text_body" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ai_translate_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/netflix_focusable_background"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginEnd="12dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_subtitle_fill"
+            app:tint="@color/netflix_red" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/ai_translate_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/netflix_text_primary"
+                android:textSize="@dimen/tv_text_body"
+                tools:text="Translate to Uzbek (AI)" />
+
+            <TextView
+                android:id="@+id/ai_quota"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/netflix_gray"
+                android:textSize="@dimen/tv_text_caption"
+                android:visibility="gone"
+                tools:text="3 left today"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/ai_progress"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:indeterminateTint="@color/netflix_text_primary"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/search_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textColor="@color/netflix_gray"
+        android:textSize="@dimen/tv_text_body"
+        android:visibility="gone"
+        tools:text="Found 12 subtitles"
+        tools:visibility="visible" />
+
+    <androidx.leanback.widget.VerticalGridView
+        android:id="@+id/results_rv"
+        android:layout_width="match_parent"
+        android:layout_height="216dp"
+        android:layout_marginTop="8dp"
+        android:clipToPadding="false"
+        android:descendantFocusability="afterDescendants"
+        android:focusable="false"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        app:focusOutEnd="true"
+        app:focusOutFront="true" />
+
+</LinearLayout>

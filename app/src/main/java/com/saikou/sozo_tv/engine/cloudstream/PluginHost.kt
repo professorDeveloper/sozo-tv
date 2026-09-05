@@ -5,6 +5,7 @@ import android.content.res.AssetManager
 import android.content.res.Resources
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.app.MyApp
 import com.lagradost.cloudstream3.APIHolder
 import com.lagradost.cloudstream3.AnimeLoadResponse
@@ -17,6 +18,7 @@ import com.lagradost.cloudstream3.SearchResponse
 import com.lagradost.cloudstream3.TvSeriesLoadResponse
 import com.lagradost.cloudstream3.plugins.BasePlugin
 import com.lagradost.cloudstream3.plugins.Plugin
+import com.lagradost.cloudstream3.plugins.PluginManager as CsPluginManager
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.ExtractorLinkType
 import com.lagradost.nicehttp.ignoreAllSSLErrors
@@ -47,23 +49,6 @@ class PluginHost(private val appContext: Context) {
 
     companion object {
         private const val TAG = "CloudStreamHost"
-
-        /**
-         * Plugins that cannot run against the embedded `library` artifact because they call into
-         * CloudStream's **app** module, which we do not vendor. Skipped before download so
-         * first-launch setup spends neither bandwidth nor dex verification on them.
-         *
-         * Drop an entry here the day the class it needs exists on our classpath.
-         */
-        val UNSUPPORTED: Set<String> = setOf(
-            // Drives PluginManager/RepositoryManager to install and unload other plugins —
-            // that is CloudStream's own extension system, not ours.
-            "Ultima",
-            // syncproviders.SyncRepo + AccountManager.aniListApi: CloudStream's account sync.
-            // This app has its own AniList integration, so the feature is redundant here.
-            "StreamPlay",
-            "TorraStream",
-        )
     }
 
     init {
@@ -73,11 +58,11 @@ class PluginHost(private val appContext: Context) {
     }
 
     private val loaded = HashMap<String, BasePlugin>()
-    // Plugins that threw during load(). A few upstream .cs3 files reach into CloudStream's app
-    // module (sync providers, plugin management) which our embedded `library` doesn't ship, so
-    // they can never load here. Remember them: without this, every apiByName() retries the
-    // DexClassLoader and reprints the stack trace.
+    // Plugins that threw during load(). Remember them: without this, every apiByName() retries
+    // the DexClassLoader and reprints the stack trace.
     private val failed = HashSet<String>()
+    // internalName -> why it failed, in one line the Sources screen can show. See loadCs3.
+    private val lastErrors = LinkedHashMap<String, String>()
     // internalName -> the MainAPI provider names it registered (for unload + dedup).
     private val pluginProviders = HashMap<String, List<String>>()
     // MainAPI.name -> plugin iconUrl (from plugins.json) for nicer provider icons.
@@ -192,6 +177,9 @@ class PluginHost(private val appContext: Context) {
             }
             if (instance is Plugin) instance.load(pluginLoadContext()) else instance.load()
             loaded[internalName] = instance
+            // So a plugin walking PluginManager.getPluginsOnline() to find its own .cs3 — the
+            // usual reason to call it — gets a real answer.
+            CsPluginManager.record(internalName, file.absolutePath)
 
             val added = synchronized(APIHolder.allProviders) {
                 APIHolder.allProviders.map { it.name }
@@ -203,6 +191,12 @@ class PluginHost(private val appContext: Context) {
             added
         } catch (t: Throwable) {
             failed.add(internalName)
+            // Kept, not only logged. A failure here used to become an empty provider list and a
+            // line in logcat: the .cs3 downloaded, registered nothing, and never appeared in the
+            // Sources screen, which from the sofa is indistinguishable from a repo that simply
+            // does not carry that source. The Sources screen reads [lastErrorsJson] back so the
+            // plugin is named along with what went wrong.
+            lastErrors[internalName] = describeLoadFailure(t)
             Log.e(TAG, "failed to load ${file.name}: ${Log.getStackTraceString(t)}")
             emptyList()
         }
@@ -211,6 +205,33 @@ class PluginHost(private val appContext: Context) {
 
     /** Guards the load + provider-diff critical section. See [loadCs3]. */
     private val loadLock = Any()
+
+    /** Every plugin that failed to load this session: internalName -> one-line reason. */
+    fun lastErrorsJson(): String = JSONObject(lastErrors as Map<*, *>).toString()
+
+    /**
+     * A one-line reason somebody can act on.
+     *
+     * A stack trace is the right thing in logcat and the wrong thing on a screen ten feet away.
+     * These three cases are nearly all of them in practice and each asks something different of
+     * the reader: a plugin this app cannot host, a plugin newer than the CloudStream runtime it
+     * bundles, and a broken download.
+     */
+    private fun describeLoadFailure(t: Throwable): String {
+        val root = generateSequence(t) { it.cause }.last()
+        val detail = root.message?.trim().orEmpty().ifEmpty { root.javaClass.simpleName }
+        return when (root) {
+            is NoClassDefFoundError, is ClassNotFoundException ->
+                appContext.getString(R.string.plugin_error_missing_class, detail)
+            is NoSuchMethodError, is NoSuchFieldError, is AbstractMethodError ->
+                appContext.getString(R.string.plugin_error_newer_cloudstream, detail)
+            // A truncated or corrupt .cs3 arrives as a ZipException, which is an IOException.
+            is java.io.IOException ->
+                appContext.getString(R.string.plugin_error_unreadable)
+            else ->
+                appContext.getString(R.string.plugin_error_other, root.javaClass.simpleName, detail)
+        }
+    }
 
     /** Remove providers by name (loaded or lazy) — used when a repo is removed. */
     fun removeProviders(names: List<String>) {
@@ -224,7 +245,9 @@ class PluginHost(private val appContext: Context) {
         names.forEach { providerIcons.remove(it); metas.remove(it) }
         // Drop any loaded plugins whose providers are now all gone.
         val internalNames = pluginProviders.filterValues { it.any { n -> n in set } }.keys.toList()
-        internalNames.forEach { loaded.remove(it); pluginProviders.remove(it) }
+        internalNames.forEach {
+            loaded.remove(it); pluginProviders.remove(it); CsPluginManager.forget(it)
+        }
         Log.i(TAG, "removed providers=$names")
     }
 

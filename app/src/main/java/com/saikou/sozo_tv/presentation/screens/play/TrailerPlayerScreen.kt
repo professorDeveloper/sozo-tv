@@ -27,6 +27,7 @@ import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerControlView
+import androidx.media3.ui.TimeBar
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.bugsnag.android.Bugsnag
@@ -72,12 +73,10 @@ class TrailerPlayerScreen : Fragment() {
     @UnstableApi
     @OptIn(UnstableApi::class)
     private fun playVideo() {
-        val videoUrl =
-            "https://one.trueparadise.workers.dev/nightbreeze17.site/file2/PqNOhtgt+x26KaWUUGR6LCMhUbc4XvLk8MNAwfKgyn6u+OkaO7++LJ0xbvyHyNHPW5F~ylsoULMa3U~j4zVdeqofzctnLhUanUob409NZtKDxkpPyGAkbFLG+tCoq1OI59mxThn0Z+iM4dxE76Em2WsQGhPSEnJ07g3BmLBk1Gk=/MTA4MA==/aW5kZXgubTN1OA==.m3u8"
+        val videoUrl = args.trailerUrl
         val mediaItem = MediaItem.Builder().setUri(videoUrl).build()
         val mediaSource = DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(mediaItem)
         player.setMediaSource(mediaSource)
-        player.setMediaItem(mediaItem)
         player.prepare()
         player.play()
     }
@@ -166,6 +165,12 @@ class TrailerPlayerScreen : Fragment() {
             }
 
         player.addListener(object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(
+                    if (isPlaying) R.drawable.ic_player_pause else R.drawable.ic_player_play
+                )
+            }
+
             override fun onPlayerError(error: PlaybackException) {
                 super.onPlayerError(error)
                 Bugsnag.notify(error)
@@ -181,16 +186,10 @@ class TrailerPlayerScreen : Fragment() {
 
         binding.pvPlayer.player = player
         binding.pvPlayer.controller.binding.exoPlayPauseContainer.setOnClickListener {
-            if (player.isPlaying) {
-                player.pause()
-                binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_play_to_pause)
-            } else {
-                player.play()
-                binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_pause_to_play)
-            }
+            if (player.isPlaying) player.pause() else player.play()
         }
 
-        binding.pvPlayer.controller.findViewById<ExtendedTimeBar>(R.id.exo_progress)
+        binding.pvPlayer.controller.findViewById<ExtendedTimeBar>(androidx.media3.ui.R.id.exo_progress)
             .setKeyTimeIncrement(10_000)
     }
 
@@ -206,6 +205,31 @@ class TrailerPlayerScreen : Fragment() {
         private var enabled = false
         private var forceDisabled = false
 
+        var scrubbing = false
+            private set
+
+        init {
+            addListener(object : TimeBar.OnScrubListener {
+                override fun onScrubStart(timeBar: TimeBar, position: Long) {
+                    scrubbing = true
+                }
+
+                override fun onScrubMove(timeBar: TimeBar, position: Long) = Unit
+
+                override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
+                    scrubbing = false
+                }
+            })
+        }
+
+        override fun onFocusChanged(
+            gainFocus: Boolean, direction: Int, previouslyFocusedRect: android.graphics.Rect?
+        ) {
+            super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+            setPlayedColor(if (gainFocus) FOCUSED_PLAYED else RESTING_PLAYED)
+            setScrubberColor(if (gainFocus) FOCUSED_SCRUBBER else RESTING_SCRUBBER)
+        }
+
         override fun setEnabled(enabled: Boolean) {
             this.enabled = enabled
             super.setEnabled(!forceDisabled && this.enabled)
@@ -214,6 +238,13 @@ class TrailerPlayerScreen : Fragment() {
         fun setForceDisabled(forceDisabled: Boolean) {
             this.forceDisabled = forceDisabled
             isEnabled = enabled
+        }
+
+        private companion object {
+            const val RESTING_PLAYED = 0xFFE50914.toInt()
+            const val FOCUSED_PLAYED = 0xFFFFFFFF.toInt()
+            const val RESTING_SCRUBBER = 0xB3FFFFFF.toInt()
+            const val FOCUSED_SCRUBBER = 0xFFFFFFFF.toInt()
         }
 
         override fun onDraw(canvas: Canvas) {

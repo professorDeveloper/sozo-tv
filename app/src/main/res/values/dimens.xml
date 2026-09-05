@@ -26,6 +26,8 @@
     <!-- Nothing readable should sit closer than this to the panel edge. -->
     <dimen name="tv_screen_edge">24dp</dimen>
     <dimen name="tv_screen_edge_vertical">16dp</dimen>
+    <dimen name="player_edge_horizontal">48dp</dimen>
+    <dimen name="player_edge_vertical">24dp</dimen>
     <dimen name="tv_padding_medium">16dp</dimen>
     <dimen name="tv_padding_small">8dp</dimen>
     <dimen name="tv_corner_radius">8dp</dimen>

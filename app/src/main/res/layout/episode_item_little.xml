@@ -4,43 +4,39 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_margin="3dp"
-
-    android:background="@drawable/episode_bg"
+    android:layout_margin="4dp"
+    android:background="@drawable/episode_item_glass_bg"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:padding="6dp"
     tools:layout_gravity="center">
 
-
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
-        android:layout_width="104dp"
-        android:layout_height="72dp"
-        android:layout_margin="3dp"
+        android:layout_width="120dp"
+        android:layout_height="68dp"
+        app:cardBackgroundColor="#1F1F1F"
         app:cardCornerRadius="10dp"
         app:cardElevation="0dp"
-        app:layout_constraintDimensionRatio="2.5:1.6"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.appcompat.widget.AppCompatImageView
-
             android:id="@+id/item_img"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@drawable/joker" />
+            tools:src="@drawable/joker" />
 
     </androidx.cardview.widget.CardView>
 
     <androidx.core.widget.ContentLoadingProgressBar
         android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="0dp"
         android:layout_height="3dp"
-        android:layout_gravity="bottom|center"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         android:indeterminate="false"
         android:max="100"
         android:progress="20"
@@ -50,56 +46,50 @@
         app:layout_constraintStart_toStartOf="@+id/cardView"
         app:layout_constraintTop_toBottomOf="@id/cardView" />
 
-
     <TextView
         android:id="@+id/topContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="4dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="6dp"
         android:ellipsize="end"
-        android:fontFamily="@font/rubik_regular"
+        android:fontFamily="sans-serif-medium"
         android:maxLines="1"
-
+        android:textColor="@color/netflix_white"
         android:textSize="@dimen/tv_text_label"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/cardView"
+        app:layout_constraintStart_toStartOf="@+id/cardView"
         app:layout_constraintTop_toBottomOf="@+id/progressBar"
-        tools:text="The Most Beautiful Flower S01E01" />
+        tools:text="Episode 12" />
 
     <TextView
         android:id="@+id/timeStr"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="2dp"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
         android:fontFamily="@font/rubik_regular"
-        android:text="Stopped at 01:15:27"
-        android:textColor="@color/lb_grey"
+        android:maxLines="1"
+        android:textColor="@color/netflix_gray"
         android:textSize="@dimen/tv_text_caption"
-        android:textStyle="bold"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/cardView"
         app:layout_constraintStart_toStartOf="@+id/cardView"
-        app:layout_constraintTop_toBottomOf="@+id/topContainer" />
+        app:layout_constraintTop_toBottomOf="@+id/topContainer"
+        tools:text="Stopped at 01:15:27" />
 
-    <!-- Marks the episode being watched. A small pill anchored to the corner,
-         rather than a ribbon sized by its own text: the previous one wrapped
-         onto two lines in a narrow cell and covered the whole thumbnail, and
-         the diagonal one above it repeated the episode number already printed
-         under the card. -->
     <TextView
         android:id="@+id/nowPlayingBadge"
+        android:textAllCaps="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:background="@drawable/now_playing_badge"
         android:fontFamily="sans-serif-medium"
-        android:paddingHorizontal="5dp"
+        android:paddingHorizontal="6dp"
         android:paddingVertical="2dp"
         android:text="@string/now_playing"
         android:textColor="@android:color/white"
-        android:textSize="8sp"
-        android:textStyle="bold"
+        android:textSize="@dimen/tv_text_caption"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/cardView"
         app:layout_constraintStart_toStartOf="@+id/cardView" />

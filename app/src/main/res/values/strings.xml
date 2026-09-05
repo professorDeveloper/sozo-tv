@@ -113,20 +113,16 @@
     <string name="live_tv">LIVE TV</string>
     <string name="retry">Retry</string>
     <string name="episode_n">Episode %1$d</string>
-    <string name="now_playing">NOW PLAYING</string>
+    <string name="now_playing">Now playing</string>
     <string name="detail_load_failed">Could not load the details. Please try again.</string>
     <string name="guest">Guest</string>
-    <string name="episode">%1$s - Episode %2$d</string>
     <string name="episode_is_loading">Episode %1$s is loading…</string>
     <string name="quality_is_loading">Switching quality…</string>
     <string name="quality_switch_failed">Could not switch quality — staying on the current one.</string>
     <string name="part_episode">Part %1$d • Episode %2$d</string>
     <string name="part_are_episodes_loading">Loading episodes for part %1$s…</string>
-    <string name="current_episode">%1$s - Episode %2$s</string>
     <string name="this_is_the_last_episode">This is the last episode</string>
     <string name="this_is_the_first_episode">This is the first episode</string>
-    <string name="choose_subtitle">Choose Subtitle</string>
-    <string name="enable_or_disable_subtitles">Enable or disable subtitles</string>
     <string name="refresh_qr_code">Refresh QR Code</string>
     <string name="waiting_for_mobile">Waiting for approval on your phone…</string>
     <string name="sign_in_with_qr_code">Sign in with QR code</string>
@@ -174,10 +170,10 @@
     <string name="current_selected_anime_source">Anime: %s</string>
     <string name="current_selected_movie_source">Movie: %s</string>
     <string name="current_selected_both">Anime: %1$s, Movie: %2$s</string>
-    <string name="style">Subtitle Style</string>
+    <string name="style">Style</string>
     <string name="off">Off</string>
     <string name="on">On</string>
-    <string name="subtitles_are_off">Subtitles Are Off</string>
+    <string name="subtitles_are_off">Subtitles are off</string>
     <string name="view_all">View All</string>
     <string name="see_more_movies">See more movie series</string>
 
@@ -199,9 +195,9 @@
     <string name="anilist_status_empty">Nothing in “%1$s”.</string>
     <string name="anilist_exact_tracking">AniList ID</string>
     <string name="player_switching_source">This device cannot play that format — trying another source…</string>
-    <string name="player_error_codec">This device cannot decode this video format (HEVC). Pick another quality or server.</string>
+    <string name="player_error_codec">This TV can\'t play this video format. Pick another quality or server.</string>
     <string name="player_error_network">Connection lost. Check your network and try again.</string>
-    <string name="player_error_source">This link is no longer playable. Trying another source.</string>
+    <string name="player_error_source">That link has expired. Try again, or pick a different server.</string>
     <string name="player_error_generic">Playback failed. Try another server or quality.</string>
     <string name="account_stat_watched">WATCHED</string>
     <string name="account_stat_saved">SAVED</string>
@@ -232,7 +228,6 @@
     <string name="player_settings_title">Settings</string>
     <string name="player_settings_subtitle">Current values shown beside each item.</string>
     <string name="player_resize_title">Screen size</string>
-    <string name="player_resize_subtitle">How the video fits the screen.</string>
     <string name="player_resize_fit">Fit</string>
     <string name="player_resize_fit_hint">Whole frame visible, bars at the sides</string>
     <string name="player_resize_zoom">Fill</string>
@@ -242,7 +237,6 @@
     <string name="player_audio_title">Audio</string>
     <string name="player_audio_subtitle">Audio tracks inside the stream — dub or original.</string>
     <string name="player_speed_title">Speed</string>
-    <string name="player_speed_subtitle">Playback speed. Kept across episodes.</string>
     <string name="player_speed_normal">Normal</string>
     <string name="player_subtitle_title">Subtitles</string>
     <string name="player_subtitle_subtitle">Subtitle tracks inside the stream.</string>
@@ -271,6 +265,30 @@
         <item quantity="one">%1$d repo</item>
         <item quantity="other">%1$d repos</item>
     </plurals>
+    <!-- CloudStream plugins that download but cannot be loaded. They register no provider, so
+         they get no row in the Sources list; without these the repo installed "successfully"
+         and the source was simply absent, with nothing anywhere saying why. -->
+    <plurals name="plugins_failed_to_load">
+        <item quantity="one">%1$d plugin couldn\'t be loaded</item>
+        <item quantity="other">%1$d plugins couldn\'t be loaded</item>
+    </plurals>
+    <string name="plugin_failed_entry">%1$s — %2$s</string>
+    <string name="plugin_error_missing_class">needs a part of CloudStream this app doesn\'t include (%1$s)</string>
+    <string name="plugin_error_newer_cloudstream">built against a newer CloudStream than this app bundles (%1$s)</string>
+    <string name="plugin_error_unreadable">the plugin file couldn\'t be read — remove the repo and add it again</string>
+    <string name="plugin_error_other">%1$s: %2$s</string>
+    <string name="sources_setup">Setting up sources… please wait</string>
+    <!-- "Setting up NetMirror (2/4)" -->
+    <string name="sources_setup_repo">Setting up %1$s (%2$d/%3$d)…</string>
+    <!-- "Setting up NetMirror (2/4) · 7/19" — repos done, then plugins within this repo. -->
+    <string name="sources_setup_repo_progress">Setting up %1$s (%2$d/%3$d) · %4$d/%5$d</string>
+    <string name="sources_active">Active source: %1$s</string>
+    <string name="sources_empty">No providers available.</string>
+    <string name="sources_no_match">No providers match “%1$s”.</string>
+    <string name="sources_load_failed">Couldn\'t load providers: %1$s</string>
+    <!-- Every repo downloaded but none of it produced a source we can offer. Naming the repos
+         is what separates "this device could not install them" from "there are none". -->
+    <string name="sources_install_produced_none">Installed no sources from %1$s. Press “Update sources” to try again.</string>
     <!-- Watch history -->
     <string name="play">Play</string>
     <string name="history_almost_finished">Almost finished</string>
@@ -280,4 +298,50 @@
     <string name="history_clear_title">Clear watch history</string>
     <string name="history_clear_keep">Keep it</string>
     <string name="history_clear_confirm_btn">Clear history</string>
+    <string name="subtitle_search_failed">Could not search — check the connection</string>
+    <string name="subtitle_delay">Subtitle delay</string>
+    <string name="subtitle_load_failed">Could not load the %1$s subtitle — try another</string>
+    <string name="player_hint_back">Back</string>
+    <string name="player_hint_episodes">Episodes</string>
+    <string name="player_hint_prev_episode">Previous episode</string>
+    <string name="player_hint_rewind">Rewind 10s</string>
+    <string name="player_hint_play">Play</string>
+    <string name="player_hint_pause">Pause</string>
+    <string name="player_hint_forward">Forward 10s</string>
+    <string name="player_hint_next_episode">Next episode</string>
+    <string name="player_hint_subtitles">Subtitles</string>
+    <string name="player_hint_audio">Audio</string>
+    <string name="player_hint_settings">Settings</string>
+    <string name="player_hint_seek">Seek</string>
+    <string name="player_episode_meta">Episode %1$d</string>
+    <string name="player_episode_meta_quality">Episode %1$d · %2$dp</string>
+    <string name="player_error_load_episode">Could not load this episode. Check your connection and try again.</string>
+    <string name="player_up_next_episode">Episode %1$d</string>
+    <string name="meta_separator">•</string>
+    <string name="history_continue_watching">Continue watching</string>
+    <string name="history_last_watched">Last watched</string>
+    <string name="history_rating">IMDb %1$s</string>
+    <string name="history_resume_from">Continue from %1$s?</string>
+    <string name="resume_continue">Continue</string>
+    <string name="resume_start_over">Start over</string>
+    <string name="subtitle_show">Show subtitles</string>
+    <string name="subtitle_style_title">Subtitle style</string>
+    <string name="subtitle_text_size">Text size</string>
+    <string name="subtitle_text_color">Text color</string>
+    <string name="subtitle_background">Background</string>
+    <string name="subtitle_outline">Outline</string>
+    <string name="subtitle_font_default">Default</string>
+    <string name="subtitle_font_mono">Mono</string>
+    <string name="subtitle_style_summary">%1$s · %2$d sp · %3$s · Background: %4$s · Outline: %5$s</string>
+    <string name="subtitle_color_white">White</string>
+    <string name="subtitle_color_orange">Orange</string>
+    <string name="subtitle_color_gray">Gray</string>
+    <string name="subtitle_color_green">Green</string>
+    <string name="subtitle_color_red">Red</string>
+    <string name="subtitle_color_blue">Blue</string>
+    <string name="subtitle_origin_source">From this server</string>
+    <string name="subtitle_origin_downloaded">Downloaded</string>
+    <string name="subtitle_origin_ai">AI translated</string>
+    <string name="player_error_live_stream">This channel isn\'t broadcasting right now. Try again in a moment.</string>
+    <string name="player_error_live_generic">This channel isn\'t playing right now. Try again, or pick another channel.</string>
 </resources>

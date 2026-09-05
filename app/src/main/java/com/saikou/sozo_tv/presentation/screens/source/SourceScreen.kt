@@ -69,9 +69,13 @@ class SourceScreen : Fragment() {
     private var progressVisible: Boolean = false
     private var emptyText: String? = null
     private var loadError: String? = null
+    private var failedPluginsText: String? = null
     private var pendingScrollToSelected: Boolean = true
     private var countText: String? = null
     private var updating: Boolean = false
+
+    /** Repos that installed without error this session but contributed no selectable source. */
+    private val emptyInstalls = mutableListOf<String>()
 
     /** Groups whose curated default repos we've already tried to auto-install this session. */
     private val bootstrappedGroups = mutableSetOf<String>()
@@ -259,6 +263,10 @@ class SourceScreen : Fragment() {
         countText = null
         statusText = null
         emptyText = null
+        failedPluginsText = null
+        // Names the other tab's failed installs; leaving them would blame this tab's empty list
+        // on repos that belong to a different engine.
+        emptyInstalls.clear()
         applyTabUi()
         renderRepoChips()
         loadProviders()
@@ -310,22 +318,32 @@ class SourceScreen : Fragment() {
                     .filter { it.url !in installed }
                 if (missing.isNotEmpty()) {
                     if (group == currentGroup) {
-                        statusText = "Setting up sources… please wait"
+                        statusText = getString(R.string.sources_setup)
                         applyHeaderState()
                     }
+                    emptyInstalls.clear()
                     withContext(Dispatchers.IO) {
                         missing.forEachIndexed { index, entry ->
-                            runCatching {
+                            val added = runCatching {
                                 engine.addRepo(group, entry.url) { current, total ->
                                     binding.root.post {
                                         if (_binding == null || group != currentGroup) return@post
-                                        statusText = "Setting up ${entry.name} " +
-                                            "(${index + 1}/${missing.size})" +
-                                            if (total > 0) " · $current/$total" else "…"
+                                        statusText = if (total > 0) getString(
+                                            R.string.sources_setup_repo_progress,
+                                            entry.name, index + 1, missing.size, current, total,
+                                        ) else getString(
+                                            R.string.sources_setup_repo,
+                                            entry.name, index + 1, missing.size,
+                                        )
                                         header?.tvStatus?.let { it.text = statusText; it.isVisible = true }
                                     }
                                 }
                             }
+                            // An install that adds nothing used to be swallowed here, so a repo
+                            // whose plugins all failed to load looked exactly like a repo that
+                            // had never been offered — the empty list said "No providers
+                            // available" and named nothing the user could act on.
+                            if (added.getOrDefault(0) <= 0) emptyInstalls += entry.name
                         }
                     }
                     result = withContext(Dispatchers.IO) { runCatching { engine.providers(group) } }
@@ -344,6 +362,7 @@ class SourceScreen : Fragment() {
             }
             progressVisible = false
             loadError = result.exceptionOrNull()?.message
+            failedPluginsText = describeFailedPlugins(group)
             adapter.submit(result.getOrDefault(emptyList()), engine.getActiveProvider())
             renderRepoChips()
             refreshCount()
@@ -384,16 +403,41 @@ class SourceScreen : Fragment() {
         com.saikou.sozo_tv.data.local.pref.PreferenceManager()
             .putString(com.saikou.sozo_tv.utils.LocalData.SOURCE, com.saikou.sozo_tv.parser.sources.AnimeSources.EXTENSION)
         adapter.setSelected(provider.id)
-        toast("Active source: ${provider.name}")
+        toast(getString(R.string.sources_active, provider.name))
+    }
+
+    /**
+     * The plugins of [group] that downloaded but could not be loaded, one per line.
+     *
+     * A plugin that throws while loading registers no provider, so it gets no row in the list
+     * below and every other part of this screen counts the install as a success. Naming it here,
+     * with the reason the host worked out, is the difference between "that source doesn't exist"
+     * and "that source needs something this app doesn't ship".
+     *
+     * Only failures from this session are known: the host holds them in memory, and a plugin
+     * that failed is not retried until the next "Update sources".
+     */
+    private fun describeFailedPlugins(group: String): String? {
+        val errors = engine.loadErrors(group)
+        if (errors.isEmpty()) return null
+        val heading = resources.getQuantityString(
+            R.plurals.plugins_failed_to_load, errors.size, errors.size,
+        )
+        return errors.entries.joinToString(
+            separator = "\n",
+            prefix = "$heading\n",
+        ) { (name, reason) -> getString(R.string.plugin_failed_entry, name, reason) }
     }
 
     /** Show the empty/no-results message under the search field when there are no rows. */
     private fun refreshEmptyState() {
         emptyText = when {
             adapter.providerCount() > 0 -> null
-            loadError != null -> "Couldn't load providers: $loadError"
-            searchText.isBlank() -> "No providers available."
-            else -> "No providers match “$searchText”."
+            loadError != null -> getString(R.string.sources_load_failed, loadError)
+            searchText.isNotBlank() -> getString(R.string.sources_no_match, searchText)
+            emptyInstalls.isNotEmpty() ->
+                getString(R.string.sources_install_produced_none, emptyInstalls.joinToString(", "))
+            else -> getString(R.string.sources_empty)
         }
         applyHeaderState()
     }
@@ -406,6 +450,8 @@ class SourceScreen : Fragment() {
         v.progressBar.isVisible = progressVisible
         v.tvEmpty.text = emptyText.orEmpty()
         v.tvEmpty.isVisible = !emptyText.isNullOrEmpty()
+        v.tvLoadErrors.text = failedPluginsText.orEmpty()
+        v.tvLoadErrors.isVisible = !failedPluginsText.isNullOrEmpty()
         v.tvProviderCount.text = countText.orEmpty()
         v.tvProviderCount.isVisible = !countText.isNullOrEmpty()
         // Dimmed rather than disabled: a disabled View loses focus, so starting an update threw the
@@ -443,6 +489,9 @@ class SourceScreen : Fragment() {
             updating = false
             if (group != currentGroup) return@launch
             statusText = null
+            // checkUpdates re-installs a repo that holds no provider metadata, so a name listed
+            // here is stale until the reload below has had its say.
+            emptyInstalls.clear()
             updated.onFailure {
                 toast(getString(R.string.sources_update_failed, it.message ?: "unknown error"))
             }.onSuccess {

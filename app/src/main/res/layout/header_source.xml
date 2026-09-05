@@ -181,4 +181,18 @@
         android:textSize="@dimen/tv_text_body"
         android:visibility="gone" />
 
+    <!-- Plugins that downloaded but could not be loaded. They register no provider, so they
+         have no row below and this line is the only thing on the screen that names them. -->
+    <TextView
+        android:id="@+id/tvLoadErrors"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:lineSpacingExtra="3dp"
+        android:textColor="@color/red"
+        android:textSize="@dimen/tv_text_body"
+        android:visibility="gone"
+        tools:text="1 plugin couldn't be loaded&#10;Ultima — Built against a newer CloudStream than Sozo bundles"
+        tools:visibility="visible" />
+
 </LinearLayout>

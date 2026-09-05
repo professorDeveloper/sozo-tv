@@ -19,6 +19,9 @@ import com.saikou.sozo_tv.parser.sources.AnimeSources
 import com.saikou.sozo_tv.parser.sources.SourceManager
 import com.saikou.sozo_tv.utils.Resource
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 
@@ -35,9 +38,10 @@ class PlayAnimeViewModel(
 
     val timeStamps = MutableLiveData<List<AniSkip.Stamp>?>()
     private val timeStampsMap: MutableMap<Int, List<AniSkip.Stamp>?> = mutableMapOf()
-    var doNotAsk: Boolean = false
-    var lastPosition: Long = 0
 
+    private var episodeJob: Job? = null
+    private var qualityJob: Job? = null
+    private var stampsJob: Job? = null
     var currentEpIndex: Int = -1
     var currentSubEpIndex: Int = 0
 
@@ -57,6 +61,20 @@ class PlayAnimeViewModel(
     var seriesResponse: VodMovieResponse? = null
 
     val allEpisodeData = MutableLiveData<Resource<EpisodeData>>(Resource.Idle)
+
+    val episodeProgress = MutableLiveData<Map<String, Pair<Long, Long>>>(emptyMap())
+
+    fun loadEpisodeProgress(sessions: List<String>) {
+        if (sessions.isEmpty()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val wanted = sessions.toHashSet()
+                watchHistoryRepository.getAllHistory()
+                    .filter { it.session in wanted && it.totalDuration > 0 && it.lastPosition > 0 }
+                    .associate { it.session to (it.lastPosition to it.totalDuration) }
+            }.onSuccess { episodeProgress.postValue(it) }
+        }
+    }
 
     fun getAllEpisodeByPage(
         page: Int,
@@ -79,6 +97,11 @@ class PlayAnimeViewModel(
         }
     }
 
+    fun stampsFor(episodeNum: Int?): List<AniSkip.Stamp>? {
+        if (episodeNum == null) return null
+        return timeStampsMap[episodeNum]
+    }
+
     fun loadTimeStamps(
         malId: Int?,
         episodeNum: Int?,
@@ -92,7 +115,8 @@ class PlayAnimeViewModel(
             return
         }
 
-        viewModelScope.launch(Dispatchers.IO) {
+        stampsJob?.cancel()
+        stampsJob = viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 AniSkip.getResult(malId, episodeNum, duration, useProxyForTimeStamps)
             }.onSuccess { result ->
@@ -121,6 +145,13 @@ class PlayAnimeViewModel(
 
     suspend fun addHistory(history: WatchHistoryEntity) {
         watchHistoryRepository.addHistory(history)
+    }
+
+    fun persistHistory(history: WatchHistoryEntity) {
+        viewModelScope.launch(Dispatchers.IO + NonCancellable) {
+            runCatching { watchHistoryRepository.addHistory(history) }
+                .onFailure { Log.e(TAG, "persistHistory failed: ${it.message}", it) }
+        }
     }
 
     suspend fun removeHistory(videoUrl: String) {
@@ -156,17 +187,19 @@ class PlayAnimeViewModel(
     fun updateQualityByIndex() {
         if (videoOptions.isEmpty()) return
 
-        viewModelScope.launch(Dispatchers.IO) {
+        qualityJob?.cancel()
+        qualityJob = viewModelScope.launch(Dispatchers.IO) {
             currentQualityEpisode.postValue(Resource.Loading)
             runCatching {
                 val sourceKey = activeAnimeSourceKey ?: SourceManager().getCurrentSourceKey()
                 val idx = currentSelectedVideoOptionIndex.coerceIn(0, videoOptions.lastIndex)
                 buildVodFromOption(videoOptions[idx], sourceKey)
             }.onSuccess { vod ->
+                ensureActive()
                 seriesResponse = vod
-                currentEpisodeData.postValue(Resource.Success(vod))
                 currentQualityEpisode.postValue(Resource.Success(vod))
             }.onFailure { e ->
+                ensureActive()
                 currentQualityEpisode.postValue(Resource.Error(asException(e)))
             }
         }
@@ -178,7 +211,9 @@ class PlayAnimeViewModel(
         isHistory: Boolean = false,
         episodeNum: Int?
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
+        episodeJob?.cancel()
+        qualityJob?.cancel()
+        episodeJob = viewModelScope.launch(Dispatchers.IO) {
             currentEpisodeData.postValue(Resource.Loading)
             runCatching {
                 isWatched = watchHistoryRepository.isWatched(episodeId)
@@ -214,10 +249,11 @@ class PlayAnimeViewModel(
 
                 buildVodFromOption(options[currentSelectedVideoOptionIndex], sourceKey)
             }.onSuccess { vod ->
+                ensureActive()
                 seriesResponse = vod
-
                 currentEpisodeData.postValue(Resource.Success(vod))
             }.onFailure { e ->
+                ensureActive()
                 currentEpisodeData.postValue(Resource.Error(asException(e)))
             }
         }
@@ -227,23 +263,11 @@ class PlayAnimeViewModel(
         option: VideoOption, sourceKey: String
     ): VodMovieResponse {
         return when (sourceKey) {
-            // Aniyomi/CloudStream: the VideoOption already carries the playable url,
-            // headers, mime type and subtitle tracks (no extraction needed).
             "extension" -> {
                 var url = option.videoUrl
                 var headers = option.headers
                 var mime = option.mimeTypes.ifEmpty { MimeTypes.APPLICATION_M3U8 }
 
-                // Some sources resolve to an HTML page, not a stream — ExoPlayer can't parse a
-                // page. Sniff the real .m3u8/.mp4 out of a headless WebView (the page's own JS
-                // builds the signed url) and play THAT with the captured headers.
-                //
-                // Two ways in, and the ORDER matters. The server-set `useWebViewSniff` flag is
-                // authoritative: it is how a backend declares "this source needs a browser"
-                // without the app knowing which site it is, so adding another such provider
-                // never ships an app update. `needsExtraction` stays only as the legacy
-                // heuristic for sources that predate the flag (it sniffs the URL for
-                // .html/.php/-style paths and cannot see an extensionless /embed/<token>).
                 if (option.useWebViewSniff ||
                     com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.needsExtraction(url)
                 ) {
@@ -271,7 +295,6 @@ class PlayAnimeViewModel(
                     urlobj = url,
                     header = headers,
                     type = mime,
-                    // VTT seek-preview sprite url (forwarded from the extension's resolveMedia).
                     thumbnail = option.thumbnail ?: "",
                     useLocalProxy = option.useLocalProxy,
                     localProxyJson = option.localProxy,
@@ -350,14 +373,6 @@ class PlayAnimeViewModel(
         }
     }
 
-    /**
-     * The server's `sniff` directive: which requests count as the stream, which ad
-     * hosts to swallow, and how long to wait. Every field is optional and falls back
-     * to the extractor's own defaults, so an older backend keeps working unchanged.
-     *
-     * `timeoutMs` is clamped rather than trusted: it decides how long playback sits
-     * on a spinner, and a bad payload must not be able to hang the player.
-     */
     private data class SniffDirective(
         val timeoutMs: Long,
         val patterns: List<String>,
@@ -366,14 +381,6 @@ class PlayAnimeViewModel(
         val rewrite: UrlRewrite? = null,
     )
 
-    /**
-     * How to turn the url that was sniffed into the one worth playing.
-     *
-     * Some players ask for a single rendition and never for the master, so what
-     * the sniffer sees is one fixed quality — the ladder exists, the page just
-     * never requests it. When the master's url is derivable from the variant's,
-     * the backend says so here rather than this app knowing which site it is.
-     */
     private data class UrlRewrite(
         val pattern: String,
         val replace: String,
@@ -404,13 +411,6 @@ class PlayAnimeViewModel(
         }.getOrDefault(fallback)
     }
 
-    /**
-     * Swap a sniffed url for the one the directive says is worth playing.
-     *
-     * A derived url is a guess about someone else's naming, so it is fetched
-     * before it is trusted: anything that is not a playlist leaves the sniffed
-     * url in place. One request, and only when a rule was sent at all.
-     */
     private suspend fun applyRewrite(
         rule: UrlRewrite?,
         url: String,

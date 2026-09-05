@@ -17,18 +17,25 @@ class VideoServersAdapter(
     inner class VH(private val binding: ItemVideoServerBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        // Deliberately not scaled. The row is match_parent, so growing it on focus pushes it
-        // past the list it lives in and the edges clip — the background selector is what
-        // marks focus here.
-
         fun bind(row: ServerRow, position: Int) = with(binding) {
             tvServerName.text = row.name
             tvServerQualities.text = row.qualities
             tvServerQualities.isVisible = row.qualities.isNotBlank()
             ivServerSelected.isVisible = position == selectedPosition
             root.isSelected = position == selectedPosition
-            root.setOnClickListener { onItemClick(row, position) }
+            root.setOnClickListener {
+                select(position)
+                onItemClick(row, position)
+            }
         }
+    }
+
+    private fun select(position: Int) {
+        if (position == selectedPosition) return
+        val previous = selectedPosition
+        selectedPosition = position
+        if (previous in servers.indices) notifyItemChanged(previous)
+        if (position in servers.indices) notifyItemChanged(position)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = VH(

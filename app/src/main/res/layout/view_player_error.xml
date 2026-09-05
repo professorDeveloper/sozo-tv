@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#CC000000"
+    android:clickable="true"
+    android:focusable="false">
+
+    <LinearLayout
+        android:layout_width="520dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/glass_card_bg"
+        android:elevation="12dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="28dp">
+
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_video_settings"
+            app:tint="@color/netflix_red" />
+
+        <TextView
+            android:id="@+id/error_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/player_error_title"
+            android:textColor="@color/netflix_white"
+            android:textSize="@dimen/tv_text_screen_title" />
+
+        <TextView
+            android:id="@+id/error_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:lineSpacingExtra="2dp"
+            android:textColor="@color/netflix_gray"
+            android:textSize="@dimen/tv_text_body"
+            tools:text="Connection lost. Check your network and try again." />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/error_retry"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/glass_chip_bg"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:nextFocusRight="@id/error_switch_source"
+                android:paddingHorizontal="22dp"
+                android:text="@string/player_error_retry"
+                android:textColor="@color/glass_chip_text"
+                android:textSize="@dimen/tv_text_body" />
+
+            <TextView
+                android:id="@+id/error_switch_source"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/glass_chip_bg"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:nextFocusLeft="@id/error_retry"
+                android:nextFocusRight="@id/error_back"
+                android:paddingHorizontal="22dp"
+                android:text="@string/player_error_switch_source"
+                android:textColor="@color/glass_chip_text"
+                android:textSize="@dimen/tv_text_body" />
+
+            <TextView
+                android:id="@+id/error_back"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:background="@drawable/glass_chip_bg"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:nextFocusLeft="@id/error_switch_source"
+                android:paddingHorizontal="22dp"
+                android:text="@string/player_error_back"
+                android:textColor="@color/glass_chip_text"
+                android:textSize="@dimen/tv_text_body" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

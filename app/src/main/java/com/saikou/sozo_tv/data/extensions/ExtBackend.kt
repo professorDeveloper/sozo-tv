@@ -17,6 +17,15 @@ interface ExtBackend {
     fun removeRepo(url: String): String
     fun checkUpdates(progress: ((Int, Int) -> Unit)?): JSONObject
 
+    /**
+     * Plugins this engine could not load this session, as `{internalName: reason}`.
+     *
+     * A plugin that dies while loading registers no provider, so it has no row in the Sources
+     * list and nothing else on that screen would mention it. Empty for engines that have no
+     * such failure to report.
+     */
+    fun loadErrorsJson(): String = "{}"
+
     suspend fun getMainPageJson(provider: String, page: Int): String
     suspend fun getSectionJson(provider: String, data: String, page: Int): String
     suspend fun searchJson(provider: String, query: String): String
@@ -67,6 +76,7 @@ class CloudStreamBackend(
     override fun addRepo(url: String, progress: ((Int, Int) -> Unit)?) = repos.addRepo(url, progress)
     override fun removeRepo(url: String) = repos.removeRepo(url)
     override fun checkUpdates(progress: ((Int, Int) -> Unit)?) = repos.checkUpdates(progress)
+    override fun loadErrorsJson() = host.lastErrorsJson()
 
     override suspend fun getMainPageJson(provider: String, page: Int) =
         host.getMainPageJson(provider, page)

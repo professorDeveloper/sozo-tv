@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:orientation="vertical"
-    app:cardBackgroundColor="@color/netflix_background_primary"
+    app:cardBackgroundColor="@color/glass_fill_strong"
     app:cardCornerRadius="12dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -21,7 +21,7 @@
             android:layout_marginStart="14dp"
             android:layout_marginTop="8dp"
             android:fontFamily="@font/days"
-            android:text="Continue Watching"
+            android:text="@string/history_continue_watching"
             android:textColor="@color/white40"
             android:textSize="@dimen/tv_text_subtitle"
             app:layout_constraintStart_toStartOf="parent"
@@ -77,13 +77,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="top|start"
-                    android:ellipsize="marquee"
+                    android:ellipsize="end"
                     android:fontFamily="@font/days"
-                    android:marqueeRepeatLimit="marquee_forever"
-                    android:maxLength="16"
                     android:maxLines="1"
-                    android:text="Hokkeynie papi"
+                    android:maxWidth="200dp"
                     android:textColor="@color/color_black_white_text"
+                    tools:text="Demon Slayer: Kimetsu no Yaiba"
                     android:textSize="@dimen/tv_text_body" />
 
 
@@ -93,21 +92,21 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:fontFamily="@font/days"
-                    android:text="IMDB 8.7"
                     android:textColor="@color/color_black_white_text"
-                    android:textSize="@dimen/tv_text_label" />
+                    android:textSize="@dimen/tv_text_label"
+                    tools:text="IMDb 8.7" />
 
                 <TextView
                     android:id="@+id/languageAnd"
                     android:layout_width="200dp"
-                    android:layout_height="50dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
+                    android:ellipsize="end"
                     android:fontFamily="@font/days"
-                    android:lines="4"
-                    android:maxLines="4"
-                    android:text="PlatformTools is a Kotlin Multiplatform library designed to provide platform-specific"
+                    android:maxLines="3"
                     android:textColor="@color/color_black_white_text"
-                    android:textSize="@dimen/tv_text_caption" />
+                    android:textSize="@dimen/tv_text_caption"
+                    tools:text="A boy sells charcoal to support his family until a demon changes everything." />
 
 
             </LinearLayout>
@@ -133,7 +132,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/days"
-                android:text="Last Watched Date"
+                android:text="@string/history_last_watched"
                 android:textColor="@color/lb_tv_white"
                 android:textSize="@dimen/tv_text_label" />
 
@@ -142,8 +141,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
+                tools:text="2026-09-01"
                 android:fontFamily="@font/days"
-                android:text="01/03/2024"
                 android:textColor="@color/color_black_white_text"
                 android:textSize="@dimen/tv_text_body" />
 
@@ -152,12 +151,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                tools:text="Continue from 14:42?"
                 android:fontFamily="@font/days"
                 android:lines="1"
                 android:maxEms="20"
                 android:maxLines="1"
                 android:minLines="1"
-                android:text="Continue from  14:42 ?"
                 android:textColor="@color/lb_tv_white"
                 android:textSize="@dimen/tv_text_subtitle" />
 
@@ -172,6 +171,7 @@
 
                 <LinearLayout
                     android:id="@+id/yesContinueBtn"
+                    android:nextFocusRight="@+id/noContinueBtn"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_marginHorizontal="4dp"
@@ -190,7 +190,7 @@
                         android:fontFamily="@font/days"
                         android:paddingVertical="13dp"
 
-                        android:text="Yes Continue"
+                        android:text="@string/resume_continue"
                         android:textAlignment="center"
                         android:textColor="@color/color_item_tv_category_tv"
                         android:textSize="@dimen/tv_text_label" />
@@ -200,6 +200,7 @@
 
                 <LinearLayout
                     android:id="@+id/noContinueBtn"
+                    android:nextFocusLeft="@id/yesContinueBtn"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_marginHorizontal="4dp"
@@ -218,7 +219,7 @@
                         android:fontFamily="@font/days"
                         android:paddingVertical="13dp"
 
-                        android:text="Clear History"
+                        android:text="@string/resume_start_over"
                         android:textAlignment="center"
                         android:textColor="@color/color_item_tv_category_tv"
                         android:textSize="@dimen/tv_text_label" />

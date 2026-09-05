@@ -14,6 +14,7 @@ import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
+import com.saikou.sozo_tv.R
 import kotlin.math.min
 
 class SkipIntroOverlayView @JvmOverloads constructor(
@@ -25,12 +26,18 @@ class SkipIntroOverlayView @JvmOverloads constructor(
     private var isAnimating = false
     private var currentAlpha = 0f
     private var skipType = "Skip Intro"
+    private val pressOkText = context.getString(R.string.skip_press_ok)
 
     @SuppressLint("UseKtx")
     private val netflixRed = Color.parseColor("#E50914")
     private val netflixDarkGray = Color.parseColor("#1F1F1F")
     private val netflixWhite = Color.parseColor("#FFFFFF")
     private val netflixLightGray = Color.parseColor("#B3B3B3")
+
+    private val density = resources.displayMetrics.density
+    private val scaledDensity = resources.displayMetrics.scaledDensity
+    private fun dp(v: Float) = v * density
+    private fun sp(v: Float) = v * scaledDensity
 
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#CC000000")
@@ -40,7 +47,7 @@ class SkipIntroOverlayView @JvmOverloads constructor(
     private val cardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = netflixDarkGray
         style = Paint.Style.FILL
-        setShadowLayer(24f, 0f, 8f, Color.parseColor("#80000000"))
+        setShadowLayer(dp(12f), 0f, dp(4f), Color.parseColor("#80000000"))
     }
 
     private val accentPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -50,14 +57,14 @@ class SkipIntroOverlayView @JvmOverloads constructor(
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = netflixWhite
-        textSize = 48f
+        textSize = sp(22f)
         textAlign = Paint.Align.CENTER
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
     }
 
     private val descriptionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = netflixLightGray
-        textSize = 28f
+        textSize = sp(14f)
         textAlign = Paint.Align.CENTER
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
     }
@@ -65,7 +72,7 @@ class SkipIntroOverlayView @JvmOverloads constructor(
     private val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = netflixWhite
         style = Paint.Style.STROKE
-        strokeWidth = 6f
+        strokeWidth = dp(3f)
         strokeCap = Paint.Cap.ROUND
         strokeJoin = Paint.Join.ROUND
     }
@@ -74,7 +81,7 @@ class SkipIntroOverlayView @JvmOverloads constructor(
     private var onSkipClicked: (() -> Unit)? = null
 
     private val cardRect = RectF()
-    private val cornerRadius = 16f
+    private val cornerRadius get() = dp(16f)
     private var centerX = 0f
     private var centerY = 0f
 
@@ -83,8 +90,8 @@ class SkipIntroOverlayView @JvmOverloads constructor(
         centerX = w / 2f
         centerY = h / 2f
 
-        val cardWidth = min(w * 0.5f, 480f)
-        val cardHeight = 200f
+        val cardWidth = min(w * 0.5f, dp(320f))
+        val cardHeight = dp(120f)
         cardRect.set(
             centerX - cardWidth / 2f,
             centerY - cardHeight / 2f,
@@ -113,14 +120,14 @@ class SkipIntroOverlayView @JvmOverloads constructor(
         val accentRect = RectF(
             cardRect.left,
             cardRect.top,
-            cardRect.left + 8f,
+            cardRect.left + dp(4f),
             cardRect.bottom
         )
         canvas.drawRoundRect(accentRect, cornerRadius, cornerRadius, accentPaint)
 
         val iconCenterX = centerX
-        val iconCenterY = centerY - 30f
-        val iconSize = 50f
+        val iconCenterY = centerY - dp(18f)
+        val iconSize = dp(26f)
 
         val path = Path().apply {
             moveTo(iconCenterX - iconSize / 3f, iconCenterY - iconSize / 2f)
@@ -136,8 +143,8 @@ class SkipIntroOverlayView @JvmOverloads constructor(
         }
         canvas.drawPath(path2, iconPaint)
 
-        canvas.drawText(skipType, centerX, centerY + 45f, textPaint)
-        canvas.drawText("Tap to skip", centerX, centerY + 80f, descriptionPaint)
+        canvas.drawText(skipType, centerX, centerY + dp(24f), textPaint)
+        canvas.drawText(pressOkText, centerX, centerY + dp(44f), descriptionPaint)
     }
 
     fun showSkipButton(

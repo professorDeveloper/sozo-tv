@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.presentation.screens.play
 
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,10 +8,11 @@ import androidx.fragment.app.DialogFragment
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.VideoServersAdapter
 import com.saikou.sozo_tv.databinding.DialogVideoQualityBinding
+import com.saikou.sozo_tv.presentation.screens.play.dialog.applyGlassWindow
 
 class VideoServerDialog(
-    private val servers: List<VideoServersAdapter.ServerRow>,
-    private val currentIndex: Int,
+    private val servers: List<VideoServersAdapter.ServerRow> = emptyList(),
+    private val currentIndex: Int = 0,
     private val titleRes: Int = R.string.player_server_title,
     private val subtitleRes: Int = R.string.player_server_subtitle,
 ) : DialogFragment() {
@@ -27,7 +27,6 @@ class VideoServerDialog(
         onPick = listener
     }
 
-    /** For rows whose label is not itself the answer. */
     fun setOnRowPicked(listener: (Int) -> Unit) {
         onPickIndex = listener
     }
@@ -43,22 +42,27 @@ class VideoServerDialog(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        dialog?.window?.setBackgroundDrawable(ColorDrawable(0))
-        dialog?.window?.setWindowAnimations(R.style.DialogAnimation)
+        dialog?.applyGlassWindow()
+
+        if (servers.isEmpty()) {
+            dismissAllowingStateLoss()
+            return
+        }
 
         binding.dialogTitle.text = getString(titleRes)
-        binding.close.setOnClickListener { dismiss() }
         binding.dialogSubtitle.text = getString(subtitleRes)
+        binding.close.setOnClickListener { dismiss() }
 
-        binding.videOptionRv.adapter = VideoServersAdapter(servers, currentIndex) { row, index ->
+        val selected = currentIndex.coerceIn(0, servers.lastIndex)
+        binding.videOptionRv.adapter = VideoServersAdapter(servers, selected) { row, index ->
             onPick?.invoke(row.name)
             onPickIndex?.invoke(index)
             dismiss()
         }
-
         binding.videOptionRv.post {
-            binding.videOptionRv.setSelectedPosition(currentIndex.coerceAtLeast(0))
-            binding.videOptionRv.requestFocus()
+            val rv = _binding?.videOptionRv ?: return@post
+            rv.selectedPosition = selected
+            rv.requestFocus()
         }
     }
 

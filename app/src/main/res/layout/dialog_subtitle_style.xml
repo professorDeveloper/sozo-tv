@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:layout_marginVertical="32dp"
-    android:background="@drawable/dialog_background"
+    android:background="@drawable/glass_panel_bg"
     android:minWidth="700dp"
     android:orientation="vertical"
     android:padding="16dp">
@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:fontFamily="sans-serif-medium"
-            android:text="Subtitle Style"
+            android:text="@string/subtitle_style_title"
             android:textColor="@android:color/white"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -59,8 +59,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-
-            <!-- Preview -->
             <LinearLayout
                 android:id="@+id/subtitle_preview_container"
                 android:layout_width="match_parent"
@@ -88,8 +86,6 @@
                     android:textColor="@color/netflix_white"
                     android:textSize="@dimen/tv_text_subtitle" />
             </LinearLayout>
-
-            <!-- Font -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -114,7 +110,7 @@
                     android:layout_weight="1"
                     android:fontFamily="sans-serif-medium"
                     android:gravity="center"
-                    android:text="Default"
+                    android:text="@string/subtitle_font_default"
                     android:textColor="@color/netflix_text_primary"
                     android:textSize="@dimen/tv_text_body" />
 
@@ -149,18 +145,16 @@
                     android:layout_weight="1"
                     android:fontFamily="monospace"
                     android:gravity="center"
-                    android:text="Mono"
+                    android:text="@string/subtitle_font_mono"
                     android:textColor="@color/netflix_text_primary"
                     android:textSize="@dimen/tv_text_body" />
             </LinearLayout>
-
-            <!-- Size -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:fontFamily="sans-serif-medium"
-                android:text="Text Size"
+                android:text="@string/subtitle_text_size"
                 android:textColor="@color/netflix_white"
                 android:textSize="@dimen/tv_text_body" />
 
@@ -174,14 +168,12 @@
                 app:minValue="12"
                 app:step="1"
                 app:unit="sp" />
-
-            <!-- Color -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:fontFamily="sans-serif-medium"
-                android:text="Text Color"
+                android:text="@string/subtitle_text_color"
                 android:textColor="@color/netflix_white"
                 android:textSize="@dimen/tv_text_body" />
 
@@ -194,6 +186,7 @@
 
                 <FrameLayout
                     android:id="@+id/subtitle_color_white"
+                    android:contentDescription="@string/subtitle_color_white"
                     android:layout_width="44dp"
                     android:layout_height="44dp"
                     android:layout_marginEnd="12dp"
@@ -211,6 +204,7 @@
 
                 <FrameLayout
                     android:id="@+id/subtitle_color_orange"
+                    android:contentDescription="@string/subtitle_color_orange"
                     android:layout_width="44dp"
                     android:layout_height="44dp"
                     android:layout_marginEnd="12dp"
@@ -228,6 +222,7 @@
 
                 <FrameLayout
                     android:id="@+id/subtitle_color_gray"
+                    android:contentDescription="@string/subtitle_color_gray"
                     android:layout_width="44dp"
                     android:layout_height="44dp"
                     android:layout_marginEnd="12dp"
@@ -245,6 +240,7 @@
 
                 <FrameLayout
                     android:id="@+id/subtitle_color_green"
+                    android:contentDescription="@string/subtitle_color_green"
                     android:layout_width="44dp"
                     android:layout_height="44dp"
                     android:layout_marginEnd="12dp"
@@ -262,6 +258,7 @@
 
                 <FrameLayout
                     android:id="@+id/subtitle_color_red"
+                    android:contentDescription="@string/subtitle_color_red"
                     android:layout_width="44dp"
                     android:layout_height="44dp"
                     android:layout_marginEnd="12dp"
@@ -279,6 +276,7 @@
 
                 <FrameLayout
                     android:id="@+id/subtitle_color_blue"
+                    android:contentDescription="@string/subtitle_color_blue"
                     android:layout_width="44dp"
                     android:layout_height="44dp"
                     android:background="@drawable/tv_swatch_ring_selector"
@@ -293,14 +291,12 @@
                         android:backgroundTint="@color/cta_button_normal" />
                 </FrameLayout>
             </LinearLayout>
-
-            <!-- Background -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:fontFamily="sans-serif-medium"
-                android:text="Subtitle Background"
+                android:text="@string/subtitle_background"
                 android:textColor="@color/netflix_white"
                 android:textSize="@dimen/tv_text_body" />
 
@@ -318,7 +314,7 @@
                     android:layout_marginEnd="6dp"
                     android:layout_weight="1"
                     android:fontFamily="sans-serif-medium"
-                    android:text="Off"
+                    android:text="@string/off"
                     android:textColor="@color/netflix_text_primary" />
 
                 <com.saikou.sozo_tv.components.TvOptionChipView
@@ -327,17 +323,15 @@
                     android:layout_height="56dp"
                     android:layout_weight="1"
                     android:fontFamily="sans-serif-medium"
-                    android:text="On"
+                    android:text="@string/on"
                     android:textColor="@color/netflix_text_primary" />
             </LinearLayout>
-
-            <!-- Outline -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:fontFamily="sans-serif-medium"
-                android:text="Outline"
+                android:text="@string/subtitle_outline"
                 android:textColor="@color/netflix_white"
                 android:textSize="@dimen/tv_text_body" />
 
@@ -354,7 +348,7 @@
                     android:layout_marginEnd="6dp"
                     android:layout_weight="1"
                     android:fontFamily="sans-serif-medium"
-                    android:text="Off"
+                    android:text="@string/off"
                     android:textColor="@color/netflix_text_primary" />
 
                 <com.saikou.sozo_tv.components.TvOptionChipView
@@ -363,7 +357,7 @@
                     android:layout_height="56dp"
                     android:layout_weight="1"
                     android:fontFamily="sans-serif-medium"
-                    android:text="On"
+                    android:text="@string/on"
                     android:textColor="@color/netflix_text_primary" />
             </LinearLayout>
 

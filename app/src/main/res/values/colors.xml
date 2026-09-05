@@ -82,4 +82,13 @@
     <color name="notification_icon_tint">#4A9EFF</color>
     <color name="anilist_blue">#02A9FF</color>
     <color name="anilist_blue_deep">#0073C4</color>
+    <color name="glass_fill">#B31C1C20</color>
+    <color name="glass_fill_strong">#D90B0B0D</color>
+    <color name="glass_stroke">#33FFFFFF</color>
+    <color name="glass_highlight">#26FFFFFF</color>
+    <color name="glass_focus_fill">#FFFFFFFF</color>
+    <color name="glass_scrim_strong">#D9000000</color>
+    <color name="glass_fill_card">#D91C1C20</color>
+    <color name="glass_fill_selected">#52FFFFFF</color>
+    <color name="glass_fill_resting">#2EFFFFFF</color>
 </resources>

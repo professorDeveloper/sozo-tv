@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="subtitle_search_title">Search subtitles online</string>
+    <string name="subtitle_search_hint">Title to search for</string>
+    <string name="subtitle_search_go">Search</string>
+    <plurals name="subtitle_search_found_n">
+        <item quantity="one">%1$d subtitle found</item>
+        <item quantity="other">%1$d subtitles found</item>
+    </plurals>
+    <string name="subtitle_search_none">No subtitles found for this title</string>
+    <string name="subtitle_search_searching">Searching…</string>
+    <string name="subtitle_ai_translate">Translate to %1$s (AI)</string>
+    <string name="subtitle_ai_quota">%1$d left today</string>
+    <string name="subtitle_ai_translating">Translating… this can take up to a minute</string>
+    <string name="subtitle_ai_failed">Could not translate — try again later</string>
+    <string name="subtitle_ai_nothing_to_translate">Nothing to translate — no subtitle found for this title</string>
+    <string name="subtitle_ai_label">%1$s (AI)</string>
+    <string name="subtitle_ai_none_left">No AI translations left today</string>
+    <string name="subtitle_unknown_language">Subtitle</string>
+</resources>

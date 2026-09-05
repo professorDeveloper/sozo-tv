@@ -81,6 +81,12 @@ class LiveTvActivity : AppCompatActivity() {
             player.setWakeMode(C.WAKE_MODE_LOCAL)
 
             player.addListener(object : Player.Listener {
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(
+                        if (isPlaying) R.drawable.ic_player_pause else R.drawable.ic_player_play
+                    )
+                }
+
                 override fun onPlayerError(error: PlaybackException) {
                     super.onPlayerError(error)
                     handlePlayerError(error)
@@ -137,10 +143,8 @@ class LiveTvActivity : AppCompatActivity() {
         binding.pvPlayer.controller.binding.exoPlayPauseContainer.setOnClickListener {
             if (player.isPlaying) {
                 player.pause()
-                binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_play_to_pause)
             } else {
                 player.play()
-                binding.pvPlayer.controller.binding.exoPlayPaused.setImageResource(R.drawable.anim_pause_to_play)
             }
 
         }
@@ -149,7 +153,7 @@ class LiveTvActivity : AppCompatActivity() {
     @SuppressLint("UnsafeOptInUsageError")
     private fun setupPlayerControls() {
         val exoProgress: TrailerPlayerScreen.ExtendedTimeBar =
-            binding.pvPlayer.findViewById(R.id.exo_progress)
+            binding.pvPlayer.findViewById(androidx.media3.ui.R.id.exo_progress)
         exoProgress.setForceDisabled(true)
         binding.pvPlayer.useController = true
         binding.pvPlayer.controllerAutoShow = true

@@ -15,6 +15,8 @@ import com.saikou.sozo_tv.data.repository.MalTracker
 import com.saikou.sozo_tv.data.remote.device.DeviceAuthClient
 import com.saikou.sozo_tv.data.remote.device.DeviceTokenAuthenticator
 import okhttp3.Authenticator
+import com.saikou.sozo_tv.data.remote.subtitles.SubtitleSearchClient
+import com.saikou.sozo_tv.data.remote.subtitles.SubtitleTranslationClient
 import com.saikou.sozo_tv.data.remote.version.AppVersionClient
 import com.saikou.sozo_tv.data.remote.history.WatchHistorySyncClient
 import com.saikou.sozo_tv.data.remote.lists.UserListsClient
@@ -151,6 +153,22 @@ val NetworkModule = module {
             okHttpClient = get(named("authOkHttp")),
             gson = get(),
             baseUrl = BuildConfig.SOZO_API_BASE_URL,
+        )
+    }
+
+    single {
+        SubtitleSearchClient(
+            okHttpClient = get(named("authOkHttp")),
+            gson = get(),
+            baseUrl = BuildConfig.SOZO_API_BASE_URL,
+        )
+    }
+    single {
+        SubtitleTranslationClient(
+            okHttpClient = get(named("authOkHttp")),
+            gson = get(),
+            baseUrl = BuildConfig.SOZO_API_BASE_URL,
+            tokenProvider = { get<DeviceAuthRepository>().accessToken() },
         )
     }
 

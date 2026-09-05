@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.saikou.sozo_tv.domain.model.SearchModel
 import com.saikou.sozo_tv.domain.repository.SearchRepository
 import com.saikou.sozo_tv.data.extensions.SearchLegStatus
+import com.saikou.sozo_tv.utils.SearchRelevance
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,9 +31,18 @@ class SearchViewModel(
                 _loading.value = true
                 val result = repo.searchAnime(query)
                 result.onSuccess {
-                    if (it.isNotEmpty()) {
+                    // The same guard the all-sources path uses. A single source
+                    // answering with its catalogue is the worse case of the
+                    // two: there is no second source whose real matches could
+                    // outrank the junk, so the whole screen is the wrong show.
+                    val ranked = if (SearchRelevance.looksUnsearched(it, query) { m -> m.title }) {
+                        emptyList()
+                    } else {
+                        SearchRelevance.rank(it, query) { m -> m.title }
+                    }
+                    if (ranked.isNotEmpty()) {
                         _loading.value = false
-                        _searchResults.value = it
+                        _searchResults.value = ranked
                         lastQuery = query
                     } else {
                         _loading.value = false
@@ -78,11 +88,30 @@ class SearchViewModel(
                     .onCompletion { _loading.value = false }
                     .collect { leg ->
                         answered++
-                        if (leg.status == SearchLegStatus.OK) withResults++
-                        for (item in leg.items) {
+                        // A source that answered with its front page is worse
+                        // than one that answered with nothing: its rows are
+                        // confident, well-formed cards for a completely
+                        // different show, and on a television they land under
+                        // the D-pad first. Dropped only on the strong signal —
+                        // see SearchRelevance.looksUnsearched.
+                        val legItems =
+                            if (SearchRelevance.looksUnsearched(leg.items, q) { it.title }) {
+                                emptyList()
+                            } else {
+                                leg.items
+                            }
+                        if (leg.status == SearchLegStatus.OK && legItems.isNotEmpty()) {
+                            withResults++
+                        }
+                        for (item in legItems) {
                             merged.putIfAbsent("${item.id}", item)
                         }
-                        _searchResults.value = merged.values.toList()
+                        // Ranked across everything that has arrived, not within
+                        // one leg: the point of searching every source is that
+                        // the best answer may come from the fourth one to
+                        // reply, and it still has to be the first card.
+                        _searchResults.value =
+                            SearchRelevance.rank(merged.values.toList(), q) { it.title }
                         _searchProgress.value = SearchProgress(
                             answered = answered,
                             sourcesWithResults = withResults,
@@ -113,9 +142,18 @@ class SearchViewModel(
                 _loading.value = true
                 val result = repo.searchMovie(query)
                 result.onSuccess {
-                    if (it.isNotEmpty()) {
+                    // The same guard the all-sources path uses. A single source
+                    // answering with its catalogue is the worse case of the
+                    // two: there is no second source whose real matches could
+                    // outrank the junk, so the whole screen is the wrong show.
+                    val ranked = if (SearchRelevance.looksUnsearched(it, query) { m -> m.title }) {
+                        emptyList()
+                    } else {
+                        SearchRelevance.rank(it, query) { m -> m.title }
+                    }
+                    if (ranked.isNotEmpty()) {
                         _loading.value = false
-                        _searchResults.value = it
+                        _searchResults.value = ranked
                         lastQuery = query
                     } else {
                         _loading.value = false

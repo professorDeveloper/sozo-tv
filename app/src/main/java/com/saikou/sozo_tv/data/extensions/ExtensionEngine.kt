@@ -128,6 +128,14 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
                     }.onFailure {
                         allInstalled = false
                         Log.e(TAG, "default repo ${entry.name} (${entry.url}) failed: ${it.message}")
+                    }.onSuccess { sources ->
+                        // A repo that returns without throwing but adds no selectable source is
+                        // not installed in any sense the user can see. Marking the defaults done
+                        // on that basis is what stopped the app ever trying them again.
+                        if (sources <= 0) {
+                            allInstalled = false
+                            Log.e(TAG, "default repo ${entry.name} (${entry.url}) added no sources")
+                        }
                     }
                 }
         }
@@ -180,11 +188,29 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
         ExtParser.repos(b.listReposJson())
     }
 
+    /**
+     * Plugins of [group] that failed to load this session, name -> one-line reason.
+     *
+     * Read after [providers], which is the call that loads them: a failed plugin contributes no
+     * row to that list, so this is the only thing that names it.
+     */
+    fun loadErrors(group: String): Map<String, String> =
+        backendForGroup(group)?.let { ExtParser.loadErrors(it.loadErrorsJson()) } ?: emptyMap()
+
+    /**
+     * Installs a repo and answers with the number of SELECTABLE SOURCES it added.
+     *
+     * It used to answer with the plugin count, which is not the same number: a CloudStream
+     * plugin that downloads but registers no provider — every plugin in the repo, while the
+     * classes they link against were missing — counted as a success, so a repo that put
+     * nothing at all in the list was indistinguishable from one that worked.
+     */
     suspend fun addRepo(group: String, url: String, progress: ((Int, Int) -> Unit)? = null): Int =
         withContext(Dispatchers.IO) {
             val b = backendForGroup(group) ?: return@withContext 0
             val result = b.addRepo(url, progress)
-            result.optInt("sourceCount", result.optInt("pluginCount", 0))
+            result.optJSONArray("providers")?.length()
+                ?: result.optInt("sourceCount", result.optInt("pluginCount", 0))
         }
 
     suspend fun removeRepo(group: String, url: String) = withContext(Dispatchers.IO) {

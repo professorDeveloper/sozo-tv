@@ -6,12 +6,9 @@
     android:layout_gravity="center"
     android:layout_marginHorizontal="52dp"
     android:layout_marginVertical="32dp"
-    app:cardBackgroundColor="@color/netflix_dark_gray"
+    app:cardBackgroundColor="@color/glass_fill_strong"
     app:cardCornerRadius="16dp"
     app:cardElevation="8dp">
-
-    <!-- Close sits over the card's top-right corner rather than in the column,
-         so the centred header keeps its symmetry. -->
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/close"
         android:layout_width="36dp"
@@ -43,6 +40,7 @@
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:layout_marginBottom="12dp"
+                android:contentDescription="@null"
                 android:src="@drawable/ic_video_settings"
                 app:tint="@color/red" />
 
@@ -53,7 +51,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:text="@string/player_quality_title"
-                android:textColor="#ffffff"
+                android:textColor="@color/netflix_white"
                 android:textSize="22sp" />
 
             <TextView
@@ -65,7 +63,7 @@
                 android:lineSpacingExtra="2dp"
                 android:maxWidth="520dp"
                 android:text="@string/player_quality_subtitle"
-                android:textColor="#9ca3af"
+                android:textColor="@color/netflix_gray"
                 android:textSize="@dimen/tv_text_subtitle" />
 
         </LinearLayout>
@@ -74,9 +72,10 @@
             android:id="@+id/videOptionRv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:maxHeight="260dp"
             android:clipToPadding="false"
-            android:focusable="true"
+            android:descendantFocusability="afterDescendants"
+            android:focusable="false"
+            android:overScrollMode="never"
             android:scrollbars="none"
             app:numberOfColumns="1"
             tools:listitem="@layout/item_video_quality"

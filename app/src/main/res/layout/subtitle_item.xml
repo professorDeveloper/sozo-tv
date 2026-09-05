@@ -2,10 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="88dp"
+    android:layout_height="76dp"
     android:layout_marginHorizontal="8dp"
     android:layout_marginVertical="8dp"
-    android:background="@drawable/bg_subtitle_item"
+    android:background="@drawable/glass_chip_bg"
     android:clickable="true"
     android:focusable="true"
     android:gravity="center_vertical"
@@ -19,7 +19,7 @@
         android:id="@+id/flagUrl"
         android:layout_width="32dp"
         android:layout_height="32dp"
-        android:contentDescription="@string/choose_subtitle" />
+        android:contentDescription="@null" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -35,8 +35,8 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="@color/white"
-            android:textSize="18sp"
+            android:textColor="@color/glass_chip_text"
+            android:textSize="@dimen/tv_text_subtitle"
             android:textStyle="bold" />
 
         <TextView
@@ -46,15 +46,16 @@
             android:layout_marginTop="6dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="@color/white40"
-            android:textSize="@dimen/tv_text_body" />
+            android:alpha="0.75"
+            android:textColor="@color/glass_chip_text"
+            android:textSize="@dimen/tv_text_caption" />
     </LinearLayout>
 
     <ImageView
         android:id="@+id/img_selected"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:contentDescription="Selected"
+        android:contentDescription="@null"
         android:scaleType="centerInside"
         android:src="@drawable/ic_check"
         android:visibility="gone"

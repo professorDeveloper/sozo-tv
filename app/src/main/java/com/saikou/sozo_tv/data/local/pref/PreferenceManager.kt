@@ -35,6 +35,10 @@ class PreferenceManager(context: Context = MyApp.context) {
         private const val KEY_CONTENT_CONTROLS_EXPANDED = "content_controls_expanded"
 
         private const val KEY_AUDIO_LANGUAGE = "audio_language"
+        private const val KEY_PLAYBACK_SPEED = "playback_speed"
+        private const val KEY_RESIZE_MODE = "player_resize_mode"
+        private const val KEY_SUBTITLES_ENABLED = "subtitles_enabled"
+        private const val KEY_SUBTITLE_LABEL = "subtitle_label"
 
         private const val KEY_SEASONAL_THEME = "seasonal_theme"
 
@@ -58,6 +62,21 @@ class PreferenceManager(context: Context = MyApp.context) {
     fun getAudioLanguage(): String? = prefs.getString(KEY_AUDIO_LANGUAGE, null)
     fun setAudioLanguage(code: String?) = prefs.edit().apply {
         if (code.isNullOrBlank()) remove(KEY_AUDIO_LANGUAGE) else putString(KEY_AUDIO_LANGUAGE, code)
+    }.apply()
+
+    fun getPlaybackSpeed(): Float = prefs.getFloat(KEY_PLAYBACK_SPEED, 1f)
+    fun setPlaybackSpeed(speed: Float) = prefs.edit().putFloat(KEY_PLAYBACK_SPEED, speed).apply()
+
+    fun getResizeModeIndex(): Int = prefs.getInt(KEY_RESIZE_MODE, 0)
+    fun setResizeModeIndex(index: Int) = prefs.edit().putInt(KEY_RESIZE_MODE, index).apply()
+
+    fun isSubtitlesEnabled(): Boolean = prefs.getBoolean(KEY_SUBTITLES_ENABLED, true)
+    fun setSubtitlesEnabled(enabled: Boolean) =
+        prefs.edit().putBoolean(KEY_SUBTITLES_ENABLED, enabled).apply()
+
+    fun getSubtitleLabel(): String? = prefs.getString(KEY_SUBTITLE_LABEL, null)
+    fun setSubtitleLabel(label: String?) = prefs.edit().apply {
+        if (label.isNullOrBlank()) remove(KEY_SUBTITLE_LABEL) else putString(KEY_SUBTITLE_LABEL, label)
     }.apply()
 
     fun isNsfwEnabled() = prefs.getBoolean(KEY_NSFW_ENABLED, false)

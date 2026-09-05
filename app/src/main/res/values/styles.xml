@@ -162,4 +162,27 @@
         <item name="android:textColor">@color/netflix_gray</item>
         <item name="android:textSize">14sp</item>
     </style>
+    <style name="PlayerGlassButton">
+        <item name="android:layout_width">44dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:background">@drawable/glass_button_bg</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+        <item name="android:stateListAnimator">@animator/player_button_focus</item>
+    </style>
+
+    <style name="PlayerGlassButtonIcon">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:duplicateParentState">true</item>
+        <item name="android:padding">11dp</item>
+        <item name="android:tint">@color/color_black_white_text</item>
+    </style>
+
+    <style name="PlayerTimeText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">@dimen/tv_text_subtitle</item>
+    </style>
 </resources>

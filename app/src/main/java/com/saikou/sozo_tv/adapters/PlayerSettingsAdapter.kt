@@ -6,7 +6,6 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.databinding.ItemPlayerSettingBinding
 
-/** A settings row: what it is, what it is set to, and whether it is the current pick. */
 data class SettingRow(
     val label: String,
     val value: String = "",
@@ -24,11 +23,10 @@ class PlayerSettingsAdapter(
         fun bind(row: SettingRow, position: Int) = with(binding) {
             settingLabel.text = row.label
             settingValue.text = row.value
-            // A row with nothing to say underneath should not reserve the space
-            // for it — a menu of one-line rows reads much faster.
             settingValue.isVisible = row.value.isNotEmpty()
             settingTick.isVisible = row.ticked
             root.isFocusable = true
+            root.isFocusableInTouchMode = true
             root.setOnClickListener { onPick(position) }
         }
     }

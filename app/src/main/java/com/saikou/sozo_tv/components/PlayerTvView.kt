@@ -4,12 +4,14 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewParent
 import androidx.annotation.OptIn
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerControlView
 import androidx.media3.ui.PlayerView
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.presentation.screens.play.TrailerPlayerScreen
 
 class PlayerTvView @JvmOverloads constructor(
     context: Context,
@@ -27,7 +29,6 @@ class PlayerTvView @JvmOverloads constructor(
     private var lastFocusedView: View? = null
     private var focusRestoreInstalled = false
 
-    /** Episode navigation lives in the fragment; the remote's transport keys reach it here. */
     var onNextEpisode: (() -> Unit)? = null
     var onPreviousEpisode: (() -> Unit)? = null
 
@@ -38,11 +39,6 @@ class PlayerTvView @JvmOverloads constructor(
     private companion object {
         const val SEEK_STEP_MS = 10_000L
 
-        /**
-         * Held left or right accelerates. Ten seconds a press is right for finding a line of
-         * dialogue again and hopeless for skipping an opening, and a remote has nothing else
-         * to offer for the second case.
-         */
         val SEEK_LADDER_MS = longArrayOf(10_000L, 30_000L, 60_000L, 120_000L)
         const val SEEK_RUN_GAP_MS = 700L
     }
@@ -55,32 +51,7 @@ class PlayerTvView @JvmOverloads constructor(
             return super.dispatchKeyEvent(event)
         }
 
-//        if (!controller.isVisible && event.action == KeyEvent.ACTION_DOWN) {
-//            when (event.keyCode) {
-//                KeyEvent.KEYCODE_DPAD_CENTER,
-//                KeyEvent.KEYCODE_ENTER -> {
-//                    // Controllerni ko'rsatish
-//                    showController()
-//
-//                    // Focus ni pause/play buttoniga o'tkazish
-//                    post {
-//                        val playPauseButton = findPlayPauseButton()
-//                        if (playPauseButton != null) {
-//                            playPauseButton.requestFocus()
-//                        } else {
-//                            // Agar play/pause button topilmasa, controllerdagi birinchi focusable elementga focus qilish
-//                            val firstFocusable = findFirstFocusableView(controller)
-//                            firstFocusable?.requestFocus()
-//                        }
-//                    }
-//                    return true
-//                }
-//            }
-//        }
-
         if (controller.isVisible) {
-            // Back belongs to the controls while they are up. Leaving it to the activity meant
-            // one press of the most-used key on the remote left playback entirely.
             if (event.keyCode == KeyEvent.KEYCODE_BACK) {
                 if (event.action == KeyEvent.ACTION_UP) hideController()
                 return true
@@ -88,15 +59,35 @@ class PlayerTvView @JvmOverloads constructor(
             val currentFocus = controller.findFocus()
             if (currentFocus != null) {
                 lastFocusedView = currentFocus
+                val onTimeBar = currentFocus.id == androidx.media3.ui.R.id.exo_progress
+                val confirm = event.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                    event.keyCode == KeyEvent.KEYCODE_ENTER
+                val scrubbing = (currentFocus as? TrailerPlayerScreen.ExtendedTimeBar)?.scrubbing
+                if (onTimeBar && confirm && scrubbing != true) {
+                    if (event.action == KeyEvent.ACTION_UP) togglePlayback()
+                    return true
+                }
                 return super.dispatchKeyEvent(event)
             }
-            // Focus is on the PlayerView itself. Its rect covers the whole screen, so it is
-            // never a directional candidate and the d-pad stays dead until the controls hide.
             if (event.action == KeyEvent.ACTION_DOWN && isDirectionKey(event.keyCode)) {
                 restoreControllerFocus()
                 return true
             }
             return super.dispatchKeyEvent(event)
+        }
+
+        val focused = findFocus()
+        if (focused != null && focused !== this) {
+            when (event.keyCode) {
+                KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER,
+                KeyEvent.KEYCODE_SPACE -> {
+                    if (event.action == KeyEvent.ACTION_UP) focused.performClick()
+                    return true
+                }
+
+                KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN ->
+                    return super.dispatchKeyEvent(event)
+            }
         }
 
         if (event.action != KeyEvent.ACTION_DOWN) return super.dispatchKeyEvent(event)
@@ -114,8 +105,6 @@ class PlayerTvView @JvmOverloads constructor(
                 true
             }
 
-            // With the controls hidden, OK did nothing but bring them up — so the most
-            // obvious button on the remote was the one that could not pause.
             KeyEvent.KEYCODE_DPAD_CENTER,
             KeyEvent.KEYCODE_ENTER,
             KeyEvent.KEYCODE_SPACE,
@@ -156,10 +145,6 @@ class PlayerTvView @JvmOverloads constructor(
         showController()
     }
 
-    /**
-     * The step grows while presses keep coming, and drops back the moment they stop — so a
-     * single tap is always ten seconds and a held key covers a whole opening.
-     */
     private fun stepFor(direction: Int): Long {
         val now = android.os.SystemClock.uptimeMillis()
         if (direction != seekRunDirection || now - seekRunLastAt > SEEK_RUN_GAP_MS) {
@@ -207,6 +192,15 @@ class PlayerTvView @JvmOverloads constructor(
         return null
     }
 
+    private fun isAncestorOf(view: View): Boolean {
+        var current: ViewParent? = view.parent
+        while (current != null) {
+            if (current === this) return true
+            current = current.parent
+        }
+        return false
+    }
+
     private fun isDirectionKey(keyCode: Int) = when (keyCode) {
         KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
         KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN -> true
@@ -216,6 +210,8 @@ class PlayerTvView @JvmOverloads constructor(
 
     @OptIn(UnstableApi::class)
     private fun restoreControllerFocus() {
+        val current = rootView.findFocus()
+        if (current != null && current !== this && !isAncestorOf(current)) return
         val last = lastFocusedView
         if (last != null && last.isShown && last.isFocusable && last.requestFocus()) return
         if (findPlayPauseButton()?.requestFocus() == true) return

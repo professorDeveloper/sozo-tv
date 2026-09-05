@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="up_next">Up next</string>
+    <string name="up_next_play_now">Play now</string>
+    <string name="up_next_cancel">Keep watching</string>
+    <string name="up_next_in_seconds">Playing in %1$d s</string>
+    <string name="skip_press_ok">Press OK to skip</string>
+    <string name="player_error_title">Playback stopped</string>
+    <string name="player_error_retry">Retry</string>
+    <string name="player_error_switch_source">Change server</string>
+    <string name="player_error_back">Back</string>
+    <string name="player_loading">Loading…</string>
+    <string name="episode_list">Episode list</string>
+</resources>

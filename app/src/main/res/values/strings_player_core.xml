@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="player_loading_finding">Finding a source…</string>
+    <string name="player_loading_slow">This source is slow…</string>
+    <string name="player_loading_try_server">Try another server</string>
+    <string name="player_switching_quality">Switching to %1$s…</string>
+    <string name="player_switching_server">Switching to %1$s…</string>
+    <string name="player_end_title">You\'ve finished this series</string>
+    <string name="player_end_message">That was the last episode available here.</string>
+    <string name="player_end_replay">Watch again</string>
+    <string name="player_error_title_load">Can\'t start this episode</string>
+    <string name="episode_stopped_at">Stopped at %1$s</string>
+    <string name="skip_forward_seconds">Skip %1$d s</string>
+    <string name="skip_intro_label">Skip intro</string>
+    <string name="skip_outro_label">Skip outro</string>
+    <string name="skip_recap_label">Skip recap</string>
+    <string name="history_episode_title">%1$s — Episode %2$d</string>
+    <plurals name="part_episode_count">
+        <item quantity="one">Part %1$d · %2$d episode</item>
+        <item quantity="other">Part %1$d · %2$d episodes</item>
+    </plurals>
+</resources>

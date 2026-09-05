@@ -5,12 +5,10 @@
     android:layout_width="700dp"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:background="@drawable/dialog_background"
+    android:background="@drawable/glass_panel_bg"
     android:minWidth="700dp"
     android:orientation="vertical"
     android:padding="16dp">
-
-    <!-- Header -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -21,7 +19,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:fontFamily="sans-serif-medium"
-            android:text="@string/choose_subtitle"
+            android:text="@string/player_subtitle_title"
             android:textColor="@android:color/white"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -35,12 +33,11 @@
             android:layout_marginEnd="12dp"
             android:background="@drawable/close_bg"
             android:focusable="true"
+            android:contentDescription="@null"
             android:focusableInTouchMode="true"
             android:src="@drawable/close"
             app:tint="@color/close_icon_tint" />
     </FrameLayout>
-
-    <!-- Subtitles ON/OFF + Style -->
     <LinearLayout
         android:id="@+id/subtitle_toggle_container"
         android:layout_width="match_parent"
@@ -58,7 +55,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:fontFamily="sans-serif-medium"
-            android:text="@string/choose_subtitle"
+            android:text="@string/subtitle_show"
             android:textColor="@color/netflix_white"
             android:textSize="@dimen/tv_text_body" />
 
@@ -94,6 +91,34 @@
             android:textColor="@color/netflix_text_primary"
             android:textSize="@dimen/tv_text_body" />
     </LinearLayout>
+    <LinearLayout
+        android:id="@+id/subtitle_offset_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/subtitle_offset_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/subtitle_delay"
+            android:textColor="@color/netflix_white"
+            android:textSize="@dimen/tv_text_body" />
+
+        <com.saikou.sozo_tv.components.TvStepperView
+            android:id="@+id/subtitle_offset_stepper"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:initialValue="0"
+            app:maxValue="10000"
+            app:minValue="-10000"
+            app:step="250"
+            app:unit="ms" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/subtitle_off_hint"
@@ -105,11 +130,10 @@
         android:textColor="@color/netflix_gray"
         android:textSize="@dimen/tv_text_body"
         android:visibility="gone" />
-
     <androidx.leanback.widget.VerticalGridView
         android:id="@+id/rv_subtitles"
         android:layout_width="match_parent"
-        android:layout_height="280dp"
+        android:layout_height="216dp"
         android:clipToPadding="false"
         android:descendantFocusability="afterDescendants"
         android:focusable="false"
@@ -117,5 +141,35 @@
         android:scrollbars="none"
         app:focusOutEnd="true"
         app:focusOutFront="true" />
+    <LinearLayout
+        android:id="@+id/search_online_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/netflix_focusable_background"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="10dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_subtitle"
+            app:tint="@color/netflix_text_primary" />
+
+        <TextView
+            android:id="@+id/search_online_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/subtitle_search_title"
+            android:textColor="@color/netflix_text_primary"
+            android:textSize="@dimen/tv_text_body" />
+    </LinearLayout>
 
 </LinearLayout>

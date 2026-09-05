@@ -1,14 +1,11 @@
 package com.saikou.sozo_tv.presentation.screens.play.dialog
 
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
-import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.SubtitleAdapter
 import com.saikou.sozo_tv.data.model.SubTitle
 import com.saikou.sozo_tv.databinding.DialogSubtitleChooserBinding
@@ -19,10 +16,19 @@ class SubtitleChooserDialog : DialogFragment() {
     private var currentSelected: SubTitle? = null
     private var subtitlesEnabled: Boolean = false
 
+    private var searchTitle: String = ""
+    private var searchIsSerial: Boolean = false
+    private var searchSeason: Int? = null
+    private var searchEpisode: Int? = null
+
     private lateinit var adapter: SubtitleAdapter
 
     private var onSelected: ((SubTitle?) -> Unit)? = null
     private var onStyleChanged: (() -> Unit)? = null
+    private var onOnlinePicked: ((SubTitle) -> Unit)? = null
+    private var onOffsetChanged: ((Int) -> Unit)? = null
+
+    private var offsetMs: Int = 0
 
     private var _binding: DialogSubtitleChooserBinding? = null
     private val binding get() = _binding!!
@@ -31,12 +37,22 @@ class SubtitleChooserDialog : DialogFragment() {
         fun newInstance(
             subtitles: List<SubTitle>,
             selectedSubtitle: SubTitle?,
-            subtitlesEnabled: Boolean
+            subtitlesEnabled: Boolean,
+            offsetMs: Int = 0,
+            searchTitle: String = "",
+            isSerial: Boolean = false,
+            season: Int? = null,
+            episode: Int? = null,
         ): SubtitleChooserDialog {
             return SubtitleChooserDialog().apply {
                 this.subtitles = subtitles
                 this.currentSelected = selectedSubtitle
                 this.subtitlesEnabled = subtitlesEnabled
+                this.offsetMs = offsetMs
+                this.searchTitle = searchTitle
+                this.searchIsSerial = isSerial
+                this.searchSeason = season
+                this.searchEpisode = episode
             }
         }
     }
@@ -49,6 +65,14 @@ class SubtitleChooserDialog : DialogFragment() {
         onStyleChanged = listener
     }
 
+    fun setOnSubtitleOffsetChanged(listener: (Int) -> Unit) {
+        onOffsetChanged = listener
+    }
+
+    fun setOnOnlinePicked(listener: (SubTitle) -> Unit) {
+        onOnlinePicked = listener
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -58,24 +82,17 @@ class SubtitleChooserDialog : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupDialogWindow()
+        dialog?.applyGlassWindow()
 
         adapter = SubtitleAdapter(subtitles, currentSelected) { selectedSub ->
             adapter.setSelectedIndex(subtitles.indexOf(selectedSub))
             commit(selectedSub)
         }
-
         binding.rvSubtitles.adapter = adapter
-
-        setEnabledState(subtitlesEnabled, updateFocus = true)
 
         binding.subtitleToggleOff.setOnClickListener { commit(null) }
         binding.subtitleToggleOn.setOnClickListener {
             setEnabledState(true)
-            // "On" has to reach the player by itself. It used to only repaint this panel and
-            // reveal the list, so a viewer who pressed On and then Back had changed nothing:
-            // the toggle showed "on" and the subtitles stayed off. The dialog deliberately
-            // stays open afterwards, so the language can still be picked from the list.
             currentSelected?.let { onSelected?.invoke(it) }
         }
 
@@ -87,11 +104,41 @@ class SubtitleChooserDialog : DialogFragment() {
 
         binding.close.setOnClickListener { dismiss() }
 
-        if (subtitles.isEmpty()) {
-            setEnabledState(false, updateFocus = true)
-            binding.subtitleToggleOn.isEnabled = false
-            binding.subtitleStyleBtn.isEnabled = true
+        binding.subtitleOffsetStepper.setValue(offsetMs)
+        binding.subtitleOffsetStepper.setOnValueChangedListener { value ->
+            if (value == offsetMs) return@setOnValueChangedListener
+            offsetMs = value
+            onOffsetChanged?.invoke(value)
         }
+
+        binding.searchOnlineRow.setOnClickListener { openSearch() }
+        binding.searchOnlineRow.isVisible = searchTitle.isNotBlank()
+
+        if (subtitles.isEmpty()) {
+            setEnabledState(enabled = false, updateFocus = false)
+            binding.subtitleToggleOn.isEnabled = false
+            if (searchTitle.isNotBlank()) {
+                binding.searchOnlineRow.post { _binding?.searchOnlineRow?.requestFocus() }
+            } else {
+                binding.subtitleToggleOff.post { _binding?.subtitleToggleOff?.requestFocus() }
+            }
+        } else {
+            setEnabledState(subtitlesEnabled, updateFocus = true)
+        }
+    }
+
+    private fun openSearch() {
+        SubtitleSearchDialog.newInstance(searchTitle, searchIsSerial, searchSeason, searchEpisode)
+            .apply { setOnSubtitlePicked { adopt(it) } }
+            .show(parentFragmentManager, "subtitle_search")
+    }
+
+    private fun adopt(picked: SubTitle) {
+        subtitles = subtitles + picked
+        subtitlesEnabled = true
+        currentSelected = picked
+        onOnlinePicked?.invoke(picked)
+        if (isAdded) dismissAllowingStateLoss()
     }
 
     private fun commit(choice: SubTitle?) {
@@ -107,7 +154,7 @@ class SubtitleChooserDialog : DialogFragment() {
         binding.subtitleToggleOn.isSelected = enabled
         binding.subtitleToggleOff.isSelected = !enabled
 
-        binding.rvSubtitles.isVisible = enabled
+        binding.rvSubtitles.isVisible = enabled && subtitles.isNotEmpty()
         binding.subtitleOffHint.isVisible = !enabled
 
         if (enabled && currentSelected == null && subtitles.isNotEmpty()) {
@@ -116,28 +163,14 @@ class SubtitleChooserDialog : DialogFragment() {
         }
 
         if (!updateFocus) return
-        if (!enabled) {
-            binding.subtitleToggleOff.requestFocus()
+        if (!enabled || subtitles.isEmpty()) {
+            binding.subtitleToggleOff.post { _binding?.subtitleToggleOff?.requestFocus() }
             return
         }
         binding.rvSubtitles.post {
-            if (_binding == null) return@post
-            if (subtitles.isNotEmpty()) {
-                binding.rvSubtitles.selectedPosition = adapter.selectedIndex.coerceAtLeast(0)
-            }
-            binding.rvSubtitles.requestFocus()
-        }
-    }
-
-    private fun setupDialogWindow() {
-        dialog?.window?.apply {
-            setWindowAnimations(R.style.DialogAnimation)
-            setBackgroundDrawable(ColorDrawable(0))
-            setFlags(
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-            )
-            clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            val rv = _binding?.rvSubtitles ?: return@post
+            rv.selectedPosition = adapter.selectedIndex.coerceIn(0, subtitles.lastIndex)
+            rv.requestFocus()
         }
     }
 

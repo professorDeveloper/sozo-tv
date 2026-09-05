@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One settings row: what it is, what it is set to. No artwork, no brand mark
-     — this is a menu, not a chooser, and it has to stay narrow. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/item_round_bg_selectable"
+    android:background="@drawable/glass_chip_bg"
     android:gravity="center_vertical"
+    android:layout_marginBottom="6dp"
     android:minHeight="52dp"
     android:orientation="horizontal"
     android:paddingHorizontal="14dp"
@@ -20,21 +19,24 @@
 
         <TextView
             android:id="@+id/settingLabel"
+            android:duplicateParentState="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:fontFamily="sans-serif-medium"
             android:maxLines="1"
-            android:textColor="@color/netflix_white"
+            android:textColor="@color/glass_chip_text"
             android:textSize="@dimen/tv_text_body" />
 
         <TextView
             android:id="@+id/settingValue"
+            android:duplicateParentState="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="@color/netflix_gray"
+            android:alpha="0.75"
+            android:textColor="@color/glass_chip_text"
             android:textSize="@dimen/tv_text_caption" />
     </LinearLayout>
 

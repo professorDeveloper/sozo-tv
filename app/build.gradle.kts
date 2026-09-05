@@ -113,6 +113,15 @@ android {
         viewBinding = true
         buildConfig = true
     }
+    testOptions {
+        unitTests {
+            // Repo/plugin-list parsing logs what it rejected, and android.util.Log throws
+            // "not mocked" off-device. Defaulting the stubs lets that code be tested without
+            // the parsers having to stay silent about the entries they drop. org.json is NOT
+            // left to the stub — see the real implementation in testImplementation below.
+            isReturnDefaultValues = true
+        }
+    }
     // CloudStream's `library` pulls okhttp5 + jspecify etc., which collide on some
     // META-INF resources. Drop the duplicates so packaging succeeds.
     packaging {
@@ -231,12 +240,6 @@ dependencies {
     //Jackson
     api("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.1")
 
-    //Exoplayer2
-    implementation("com.google.android.exoplayer:exoplayer-core:2.18.7")
-    implementation("com.google.android.exoplayer:exoplayer-ui:2.18.7")
-    implementation("com.google.android.exoplayer:exoplayer-dash:2.18.7")
-    implementation("com.google.android.exoplayer:exoplayer-hls:2.18.7")
-    implementation("com.google.android.exoplayer:exoplayer-smoothstreaming:2.18.7")
 
     //FacebookShimmmer
     implementation("com.facebook.shimmer:shimmer:0.5.0")
@@ -310,4 +313,7 @@ dependencies {
     implementation("app.cash.quickjs:quickjs-android:0.9.2")
 
     testImplementation("junit:junit:4.13.2")
+    // The android.jar stub's org.json does nothing; the repo parsers are built on it, so the
+    // unit tests need the real implementation ahead of the stub on their classpath.
+    testImplementation("org.json:json:20250517")
 }

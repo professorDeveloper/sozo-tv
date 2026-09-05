@@ -4,366 +4,278 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/cl_exo_controller"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
     <View
-        android:id="@id/exo_controls_background"
+        android:id="@+id/bottom_scrim"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="#98000000"
+        android:background="@drawable/glass_scrim_bottom"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="gone" />
+        app:layout_constraintHeight_percent="0.45"
+        app:layout_constraintStart_toStartOf="parent" />
 
+    <View
+        android:id="@+id/top_scrim"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/glass_scrim_top"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.28"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <FrameLayout
         android:id="@+id/frameBackButton"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:layout_marginStart="@dimen/tv_screen_edge"
-        android:layout_marginTop="@dimen/tv_screen_edge_vertical"
-        android:background="@drawable/shape_play_circle"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
+        style="@style/PlayerGlassButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="@dimen/player_edge_horizontal"
+        android:layout_marginTop="28dp"
+        android:nextFocusDown="@id/exo_play_pause_container"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.appcompat.widget.AppCompatImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:duplicateParentState="true"
+            style="@style/PlayerGlassButtonIcon"
             android:padding="12dp"
-            app:srcCompat="@drawable/ic_arrow_left"
-            app:tint="@color/color_black_white_text" />
+            app:srcCompat="@drawable/ic_arrow_left" />
     </FrameLayout>
 
     <TextView
         android:id="@+id/film_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:ellipsize="end"
         android:fontFamily="@font/days"
-        android:paddingHorizontal="10dp"
-        android:textColor="#fff"
-        android:textSize="@dimen/tv_text_subtitle"
+        android:maxLines="1"
+        android:shadowColor="#99000000"
+        android:shadowDy="2"
+        android:shadowRadius="6"
+        android:textColor="@color/netflix_white"
+        android:textSize="@dimen/tv_text_screen_title"
         app:layout_constraintBottom_toBottomOf="@+id/frameBackButton"
+        app:layout_constraintEnd_toStartOf="@+id/live_tv_indicator"
         app:layout_constraintStart_toEndOf="@+id/frameBackButton"
-        app:layout_constraintTop_toTopOf="@+id/frameBackButton" />
-
+        app:layout_constraintTop_toTopOf="@+id/frameBackButton"
+        tools:text="Sozo Channel" />
 
     <TextView
         android:id="@+id/live_tv_indicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/tv_screen_edge"
+        android:layout_marginEnd="@dimen/player_edge_horizontal"
         android:background="@drawable/live_tv_background"
         android:fontFamily="@font/days"
-        android:paddingHorizontal="8dp"
-        android:paddingVertical="4dp"
+        android:paddingStart="10dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="4dp"
         android:text="@string/live_tv"
-        android:textColor="#FF0000"
+        android:textColor="@color/netflix_white"
         android:textSize="@dimen/tv_text_label"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/frameBackButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/frameBackButton" />
 
-
     <LinearLayout
-        android:id="@+id/linearLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/tv_screen_edge"
-        android:layout_marginEnd="@dimen/tv_screen_edge"
-        android:layout_marginBottom="4dp"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@id/exo_bottom_bar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-
-        <view
-            android:id="@id/exo_progress"
-            class="com.saikou.sozo_tv.presentation.screens.play.TrailerPlayerScreen$ExtendedTimeBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:nextFocusDown="@id/exo_play_pause_container"
-            app:layout_constraintBottom_toTopOf="@id/exo_bottom_bar"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:played_color="#FE4545"
-            app:scrubber_color="#D31A1F" />
-
-
-    </LinearLayout>
-    <!-- Thumbnail ImageView -->
-
-    <FrameLayout
-        android:id="@id/exo_bottom_bar"
+        android:id="@+id/bottom_panel"
         android:layout_width="0dp"
-        android:layout_height="64dp"
-        android:layout_marginStart="@dimen/tv_screen_edge"
-        android:layout_marginEnd="@dimen/tv_screen_edge"
-        android:layout_marginBottom="@dimen/tv_screen_edge_vertical"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/player_edge_horizontal"
+        android:layout_marginEnd="@dimen/player_edge_horizontal"
+        android:layout_marginBottom="@dimen/player_edge_vertical"
+        android:background="@drawable/glass_panel_bg"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:elevation="10dp"
+        android:orientation="vertical"
+        android:paddingStart="22dp"
+        android:paddingTop="14dp"
+        android:paddingEnd="22dp"
+        android:paddingBottom="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="start|center"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:visibility="visible">
-
-            <TextView
-                android:id="@id/exo_position"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FFFFFFFF"
-                android:textSize="@dimen/tv_text_subtitle"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="00:00:00" />
-
-            <TextView
-                android:id="@+id/tv_time_separator"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:text="·"
-                android:textColor="#B3ffffff"
-                android:textSize="@dimen/tv_text_subtitle"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/exo_position"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="HardcodedText" />
-
-            <TextView
-                android:id="@id/exo_duration"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#B3ffffff"
-                android:textSize="@dimen/tv_text_subtitle"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/tv_time_separator"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="00:00:00" />
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="wrap_content"
+            android:id="@+id/linearLayout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:orientation="horizontal">
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:orientation="vertical">
 
-
-            <FrameLayout
-                android:id="@+id/exo_prev_ten_container"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center"
-                android:background="@drawable/shape_play_pause_circle_bottom"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:visibility="gone">
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/exo_prev_ten"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_gravity="center"
-                    android:duplicateParentState="true"
-                    android:padding="12dp"
-                    app:srcCompat="@drawable/ic_prev_ten"
-
-                    app:tint="@color/color_black_white_text"
-                    app:tintMode="multiply" />
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/exo_play_pause_container"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-
-                android:layout_marginHorizontal="8dp"
-                android:background="@drawable/shape_play_pause_circle_bottom"
-                android:focusable="true"
-                android:focusableInTouchMode="true">
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/exo_play_paused"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_gravity="center"
-
-                    android:duplicateParentState="true"
-                    android:padding="8dp"
-                    app:srcCompat="@drawable/ic_play"
-                    app:tint="@color/color_black_white_text"
-                    app:tintMode="multiply" />
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/exo_next_ten_container"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center"
-                android:background="@drawable/shape_play_pause_circle_bottom"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:visibility="gone">
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/exo_nex_ten"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-
-                    android:layout_gravity="center"
-                    android:duplicateParentState="true"
-                    android:padding="12dp"
-                    app:srcCompat="@drawable/ic_next_ten"
-                    app:tint="@color/color_black_white_text"
-                    app:tintMode="multiply" />
-            </FrameLayout>
-
-
+            <view
+                android:id="@id/exo_progress"
+                class="com.saikou.sozo_tv.presentation.screens.play.TrailerPlayerScreen$ExtendedTimeBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="false"
+                app:bar_height="5dp"
+                app:buffered_color="#CCFFFFFF"
+                app:played_color="@color/netflix_red"
+                app:scrubber_color="@color/netflix_white"
+                app:scrubber_dragged_size="26dp"
+                app:scrubber_enabled_size="13dp"
+                app:touch_target_height="32dp"
+                app:unplayed_color="#26FFFFFF" />
         </LinearLayout>
 
+        <FrameLayout
+            android:id="@id/exo_bottom_bar"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="4dp"
+            android:clipChildren="false"
+            android:clipToPadding="false">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end|center"
-            android:orientation="horizontal"
-            android:visibility="visible">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="start|center_vertical"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
+                <TextView
+                    android:id="@id/exo_position"
+                    style="@style/PlayerTimeText"
+                    android:textColor="@color/netflix_white"
+                    tools:text="00:12:40" />
 
-            <FrameLayout
-                android:id="@+id/exo_audio"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                <TextView
+                    android:id="@+id/tv_time_separator"
+                    style="@style/PlayerTimeText"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:text="/"
+                    android:textColor="#80FFFFFF"
+                    tools:ignore="HardcodedText" />
+
+                <TextView
+                    android:id="@id/exo_duration"
+                    style="@style/PlayerTimeText"
+                    android:textColor="#B3FFFFFF"
+                    tools:text="00:24:10" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_gravity="center"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/shape_play_pause_circle_bottom"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:visibility="gone">
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:gravity="center"
+                android:orientation="horizontal">
 
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:duplicateParentState="true"
-                    android:padding="11dp"
-                    app:srcCompat="@drawable/ic_audio_track"
-                    app:tint="@color/color_black_white_text"
-                    app:tintMode="multiply" />
-
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/bookmarkBtn"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:layout_gravity="center"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="4dp"
-                android:background="@drawable/shape_play_settings"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/exo_settings"
-                app:layout_constraintTop_toTopOf="parent">
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/exo_bookmark"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center"
-                    android:duplicateParentState="true"
-                    android:nextFocusUp="@id/exo_progress"
-                    android:padding="12dp"
-                    android:tint="@color/color_black_white_text"
-                    app:srcCompat="@drawable/ic_bookmark"
-                    app:tint="@color/color_black_white_text"
-                    app:tintMode="multiply" />
-
-            </FrameLayout>
-
-
-            <FrameLayout
-                android:id="@id/exo_settings"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                <FrameLayout
+                    android:id="@+id/exo_prev_ten_container"
                 android:visibility="gone"
-                android:layout_gravity="center"
-                android:layout_marginHorizontal="14dp"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="4dp"
-                android:background="@drawable/shape_play_settings"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                    style="@style/PlayerGlassButton"
+                    android:nextFocusLeft="@id/exo_play_pause_container"
+                    android:nextFocusUp="@id/frameBackButton">
 
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center"
-                    android:duplicateParentState="true"
-                    android:padding="8dp"
-                    android:tint="@color/color_black_white_text"
-                    app:srcCompat="@drawable/ic_settings"
-                    app:tint="@color/color_black_white_text"
-                    app:tintMode="multiply" />
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/exo_prev_ten"
+                        style="@style/PlayerGlassButtonIcon"
+                        app:srcCompat="@drawable/ic_player_replay_10" />
+                </FrameLayout>
 
-            </FrameLayout>
+                <FrameLayout
+                    android:id="@+id/exo_play_pause_container"
+                    style="@style/PlayerGlassButton"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:focusedByDefault="true"
+                    android:nextFocusUp="@id/frameBackButton">
 
-            <FrameLayout
-                android:id="@+id/exo_fullscreenContainer"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:layout_gravity="center"
-                android:layout_marginTop="4dp"
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/exo_play_paused"
+                        style="@style/PlayerGlassButtonIcon"
+                        android:padding="14dp"
+                        app:srcCompat="@drawable/ic_player_play" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/exo_next_ten_container"
                 android:visibility="gone"
-                android:layout_marginBottom="4dp"
-                android:background="@drawable/shape_play_settings"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                    style="@style/PlayerGlassButton"
+                    android:nextFocusUp="@id/frameBackButton">
 
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/exo_fullscreen_img"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center"
-                    android:duplicateParentState="true"
-                    android:padding="8dp"
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/exo_nex_ten"
+                        style="@style/PlayerGlassButtonIcon"
+                        app:srcCompat="@drawable/ic_player_forward_10" />
+                </FrameLayout>
+            </LinearLayout>
 
-                    android:tint="@color/color_black_white_text"
-                    app:srcCompat="@drawable/ic_round_fullscreen_24"
-                    app:tint="@color/color_black_white_text"
-                    app:tintMode="multiply" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="end|center_vertical"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            </FrameLayout>
-        </LinearLayout>
+                <FrameLayout
+                    android:id="@+id/exo_audio"
+                    style="@style/PlayerGlassButton"
+                    android:layout_marginEnd="8dp"
+                    android:nextFocusUp="@id/frameBackButton"
+                    android:visibility="gone">
 
+                    <androidx.appcompat.widget.AppCompatImageView
+                        style="@style/PlayerGlassButtonIcon"
+                        app:srcCompat="@drawable/ic_audio_track" />
+                </FrameLayout>
 
-    </FrameLayout>
+                <FrameLayout
+                    android:id="@+id/bookmarkBtn"
+                    style="@style/PlayerGlassButton"
+                    android:layout_marginEnd="8dp"
+                    android:nextFocusRight="@id/bookmarkBtn"
+                    android:nextFocusUp="@id/frameBackButton">
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/exo_bookmark"
+                        style="@style/PlayerGlassButtonIcon"
+                        app:srcCompat="@drawable/ic_bookmark" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@id/exo_settings"
+                    style="@style/PlayerGlassButton"
+                    android:layout_marginEnd="8dp"
+                    android:nextFocusUp="@id/frameBackButton"
+                    android:visibility="gone">
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        style="@style/PlayerGlassButtonIcon"
+                        app:srcCompat="@drawable/ic_settings" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/exo_fullscreenContainer"
+                    style="@style/PlayerGlassButton"
+                    android:nextFocusUp="@id/frameBackButton"
+                    android:visibility="gone">
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/exo_fullscreen_img"
+                        style="@style/PlayerGlassButtonIcon"
+                        app:srcCompat="@drawable/ic_round_fullscreen_24" />
+                </FrameLayout>
+            </LinearLayout>
+        </FrameLayout>
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

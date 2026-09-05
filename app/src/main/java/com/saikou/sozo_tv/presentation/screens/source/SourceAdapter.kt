@@ -28,6 +28,7 @@ class SourceHeaderViews(val root: View) {
     val etSearchProvider: EditText = root.findViewById(R.id.etSearchProvider)
     val repoFilterContainer: LinearLayout = root.findViewById(R.id.repoFilterContainer)
     val tvEmpty: TextView = root.findViewById(R.id.tvEmpty)
+    val tvLoadErrors: TextView = root.findViewById(R.id.tvLoadErrors)
     val tvProviderCount: TextView = root.findViewById(R.id.tvProviderCount)
     val btnUpdateSources: TextView = root.findViewById(R.id.btnUpdateSources)
 }

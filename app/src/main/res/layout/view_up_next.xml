@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/up_next_card"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom|end"
+    android:layout_marginEnd="48dp"
+    android:layout_marginBottom="48dp"
+    android:background="@drawable/glass_card_bg"
+    android:elevation="12dp"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="150dp"
+            android:layout_height="84dp"
+            app:cardBackgroundColor="#1F1F1F"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/up_next_thumb"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop"
+                tools:src="@drawable/joker" />
+        </androidx.cardview.widget.CardView>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:maxWidth="300dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.08"
+                android:text="@string/up_next"
+                android:textAllCaps="true"
+                android:textColor="@color/netflix_gray"
+                android:textSize="@dimen/tv_text_label" />
+
+            <TextView
+                android:id="@+id/up_next_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:maxWidth="300dp"
+                android:textColor="@color/netflix_white"
+                android:textSize="@dimen/tv_text_subtitle"
+                tools:text="Attack on Titan" />
+
+            <TextView
+                android:id="@+id/up_next_episode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/netflix_gray"
+                android:textSize="@dimen/tv_text_body"
+                tools:text="Episode 6" />
+
+            <TextView
+                android:id="@+id/up_next_countdown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="@color/netflix_white"
+                android:textSize="@dimen/tv_text_caption"
+                tools:text="Playing in 10 s" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="16dp">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/up_next_ring"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:max="1000"
+                android:progress="1000"
+                app:indicatorColor="@color/netflix_red"
+                app:indicatorSize="56dp"
+                app:trackColor="#33FFFFFF"
+                app:trackThickness="4dp" />
+
+            <TextView
+                android:id="@+id/up_next_seconds"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/netflix_white"
+                android:textSize="@dimen/tv_text_subtitle"
+                tools:text="10" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/up_next_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/glass_chip_bg"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:nextFocusRight="@id/up_next_play"
+            android:paddingHorizontal="20dp"
+            android:text="@string/up_next_cancel"
+            android:textColor="@color/glass_chip_text"
+            android:textSize="@dimen/tv_text_body" />
+
+        <TextView
+            android:id="@+id/up_next_play"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:background="@drawable/glass_chip_bg"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:nextFocusLeft="@id/up_next_cancel"
+            android:paddingHorizontal="20dp"
+            android:text="@string/up_next_play_now"
+            android:textColor="@color/glass_chip_text"
+            android:textSize="@dimen/tv_text_body" />
+    </LinearLayout>
+</LinearLayout>
