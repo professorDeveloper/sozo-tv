@@ -133,7 +133,7 @@
     <androidx.leanback.widget.VerticalGridView
         android:id="@+id/rv_subtitles"
         android:layout_width="match_parent"
-        android:layout_height="216dp"
+        android:layout_height="276dp"
         android:clipToPadding="false"
         android:descendantFocusability="afterDescendants"
         android:focusable="false"

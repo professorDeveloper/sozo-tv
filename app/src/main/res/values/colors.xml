@@ -86,7 +86,9 @@
     <color name="glass_fill_strong">#D90B0B0D</color>
     <color name="glass_stroke">#33FFFFFF</color>
     <color name="glass_highlight">#26FFFFFF</color>
-    <color name="glass_focus_fill">#FFFFFFFF</color>
+    <color name="glass_focus_fill">#59FFFFFF</color>
+    <color name="glass_focus_stroke">#F2FFFFFF</color>
+    <color name="glass_press_fill">#73FFFFFF</color>
     <color name="glass_scrim_strong">#D9000000</color>
     <color name="glass_fill_card">#D91C1C20</color>
     <color name="glass_fill_selected">#52FFFFFF</color>
