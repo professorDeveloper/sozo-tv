@@ -31,6 +31,7 @@ class SourceHeaderViews(val root: View) {
     val tvLoadErrors: TextView = root.findViewById(R.id.tvLoadErrors)
     val tvProviderCount: TextView = root.findViewById(R.id.tvProviderCount)
     val btnUpdateSources: TextView = root.findViewById(R.id.btnUpdateSources)
+    val btnAddFromPhone: TextView = root.findViewById(R.id.btnAddFromPhone)
 }
 
 /**

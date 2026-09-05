@@ -36,11 +36,31 @@
             android:textSize="@dimen/tv_text_body"
             tools:text="42 sources · 3 repos" />
 
+        <!-- The only route to a repo that is not one of the four curated defaults. A
+             television cannot reasonably be typed into, so this hands the job to a phone
+             over the local network. -->
+        <TextView
+            android:id="@+id/btnAddFromPhone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/bg_button_tv"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusDown="@id/btnTabServer"
+            android:nextFocusRight="@id/btnUpdateSources"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="9dp"
+            android:text="@string/link_ext_button"
+            android:textColor="@color/tv_field_text"
+            android:textSize="@dimen/tv_text_body" />
+
         <TextView
             android:id="@+id/btnUpdateSources"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_button_tv"
+            android:nextFocusLeft="@id/btnAddFromPhone"
             android:clickable="true"
             android:focusable="true"
             android:nextFocusDown="@id/btnTabServer"

@@ -344,4 +344,20 @@
     <string name="subtitle_origin_ai">AI translated</string>
     <string name="player_error_live_stream">This channel isn\'t broadcasting right now. Try again in a moment.</string>
     <string name="player_error_live_generic">This channel isn\'t playing right now. Try again, or pick another channel.</string>
+
+    <!-- Add a source from your phone (Sources screen) -->
+    <string name="link_ext_button">Add from phone</string>
+    <string name="link_ext_title">Add a source from your phone</string>
+    <string name="link_ext_subtitle">Scan the code, or open the address below in any browser on the same Wi\u2011Fi. No app needed.</string>
+    <string name="link_ext_step_open">1 · Open on your phone</string>
+    <string name="link_ext_step_code">2 · Enter this code</string>
+    <string name="link_ext_step_paste">3 · Paste the repository link and send it. It installs here, on the television.</string>
+    <string name="link_ext_done">Done</string>
+    <string name="link_ext_waiting">Waiting for your phone\u2026</string>
+    <string name="link_ext_no_network">This TV is not on a network a phone can reach. Connect it to the same Wi\u2011Fi and open this screen again.</string>
+    <string name="link_ext_received">Received %1$s \u2014 installing\u2026</string>
+    <string name="link_ext_installing">Installing %1$d of %2$d\u2026</string>
+    <string name="link_ext_installed">Added %1$d source(s). They are in the list behind this screen.</string>
+    <string name="link_ext_installed_empty">Installed, but it added no sources. The link may point at the wrong file.</string>
+    <string name="link_ext_failed">Could not install it: %1$s</string>
 </resources>

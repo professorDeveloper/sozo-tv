@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "Add a source from your phone".
+
+     A television is the wrong device to type a repo URL into, so this screen does not ask
+     it to. The TV opens a one-page server on the local network and shows a QR for it; the
+     phone does the typing. The layout is a two-column split because that is how it is used:
+     the camera is pointed at the left, the instructions are read from the right. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0B0D0F"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="52dp"
+        android:paddingTop="40dp"
+        android:paddingBottom="36dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/days"
+            android:text="@string/link_ext_title"
+            android:textColor="@color/netflix_text_primary"
+            android:textSize="24sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/link_ext_subtitle"
+            android:textColor="@color/netflix_text_secondary"
+            android:textSize="@dimen/tv_text_body" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:orientation="horizontal">
+
+            <!-- QR. White plate behind it deliberately: the code is drawn black-on-white and
+                 a dark card behind a transparent margin is unreadable to most scanners. -->
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:padding="12dp">
+
+                <ImageView
+                    android:id="@+id/imgQr"
+                    android:layout_width="236dp"
+                    android:layout_height="236dp"
+                    android:contentDescription="@string/link_ext_title"
+                    tools:src="@tools:sample/avatars" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="34dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/link_ext_step_open"
+                    android:textColor="@color/netflix_text_secondary"
+                    android:textSize="@dimen/tv_text_body" />
+
+                <TextView
+                    android:id="@+id/tvAddress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:textColor="@color/netflix_text_primary"
+                    android:textSize="21sp"
+                    android:textStyle="bold"
+                    tools:text="http://192.168.1.42:8787" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/link_ext_step_code"
+                    android:textColor="@color/netflix_text_secondary"
+                    android:textSize="@dimen/tv_text_body" />
+
+                <TextView
+                    android:id="@+id/tvCode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:fontFamily="monospace"
+                    android:letterSpacing="0.22"
+                    android:textColor="@color/netflix_red"
+                    android:textSize="30sp"
+                    android:textStyle="bold"
+                    tools:text="ABC-234" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/link_ext_step_paste"
+                    android:textColor="@color/netflix_text_secondary"
+                    android:textSize="@dimen/tv_text_body" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Live status. Everything the phone does lands here, so the person holding the
+             phone and the person watching the TV see the same thing at the same time. -->
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:background="@drawable/bg_button_tv"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="13dp"
+            android:textColor="@color/netflix_text_secondary"
+            android:textSize="@dimen/tv_text_body"
+            tools:text="Waiting for your phone…" />
+
+        <TextView
+            android:id="@+id/btnClose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="22dp"
+            android:background="@drawable/bg_button_tv"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:paddingHorizontal="30dp"
+            android:paddingVertical="11dp"
+            android:text="@string/link_ext_done"
+            android:textColor="@color/netflix_text_primary"
+            android:textSize="@dimen/tv_text_subtitle" />
+    </LinearLayout>
+</ScrollView>

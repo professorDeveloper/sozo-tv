@@ -26,6 +26,7 @@ import com.saikou.sozo_tv.data.extensions.ExtProvider
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.data.extensions.ShortcodeRegistry
 import com.saikou.sozo_tv.databinding.SourceScreenBinding
+import com.saikou.sozo_tv.presentation.screens.link.ExtensionLinkDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -115,6 +116,7 @@ class SourceScreen : Fragment() {
         header = v
 
         v.btnUpdateSources.setOnClickListener { updateSources() }
+        v.btnAddFromPhone.setOnClickListener { openAddFromPhone() }
 
         v.btnTabServer.setOnClickListener { switchTab(ExtGroup.SERVER) }
         v.btnTabAniyomi.setOnClickListener { switchTab(ExtGroup.ANIYOMI) }
@@ -460,6 +462,28 @@ class SourceScreen : Fragment() {
         v.btnUpdateSources.alpha = if (busy) 0.5f else 1f
         v.btnUpdateSources.text =
             if (updating) getString(R.string.sources_updating) else getString(R.string.sources_update)
+    }
+
+    /**
+     * Opens the phone pairing screen.
+     *
+     * Reloading on dismiss rather than only on a successful install: the dialog reports what
+     * it added, but the list behind it was built before any of it existed, and a viewer who
+     * closes the dialog is looking straight at that stale list.
+     */
+    private fun openAddFromPhone() {
+        if (!isAdded) return
+        val dialog = ExtensionLinkDialog()
+        dialog.onInstalled = {
+            // A fresh install can register providers for a tab the viewer is not on, so the
+            // bootstrap guard is cleared for every group rather than the current one.
+            bootstrappedGroups.clear()
+        }
+        // Its own callback rather than Dialog.setOnDismissListener: DialogFragment installs
+        // one of those itself, and replacing it stops the fragment ever learning it was
+        // dismissed — it stays in the manager and the next open shows nothing.
+        dialog.onClosed = { if (isAdded) loadProviders() }
+        dialog.show(childFragmentManager, ExtensionLinkDialog.TAG)
     }
 
     /**
