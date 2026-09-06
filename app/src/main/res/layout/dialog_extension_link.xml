@@ -139,7 +139,7 @@
             android:paddingHorizontal="30dp"
             android:paddingVertical="11dp"
             android:text="@string/link_ext_done"
-            android:textColor="@color/netflix_text_primary"
+            android:textColor="@color/tv_field_text"
             android:textSize="@dimen/tv_text_subtitle" />
     </LinearLayout>
 </ScrollView>
