@@ -446,7 +446,7 @@
                 android:layout_marginBottom="14dp"
                 app:expanded="false"
                 app:sectionSubtitle="@string/customize_subtitle_font_color_and_size_tv_friendly"
-                app:sectionTitle="Subtitle Style">
+                app:sectionTitle="@string/section_subtitle_style">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -775,7 +775,7 @@
                 android:layout_height="wrap_content"
                 app:expanded="true"
                 app:sectionSubtitle="@string/theme_section_subtitle"
-                app:sectionTitle="Theme">
+                app:sectionTitle="@string/section_theme">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -788,11 +788,37 @@
                         android:layout_height="wrap_content"
 
                         android:layout_marginBottom="14dp"
-                        app:subtitleText="Enable / disable Winter theme preview"
-                        app:titleText="Winter mode (Surprise Me)" />
+                        app:subtitleText="@string/theme_winter_mode_hint"
+                        app:titleText="@string/theme_winter_mode" />
 
 
                 </LinearLayout>
+            </com.saikou.sozo_tv.components.TvDropdownSectionView>
+
+            <com.saikou.sozo_tv.components.TvDropdownSectionView
+                android:id="@+id/languageDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:expanded="false"
+                app:sectionSubtitle="@string/language_section_hint"
+                app:sectionTitle="@string/language_section_title">
+
+                <!-- Filled in code, one chip per locale, so the list follows
+                     `locales_config.xml` instead of being written twice. A
+                     horizontal row is what a D-pad handles best here: left and
+                     right step through the languages without leaving the row. -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/languageChips"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+
             </com.saikou.sozo_tv.components.TvDropdownSectionView>
 
             <View
@@ -806,8 +832,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
                 app:expanded="false"
-                app:sectionSubtitle="Manage what shows on Home"
-                app:sectionTitle="Content &amp; Privacy">
+                app:sectionSubtitle="@string/section_content_privacy_hint"
+                app:sectionTitle="@string/section_content_privacy">
 
                 <com.saikou.sozo_tv.components.TvToggleRowView
                     android:id="@+id/mainHistoryToggleRow"

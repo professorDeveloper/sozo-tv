@@ -1,0 +1,38 @@
+# The TV app had no CI at all — only a release workflow — so a broken string
+# resource reached a device before anyone saw it. This is the cheap half of a
+# build: it runs in seconds and catches the failure that is invisible in review.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  strings:
+    name: Translated strings
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # A mismatched format specifier throws at getString time, on that locale
+      # only, on the screen that uses it. Nothing else in the build sees it.
+      - name: Check the string resources
+        run: python3 tools/check_strings.py
+
+  build:
+    name: Assemble debug
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      # `mergeDebugResources` is where a duplicate or badly named string
+      # resource fails, and it fails for every locale at once.
+      - name: Build
+        run: ./gradlew :app:assembleDebug --no-daemon

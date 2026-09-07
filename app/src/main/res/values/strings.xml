@@ -11,7 +11,7 @@
     <string name="main_menu_tvgarden">Tv Garden</string>
     <string name="xatolik">Something went wrong. Please try again.</string>
     <string name="retry_loading_button">Retry</string>
-    <string name="tv_kanallar">Tv Kanallar</string>
+    <string name="tv_kanallar">TV Channels</string>
     <string name="eshonov_fakhriyor">Eshonov Fakhriyor</string>
     <string name="akkount_holati">Subscription Status</string>
     <string name="premium_plus">Active</string>
@@ -23,7 +23,7 @@
     <string name="exit">Exit Account</string>
     <string name="place_holder_text">There is no movie or serial here right now</string>
     <string name="cast_details_unavailable">Cast details aren\'t available for this source</string>
-    <string name="amallar">Amallar</string>
+    <string name="amallar">Actions</string>
     <string name="filmni_ko_rish">Watch Now</string>
     <string name="update_now">Update Now</string>
     <string name="film_haqida">About Movie</string>
@@ -31,8 +31,8 @@
     <string name="davlat">Studio</string>
     <string name="janr">Category</string>
     <string name="til">Language</string>
-    <string name="soat">soat</string>
-    <string name="daqiqa">daqiqa</string>
+    <string name="soat">h</string>
+    <string name="daqiqa">min</string>
     <string name="update_sheet">Please do`nt close</string>
     <string name="contact">Contact</string>
     <string name="amp_sozoapp">&amp; @sozoApp</string>
@@ -407,4 +407,15 @@
     <string name="update_install_now">Install Now</string>
     <string name="update_download_failed">Download Failed</string>
     <string name="update_try_again">Try Again</string>
+
+    <!-- Section headers, from the custom row attributes. -->
+    <string name="theme_winter_mode">Winter mode (Surprise Me)</string>
+    <string name="theme_winter_mode_hint">Enable / disable Winter theme preview</string>
+    <string name="section_theme">Theme</string>
+    <string name="section_subtitle_style">Subtitle Style</string>
+    <string name="section_content_privacy">Content &amp; Privacy</string>
+    <string name="section_content_privacy_hint">Manage what shows on Home</string>
+    <string name="content_controls_summary">Home Channels: %1$s \u2022 Adult: %2$s</string>
+    <string name="language_section_title">Language</string>
+    <string name="language_section_hint">The language Sozo speaks on this television</string>
 </resources>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The languages this app ships.
+
+  Android 13+ reads this to build the per-app language entry in the system
+  settings; below 13 the AppCompat backport reads it to know what is on offer.
+  `MyAccountPage` reads the same file to build its own picker, so the list is
+  written once — a TV box that shipped in Chinese is exactly the device whose
+  owner will not go looking in the system settings, and the in-app row is the
+  only way they will find this.
+
+  No `ar`: Arabic needs a mirrored leanback layout and a font that carries its
+  glyphs, and neither is in this app yet.
+-->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="uz" />
+    <locale android:name="ru" />
+    <locale android:name="de" />
+    <locale android:name="nl" />
+    <locale android:name="es" />
+    <locale android:name="pt" />
+    <locale android:name="fr" />
+    <locale android:name="tr" />
+    <locale android:name="id" />
+</locale-config>
