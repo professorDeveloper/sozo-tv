@@ -225,7 +225,7 @@ class MovieDetailsAdapter(
                     }
 
                     override fun onFinish() {
-                        countDownText.text = "Aired!"
+                        countDownText.text = countDownText.context.getString(R.string.countdown_aired)
                     }
                 }.also { it.start() }
             } else {

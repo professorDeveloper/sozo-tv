@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:fontFamily="@font/days"
-            android:text="Providers"
+            android:text="@string/providers"
             android:textColor="#FFFFFF"
             android:textSize="22sp"
             tools:ignore="HardcodedText" />
@@ -66,7 +66,7 @@
             android:nextFocusDown="@id/btnTabServer"
             android:paddingHorizontal="20dp"
             android:paddingVertical="9dp"
-            android:text="Update sources"
+            android:text="@string/sources_update"
             android:textColor="@color/tv_field_text"
             android:textSize="@dimen/tv_text_body"
             tools:ignore="HardcodedText" />
@@ -91,7 +91,7 @@
             android:nextFocusUp="@id/btnUpdateSources"
             android:paddingHorizontal="26dp"
             android:paddingVertical="10dp"
-            android:text="Sozo"
+            android:text="@string/sozo"
             android:textColor="#111417"
             android:textSize="@dimen/tv_text_subtitle"
             tools:ignore="HardcodedText" />
@@ -108,7 +108,7 @@
             android:nextFocusUp="@id/btnUpdateSources"
             android:paddingHorizontal="26dp"
             android:paddingVertical="10dp"
-            android:text="Aniyomi"
+            android:text="@string/aniyomi"
             android:textColor="#CCCCCC"
             android:textSize="@dimen/tv_text_subtitle" />
 
@@ -124,7 +124,7 @@
             android:nextFocusUp="@id/btnUpdateSources"
             android:paddingHorizontal="26dp"
             android:paddingVertical="10dp"
-            android:text="CloudStream"
+            android:text="@string/cloudstream"
             android:textColor="#CCCCCC"
             android:textSize="@dimen/tv_text_subtitle" />
 
@@ -143,7 +143,7 @@
         android:layout_marginTop="16dp"
         android:background="@drawable/bg_button_tv"
         android:drawablePadding="8dp"
-        android:hint="Search providers…"
+        android:hint="@string/search_providers"
         android:imeOptions="actionSearch"
         android:inputType="text"
         android:maxLines="1"
@@ -196,7 +196,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:gravity="center"
-        android:text="No providers available."
+        android:text="@string/sources_empty"
         android:textColor="#888888"
         android:textSize="@dimen/tv_text_body"
         android:visibility="gone" />

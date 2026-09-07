@@ -218,7 +218,8 @@ class CastDetailAdapter(
 
             if (item.age.isNotEmpty()) {
                 binding.ageBadge.visible()
-                binding.characterAge.text = "Age: ${item.age}"
+                binding.characterAge.text = binding.root.context
+                    .getString(R.string.character_age, item.age)
                 binding.ageBadge.animate()
                     .scaleX(1.05f)
                     .scaleY(1.05f)

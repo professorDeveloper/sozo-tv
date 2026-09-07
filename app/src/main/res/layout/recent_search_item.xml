@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_gravity="center_vertical"
-        android:text="Search Query"
+        android:text="@string/search_query"
         android:textColor="@color/netflix_white"
         android:textSize="@dimen/tv_text_subtitle"
         android:maxLines="1"
@@ -39,7 +39,7 @@
         android:background="?android:attr/selectableItemBackgroundBorderless"
         android:padding="4dp"
         android:focusable="true"
-        android:contentDescription="Remove search"
+        android:contentDescription="@string/remove_search"
         app:tint="@color/netflix_gray" />
 
 </LinearLayout>

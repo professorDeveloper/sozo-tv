@@ -8,17 +8,17 @@
     <fragment
         android:id="@+id/myAccountPage"
         android:name="com.saikou.sozo_tv.presentation.screens.profile.MyAccountPage"
-        android:label="my_account_page"
+        android:label="@string/my_account_page"
         tools:layout="@layout/my_account_page" />
     <fragment
         android:id="@+id/bookmarkScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.bookmark.BookmarkScreen"
-        android:label="bookmark_screen"
+        android:label="@string/bookmark_screen"
         tools:layout="@layout/bookmark_screen" />
     <fragment
         android:id="@+id/sourceScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.source.SourceScreen"
-        android:label="SourceScreen">
+        android:label="@string/sourcescreen">
         <action
             android:id="@+id/action_source_to_aniyomi_settings"
             app:destination="@id/aniyomiSettingsScreen" />
@@ -26,7 +26,7 @@
     <fragment
         android:id="@+id/aniyomiSettingsScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.source.AniyomiSourceSettingsFragment"
-        android:label="Aniyomi Settings">
+        android:label="@string/aniyomi_settings">
         <argument
             android:name="provider"
             app:argType="string" />
@@ -34,15 +34,15 @@
     <fragment
         android:id="@+id/historyPage"
         android:name="com.saikou.sozo_tv.presentation.screens.history.HistoryPage"
-        android:label="HistoryPage" />
+        android:label="@string/historypage" />
     <fragment
         android:id="@+id/anilistScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.anilist.AnilistScreen"
-        android:label="AnilistScreen"
+        android:label="@string/anilistscreen"
         tools:layout="@layout/anilist_screen" />
     <fragment
         android:id="@+id/newsPage"
         android:name="com.saikou.sozo_tv.presentation.screens.news.NewsPage"
-        android:label="news_page"
+        android:label="@string/news_page"
         tools:layout="@layout/news_page" />
 </navigation>

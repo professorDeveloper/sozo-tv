@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:duplicateParentState="true"
-        android:text="Title"
+        android:text="@string/title"
         android:textColor="@color/spinner_colortxt"
         android:textSize="@dimen/tv_text_subtitle" />
 

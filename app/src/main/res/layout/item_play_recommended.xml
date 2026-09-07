@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="14dp"
         android:fontFamily="@font/days"
-        android:text="Maybe You Like"
+        android:text="@string/maybe_you_like"
         android:textColor="@color/lb_tv_white"
         android:textSize="@dimen/tv_text_subtitle"
         app:layout_constraintStart_toStartOf="parent"

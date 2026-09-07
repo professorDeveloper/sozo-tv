@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Filter Tv Garden"
+            android:text="@string/filter_tv_garden"
             android:textColor="@android:color/white"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -56,7 +56,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:fontFamily="@font/days"
-            android:text="Choose Type:"
+            android:text="@string/choose_type"
             android:textColor="@color/white40"
             android:textSize="@dimen/tv_text_body" />
 
@@ -113,7 +113,7 @@
                 android:fontFamily="@font/days"
                 android:paddingVertical="13dp"
 
-                android:text="Apply"
+                android:text="@string/apply"
                 android:textAlignment="center"
                 android:textColor="@color/color_item_tv_category_tv"
                 android:textSize="@dimen/tv_text_label" />

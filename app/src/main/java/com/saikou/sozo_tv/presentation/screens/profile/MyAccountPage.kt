@@ -32,6 +32,10 @@ import com.saikou.sozo_tv.utils.loadImage
 import com.saikou.sozo_tv.utils.visible
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import com.saikou.sozo_tv.components.TvOptionChipView
+import androidx.core.os.LocaleListCompat
+import androidx.appcompat.app.AppCompatDelegate
+import android.widget.LinearLayout
 
 class MyAccountPage : Fragment() {
 
@@ -121,6 +125,7 @@ class MyAccountPage : Fragment() {
         settingsViewModel.loadStats()
 
         setupAppearanceSection()
+        setupLanguageSection()
         setupContentControlsSection()
     }
 
@@ -201,7 +206,7 @@ class MyAccountPage : Fragment() {
             if (host is AuthNavigator) {
                 host.openLogin()
             } else {
-                Toast.makeText(requireContext(), "Login page not connected yet", Toast.LENGTH_SHORT)
+                Toast.makeText(requireContext(), getString(R.string.login_not_connected), Toast.LENGTH_SHORT)
                     .show()
             }
         }
@@ -210,6 +215,45 @@ class MyAccountPage : Fragment() {
     private fun setupAppearanceSection() {
         setupSubtitleStyle(binding, preferenceManager)
         setupThemeDemo(binding)
+    }
+
+    /**
+     * The in-app language picker.
+     *
+     * Android 13+ exposes a per-app language in the system settings, and
+     * `locales_config.xml` is what fills it — but the device this matters most
+     * on is a cheap TV box that shipped in a language its owner did not choose
+     * and would not know to change system-wide. So the same list is offered
+     * here, where they are already looking.
+     *
+     * `setApplicationLocales` recreates the activity itself; the AppCompat
+     * backport carries that down to API 21, so nothing here is gated on 13.
+     */
+    private fun setupLanguageSection() {
+        val container = binding.languageChips
+        container.removeAllViews()
+
+        val current = AppCompatDelegate.getApplicationLocales()
+            .takeIf { !it.isEmpty }?.get(0)?.language
+            ?: resources.configuration.locales[0].language
+
+        SUPPORTED_LOCALES.forEach { (tag, nativeName) ->
+            val chip = TvOptionChipView(requireContext()).apply {
+                text = nativeName
+                isSelected = tag == current
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply { marginEnd = (12 * resources.displayMetrics.density).toInt() }
+                setOnClickListener {
+                    if (tag == current) return@setOnClickListener
+                    AppCompatDelegate.setApplicationLocales(
+                        LocaleListCompat.forLanguageTags(tag)
+                    )
+                }
+            }
+            container.addView(chip)
+        }
     }
 
     private fun setupContentControlsSection() {
@@ -252,11 +296,22 @@ class MyAccountPage : Fragment() {
     }
 
     private fun updateContentControlsHeader() {
-        val ch = if (preferenceManager.isChannelEnabled()) "Enabled" else "Disabled"
-        val ns = if (preferenceManager.isNsfwEnabled()) "Enabled" else "Disabled"
+        val ch = getString(
+            if (preferenceManager.isChannelEnabled()) R.string.status_enabled
+            else R.string.status_disabled
+        )
+        val ns = getString(
+            if (preferenceManager.isNsfwEnabled()) R.string.status_enabled
+            else R.string.status_disabled
+        )
 
-        binding.contentControlsDropdown.setSummary("Home Channels: $ch • Adult: $ns")
-        binding.contentControlsDropdown.setBadge(if (preferenceManager.isNsfwEnabled()) "18+" else null)
+        binding.contentControlsDropdown.setSummary(
+            getString(R.string.content_controls_summary, ch, ns)
+        )
+        // "18+" is an age mark, not a word — the same in every language here.
+        binding.contentControlsDropdown.setBadge(
+            if (preferenceManager.isNsfwEnabled()) "18+" else null
+        )
     }
 
     private fun showNsfwWarningDialog() {
@@ -491,4 +546,27 @@ class MyAccountPage : Fragment() {
             commit()
         }
     }
+
+    private companion object {
+        /**
+         * Kept in step with `res/xml/locales_config.xml`.
+         *
+         * Native names on purpose: someone looking for their own language finds
+         * it fastest written the way they write it, which is the whole point on
+         * a television that is currently speaking the wrong one.
+         */
+        val SUPPORTED_LOCALES = listOf(
+            "en" to "English",
+            "uz" to "O‘zbekcha",
+            "ru" to "Русский",
+            "de" to "Deutsch",
+            "nl" to "Nederlands",
+            "es" to "Español",
+            "pt" to "Português",
+            "fr" to "Français",
+            "tr" to "Türkçe",
+            "id" to "Bahasa Indonesia",
+        )
+    }
+
 }

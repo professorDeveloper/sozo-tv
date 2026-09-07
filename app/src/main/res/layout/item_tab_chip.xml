@@ -12,7 +12,7 @@
 
     android:paddingStart="18dp"
     android:paddingEnd="18dp"
-    android:text="Watching"
+    android:text="@string/watching"
     android:textAllCaps="false"
     android:textColor="@color/color_item_tv_category_tv"
     android:textSize="@dimen/tv_text_body" />

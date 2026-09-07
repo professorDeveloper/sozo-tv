@@ -27,7 +27,7 @@
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:contentDescription="Anime"
+            android:contentDescription="@string/anime"
             android:src="@drawable/ic_clapper_open" />
 
         <TextView
@@ -37,7 +37,7 @@
 
             android:fontFamily="@font/inter_bold"
             android:paddingTop="4dp"
-            android:text="by Country"
+            android:text="@string/by_country"
             android:textSize="@dimen/tv_text_label" />
     </LinearLayout>
 
@@ -58,7 +58,7 @@
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:contentDescription="Characters"
+            android:contentDescription="@string/characters"
             android:src="@drawable/tv_retro"
             app:tint="@color/white" />
 
@@ -68,7 +68,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="4dp"
             android:layout_marginStart="4dp"
-            android:text="by Category"
+            android:text="@string/by_category"
             android:fontFamily="@font/inter_bold"
             android:textSize="@dimen/tv_text_label" />
     </LinearLayout>

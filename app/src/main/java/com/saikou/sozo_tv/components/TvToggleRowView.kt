@@ -100,12 +100,12 @@ class TvToggleRowView @JvmOverloads constructor(
         if (enabled) {
             statusDot.background =
                 ContextCompat.getDrawable(context, R.drawable.netflix_status_dot_enabled)
-            statusText.text = "Enabled"
+            statusText.text = context.getString(R.string.status_enabled)
             statusText.setTextColor(ContextCompat.getColor(context, R.color.netflix_green))
         } else {
             statusDot.background =
                 ContextCompat.getDrawable(context, R.drawable.netflix_status_dot_disabled)
-            statusText.text = "Disabled"
+            statusText.text = context.getString(R.string.status_disabled)
             statusText.setTextColor(ContextCompat.getColor(context, R.color.netflix_gray))
         }
     }

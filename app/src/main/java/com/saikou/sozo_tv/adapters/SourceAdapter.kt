@@ -47,7 +47,8 @@ class SourceAdapter(
         fun bind(item: ListItem.Header) {
             binding.tvGroupCategory.text = item.category
             binding.tvGroupTitle.text = item.title
-            binding.tvSourceCount.text = "${item.count} sources"
+            binding.tvSourceCount.text = binding.root.resources
+                .getQuantityString(R.plurals.source_count, item.count, item.count)
         }
     }
 

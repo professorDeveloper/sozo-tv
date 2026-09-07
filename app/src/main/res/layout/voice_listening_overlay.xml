@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="Listening…"
+            android:text="@string/listening"
             android:textColor="@android:color/white"
             android:textSize="20sp" />
 

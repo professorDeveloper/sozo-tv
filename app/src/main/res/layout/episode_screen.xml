@@ -92,7 +92,7 @@
                     android:duplicateParentState="true"
                     android:fontFamily="@font/days"
                     android:gravity="center"
-                    android:text="Wrong Title?"
+                    android:text="@string/find_correct_anime_title"
                     android:textColor="@color/login_button_text_color"
                     android:textSize="@dimen/tv_text_body" />
 

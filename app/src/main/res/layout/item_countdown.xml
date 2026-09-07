@@ -19,7 +19,7 @@
         android:fontFamily="@font/inter_bold"
         android:textAllCaps="true"
         android:textSize="@dimen/tv_text_subtitle"
-        android:text="Episode 2 will be released in" />
+        android:text="@string/episode_2_will_be_released_in" />
 
     <TextView
         android:layout_marginTop="4dp"

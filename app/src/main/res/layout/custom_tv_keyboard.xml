@@ -384,7 +384,7 @@
             android:layout_height="@dimen/tv_keyboard_key_h"
             android:layout_margin="@dimen/tv_keyboard_key_gap"
             android:textSize="@dimen/tv_keyboard_key_text"
-            android:text="&quot;" />
+            android:text="@string/quot" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="@dimen/tv_keyboard_key_w"
@@ -484,7 +484,7 @@
             android:layout_height="@dimen/tv_keyboard_key_h"
             android:layout_margin="@dimen/tv_keyboard_key_gap"
             android:textSize="@dimen/tv_keyboard_key_text"
-            android:text="&amp;" />
+            android:text="@string/amp" />
         <TextView
             style="@style/KeyboardKey"
             android:layout_width="@dimen/tv_keyboard_key_w"
@@ -582,7 +582,7 @@
             android:layout_height="@dimen/tv_keyboard_key_h"
             android:layout_margin="@dimen/tv_keyboard_key_gap"
             android:textSize="@dimen/tv_text_label"
-            android:text="SPACE" />
+            android:text="@string/space" />
         <TextView
             android:id="@+id/key_backspace"
             style="@style/KeyboardKey"

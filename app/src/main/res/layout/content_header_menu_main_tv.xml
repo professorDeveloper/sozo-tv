@@ -51,7 +51,7 @@
                 android:maxEms="9"
                 android:maxLines="1"
                 android:paddingHorizontal="3dp"
-                android:text="Profile"
+                android:text="@string/profile"
                 android:textColor="@color/color_black_white_text"
                 android:textSize="@dimen/tv_text_body"
                 app:layout_constraintEnd_toEndOf="parent"

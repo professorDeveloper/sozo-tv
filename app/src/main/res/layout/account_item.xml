@@ -53,7 +53,7 @@
             android:maxLines="1"
             android:scrollHorizontally="true"
             android:singleLine="true"
-            android:text="Account"
+            android:text="@string/account"
             android:textColor="@color/color_black_white_text"
             android:textSize="@dimen/tv_text_label"
             tools:text="@string/eshonov_fakhriyor" />

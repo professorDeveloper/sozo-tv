@@ -446,7 +446,7 @@
                 android:layout_marginBottom="14dp"
                 app:expanded="false"
                 app:sectionSubtitle="@string/customize_subtitle_font_color_and_size_tv_friendly"
-                app:sectionTitle="Subtitle Style">
+                app:sectionTitle="@string/section_subtitle_style">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -511,7 +511,7 @@
                             android:layout_weight="1"
                             android:fontFamily="sans-serif-medium"
                             android:gravity="center"
-                            android:text="Default"
+                            android:text="@string/subtitle_font_default"
                             android:textColor="@color/netflix_text_primary"
                             android:textSize="@dimen/tv_text_body" />
 
@@ -546,7 +546,7 @@
                             android:layout_weight="1"
                             android:fontFamily="monospace"
                             android:gravity="center"
-                            android:text="Mono"
+                            android:text="@string/subtitle_font_mono"
                             android:textColor="@color/netflix_text_primary"
                             android:textSize="@dimen/tv_text_body" />
                     </LinearLayout>
@@ -556,7 +556,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Text Size"
+                        android:text="@string/text_size"
                         android:textColor="@color/netflix_white"
                         android:textSize="@dimen/tv_text_body" />
 
@@ -576,7 +576,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Text Color"
+                        android:text="@string/text_color"
                         android:textColor="@color/netflix_white"
                         android:textSize="@dimen/tv_text_body" />
 
@@ -700,7 +700,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Subtitle Background"
+                        android:text="@string/subtitle_background_2"
                         android:textColor="@color/netflix_white"
                         android:textSize="@dimen/tv_text_body" />
 
@@ -718,7 +718,7 @@
                             android:layout_marginEnd="6dp"
                             android:layout_weight="1"
                             android:fontFamily="sans-serif-medium"
-                            android:text="Off"
+                            android:text="@string/off"
                             android:textColor="@color/netflix_text_primary" />
 
                         <com.saikou.sozo_tv.components.TvOptionChipView
@@ -736,7 +736,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Outline"
+                        android:text="@string/subtitle_outline"
                         android:textColor="@color/netflix_white"
                         android:textSize="@dimen/tv_text_body" />
 
@@ -753,7 +753,7 @@
                             android:layout_marginEnd="6dp"
                             android:layout_weight="1"
                             android:fontFamily="sans-serif-medium"
-                            android:text="Off"
+                            android:text="@string/off"
                             android:textColor="@color/netflix_text_primary" />
 
                         <com.saikou.sozo_tv.components.TvOptionChipView
@@ -775,7 +775,7 @@
                 android:layout_height="wrap_content"
                 app:expanded="true"
                 app:sectionSubtitle="@string/theme_section_subtitle"
-                app:sectionTitle="Theme">
+                app:sectionTitle="@string/section_theme">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -788,11 +788,37 @@
                         android:layout_height="wrap_content"
 
                         android:layout_marginBottom="14dp"
-                        app:subtitleText="Enable / disable Winter theme preview"
-                        app:titleText="Winter mode (Surprise Me)" />
+                        app:subtitleText="@string/theme_winter_mode_hint"
+                        app:titleText="@string/theme_winter_mode" />
 
 
                 </LinearLayout>
+            </com.saikou.sozo_tv.components.TvDropdownSectionView>
+
+            <com.saikou.sozo_tv.components.TvDropdownSectionView
+                android:id="@+id/languageDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:expanded="false"
+                app:sectionSubtitle="@string/language_section_hint"
+                app:sectionTitle="@string/language_section_title">
+
+                <!-- Filled in code, one chip per locale, so the list follows
+                     `locales_config.xml` instead of being written twice. A
+                     horizontal row is what a D-pad handles best here: left and
+                     right step through the languages without leaving the row. -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/languageChips"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+
             </com.saikou.sozo_tv.components.TvDropdownSectionView>
 
             <View
@@ -806,8 +832,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
                 app:expanded="false"
-                app:sectionSubtitle="Manage what shows on Home"
-                app:sectionTitle="Content &amp; Privacy">
+                app:sectionSubtitle="@string/section_content_privacy_hint"
+                app:sectionTitle="@string/section_content_privacy">
 
                 <com.saikou.sozo_tv.components.TvToggleRowView
                     android:id="@+id/mainHistoryToggleRow"

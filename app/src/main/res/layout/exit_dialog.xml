@@ -21,7 +21,7 @@
             android:layout_marginStart="14dp"
             android:layout_marginTop="8dp"
             android:fontFamily="@font/days"
-            android:text="Exit Account"
+            android:text="@string/exit"
             android:textColor="@color/white40"
             android:textSize="@dimen/tv_text_subtitle"
             app:layout_constraintStart_toStartOf="parent"
@@ -65,7 +65,7 @@
                 android:layout_gravity="center"
                 android:layout_marginTop="12dp"
                 android:fontFamily="@font/days"
-                android:text="Account "
+                android:text="@string/account_2"
                 android:textColor="@color/lb_tv_white"
                 android:textSize="@dimen/tv_text_subtitle" />
 
@@ -94,7 +94,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:fontFamily="@font/days"
-                android:text="Are you sure you want to exit ?"
+                android:text="@string/are_you_sure_you_want_to"
                 android:textColor="@color/lb_tv_white"
                 android:textSize="@dimen/tv_text_subtitle" />
 
@@ -127,7 +127,7 @@
                         android:fontFamily="@font/days"
                         android:paddingVertical="13dp"
 
-                        android:text="Not Now"
+                        android:text="@string/not_now"
                         android:textAlignment="center"
                         android:textColor="@color/color_item_tv_category_tv"
                         android:textSize="@dimen/tv_text_label" />
@@ -155,7 +155,7 @@
                         android:fontFamily="@font/days"
                         android:paddingVertical="13dp"
 
-                        android:text="Yes Continue"
+                        android:text="@string/yes_continue"
                         android:textAlignment="center"
                         android:textColor="@color/color_item_tv_category_tv"
                         android:textSize="@dimen/tv_text_label" />
