@@ -23,7 +23,7 @@
             android:ellipsize="end"
             android:gravity="center"
             android:maxLines="2"
-            android:text="Channel Name"
+            android:text="@string/channel_name"
             android:textColor="@color/netflix_text_primary"
             android:textSize="@dimen/tv_text_body"
             android:textStyle="bold" />
@@ -45,7 +45,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="LIVE"
+                android:text="@string/live"
                 android:textColor="@color/netflix_red"
                 android:textSize="@dimen/tv_text_caption"
                 android:textStyle="bold" />
@@ -55,7 +55,7 @@
                 android:layout_width="16dp"
                 android:layout_height="16dp"
                 android:layout_marginStart="8dp"
-                android:contentDescription="Geo-blocked"
+                android:contentDescription="@string/geo_blocked"
                 android:src="@drawable/ic_geo_blocked"
                 android:visibility="gone"
                 app:tint="@color/netflix_gray" />
@@ -70,7 +70,7 @@
             android:ellipsize="end"
             android:gravity="center"
             android:maxLines="1"
-            android:text="Country • Language"
+            android:text="@string/country_language"
             android:textColor="@color/netflix_text_secondary"
             android:textSize="@dimen/tv_text_size_small" />
 

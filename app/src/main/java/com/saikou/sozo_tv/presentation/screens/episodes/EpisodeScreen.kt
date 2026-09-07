@@ -115,7 +115,7 @@ class EpisodeScreen : Fragment() {
                     binding.topContainer.gone()
                     binding.tabRv.gone()
                     binding.loadingLayout.visible()
-                    binding.loadingText.text = "Media is loading.."
+                    binding.loadingText.text = getString(R.string.media_is_loading)
                 }
 
                 is Resource.Success -> {
@@ -200,7 +200,7 @@ class EpisodeScreen : Fragment() {
 
                 Resource.Loading -> {
                     binding.placeHolder.root.gone()
-                    binding.loadingText.text = "Episodes are loading.."
+                    binding.loadingText.text = getString(R.string.episodes_are_loading)
                     // Only take the screen over while there is nothing to show. Hiding a populated
                     // grid on every page switch threw D-pad focus back out of the list.
                     if (adapter.itemCount == 0) {

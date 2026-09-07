@@ -54,7 +54,7 @@
         android:background="@drawable/bg_source_indicator"
         android:paddingHorizontal="12dp"
         android:paddingVertical="4dp"
-        android:text="ACTIVE"
+        android:text="@string/active"
         android:textColor="#FFFFFF"
         android:textSize="@dimen/tv_text_label"
         android:visibility="gone"

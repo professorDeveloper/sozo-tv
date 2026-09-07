@@ -201,7 +201,7 @@ class MyAccountPage : Fragment() {
             if (host is AuthNavigator) {
                 host.openLogin()
             } else {
-                Toast.makeText(requireContext(), "Login page not connected yet", Toast.LENGTH_SHORT)
+                Toast.makeText(requireContext(), getString(R.string.login_not_connected), Toast.LENGTH_SHORT)
                     .show()
             }
         }

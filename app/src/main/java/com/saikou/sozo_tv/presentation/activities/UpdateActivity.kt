@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
+import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.components.spoiler.SpoilerPlugin
 import com.saikou.sozo_tv.databinding.ActivityUpdateBinding
 import com.saikou.sozo_tv.domain.model.AppUpdate
@@ -97,8 +98,8 @@ class UpdateActivity : AppCompatActivity() {
         binding.progressView1.gone()
         setProgressUi(0)
 
-        binding.bottomSheerCustomTitle.text = "Update Available"
-        binding.updateTxt.text = "Update Now"
+        binding.bottomSheerCustomTitle.text = getString(R.string.update_available)
+        binding.updateTxt.text = getString(R.string.update_now)
         binding.updateBtn.isEnabled = true
         binding.updateBtn.visible()
 
@@ -166,7 +167,7 @@ class UpdateActivity : AppCompatActivity() {
         val link = appLink ?: return
         binding.progressView1.visible()
         binding.updateBtn.isEnabled = false
-        binding.updateTxt.text = "Downloading…"
+        binding.updateTxt.text = getString(R.string.update_downloading)
         vm.startDownload(this, link)
     }
 
@@ -255,9 +256,9 @@ class UpdateActivity : AppCompatActivity() {
             when (st) {
                 is UpdateViewModel.UiState.Idle -> {
                     binding.progressView1.gone()
-                    binding.bottomSheerCustomTitle.text = "Update Available"
+                    binding.bottomSheerCustomTitle.text = getString(R.string.update_available)
                     binding.updateBtn.isEnabled = true
-                    binding.updateTxt.text = "Update Now"
+                    binding.updateTxt.text = getString(R.string.update_now)
                     binding.updateBtn.requestInitialFocus()
                     binding.updateBtn.visible()
                 }
@@ -265,16 +266,16 @@ class UpdateActivity : AppCompatActivity() {
                 is UpdateViewModel.UiState.Downloading -> {
                     binding.progressView1.visible()
                     binding.updateBtn.isEnabled = false
-                    binding.updateTxt.text = "Downloading…"
+                    binding.updateTxt.text = getString(R.string.update_downloading)
                     setProgressUi(st.progress1000)
                 }
 
                 is UpdateViewModel.UiState.DownloadComplete -> {
                     binding.progressView1.gone()
-                    binding.bottomSheerCustomTitle.text = "Download Complete!"
+                    binding.bottomSheerCustomTitle.text = getString(R.string.update_download_complete)
                     binding.updateBtn.visible()
                     binding.updateBtn.isEnabled = true
-                    binding.updateTxt.text = "Install Now"
+                    binding.updateTxt.text = getString(R.string.update_install_now)
                     binding.updateBtn.requestInitialFocus()
 
                     if (!canInstallUnknownApps()) {
@@ -287,10 +288,10 @@ class UpdateActivity : AppCompatActivity() {
 
                 is UpdateViewModel.UiState.DownloadFailed -> {
                     binding.progressView1.gone()
-                    binding.bottomSheerCustomTitle.text = "Download Failed"
+                    binding.bottomSheerCustomTitle.text = getString(R.string.update_download_failed)
                     binding.updateBtn.visible()
                     binding.updateBtn.isEnabled = true
-                    binding.updateTxt.text = "Try Again"
+                    binding.updateTxt.text = getString(R.string.update_try_again)
                     binding.updateBtn.requestInitialFocus()
                     snackString("Download failed: ${st.error}")
                 }

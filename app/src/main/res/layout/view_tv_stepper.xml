@@ -18,7 +18,7 @@
         android:layout_width="86dp"
         android:layout_height="48dp"
         android:gravity="center"
-        android:text="16sp"
+        android:text="@string/stepper_value_sample"
         android:textColor="@color/netflix_white"
         android:textSize="@dimen/tv_text_body"
         android:fontFamily="sans-serif-medium" />

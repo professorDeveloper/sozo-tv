@@ -90,7 +90,8 @@ class SeriesPageAdapter(
                 binding.country.text = data.episode.toString()
                 root.setOnClickListener { onItemClicked?.invoke(data, absoluteAdapterPosition) }
                 if (LocalData.isAnimeEnabled) {
-                    topContainer.text = "Episode ${data.episode ?: 0}"
+                    topContainer.text = topContainer.context
+                        .getString(R.string.episode_number, data.episode ?: 0)
 
                 } else {
                     topContainer.text = data.title

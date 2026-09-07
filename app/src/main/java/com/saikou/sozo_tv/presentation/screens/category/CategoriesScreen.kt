@@ -58,9 +58,9 @@ class CategoriesScreen : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val preference = PreferenceManager()
         if (preference.isModeAnimeEnabled()) {
-            binding.textView6.text = "Filter Anime"
+            binding.textView6.text = getString(R.string.filter_anime)
         } else {
-            binding.textView6.text = "Filter Movie"
+            binding.textView6.text = getString(R.string.filter_movie)
         }
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {

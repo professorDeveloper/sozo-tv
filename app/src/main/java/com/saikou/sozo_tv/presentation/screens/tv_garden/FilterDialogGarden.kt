@@ -30,9 +30,9 @@ class FilterDialogGarden : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupDialogWindow()
-        binding.categoryContainer.title.text = "By Category"
-        binding.countryContainer.title.text = "By Country"
-        binding.customContainer.title.text = "Custom List"
+        binding.categoryContainer.title.text = getString(R.string.garden_by_category)
+        binding.countryContainer.title.text = getString(R.string.garden_by_country)
+        binding.customContainer.title.text = getString(R.string.garden_custom_list)
 
         binding.close.setOnClickListener { dismiss() }
 

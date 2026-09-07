@@ -54,7 +54,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/poppins_bold"
-                    android:text="Follow us on social"
+                    android:text="@string/follow_us_on_social"
                     android:textSize="@dimen/tv_text_body" />
 
                 <TextView
@@ -98,7 +98,7 @@
                     android:layout_gravity="center"
                     android:duplicateParentState="true"
                     android:fontFamily="@font/days"
-                    android:text="Telegram"
+                    android:text="@string/telegram"
                     android:textAlignment="center"
                     android:textColor="@color/color_item_tv_category_tv"
                     android:textSize="@dimen/tv_text_body" />

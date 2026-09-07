@@ -42,7 +42,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/days"
             android:padding="8dp"
-            android:text="Channel is loading..."
+            android:text="@string/channel_is_loading"
             android:textAlignment="center"
 
             android:textColor="@color/lb_tv_white" />
@@ -73,7 +73,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:gravity="center"
-            android:text="Connection Error"
+            android:text="@string/connection_error"
             android:textColor="@android:color/white"
             android:textSize="@dimen/tv_text_subtitle" />
 

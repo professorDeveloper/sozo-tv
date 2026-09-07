@@ -71,7 +71,7 @@ class TvGardenScreen : Fragment() {
                 intent.putExtra("data", it)
                 requireActivity().startActivity(intent)
             } else {
-                Toast.makeText(requireContext(), "No stream available", Toast.LENGTH_SHORT)
+                Toast.makeText(requireContext(), getString(R.string.no_stream_available), Toast.LENGTH_SHORT)
                     .show()
             }
         }

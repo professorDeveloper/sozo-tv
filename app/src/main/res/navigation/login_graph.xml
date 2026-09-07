@@ -8,6 +8,6 @@
     <fragment
         android:id="@+id/splashScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.splash.SplashScreen"
-        android:label="splash_screen"
+        android:label="@string/splash_screen"
         tools:layout="@layout/splash_screen" />
 </navigation>

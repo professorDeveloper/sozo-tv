@@ -511,7 +511,7 @@
                             android:layout_weight="1"
                             android:fontFamily="sans-serif-medium"
                             android:gravity="center"
-                            android:text="Default"
+                            android:text="@string/subtitle_font_default"
                             android:textColor="@color/netflix_text_primary"
                             android:textSize="@dimen/tv_text_body" />
 
@@ -546,7 +546,7 @@
                             android:layout_weight="1"
                             android:fontFamily="monospace"
                             android:gravity="center"
-                            android:text="Mono"
+                            android:text="@string/subtitle_font_mono"
                             android:textColor="@color/netflix_text_primary"
                             android:textSize="@dimen/tv_text_body" />
                     </LinearLayout>
@@ -556,7 +556,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Text Size"
+                        android:text="@string/text_size"
                         android:textColor="@color/netflix_white"
                         android:textSize="@dimen/tv_text_body" />
 
@@ -576,7 +576,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Text Color"
+                        android:text="@string/text_color"
                         android:textColor="@color/netflix_white"
                         android:textSize="@dimen/tv_text_body" />
 
@@ -700,7 +700,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Subtitle Background"
+                        android:text="@string/subtitle_background_2"
                         android:textColor="@color/netflix_white"
                         android:textSize="@dimen/tv_text_body" />
 
@@ -718,7 +718,7 @@
                             android:layout_marginEnd="6dp"
                             android:layout_weight="1"
                             android:fontFamily="sans-serif-medium"
-                            android:text="Off"
+                            android:text="@string/off"
                             android:textColor="@color/netflix_text_primary" />
 
                         <com.saikou.sozo_tv.components.TvOptionChipView
@@ -736,7 +736,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Outline"
+                        android:text="@string/subtitle_outline"
                         android:textColor="@color/netflix_white"
                         android:textSize="@dimen/tv_text_body" />
 
@@ -753,7 +753,7 @@
                             android:layout_marginEnd="6dp"
                             android:layout_weight="1"
                             android:fontFamily="sans-serif-medium"
-                            android:text="Off"
+                            android:text="@string/off"
                             android:textColor="@color/netflix_text_primary" />
 
                         <com.saikou.sozo_tv.components.TvOptionChipView

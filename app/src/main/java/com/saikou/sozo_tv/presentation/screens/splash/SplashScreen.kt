@@ -216,7 +216,7 @@ class SplashScreen : Fragment() {
         }
         binding.loadingIndicator.visible()
         binding.setupStatus.visible()
-        binding.setupStatus.text = "Setting up sources…"
+        binding.setupStatus.text = getString(R.string.splash_setting_up_sources)
         // The install outlives this fragment, so its progress callback must not pin the view
         // hierarchy: hold the screen weakly and drop the update once the view is gone.
         val handler = Handler(Looper.getMainLooper())

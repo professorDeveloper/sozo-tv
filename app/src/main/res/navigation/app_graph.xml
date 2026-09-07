@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/home"
         android:name="com.saikou.sozo_tv.presentation.screens.home.HomeScreen"
-        android:label="HomeScreen">
+        android:label="@string/homescreen">
         <action
             android:id="@+id/action_home_to_liveTvPlayerScreen"
             app:destination="@id/liveTvPlayerScreen" />
@@ -19,16 +19,16 @@
     <fragment
         android:id="@+id/contact"
         android:name="com.saikou.sozo_tv.presentation.screens.contact.ContactScreen"
-        android:label="ContactScreen" />
+        android:label="@string/contactscreen" />
     <fragment
         android:id="@+id/search"
         android:name="com.saikou.sozo_tv.presentation.screens.search.SearchScreen"
-        android:label="search_screen"
+        android:label="@string/search_screen"
         tools:layout="@layout/search_screen" />
     <fragment
         android:id="@+id/categories"
         android:name="com.saikou.sozo_tv.presentation.screens.category.CategoriesScreen"
-        android:label="categories_screen"
+        android:label="@string/categories_screen"
         tools:layout="@layout/categories_screen">
         <action android:id="@+id/action_categories_to_detailPage" />
 
@@ -36,7 +36,7 @@
     <fragment
         android:id="@+id/liveTvPlayerScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.play.LiveTvPlayerScreen"
-        android:label="LiveTvPlayerScreen">
+        android:label="@string/livetvplayerscreen">
         <argument
             android:name="title"
             app:argType="string" />
@@ -47,7 +47,7 @@
     <fragment
         android:id="@+id/tvgarden"
         android:name="com.saikou.sozo_tv.presentation.screens.tv_garden.TvGardenScreen"
-        android:label="tv_garden_screen"
+        android:label="@string/tv_garden_screen"
         tools:layout="@layout/tv_garden_screen">
         <action
             android:id="@+id/action_tvgarden_to_liveTvPlayerScreen"
@@ -56,7 +56,7 @@
     <fragment
         android:id="@+id/viewAllScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.view_all.ViewAllScreen"
-        android:label="view_all_screen"
+        android:label="@string/view_all_screen"
         tools:layout="@layout/view_all_screen" >
         <argument
             android:name="argData"
@@ -66,7 +66,7 @@
     <fragment
         android:id="@+id/sourceScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.source.SourceScreen"
-        android:label="SourceScreen">
+        android:label="@string/sourcescreen">
         <action
             android:id="@+id/action_source_to_aniyomi_settings"
             app:destination="@id/aniyomiSettingsScreen" />
@@ -74,7 +74,7 @@
     <fragment
         android:id="@+id/aniyomiSettingsScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.source.AniyomiSourceSettingsFragment"
-        android:label="Aniyomi Settings">
+        android:label="@string/aniyomi_settings">
         <argument
             android:name="provider"
             app:argType="string" />

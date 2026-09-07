@@ -41,7 +41,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp"
             android:fontFamily="sans-serif-medium"
-            android:text="Watchlist Update"
+            android:text="@string/watchlist_update"
             android:textColor="@color/notification_title_color"
             android:textSize="@dimen/tv_text_subtitle"
             android:textStyle="normal" />
@@ -52,7 +52,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
             android:lineSpacingExtra="2dp"
-            android:text="Your watchlist has been updated with 5 new releases. Don't miss out on the latest content."
+            android:text="@string/your_watchlist_has_been_updated_with"
             android:textColor="@color/notification_description_color"
             android:textSize="@dimen/tv_text_body" />
 
@@ -70,7 +70,7 @@
                 android:drawableStart="@drawable/ic_time_small"
                 android:drawablePadding="6dp"
                 android:gravity="center_vertical"
-                android:text="5 hours ago"
+                android:text="@string/news_time_sample"
                 android:textColor="@color/notification_time_color"
                 android:textSize="@dimen/tv_text_label" />
 
@@ -81,7 +81,7 @@
                 android:background="@drawable/notification_action_bg"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"
-                android:text="update"
+                android:text="@string/update"
                 android:textColor="@color/notification_action_color"
                 android:textSize="@dimen/tv_text_label" />
 

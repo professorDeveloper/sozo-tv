@@ -73,7 +73,7 @@
             android:id="@+id/channel_status_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Disabled"
+            android:text="@string/disabled"
             android:textColor="@color/netflix_gray"
             android:textSize="@dimen/tv_text_label"
             android:fontFamily="sans-serif"/>

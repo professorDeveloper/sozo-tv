@@ -67,7 +67,7 @@
             android:focusableInTouchMode="true"
             android:focusedByDefault="true"
 
-            android:hint="e.g. 夏目友人帳, Natsume Yuujinchou"
+            android:hint="@string/e_g_natsume_yuujinchou"
             android:imeOptions="actionSearch"
             android:paddingHorizontal="12dp"
             android:singleLine="true"

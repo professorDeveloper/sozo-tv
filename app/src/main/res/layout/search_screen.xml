@@ -42,7 +42,7 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:gravity="center_vertical"
-                android:hint="Search Anime..."
+                android:hint="@string/search_anime"
                 android:imeOptions="actionSearch"
                 android:inputType="text"
                 android:maxLines="1"
@@ -95,7 +95,7 @@
                         android:layout_weight="1"
                         android:ellipsize="end"
                         android:maxLines="1"
-                        android:text="Your Search Recommendations"
+                        android:text="@string/your_search_recommendations"
                         android:textSize="17sp" />
 
                     <!--
@@ -110,7 +110,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingHorizontal="14dp"
                         android:paddingVertical="6dp"
-                        android:text="This source"
+                        android:text="@string/this_source"
                         android:textSize="@dimen/tv_text_body" />
 
                 </LinearLayout>

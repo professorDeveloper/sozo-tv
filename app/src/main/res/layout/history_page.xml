@@ -57,7 +57,7 @@
             android:gravity="center"
             android:paddingHorizontal="8dp"
             android:paddingVertical="8dp"
-            android:text="Clear"
+            android:text="@string/clear"
             android:textColor="@color/color_item_tv_category_tv"
             android:textSize="@dimen/tv_text_body"
             tools:text="Clear" />

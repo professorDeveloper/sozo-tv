@@ -111,7 +111,7 @@ class SearchScreen : Fragment() {
 
         if (searchEverywhere && !searchAllSources) {
             searchAllSources = true
-            binding.searchScopeToggle.text = "All sources"
+            binding.searchScopeToggle.text = getString(R.string.search_scope_all_sources)
         }
 
         binding.searchEdt.setText(query)
@@ -196,7 +196,7 @@ class SearchScreen : Fragment() {
                 isListening = true
                 onUi {
                     showVoiceOverlay(true)
-                    binding.voiceListeningOverlay.listeningTxt.text = "Listening..."
+                    binding.voiceListeningOverlay.listeningTxt.text = getString(R.string.voice_listening)
                     binding.micBtn.setImageResource(R.drawable.ic_mic)
                 }
             }
@@ -204,7 +204,7 @@ class SearchScreen : Fragment() {
             override fun onBeginningOfSpeech() {
                 Log.d("SearchScreen", "Beginning of speech")
                 onUi {
-                    binding.voiceListeningOverlay.listeningTxt.text = "Listening... Speak now"
+                    binding.voiceListeningOverlay.listeningTxt.text = getString(R.string.voice_listening_speak)
                 }
             }
 
@@ -290,7 +290,7 @@ class SearchScreen : Fragment() {
                             showVoiceOverlay(false)
                         }, 1500)
                     } else {
-                        binding.voiceListeningOverlay.listeningTxt.text = "No speech detected"
+                        binding.voiceListeningOverlay.listeningTxt.text = getString(R.string.voice_no_speech)
                         showVoiceOverlay(true)
                         binding.voiceListeningOverlay.root.postDelayed({
                             showVoiceOverlay(false)
@@ -366,7 +366,7 @@ class SearchScreen : Fragment() {
             }
 
             showVoiceOverlay(true)
-            binding.voiceListeningOverlay.listeningTxt.text = "Starting…"
+            binding.voiceListeningOverlay.listeningTxt.text = getString(R.string.voice_starting)
             speechRecognizer?.startListening(intent)
 
         } catch (e: Exception) {
@@ -392,11 +392,11 @@ class SearchScreen : Fragment() {
 
             if (intent.resolveActivity(requireContext().packageManager) != null) {
                 showVoiceOverlay(true)
-                binding.voiceListeningOverlay.listeningTxt.text = "Starting voice search..."
+                binding.voiceListeningOverlay.listeningTxt.text = getString(R.string.voice_starting_search)
                 startActivityForResult(intent, VOICE_REQUEST_CODE)
             } else {
                 Log.e("SearchScreen", "No speech recognition activity found")
-                binding.voiceListeningOverlay.listeningTxt.text = "Voice search not available"
+                binding.voiceListeningOverlay.listeningTxt.text = getString(R.string.voice_unavailable)
                 showVoiceOverlay(true)
                 binding.voiceListeningOverlay.root.postDelayed({
                     showVoiceOverlay(false)
@@ -404,7 +404,7 @@ class SearchScreen : Fragment() {
             }
         } catch (e: Exception) {
             Log.e("SearchScreen", "Alternative voice search error: ${e.message}")
-            binding.voiceListeningOverlay.listeningTxt.text = "Voice search error"
+            binding.voiceListeningOverlay.listeningTxt.text = getString(R.string.voice_error)
             showVoiceOverlay(true)
             binding.voiceListeningOverlay.root.postDelayed({
                 showVoiceOverlay(false)
@@ -435,7 +435,7 @@ class SearchScreen : Fragment() {
                     binding.searchEdt.setText(spokenText)
                     binding.searchEdt.setSelection(spokenText.length)
                     performSearchImmediate(spokenText)
-                    binding.voiceListeningOverlay.listeningTxt.text = "Searching for: $spokenText"
+                    binding.voiceListeningOverlay.listeningTxt.text = getString(R.string.voice_searching_for, spokenText)
                     showVoiceOverlay(true)
                     binding.voiceListeningOverlay.root.postDelayed({
                         showVoiceOverlay(false)
@@ -444,7 +444,7 @@ class SearchScreen : Fragment() {
             } else {
                 binding.micBtn.setImageResource(R.drawable.ic_mic)
                 if (resultCode == Activity.RESULT_CANCELED) {
-                    binding.voiceListeningOverlay.listeningTxt.text = "Voice search cancelled"
+                    binding.voiceListeningOverlay.listeningTxt.text = getString(R.string.voice_cancelled)
                     showVoiceOverlay(true)
                     binding.voiceListeningOverlay.root.postDelayed({
                         showVoiceOverlay(false)
@@ -565,7 +565,7 @@ class SearchScreen : Fragment() {
         val title = searchModel.title?.trim().orEmpty()
         if (title.isEmpty()) return
 
-        Toast.makeText(requireContext(), "Opening “$title”…", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), getString(R.string.opening_title, title), Toast.LENGTH_SHORT).show()
         viewLifecycleOwner.lifecycleScope.launch {
             val regId = withContext(Dispatchers.IO) {
                 try {

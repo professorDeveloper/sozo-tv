@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/detailPage2"
         android:name="com.saikou.sozo_tv.presentation.screens.detail.DetailPage"
-        android:label="DetailPage"
+        android:label="@string/detailpage"
         tools:layout="@layout/detail_page">
         <action
             android:id="@+id/action_detailPage2_to_trailerPlayerScreen"
@@ -23,7 +23,7 @@
     <fragment
         android:id="@+id/castDetailScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.detail.CastDetailScreen"
-        android:label="CastDetailScreen"
+        android:label="@string/castdetailscreen"
         tools:layout="@layout/cast_detail_screen">
         <argument
             android:name="castId"
@@ -32,7 +32,7 @@
     <fragment
         android:id="@+id/trailerPlayerScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.play.TrailerPlayerScreen"
-        android:label="TrailerPlayerScreen"
+        android:label="@string/trailerplayerscreen"
         tools:layout="@layout/trailer_player_screen">
         <argument
             android:name="trailerUrl"
@@ -44,7 +44,7 @@
     <fragment
         android:id="@+id/episodeScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.episodes.EpisodeScreen"
-        android:label="EpisodeScreen"
+        android:label="@string/episodescreen"
         tools:layout="@layout/episode_screen">
         <argument
             android:name="isAdult"
@@ -69,7 +69,7 @@
     <fragment
         android:id="@+id/seriesPlayerScreen"
         android:name="com.saikou.sozo_tv.presentation.screens.play.SeriesPlayerScreen"
-        android:label="SeriesPlayerScreen">
+        android:label="@string/seriesplayerscreen">
         <argument
             android:name="idMal"
             app:argType="integer" />
