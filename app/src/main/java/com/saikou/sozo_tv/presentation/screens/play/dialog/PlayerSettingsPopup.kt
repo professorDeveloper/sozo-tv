@@ -11,6 +11,7 @@ import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.PlayerSettingsAdapter
 import com.saikou.sozo_tv.adapters.SettingRow
 import com.saikou.sozo_tv.databinding.PopupPlayerSettingsBinding
+import com.saikou.sozo_tv.utils.applyTvFocusScale
 
 class PlayerSettingsPopup : DialogFragment() {
 
@@ -47,6 +48,7 @@ class PlayerSettingsPopup : DialogFragment() {
                 y = inset
             }
         }
+        binding.close.applyTvFocusScale()
         binding.close.setOnClickListener { dismiss() }
         showRoot()
         installBackHandling()

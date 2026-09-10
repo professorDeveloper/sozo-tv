@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.withStyledAttributes
 import com.saikou.sozo_tv.R
+import com.saikou.sozo_tv.utils.applyTvFocusScale
 
 class TvStepperView @JvmOverloads constructor(
     context: Context,
@@ -54,6 +55,8 @@ class TvStepperView @JvmOverloads constructor(
 
         _value = _value.coerceIn(minValue, maxValue)
         render()
+
+        applyTvFocusScale()
 
         // Optional: click to increase (Netflix-like)
         setOnClickListener { increment() }

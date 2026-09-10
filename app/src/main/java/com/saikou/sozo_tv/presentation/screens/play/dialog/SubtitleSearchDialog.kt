@@ -22,6 +22,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import java.util.Locale
+import com.saikou.sozo_tv.utils.TV_FOCUS_SCALE_ROW
+import com.saikou.sozo_tv.utils.applyTvFocusScale
 
 class SubtitleSearchDialog : DialogFragment() {
 
@@ -77,6 +79,8 @@ class SubtitleSearchDialog : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         dialog?.applyGlassWindow()
 
+        binding.aiTranslateBtn.applyTvFocusScale(TV_FOCUS_SCALE_ROW)
+        binding.close.applyTvFocusScale()
         binding.close.setOnClickListener { dismiss() }
         binding.searchQuery.setText(title.replace(BRACKETED, "").trim())
         binding.searchQuery.setOnEditorActionListener { _, actionId, _ ->

@@ -156,6 +156,7 @@ class SkipIntroView(
     }
 
     private fun hideFixedButton() {
+        releaseFocus(fixedSkipButton)
         if (!isFixedButtonVisible && fixedSkipButton.visibility == View.GONE) return
         isFixedButtonVisible = false
         ObjectAnimator.ofFloat(fixedSkipButton, "alpha", fixedSkipButton.alpha, 0f).apply {
@@ -182,7 +183,19 @@ class SkipIntroView(
 
     private fun canTakeFocus(): Boolean {
         val focused = controller.rootView.findFocus() ?: return true
-        return focused === controller
+        // Focus is often left on a control that the player has since hidden. Nothing the user can
+        // see holds it, so the skip button is free to take it.
+        return focused === controller || !focused.isShown
+    }
+
+    /**
+     * Hands focus back to the player when a button disappears out from under it, so the D-pad does
+     * not go dead once the skip window closes.
+     */
+    private fun releaseFocus(button: View) {
+        if (!button.hasFocus()) return
+        button.clearFocus()
+        controller.requestFocus()
     }
 
     private fun getTimestampId(timestamp: AniSkip.Stamp): String {
@@ -226,6 +239,7 @@ class SkipIntroView(
     }
 
     private fun hideManualButton() {
+        releaseFocus(manualSkipButton)
         if (!isManualButtonVisible && manualSkipButton.visibility == View.GONE) return
 
         manualButtonAnimator?.cancel()
@@ -277,6 +291,7 @@ class SkipIntroView(
     }
 
     private fun hideSkipButton() {
+        releaseFocus(skipTimeButton)
         delayedShowRunnable?.let { handler.removeCallbacks(it) }
 
         if (!isButtonVisible && skipTimeButton.visibility == View.GONE) return

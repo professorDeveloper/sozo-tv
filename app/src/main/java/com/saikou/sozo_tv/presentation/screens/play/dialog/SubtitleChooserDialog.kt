@@ -9,6 +9,8 @@ import androidx.fragment.app.DialogFragment
 import com.saikou.sozo_tv.adapters.SubtitleAdapter
 import com.saikou.sozo_tv.data.model.SubTitle
 import com.saikou.sozo_tv.databinding.DialogSubtitleChooserBinding
+import com.saikou.sozo_tv.utils.TV_FOCUS_SCALE_ROW
+import com.saikou.sozo_tv.utils.applyTvFocusScale
 
 class SubtitleChooserDialog : DialogFragment() {
 
@@ -102,6 +104,8 @@ class SubtitleChooserDialog : DialogFragment() {
             }.show(parentFragmentManager, "subtitle_style")
         }
 
+        binding.searchOnlineRow.applyTvFocusScale(TV_FOCUS_SCALE_ROW)
+        binding.close.applyTvFocusScale()
         binding.close.setOnClickListener { dismiss() }
 
         binding.subtitleOffsetStepper.setValue(offsetMs)

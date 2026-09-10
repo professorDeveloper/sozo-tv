@@ -9,6 +9,7 @@ import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.VideoServersAdapter
 import com.saikou.sozo_tv.databinding.DialogVideoQualityBinding
 import com.saikou.sozo_tv.presentation.screens.play.dialog.applyGlassWindow
+import com.saikou.sozo_tv.utils.applyTvFocusScale
 
 class VideoServerDialog(
     private val servers: List<VideoServersAdapter.ServerRow> = emptyList(),
@@ -51,6 +52,7 @@ class VideoServerDialog(
 
         binding.dialogTitle.text = getString(titleRes)
         binding.dialogSubtitle.text = getString(subtitleRes)
+        binding.close.applyTvFocusScale()
         binding.close.setOnClickListener { dismiss() }
 
         val selected = currentIndex.coerceIn(0, servers.lastIndex)
