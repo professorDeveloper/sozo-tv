@@ -13,6 +13,7 @@ import androidx.fragment.app.DialogFragment
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.DialogSubtitleStyleBinding
+import com.saikou.sozo_tv.utils.applyTvFocusScale
 
 class SubtitleStyleDialog : DialogFragment() {
 
@@ -40,6 +41,7 @@ class SubtitleStyleDialog : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         dialog?.applyGlassWindow()
 
+        binding.close.applyTvFocusScale()
         binding.close.setOnClickListener { dismiss() }
 
         val prefs = PreferenceManager(requireContext())

@@ -5,6 +5,8 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.data.remote.subtitles.OnlineSubtitle
+import com.saikou.sozo_tv.utils.TV_FOCUS_SCALE_ROW
+import com.saikou.sozo_tv.utils.applyTvFocusScale
 import com.saikou.sozo_tv.databinding.ItemOnlineSubtitleBinding
 
 class OnlineSubtitleAdapter(
@@ -25,6 +27,7 @@ class OnlineSubtitleAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = VH(
         ItemOnlineSubtitleBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            .also { it.root.applyTvFocusScale(TV_FOCUS_SCALE_ROW) }
     )
 
     override fun onBindViewHolder(holder: VH, position: Int) = holder.bind(items[position])

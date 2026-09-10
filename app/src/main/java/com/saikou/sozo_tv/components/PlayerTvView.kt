@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.View
+import android.view.View.FOCUS_DOWN
+import android.view.View.FOCUS_UP
 import android.view.ViewParent
 import androidx.annotation.OptIn
 import androidx.media3.common.Player
@@ -84,10 +86,26 @@ class PlayerTvView @JvmOverloads constructor(
                     if (event.action == KeyEvent.ACTION_UP) focused.performClick()
                     return true
                 }
-
-                KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN ->
-                    return super.dispatchKeyEvent(event)
             }
+        }
+
+        // PlayerView.dispatchKeyEvent swallows every D-pad key while the controller is hidden and
+        // does nothing but reveal the controller, so super never runs a focus search. That leaves
+        // the overlays drawn on top of the video — the skip-intro button above all — unreachable.
+        // Walk focus here instead, and only fall through to the controller when there is nothing
+        // over the video to walk to.
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            val direction = when (event.keyCode) {
+                KeyEvent.KEYCODE_DPAD_UP -> FOCUS_UP
+                KeyEvent.KEYCODE_DPAD_DOWN -> FOCUS_DOWN
+                else -> null
+            }
+            if (direction != null && moveOverlayFocus(direction)) return true
+        }
+        if (event.keyCode == KeyEvent.KEYCODE_DPAD_UP ||
+            event.keyCode == KeyEvent.KEYCODE_DPAD_DOWN
+        ) {
+            return super.dispatchKeyEvent(event)
         }
 
         if (event.action != KeyEvent.ACTION_DOWN) return super.dispatchKeyEvent(event)
@@ -137,6 +155,19 @@ class PlayerTvView @JvmOverloads constructor(
 
             else -> super.dispatchKeyEvent(event)
         }
+    }
+
+    /**
+     * Moves focus between the overlays this view draws over the video, without letting the event
+     * reach the controller. Returns false when [direction] leads out of this view, which is the
+     * signal to hand the key back to the normal controller behaviour.
+     */
+    private fun moveOverlayFocus(direction: Int): Boolean {
+        val from = findFocus() ?: this
+        val target = focusSearch(from, direction) ?: return false
+        if (target === from || target === this || !isAncestorOf(target)) return false
+        if (!target.isShown) return false
+        return target.requestFocus(direction)
     }
 
     private fun togglePlayback() {
@@ -192,6 +223,16 @@ class PlayerTvView @JvmOverloads constructor(
         return null
     }
 
+    @OptIn(UnstableApi::class)
+    private fun isInController(view: View): Boolean {
+        var current: ViewParent? = view.parent
+        while (current != null) {
+            if (current === controller) return true
+            current = current.parent
+        }
+        return false
+    }
+
     private fun isAncestorOf(view: View): Boolean {
         var current: ViewParent? = view.parent
         while (current != null) {
@@ -212,6 +253,10 @@ class PlayerTvView @JvmOverloads constructor(
     private fun restoreControllerFocus() {
         val current = rootView.findFocus()
         if (current != null && current !== this && !isAncestorOf(current)) return
+        // An overlay over the video holds focus deliberately — the skip-intro button appears and
+        // takes focus so a single centre press skips. The controller sliding in behind it must not
+        // pull that focus away mid-press.
+        if (current != null && current !== this && !isInController(current)) return
         val last = lastFocusedView
         if (last != null && last.isShown && last.isFocusable && last.requestFocus()) return
         if (findPlayPauseButton()?.requestFocus() == true) return

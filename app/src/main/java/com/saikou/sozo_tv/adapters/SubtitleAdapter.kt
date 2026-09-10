@@ -7,6 +7,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.model.SubTitle
 import com.saikou.sozo_tv.databinding.SubtitleItemBinding
+import com.saikou.sozo_tv.utils.TV_FOCUS_SCALE_ROW
+import com.saikou.sozo_tv.utils.applyTvFocusScale
 import com.saikou.sozo_tv.utils.loadImage
 
 class SubtitleAdapter(
@@ -43,6 +45,7 @@ class SubtitleAdapter(
             SubtitleItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         binding.root.isFocusable = true
         binding.root.isFocusableInTouchMode = true
+        binding.root.applyTvFocusScale(TV_FOCUS_SCALE_ROW)
         return ViewHolder(binding)
     }
 

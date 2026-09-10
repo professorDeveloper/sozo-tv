@@ -9,6 +9,7 @@ import com.saikou.sozo_tv.adapters.VideoOptionsAdapter
 import com.saikou.sozo_tv.databinding.DialogVideoQualityBinding
 import com.saikou.sozo_tv.parser.models.VideoOption
 import com.saikou.sozo_tv.presentation.screens.play.dialog.applyGlassWindow
+import com.saikou.sozo_tv.utils.applyTvFocusScale
 
 class VideoQualityDialog(
     private val list: List<VideoOption> = emptyList(),
@@ -40,6 +41,7 @@ class VideoQualityDialog(
             return
         }
 
+        binding.close.applyTvFocusScale()
         binding.close.setOnClickListener { dismiss() }
 
         val selected = currentIndex.coerceIn(0, list.lastIndex)

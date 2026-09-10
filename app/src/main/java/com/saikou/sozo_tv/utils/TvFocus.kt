@@ -27,6 +27,13 @@ import android.view.animation.DecelerateInterpolator
  */
 private val TV_FOCUS_INTERPOLATOR = DecelerateInterpolator()
 
+/**
+ * Scale for full-width rows inside a dialog panel. The default 1.08f is meant for cards and
+ * chips; on a 650dp-wide row it pushes 26dp past the panel edge on each side, so rows take
+ * this gentler value instead.
+ */
+const val TV_FOCUS_SCALE_ROW = 1.04f
+
 fun View.applyTvFocusScale(
     scale: Float = 1.08f,
     durationMs: Long = 150L,
