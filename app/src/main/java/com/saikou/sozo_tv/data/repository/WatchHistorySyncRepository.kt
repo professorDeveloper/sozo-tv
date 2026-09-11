@@ -8,6 +8,7 @@ import com.saikou.sozo_tv.data.remote.device.ApiResult
 import com.saikou.sozo_tv.data.remote.history.HistorySyncItem
 import com.saikou.sozo_tv.data.remote.history.WatchHistorySyncClient
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
+import com.saikou.sozo_tv.parser.sources.ExtensionParser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -83,6 +84,18 @@ class WatchHistorySyncRepository(
 
     fun clear() = prefs.edit().clear().apply()
 
+    /**
+     * Sign-out. The sync state AND the local rows belong to the account that is leaving: rows left
+     * in Room were pushed into the next account on its first sync. Runs on this repository's own
+     * scope because sign-out relaunches the task and tears down the caller's ViewModel.
+     */
+    fun forgetAccount(): Job {
+        clear()
+        return scope.launch {
+            mutex.withLock { runCatching { local.clearAllHistory() } }
+        }
+    }
+
     private suspend fun applyRemote(items: List<HistorySyncItem>) {
         for (item in items) {
             val key = item.key ?: continue
@@ -139,7 +152,7 @@ class WatchHistorySyncRepository(
         thumbnail = image,
         isSerial = isSeries,
         episodeIndex = epIndex.takeIf { it >= 0 },
-        episodeNumber = epIndex.takeIf { it >= 0 }?.plus(1),
+        episodeNumber = absoluteEpisode(),
         positionMs = lastPosition,
         durationMs = totalDuration,
         watchedAt = isoOf(watchedAt),
@@ -208,13 +221,25 @@ class WatchHistorySyncRepository(
     private fun WatchHistoryEntity.syncProvider(): String =
         providerId.ifBlank { source.ifBlank { currentSourceName } }.trim()
 
+    /**
+     * 1-based episode number across the whole series. [WatchHistoryEntity.epIndex] is relative to
+     * its 100-episode part, so episode 1 and episode 101 shared a key and overwrote each other.
+     * Part 1 still yields exactly the old number, so existing keys do not change.
+     */
+    private fun WatchHistoryEntity.absoluteEpisode(): Int? {
+        if (epIndex < 0) return null
+        val part = (page ?: 1).coerceAtLeast(1)
+        return (part - 1) * ExtensionParser.EPISODE_PAGE_SIZE + epIndex + 1
+    }
+
     private fun WatchHistoryEntity.syncKey(): String? {
         val provider = syncProvider()
         val base = (categoryid?.takeIf { it.isNotBlank() } ?: videoUrl).trim()
         if (base.isEmpty()) return null
         val head = "$provider|$base"
         if (!isSeries) return head
-        return if (epIndex < 0) head else "$head|e${epIndex + 1}"
+        val episode = absoluteEpisode() ?: return head
+        return "$head|e$episode"
     }
 
     private companion object {

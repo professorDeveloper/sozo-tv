@@ -22,8 +22,10 @@ object AniyomiRuntime {
     private const val METADATA_SOURCE_CLASS = "tachiyomi.animeextension.class"
 
     @Volatile private var bootstrapped = false
-    private val sourceCache = HashMap<String, AnimeCatalogueSource>()
-    private val loadedApks = HashSet<String>()
+    // Read on every home/search/detail call from several coroutines at once, and written while
+    // an APK loads on another — so both are concurrent collections, not plain HashMap/HashSet.
+    private val sourceCache = java.util.concurrent.ConcurrentHashMap<String, AnimeCatalogueSource>()
+    private val loadedApks: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
 
     fun bootstrap(context: Context) {
         if (bootstrapped) return

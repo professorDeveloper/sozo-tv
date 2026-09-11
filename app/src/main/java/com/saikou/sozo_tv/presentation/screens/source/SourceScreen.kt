@@ -399,11 +399,9 @@ class SourceScreen : Fragment() {
     }
 
     private fun onProviderPicked(provider: ExtProvider) {
+        // setActiveProvider also writes the LocalData.SOURCE sentinel the episode screen and
+        // series player read to route through the ExtensionParser.
         engine.setActiveProvider(provider.id, provider.group, provider.name)
-        // The episode screen / series player read the active source via SourceManager
-        // (LocalData.SOURCE); the sentinel routes them to the ExtensionParser.
-        com.saikou.sozo_tv.data.local.pref.PreferenceManager()
-            .putString(com.saikou.sozo_tv.utils.LocalData.SOURCE, com.saikou.sozo_tv.parser.sources.AnimeSources.EXTENSION)
         adapter.setSelected(provider.id)
         toast(getString(R.string.sources_active, provider.name))
     }

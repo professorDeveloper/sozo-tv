@@ -1,6 +1,5 @@
 package com.saikou.sozo_tv.presentation.viewmodel
 
-import com.saikou.sozo_tv.utils.SOZO_USER_AGENT
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -32,8 +31,6 @@ class PlayAnimeViewModel(
 
     companion object {
         private const val TAG = "PlayAnimeViewModel"
-        private const val SOURCE_HIANIME = "hianime"
-        private const val SOURCE_ANIMEWORLD = "animeworld"
     }
 
     val timeStamps = MutableLiveData<List<AniSkip.Stamp>?>()
@@ -106,7 +103,6 @@ class PlayAnimeViewModel(
         malId: Int?,
         episodeNum: Int?,
         duration: Long,
-        useProxyForTimeStamps: Boolean,
     ) {
         if (malId == null || episodeNum == null) return
 
@@ -118,7 +114,7 @@ class PlayAnimeViewModel(
         stampsJob?.cancel()
         stampsJob = viewModelScope.launch(Dispatchers.IO) {
             runCatching {
-                AniSkip.getResult(malId, episodeNum, duration, useProxyForTimeStamps)
+                AniSkip.getResult(malId, episodeNum, duration)
             }.onSuccess { result ->
                 timeStampsMap[episodeNum] = result
                 timeStamps.postValue(result)
@@ -167,14 +163,19 @@ class PlayAnimeViewModel(
         return watchHistoryRepository.getAllHistory()
     }
 
-    fun clearAllHistory() {
-        viewModelScope.launch(Dispatchers.IO) {
+    /**
+     * Returns once the local rows are gone, so the caller can re-read an empty list. It used to
+     * return immediately and the History page re-read the table before the delete had run, which
+     * made clearing look like it had failed. The server push still runs in the background.
+     */
+    suspend fun clearAllHistory() {
+        withContext(Dispatchers.IO) {
             runCatching {
                 historySync.rememberClearedAll()
                 watchHistoryRepository.clearAllHistory()
-                historySync.sync()
             }
         }
+        viewModelScope.launch(Dispatchers.IO) { runCatching { historySync.sync() } }
     }
 
     fun syncHistory() {
@@ -259,118 +260,53 @@ class PlayAnimeViewModel(
         }
     }
 
+    /**
+     * Every source is an extension now — [ExtensionParser] is the only parser — so every option is
+     * built the same way, whatever [sourceKey] a history row happened to store. The key used to pick
+     * a branch, and a row saved before the "extension" sentinel existed (or with it blank) fell into
+     * a fallback that dropped the option's headers, subtitles, proxy and sniff directives.
+     */
+    @Suppress("UNUSED_PARAMETER")
     private suspend fun buildVodFromOption(
         option: VideoOption, sourceKey: String
     ): VodMovieResponse {
-        return when (sourceKey) {
-            "extension" -> {
-                var url = option.videoUrl
-                var headers = option.headers
-                var mime = option.mimeTypes.ifEmpty { MimeTypes.APPLICATION_M3U8 }
+        var url = option.videoUrl
+        var headers = option.headers
+        var mime = option.mimeTypes.ifEmpty { MimeTypes.APPLICATION_M3U8 }
 
-                if (option.useWebViewSniff ||
-                    com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.needsExtraction(url)
-                ) {
-                    val directive = parseSniff(option.sniff)
-                    val sniffed = com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.extract(
-                        context = com.saikou.sozo_tv.app.MyApp.context,
-                        pageUrl = url,
-                        pageHeaders = option.headers + directive.headers,
-                        timeoutMs = directive.timeoutMs,
-                        patterns = directive.patterns,
-                        blockHosts = directive.blockHosts,
-                    )
-                    if (sniffed != null) {
-                        url = sniffed.url
-                        headers = option.headers + sniffed.headers
-                        url = applyRewrite(directive.rewrite, url, headers)
-                        mime = if (sniffed.playType == "hls") MimeTypes.APPLICATION_M3U8
-                        else MimeTypes.VIDEO_MP4
-                    }
-                }
-
-                VodMovieResponse(
-                    authInfo = "",
-                    subtitleList = option.tracks.map { SubTitle(it.file, it.label ?: "", headers = it.headers) },
-                    urlobj = url,
-                    header = headers,
-                    type = mime,
-                    thumbnail = option.thumbnail ?: "",
-                    useLocalProxy = option.useLocalProxy,
-                    localProxyJson = option.localProxy,
-                    requestTransformJson = option.requestTransform,
-                )
-            }
-
-            SOURCE_HIANIME -> {
-                VodMovieResponse(
-                    authInfo = "",
-                    subtitleList = option.tracks.map {
-                        if (!it.file.contains("thumbnail")) SubTitle(
-                            it.file, it.label ?: "", headers = it.headers
-                        ) else null
-                    }.filterNotNull(),
-                    urlobj = option.videoUrl,
-                    header = option.headers,
-                    type = option.mimeTypes,
-                    thumbnail = option.tracks.find { it.file.contains("thumbnail") }?.file ?: ""
-                )
-            }
-
-            "anime_lok" -> {
-                Log.d(TAG, "buildVodFromOption:AnimeLok ${option.videoUrl}")
-                Log.d(TAG, "buildVodFromOption:AnimeLok ${option.tracks.find { it.file.contains("jpg") }?.file ?: ""}")
-                VodMovieResponse(
-                    authInfo = "",
-                    subtitleList = arrayListOf(),
-                    urlobj = option.videoUrl,
-                    header = option.headers,
-                    type = MimeTypes.APPLICATION_M3U8,
-                    thumbnail = option.tracks.find { it.file.contains("thumbnail") }?.file ?: "",
-                    language = "hin"
-                )
-            }
-
-            "AnimeSaturn" -> {
-                VodMovieResponse(
-                    authInfo = "",
-                    subtitleList = arrayListOf(),
-                    urlobj = option.videoUrl,
-                    header = option.headers,
-                    type = MimeTypes.APPLICATION_MP4,
-                )
-            }
-
-            SOURCE_ANIMEWORLD -> {
-                val headers = linkedMapOf(
-                    "User-Agent" to SOZO_USER_AGENT,
-                    "Accept" to "*/*",
-                    "Accept-Language" to "en-US,en;q=0.9,uz-UZ;q=0.8,uz;q=0.7",
-                    "Connection" to "keep-alive",
-                    "Upgrade-Insecure-Requests" to "1"
-                )
-
-                VodMovieResponse(
-                    authInfo = "",
-                    subtitleList = arrayListOf(),
-                    urlobj = option.videoUrl,
-                    header = headers,
-                    type = MimeTypes.APPLICATION_MP4,
-                )
-            }
-
-            else -> {
-                val extractedUrl = parser.extractVideo(option.videoUrl)
-                Log.d(TAG, "buildVodFromOption: $extractedUrl | ${option.videoUrl}")
-                VodMovieResponse(
-                    authInfo = "",
-                    subtitleList = arrayListOf(),
-                    urlobj = extractedUrl.source,
-                    header = extractedUrl.headers,
-                    type = extractedUrl.type,
-                )
+        if (option.useWebViewSniff ||
+            com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.needsExtraction(url)
+        ) {
+            val directive = parseSniff(option.sniff)
+            val sniffed = com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.extract(
+                context = com.saikou.sozo_tv.app.MyApp.context,
+                pageUrl = url,
+                pageHeaders = option.headers + directive.headers,
+                timeoutMs = directive.timeoutMs,
+                patterns = directive.patterns,
+                blockHosts = directive.blockHosts,
+            )
+            if (sniffed != null) {
+                url = sniffed.url
+                headers = option.headers + sniffed.headers
+                url = applyRewrite(directive.rewrite, url, headers)
+                mime = if (sniffed.playType == "hls") MimeTypes.APPLICATION_M3U8
+                else MimeTypes.VIDEO_MP4
             }
         }
+
+        return VodMovieResponse(
+            authInfo = "",
+            subtitleList = option.tracks.map { SubTitle(it.file, it.label ?: "", headers = it.headers) },
+            urlobj = url,
+            header = headers,
+            type = mime,
+            thumbnail = option.thumbnail ?: "",
+            useLocalProxy = option.useLocalProxy,
+            localProxyJson = option.localProxy,
+            requestTransformJson = option.requestTransform,
+            audioTracks = option.audioTracks,
+        )
     }
 
     private data class SniffDirective(

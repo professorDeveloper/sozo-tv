@@ -9,6 +9,8 @@ import android.webkit.WebViewClient
 import com.saikou.sozo_tv.engine.server.ApisozoClient
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONArray
@@ -23,8 +25,13 @@ class WebJsRuntime(
     private var webView: WebView? = null
     private var ready = false
     private var runtimeLoaded = false
-    private var activeExtractor: String? = null
-    private var activeVersion = -1
+
+    // Extractors are kept side by side, each under its own name, instead of one global
+    // `Provider` swapped per call: two calls to different extractors at once used to run against
+    // whichever had been evaluated last. Setup (WebView, runtime, extractor code) is serialised;
+    // the calls themselves still run concurrently.
+    private val loadedExtractors = ConcurrentHashMap<String, Int>()
+    private val setupMutex = Mutex()
 
     private val codeCache = ConcurrentHashMap<String, String>()
     private val results = ConcurrentHashMap<String, CompletableDeferred<JsResult>>()
@@ -43,13 +50,15 @@ class WebJsRuntime(
 
     suspend fun callProvider(name: String, version: Int, fn: String, args: JSONArray): String? {
         android.util.Log.i("WebJs", "callProvider $name@$version fn=$fn")
-        ensureReady()
-        ensureRuntime()
-        ensureExtractor(name, version)
+        setupMutex.withLock {
+            ensureReady()
+            ensureRuntime()
+            ensureExtractor(name, version)
+        }
         val id = ids.incrementAndGet().toString()
         val deferred = CompletableDeferred<JsResult>()
         results[id] = deferred
-        evalOnMain("window.__callProvider(${q(id)}, ${q(fn)}, ${q(args.toString())});")
+        evalOnMain("window.__callProvider(${q(id)}, ${q(name)}, ${q(fn)}, ${q(args.toString())});")
         val result = withTimeoutOrNull(45000) { deferred.await() }
         results.remove(id)
         if (result == null) {
@@ -110,18 +119,19 @@ class WebJsRuntime(
     }
 
     private suspend fun ensureExtractor(name: String, version: Int) {
-        if (activeExtractor == name && activeVersion == version) return
+        if (loadedExtractors[name] == version) return
         val code = fetchCode("$name@$version") { client.get("/extractors/$name") }
         android.util.Log.i("WebJs", "extractor $name code: ${code.length} chars")
         if (code.isEmpty()) throw RuntimeException("Extractor $name is empty")
         val wrapped = buildString {
             append("(function(){try{delete globalThis.Provider;}catch(e){}\n")
             append(code)
-            append("\nif(typeof Provider!=='undefined'){globalThis.Provider=Provider;}})();")
+            append("\nif(typeof Provider!=='undefined'){window.__providers[")
+            append(q(name))
+            append("]=Provider;globalThis.Provider=Provider;}})();")
         }
         evalOnMain(wrapped)
-        activeExtractor = name
-        activeVersion = version
+        loadedExtractors[name] = version
     }
 
     private suspend fun fetchCode(key: String, fetch: () -> String?): String {
@@ -183,11 +193,13 @@ window.__fetchResolve = function(id){
   var cb = window.__fetchCbs[id];
   if(cb){ delete window.__fetchCbs[id]; try{ cb(JSON.parse(AndroidFetch.take(id))); }catch(e){ cb({status:0,data:null,headers:{}}); } }
 };
-window.__callProvider = function(callId, fn, argsJson){
+window.__providers = {};
+window.__callProvider = function(callId, name, fn, argsJson){
   Promise.resolve().then(function(){
-    var f = (typeof Provider !== 'undefined') ? Provider[fn] : null;
+    var P = window.__providers[name] || ((typeof Provider !== 'undefined') ? Provider : null);
+    var f = P ? P[fn] : null;
     if(typeof f !== 'function') throw new Error('Provider.'+fn+' is not implemented');
-    return f.apply(Provider, JSON.parse(argsJson));
+    return f.apply(P, JSON.parse(argsJson));
   }).then(function(r){
     AndroidResult.onResult(callId, JSON.stringify(r === undefined ? null : r));
   }).catch(function(e){

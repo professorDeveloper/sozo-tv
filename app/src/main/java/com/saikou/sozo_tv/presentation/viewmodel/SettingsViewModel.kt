@@ -116,8 +116,13 @@ class SettingsViewModel(
     /** Revokes only THIS device's session — the user's phone and other TVs stay signed in. */
     fun exitUser() {
         userLists.clear()
-        historySync.clear()
+        // Clears the sync cursor and the local history rows, so the next account does not
+        // inherit (and upload) this one's watch history.
+        historySync.forgetAccount()
         anilist.forgetLocal()
+        // MAL was left linked in memory and kept scrobbling to the previous account until the
+        // process restarted.
+        mal.forgetLocal()
 
         // Runs on the repository's scope, not viewModelScope: the Exit dialog relaunches
         // MainActivity with CLEAR_TASK in the same handler, which tears this ViewModel down and

@@ -44,6 +44,19 @@ class LocalHlsProxy(private val client: OkHttpClient) {
         android.util.Log.i("HlsProxy", "listening on 127.0.0.1:$port")
     }
 
+    /**
+     * Shut the loopback server and forget every session. Each player screen owns one proxy; left
+     * running, every episode opened leaked a listening socket and a NanoHTTPD thread. A later
+     * [register] starts it again.
+     */
+    @Synchronized
+    fun stop() {
+        server?.stop()
+        server = null
+        port = 0
+        sessions.clear()
+    }
+
     /** Register [upstreamUrl] and return the loopback URL ExoPlayer should open instead. */
     fun register(
         upstreamUrl: String,

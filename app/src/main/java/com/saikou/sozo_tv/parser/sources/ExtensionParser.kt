@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.parser.sources
 
+import com.saikou.sozo_tv.data.model.AudioTrackRef
 import androidx.media3.common.MimeTypes
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.data.model.hianime.MegaTrack
@@ -126,6 +127,7 @@ class ExtensionParser : BaseParser() {
                 requestTransform = s.requestTransform,
                 useWebViewSniff = s.useWebViewSniff,
                 sniff = s.sniff,
+                audioTracks = s.audioTracks.map { AudioTrackRef(it.url, media.headers + it.headers) },
             )
         }
     }

@@ -24,6 +24,8 @@ class StreamHttp(context: Context) {
 
     private val cloudflare = CloudflareInterceptor(appContext, AndroidCookieJar()) { SOZO_USER_AGENT }
 
+    // Lenient TLS on purpose: this carries only third-party stream traffic, whose CDNs often serve
+    // incomplete chains (no AIA fetch on Android), and never a Sozo token.
     val client: OkHttpClient = OkHttpClient.Builder()
         .followRedirects(true).followSslRedirects(true)
         .connectionSpecs(

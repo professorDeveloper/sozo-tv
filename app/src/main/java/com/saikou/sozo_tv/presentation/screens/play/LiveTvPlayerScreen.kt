@@ -269,7 +269,14 @@ class LiveTvPlayerScreen : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        player.release()
+        if (::player.isInitialized) {
+            binding.pvPlayer.player = null
+            player.release()
+        }
+        trackSelector = null
+        // The fragment outlives its view on the back stack; holding the binding kept the whole
+        // player view tree alive with it.
+        _binding = null
     }
 
 }

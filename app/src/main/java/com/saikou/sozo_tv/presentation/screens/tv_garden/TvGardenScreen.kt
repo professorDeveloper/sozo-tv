@@ -2,7 +2,6 @@ package com.saikou.sozo_tv.presentation.screens.tv_garden
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -96,13 +95,16 @@ class TvGardenScreen : Fragment() {
                     binding.progressBar.pbIsLoading.gone()
                     binding.progressBar.root.gone()
                     binding.tabRv.visible()
-                    categoriesAdapter.submitList(countries.map { it.name } as ArrayList<String>)
+                    categoriesAdapter.submitList(ArrayList(countries.map { it.name }))
                     countryList.clear()
                     countryList.addAll(countries)
-                    if (selectedPosCount != -1) {
+                    // The list is empty when GitHub rate-limits the fetch, and a remembered
+                    // position can outlive a shorter list — index defensively, never crash.
+                    val restored = countryList.getOrNull(selectedPosCount - 1)
+                    if (selectedPosCount != -1 && restored != null) {
                         binding.tabRv.scrollToPosition(selectedPosCount)
                         categoriesAdapter.setSelectedPosition(selectedPosCount)
-                        model.loadChannelsByCountry(countryList[selectedPosCount - 1])
+                        model.loadChannelsByCountry(restored)
                     }
                 }
 
@@ -129,16 +131,16 @@ class TvGardenScreen : Fragment() {
                     binding.tabRv.visible()
                     binding.progressBar.pbIsLoading.gone()
                     binding.progressBar.root.gone()
-                    val data = (categories.map { it.name } as ArrayList<String>)
+                    val data = ArrayList(categories.map { it.name })
                     data.add("Adlt")
                     categoriesAdapter.submitList(data)
                     categoryList.clear()
                     categoryList.addAll(categories)
-                    Log.d("GGG", "onViewCreated:${categories} ")
-                    if (selectedPosCat != -1) {
+                    val restored = categoryList.getOrNull(selectedPosCat - 1)
+                    if (selectedPosCat != -1 && restored != null) {
                         binding.tabRv.scrollToPosition(selectedPosCat)
                         categoriesAdapter.setSelectedPosition(selectedPosCat)
-                        model.loadChannelsByCategory(categoryList[selectedPosCat - 1])
+                        model.loadChannelsByCategory(restored)
                     }
                 }
 
@@ -179,11 +181,11 @@ class TvGardenScreen : Fragment() {
                         if (model.isCountrySelected) {
                             val findCategory = countryList.find { it.name == s }
                             selectedPosCount = i
-                            model.loadChannelsByCountry(findCategory!!)
+                            findCategory?.let { model.loadChannelsByCountry(it) }
                         } else {
                             selectedPosCat = i
                             val findCategory = categoryList.find { it.name == s }
-                            model.loadChannelsByCategory(findCategory!!)
+                            findCategory?.let { model.loadChannelsByCategory(it) }
                         }
                     } else {
                         channelsAdapter.updateChannels(LocalData.channelsd)

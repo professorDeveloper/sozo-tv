@@ -106,7 +106,9 @@ fun ExtCast.toCast(index: Int): Cast = Cast(
 
 fun ExtDetail.toDetailModel(id: Int): DetailModel = DetailModel(
     id = id,
-    malId = -1,
+    // Sources that publish a MAL id (CloudStream syncIds) get skip-intro times; the parsed id
+    // used to be dropped here, so AniSkip never ran for extension content.
+    malId = malId ?: -1,
     coverImage = CoverImage(thumbnail ?: LocalData.anime404),
     bannerImage = banner ?: thumbnail ?: LocalData.anime404,
     description = description,

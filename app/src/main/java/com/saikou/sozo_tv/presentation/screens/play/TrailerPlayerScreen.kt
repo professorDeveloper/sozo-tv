@@ -103,6 +103,7 @@ class TrailerPlayerScreen : Fragment() {
                     ConnectionSpec.CLEARTEXT
                 )
             )
+            // Third-party trailer hosts; same lenient TLS as StreamHttp, no Sozo token here.
             .ignoreAllSSLErrors()
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)

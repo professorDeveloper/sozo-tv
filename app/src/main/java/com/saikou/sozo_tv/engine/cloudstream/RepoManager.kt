@@ -40,6 +40,9 @@ class RepoManager(private val context: Context, private val host: PluginHost) {
         /** 30x hops chased before a fetch is abandoned. */
         private const val MAX_REDIRECTS = 5
 
+        /** What a plugin's internalName may contain before it becomes part of a file path. */
+        private val SAFE_NAME = Regex("[A-Za-z0-9._ -]{1,128}")
+
         /** `status` a repo author sets on a plugin they know is broken; CloudStream hides those. */
         private const val STATUS_DOWN = 0
 
@@ -294,6 +297,12 @@ class RepoManager(private val context: Context, private val host: PluginHost) {
      * than trusted.
      */
     private fun downloadCs3(internalName: String, version: Int, url: String): File? {
+        // internalName comes from a remote plugins.json; keep it to a plain file name so a
+        // hostile repo cannot write outside the plugin cache ("../../shared_prefs/…").
+        if (internalName.isBlank() || !SAFE_NAME.matches(internalName)) {
+            Log.e(TAG, "refusing plugin with unsafe internalName: $internalName")
+            return null
+        }
         val file = File(cs3Dir, "$internalName@$version.cs3")
         if (file.exists() && file.length() > 0) {
             if (looksLikeZip(file)) return file
@@ -451,7 +460,7 @@ class RepoManager(private val context: Context, private val host: PluginHost) {
                 }
                 if (file != null) {
                     e.put("cs3Path", file.absolutePath)
-                    host.loadCs3(file, ref.internalName, ref.iconUrl, repoName)
+                    host.reloadCs3(file, ref.internalName, ref.iconUrl, repoName)
                     updated.put(e.optString("provider"))
                 }
             }

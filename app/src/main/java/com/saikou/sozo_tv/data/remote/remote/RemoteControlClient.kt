@@ -58,8 +58,12 @@ class RemoteControlClient(
 
     // The stream never goes quiet for long — the server heartbeats every 25s —
     // but it must never be read-timed-out for being idle between commands.
+    // The call timeout goes too: the shared auth client caps a whole call at 25s,
+    // which tore this stream down and reopened it every ~27s, dropping commands
+    // that landed in the gap.
     private val streamClient: OkHttpClient = okHttpClient.newBuilder()
         .readTimeout(0, TimeUnit.MILLISECONDS)
+        .callTimeout(0, TimeUnit.MILLISECONDS)
         .retryOnConnectionFailure(true)
         .build()
 

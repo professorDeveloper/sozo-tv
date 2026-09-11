@@ -75,7 +75,11 @@ class ExtensionLinkDialog : DialogFragment() {
         binding.btnClose.setOnClickListener { dismiss() }
         binding.btnClose.requestFocus()
 
-        val s = ExtensionLinkServer(onSubmit = ::install)
+        val s = ExtensionLinkServer(
+            onSubmit = ::install,
+            // The server closed itself after its lifetime; the code on screen no longer works.
+            onExpired = { activity?.runOnUiThread { if (_binding != null) dismissAllowingStateLoss() } },
+        )
         server = s
         s.start()
 

@@ -18,7 +18,9 @@ class ServerHost(
         val extractorVersion: Int,
     )
 
-    private val meta = LinkedHashMap<String, Meta>()
+    // Filled by providersJson() on one thread while catalogue calls read it on others; lookups
+    // only, so a concurrent map is all the ordering this needs.
+    private val meta = java.util.concurrent.ConcurrentHashMap<String, Meta>()
 
     fun ensureLoaded() {
         if (meta.isEmpty()) runCatching { providersJson() }

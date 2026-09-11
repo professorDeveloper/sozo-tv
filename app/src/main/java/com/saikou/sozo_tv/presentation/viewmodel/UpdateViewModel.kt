@@ -104,6 +104,13 @@ class UpdateViewModel : ViewModel() {
     fun startDownload(context: Context, apkUrl: String) {
         Log.d("UpdateVM", "Starting download from: $apkUrl")
 
+        // The build we are about to install replaces this app, so it must not arrive over a
+        // connection anything on the path can rewrite.
+        if (!apkUrl.trim().startsWith("https://", ignoreCase = true)) {
+            _uiState.value = UiState.DownloadFailed("Update link is not secure (https required)")
+            return
+        }
+
         _uiState.value = UiState.Downloading(0)
         _downloadProgress.value = 0
         isDownloadCompleted = false
@@ -281,6 +288,17 @@ class UpdateViewModel : ViewModel() {
             val apkFile = getDownloadedFile()
             if (apkFile == null) {
                 triggerInstallEvent(InstallEvent.Error("Downloaded APK not found. Download again."))
+                return
+            }
+
+            // Only ever hand the installer a build of this app. Android would refuse a different
+            // signer as an update anyway, but a different package would install as a new app.
+            val archivePackage = runCatching {
+                context.packageManager.getPackageArchiveInfo(apkFile.path, 0)?.packageName
+            }.getOrNull()
+            if (archivePackage != context.packageName) {
+                runCatching { apkFile.delete() }
+                triggerInstallEvent(InstallEvent.Error("Downloaded file is not a Sozo TV build."))
                 return
             }
 

@@ -309,4 +309,27 @@ object LocalData {
     fun setChannelItemClickListener(listener: (ChannelResponseItem) -> Unit) {
         channnelItemClickListener = listener
     }
+
+    /** Every global callback slot, current values. A screen snapshots this after claiming. */
+    fun currentListeners(): List<Any?> = listOf(
+        historyItemClickListenerr, viewAllClickListenerrr, sFocusedGenreClickListener,
+        listenerItemCategory, listenerItemBanner, focusChangedListenerPlayerg,
+        channnelItemClickListener,
+    )
+
+    /**
+     * Clears the slots that still hold one of [owned] — the callbacks a screen installed — so a
+     * destroyed view stops being reachable from this object. Compared by identity, so a slot
+     * another screen has since claimed is left alone.
+     */
+    fun releaseListeners(owned: Collection<Any?>) {
+        fun mine(v: Any?) = v != null && owned.any { it === v }
+        if (mine(historyItemClickListenerr)) historyItemClickListenerr = null
+        if (mine(viewAllClickListenerrr)) viewAllClickListenerrr = null
+        if (mine(sFocusedGenreClickListener)) sFocusedGenreClickListener = null
+        if (mine(listenerItemCategory)) listenerItemCategory = null
+        if (mine(listenerItemBanner)) listenerItemBanner = null
+        if (mine(focusChangedListenerPlayerg)) focusChangedListenerPlayerg = null
+        if (mine(channnelItemClickListener)) channnelItemClickListener = null
+    }
 }

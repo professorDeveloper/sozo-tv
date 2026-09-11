@@ -9,6 +9,8 @@ import com.saikou.sozo_tv.engine.aniyomi.AniyomiRepoManager
 import com.saikou.sozo_tv.engine.cloudstream.PluginHost
 import com.saikou.sozo_tv.engine.cloudstream.RepoManager
 import com.saikou.sozo_tv.engine.server.ServerHost
+import com.saikou.sozo_tv.parser.sources.AnimeSources
+import com.saikou.sozo_tv.utils.LocalData
 import eu.kanade.tachiyomi.animesource.ConfigurableAnimeSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -66,6 +68,10 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
             .putString(KEY_GROUP, group)
             .putString(KEY_PROVIDER_NAME, name?.ifEmpty { null } ?: deriveName(id))
             .apply()
+        // The episode screen and player still read the legacy source key, and only a manual pick
+        // used to write it — so a source activated automatically on first launch left a fresh
+        // install at "no source, go install one". Every activation goes through here.
+        PreferenceManager().putString(LocalData.SOURCE, AnimeSources.EXTENSION)
         homeCache = null // switching source invalidates the cached home page
     }
 
@@ -178,6 +184,11 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
         b.ensureLoaded()
         val all = ExtParser.providers(b.providersJson())
         if (nsfwAllowed()) all else all.filterNot { it.nsfw }
+    }
+
+    /** Whether a provider with exactly this id is installed and selectable on this TV. */
+    suspend fun hasProvider(id: String): Boolean = withContext(Dispatchers.IO) {
+        runCatching { providers(groupForProvider(id)).any { it.id == id } }.getOrDefault(false)
     }
 
     private fun nsfwAllowed(): Boolean =
