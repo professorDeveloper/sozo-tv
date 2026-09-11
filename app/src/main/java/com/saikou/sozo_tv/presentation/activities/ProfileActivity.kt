@@ -127,9 +127,7 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
             profileAdapter.setAccount(it)
             profileAdapter.updateAccountType("Basic")
             profileAdapter.setOnExitClickListener {
-                val dialog = ExitDialog(
-                    data = it
-                )
+                val dialog = ExitDialog.newInstance(it)
                 dialog.setNoClearListener {
                     dialog.dismiss()
                 }

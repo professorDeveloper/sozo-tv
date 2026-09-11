@@ -19,13 +19,20 @@ import okhttp3.Route
  * An Authenticator rather than an interceptor per client: OkHttp invokes this on any 401 and
  * retries the request with whatever we return, so one object covers every client that shares this
  * HTTP stack instead of each one growing its own retry.
+ *
+ * Only a 401 from [apiHost] is ours to answer. A 401 from anywhere else — a tracker whose own
+ * token expired — would otherwise rotate the Sozo session and replay that request carrying the
+ * Sozo token to a third party.
  */
 class DeviceTokenAuthenticator(
+    private val apiHost: String?,
     private val refresh: suspend () -> String?,
 ) : Authenticator {
 
     override fun authenticate(route: Route?, response: Response): Request? {
         val request = response.request
+
+        if (apiHost.isNullOrBlank() || !request.url.host.equals(apiHost, ignoreCase = true)) return null
 
         // The device-auth endpoints must never trigger this. Refreshing in response to a failed
         // refresh recurses until the session is cleared or the stack gives out.

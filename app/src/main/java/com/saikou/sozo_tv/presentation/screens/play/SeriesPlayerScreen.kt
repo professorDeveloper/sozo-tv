@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.presentation.screens.play
 
+import com.saikou.sozo_tv.parser.sources.ExtensionParser
 import android.animation.ObjectAnimator
 import android.content.Intent
 import android.graphics.Color
@@ -44,6 +45,7 @@ import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
@@ -125,7 +127,8 @@ class SeriesPlayerScreen : Fragment() {
     private lateinit var http: StreamHttp
     private lateinit var sideloader: SubtitleSideloader
     private val prefs by lazy { PreferenceManager(requireContext()) }
-    private val hlsProxy by lazy { LocalHlsProxy(http.proxyClient) }
+    private val hlsProxyLazy = lazy { LocalHlsProxy(http.proxyClient) }
+    private val hlsProxy by hlsProxyLazy
 
     private val episodeList = arrayListOf<Data>()
     private var episodeAdapter: EpisodePlayerAdapter? = null
@@ -581,7 +584,17 @@ class SeriesPlayerScreen : Fragment() {
 
     private fun currentEpisodeNumber(): Int =
         episodeList.getOrNull(model.currentEpIndex)?.episode?.takeIf { it > 0 }
-            ?: (model.currentEpIndex + 1)
+            ?: ((args.currentPage.coerceAtLeast(1) - 1) * ExtensionParser.EPISODE_PAGE_SIZE +
+                model.currentEpIndex + 1)
+
+    /**
+     * The source this title came from. A title opened from all-sources search, or from history,
+     * need not belong to the source that is currently active — and trackers and history key their
+     * links by provider, so the active one filed the episode under the wrong title.
+     */
+    private fun contentProvider(): String =
+        episodeList.getOrNull(model.currentEpIndex)?.serverId?.takeIf { it.isNotBlank() }
+            ?: extensionEngine.getActiveProvider().orEmpty()
 
     private fun requestEpisode(index: Int) {
         val ep = episodeList.getOrNull(index) ?: return
@@ -697,7 +710,9 @@ class SeriesPlayerScreen : Fragment() {
         val url = effectiveStreamUrl(vod)
         loadJob?.cancel()
         loadJob = viewLifecycleOwner.lifecycleScope.launch {
-            val source = withContext(Dispatchers.IO) { buildPlaybackSource(url, vod.type) }
+            val source = withContext(Dispatchers.IO) {
+                withSeparateAudio(buildPlaybackSource(url, vod.type), vod)
+            }
             val p = player ?: return@launch
             if (_binding == null) return@launch
             p.setMediaSource(source)
@@ -1091,14 +1106,16 @@ class SeriesPlayerScreen : Fragment() {
     }
 
     private fun reportToTrackers() {
-        val episodeNumber = model.currentEpIndex + 1
+        // The real episode number, not the index into this 100-episode part: episode 101 used
+        // to be reported as episode 1, so nothing past the first part ever reached AniList/MAL.
+        val episodeNumber = currentEpisodeNumber()
         if (episodeNumber <= 0 || !trackersReported.add(episodeNumber)) return
         val contentId = args.seriesMainId
         if (contentId.isBlank()) {
             trackersReported.remove(episodeNumber)
             return
         }
-        val provider = extensionEngine.getActiveProvider().orEmpty()
+        val provider = contentProvider()
         anilistTracker.reportEpisodeAsync(
             provider = provider, contentId = contentId, title = args.name,
             episodeNumber = episodeNumber,
@@ -1642,12 +1659,30 @@ class SeriesPlayerScreen : Fragment() {
     private fun createMediaSource(url: String, mimeType: String?): MediaSource {
         val mime = resolveMime(url, mimeType) ?: MimeTypes.APPLICATION_MP4
         val item = MediaItem.Builder().setUri(url).setMimeType(mime).setTag(args.name).build()
-        return if (mime == MimeTypes.APPLICATION_M3U8) {
-            HlsMediaSource.Factory(http.dataSourceFactory).createMediaSource(item)
-        } else {
-            ProgressiveMediaSource.Factory(http.dataSourceFactory)
+        return when (mime) {
+            MimeTypes.APPLICATION_M3U8 ->
+                HlsMediaSource.Factory(http.dataSourceFactory).createMediaSource(item)
+            // A .mpd handed to the progressive loader never opens; the default factory has the
+            // DASH module and picks it by MIME type.
+            MimeTypes.APPLICATION_MPD ->
+                DefaultMediaSourceFactory(http.dataSourceFactory).createMediaSource(item)
+            else -> ProgressiveMediaSource.Factory(http.dataSourceFactory)
                 .setContinueLoadingCheckIntervalBytes(1024 * 1024).createMediaSource(item)
         }
+    }
+
+    /**
+     * Dual-audio releases from CloudStream carry their dub as a separate rendition rather than in
+     * the manifest. Merged in here, the extra audio shows up in the existing audio-track picker.
+     * Requests share the stream's headers — the renditions come from the same host.
+     */
+    private fun withSeparateAudio(video: MediaSource, vod: VodMovieResponse): MediaSource {
+        if (vod.audioTracks.isEmpty()) return video
+        val audio = vod.audioTracks.mapNotNull { track ->
+            runCatching { createMediaSource(track.url, null) }.getOrNull()
+        }
+        if (audio.isEmpty()) return video
+        return MergingMediaSource(true, video, *audio.toTypedArray())
     }
 
     private fun resolveMime(url: String, declared: String?): String? {
@@ -1829,8 +1864,12 @@ class SeriesPlayerScreen : Fragment() {
         val ep = episodeList.getOrNull(model.currentEpIndex) ?: return null
         val session = ep.session ?: return null
         val vod = currentVod
-        val provider = extensionEngine.getActiveProvider().orEmpty()
-        val providerName = extensionEngine.getActiveProviderName().orEmpty()
+        val provider = contentProvider()
+        val providerName = if (provider == extensionEngine.getActiveProvider()) {
+            extensionEngine.getActiveProviderName().orEmpty()
+        } else {
+            provider.substringAfter(':', provider)
+        }
         val existing = model.getWatchedHistoryEntity
         if (existing != null && existing.session == session) {
             return existing.copy(
@@ -1956,6 +1995,7 @@ class SeriesPlayerScreen : Fragment() {
             it.release()
         }
         player = null
+        if (hlsProxyLazy.isInitialized()) hlsProxy.stop()
         mediaSession?.release()
         mediaSession = null
         sideloader.clear()

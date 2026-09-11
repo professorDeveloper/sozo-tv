@@ -32,24 +32,14 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission
-        android:name="android.permission.QUERY_ALL_PACKAGES"
-        tools:ignore="QueryAllPackagesPermission" />
-    <uses-permission
         android:name="android.permission.READ_APP_SPECIFIC_LOCALES"
-        tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
-    <uses-permission
-        android:name="android.permission.LOCAL_MAC_ADDRESS"
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <uses-permission
-        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" />
 
     <application
         android:name=".app.MyApp"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:banner="@drawable/banner_img2"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
@@ -61,38 +51,34 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Tv"
         android:usesCleartextTraffic="true">
+        <!-- Players: an HDR handshake or an HDMI mode switch mid-stream must not recreate the
+             activity and restart playback. -->
         <activity
             android:name=".presentation.activities.LiveTvActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|screenSize|smallestScreenSize|screenLayout|orientation|uiMode|density"
             android:exported="false" />
         <activity
             android:name=".presentation.activities.UpdateActivity"
             android:exported="false" />
         <activity
             android:name=".presentation.activities.PlayerActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|screenSize|smallestScreenSize|screenLayout|orientation|uiMode|density"
             android:exported="false"
             android:keepScreenOn="true" />
         <activity
             android:name=".presentation.activities.ProfileActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".presentation.activities.DeviceLoginActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
-
-        <activity
-            android:name=".presentation.activities.NoInternetActivity"
-            android:exported="false" />
         <activity
             android:name=".presentation.activities.MainActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize">
-            <intent-filter>
-                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".presentation.activities.LoginActivity"
             android:banner="@drawable/banner_img2"

@@ -122,6 +122,24 @@ class ExtensionLinkRulesTest {
     }
 
     @Test
+    fun `a cleartext repo is refused`() {
+        // The file is code the TV loads; a cleartext download can be rewritten in transit.
+        assertNull(ExtensionLinkRules.normalizeRepoUrl("http://example.invalid/repo.json"))
+    }
+
+    @Test
+    fun `wrong codes lock the server out, and the wait grows`() {
+        for (n in 0 until ExtensionLinkRules.MAX_FREE_ATTEMPTS) {
+            assertEquals(0L, ExtensionLinkRules.lockoutMs(n))
+        }
+        val first = ExtensionLinkRules.lockoutMs(ExtensionLinkRules.MAX_FREE_ATTEMPTS)
+        val second = ExtensionLinkRules.lockoutMs(ExtensionLinkRules.MAX_FREE_ATTEMPTS + 1)
+        assertTrue(first > 0L)
+        assertTrue(second > first)
+        assertEquals(600_000L, ExtensionLinkRules.lockoutMs(1_000))
+    }
+
+    @Test
     fun `a typo does not become a url`() {
         assertNull(ExtensionLinkRules.normalizeRepoUrl("repo json please"))
         assertNull(ExtensionLinkRules.normalizeRepoUrl(""))

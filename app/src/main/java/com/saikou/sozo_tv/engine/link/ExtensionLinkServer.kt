@@ -25,6 +25,8 @@ import java.net.NetworkInterface
  */
 class ExtensionLinkServer(
     private val onSubmit: (group: String, url: String) -> Unit,
+    /** Called (on a timer thread) when the server shuts itself down after [MAX_LIFETIME_MS]. */
+    private val onExpired: (() -> Unit)? = null,
 ) {
 
     /** What the phone is shown, and what the TV screen renders. */
@@ -45,9 +47,17 @@ class ExtensionLinkServer(
     /** Set by the screen as the install proceeds, and read by the phone's poller. */
     fun publish(next: Status) {
         status = next
+        // One link per visit: once it has installed, stop listening — after long enough for the
+        // phone's poller to read the result.
+        if (next is Status.Installed) schedule(DONE_GRACE_MS) { stop() }
     }
 
     private var server: Server? = null
+    private var timer: java.util.Timer? = null
+
+    // Wrong-code bookkeeping, shared by every request thread.
+    private var failures = 0
+    private var lockedUntil = 0L
 
     var port: Int = 0
         private set
@@ -73,23 +83,57 @@ class ExtensionLinkServer(
         // The preferred port makes the printed address short enough to type. Another app
         // (or a previous instance whose socket has not been released) can hold it, and
         // failing to open the screen over that would be worse than a longer URL.
+        // Bound to the one address printed under the QR rather than every interface, so the
+        // page is reachable only from the network the viewer is actually on.
+        val host = lanIp
         val s = runCatching {
-            Server(ExtensionLinkRules.PREFERRED_PORT).also { it.start(SOCKET_TIMEOUT, true) }
+            Server(host, ExtensionLinkRules.PREFERRED_PORT).also { it.start(SOCKET_TIMEOUT, true) }
         }.getOrElse {
-            Server(0).also { it.start(SOCKET_TIMEOUT, true) }
+            Server(host, 0).also { it.start(SOCKET_TIMEOUT, true) }
         }
         server = s
         port = s.listeningPort
+        // A screen left open is not a reason to leave a code-execution endpoint on the network.
+        schedule(MAX_LIFETIME_MS) {
+            if (stop()) onExpired?.invoke()
+        }
     }
 
+    /** @return true when this call is the one that shut a running server down. */
     @Synchronized
-    fun stop() {
+    fun stop(): Boolean {
+        val running = server != null
         server?.stop()
         server = null
         port = 0
+        timer?.cancel()
+        timer = null
+        return running
     }
 
-    private inner class Server(port: Int) : NanoHTTPD(null, port) {
+    @Synchronized
+    private fun schedule(delayMs: Long, action: () -> Unit) {
+        val t = timer ?: java.util.Timer("ext-link-server", true).also { timer = it }
+        t.schedule(object : java.util.TimerTask() {
+            override fun run() = action()
+        }, delayMs)
+    }
+
+    /**
+     * Checks a submitted code, counting failures. While locked out every code is refused, the
+     * right one included, so guessing gains nothing from speed.
+     */
+    @Synchronized
+    private fun admit(given: String?): Boolean {
+        val now = System.currentTimeMillis()
+        if (now < lockedUntil) return false
+        if (ExtensionLinkRules.codeMatches(code, given)) return true
+        failures++
+        lockedUntil = now + ExtensionLinkRules.lockoutMs(failures)
+        return false
+    }
+
+    private inner class Server(host: String?, port: Int) : NanoHTTPD(host, port) {
         override fun serve(session: IHTTPSession): Response =
             runCatching { route(session) }.getOrElse {
                 newFixedLengthResponse(
@@ -114,10 +158,17 @@ class ExtensionLinkServer(
         fun field(name: String): String? =
             params[name]?.firstOrNull() ?: body[name]
 
-        if (!ExtensionLinkRules.codeMatches(code, field("code"))) {
+        if (!admit(field("code"))) {
             // Deliberately the same shape of answer as a bad URL: the page must not tell a
             // caller whether the code was the part that was wrong.
             return json(NanoHTTPD.Response.Status.FORBIDDEN, "ok" to false, "error" to "code")
+        }
+
+        // One install at a time: a second link while the first is still downloading would race
+        // it for the same status the phone is polling.
+        val current = status
+        if (current is Status.Received || current is Status.Installing) {
+            return json(NanoHTTPD.Response.Status.CONFLICT, "ok" to false, "error" to "busy")
         }
 
         val requested = field("group")?.takeIf { it.isNotBlank() }
@@ -133,7 +184,7 @@ class ExtensionLinkServer(
     }
 
     private fun stateResponse(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
-        if (!ExtensionLinkRules.codeMatches(code, session.parameters["c"]?.firstOrNull())) {
+        if (!admit(session.parameters["c"]?.firstOrNull())) {
             return json(NanoHTTPD.Response.Status.FORBIDDEN, "ok" to false)
         }
         val o = JSONObject()
@@ -202,6 +253,12 @@ class ExtensionLinkServer(
 
     companion object {
         private const val SOCKET_TIMEOUT = 15_000
+
+        /** The server closes itself this long after opening, whatever the screen is doing. */
+        private const val MAX_LIFETIME_MS = 10 * 60_000L
+
+        /** How long the result stays readable after an install, before the server closes. */
+        private const val DONE_GRACE_MS = 20_000L
 
         private val PAGE = """
 <!doctype html><html><head><meta charset="utf-8">
@@ -274,8 +331,9 @@ document.getElementById('f').onsubmit=function(e){
     .then(function(r){return r.json().then(function(j){return {s:r.status,j:j}})})
     .then(function(x){
       if(x.j.ok){say('busy','Sent. The TV is installing it…');watch(code);}
-      else if(x.j.error==='url'){say('bad','That does not look like a repository link.');}
+      else if(x.j.error==='url'){say('bad','That does not look like an https repository link.');}
       else if(x.j.error==='group'){say('bad','Pick the engine — the link does not say which it is.');}
+      else if(x.j.error==='busy'){say('busy','The TV is still installing the previous link.');}
       else{say('bad','Wrong code, or the TV stopped waiting.');}
     })
     .catch(function(){say('bad','Could not reach the TV. Same Wi-Fi?');});

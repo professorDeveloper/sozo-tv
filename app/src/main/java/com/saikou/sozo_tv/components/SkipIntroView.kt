@@ -85,7 +85,6 @@ class SkipIntroView(
             malId,
             episodeNumber,
             episodeLength,
-            useProxyForTimeStamps = true
         )
 
         skipTimeButton.setOnClickListener {

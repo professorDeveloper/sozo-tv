@@ -30,6 +30,7 @@ import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.viewmodel.EpisodeViewModel
 import com.saikou.sozo_tv.utils.autoFitColumns
 import com.saikou.sozo_tv.utils.LocalData
+import com.saikou.sozo_tv.parser.sources.AnimeSources
 import com.saikou.sozo_tv.utils.LocalData.SOURCE
 import com.saikou.sozo_tv.utils.Resource
 import com.saikou.sozo_tv.utils.humanError
@@ -70,7 +71,13 @@ class EpisodeScreen : Fragment() {
         }
         binding.seasonalBackground.setTheme(PreferenceManager().getSeasonalTheme())
         addAnimFocus()
-        val currentSource = PreferenceManager().getString(SOURCE)
+        var currentSource = PreferenceManager().getString(SOURCE)
+        // Installs that auto-activated a source before the engine wrote the sentinel have an
+        // active provider and a blank key. Heal it instead of claiming there is no source.
+        if (currentSource == "" && engine.hasActiveProvider()) {
+            PreferenceManager().putString(SOURCE, AnimeSources.EXTENSION)
+            currentSource = AnimeSources.EXTENSION
+        }
         if (currentSource == "") {
             binding.topContainer.gone()
             binding.loadingLayout.gone()

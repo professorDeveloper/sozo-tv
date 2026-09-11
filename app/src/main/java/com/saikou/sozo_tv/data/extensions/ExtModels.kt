@@ -133,6 +133,13 @@ data class ExtVideoSource(
      */
     val useWebViewSniff: Boolean = false,
     val sniff: String? = null,             // raw JSON: patterns/timeoutMs/headers/blockHosts
+    /** Separate audio renditions that belong with this video (CloudStream `audioTracks`). */
+    val audioTracks: List<ExtAudioTrack> = emptyList(),
+)
+
+data class ExtAudioTrack(
+    val url: String,
+    val headers: Map<String, String> = emptyMap(),
 )
 
 /**
@@ -357,6 +364,15 @@ internal object ExtParser {
                 sniff = (s.optJSONObject("sniff") ?: o.optJSONObject("sniff"))?.toString(),
                 localProxy = s.optJSONObject("localProxy")?.toString(),
                 requestTransform = s.optJSONObject("requestTransform")?.toString(),
+                // PluginHost emits these for dual-audio releases; dropping them here left the
+                // player with one track and nothing to switch to.
+                audioTracks = s.optJSONArray("audioTracks")?.let { arr ->
+                    (0 until arr.length()).mapNotNull { j ->
+                        val a = arr.optJSONObject(j) ?: return@mapNotNull null
+                        val aUrl = a.optString("url").ifEmpty { return@mapNotNull null }
+                        ExtAudioTrack(aUrl, a.headersMap("headers"))
+                    }
+                }.orEmpty(),
             )
         }
         val subArr = o.optJSONArray("subtitles")

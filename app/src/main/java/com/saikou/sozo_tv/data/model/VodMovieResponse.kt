@@ -15,6 +15,13 @@ data class VodMovieResponse(
     val useLocalProxy: Boolean = false,
     val localProxyJson: String? = null,
     val requestTransformJson: String? = null,
+    /** Separate audio renditions the player merges in alongside [urlobj]. */
+    val audioTracks: List<AudioTrackRef> = emptyList(),
+) : Serializable
+
+data class AudioTrackRef(
+    val url: String,
+    val headers: Map<String, String> = emptyMap(),
 ) : Serializable
 
 

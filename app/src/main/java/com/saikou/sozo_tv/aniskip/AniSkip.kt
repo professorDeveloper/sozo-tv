@@ -3,7 +3,6 @@ package com.saikou.sozo_tv.aniskip
 import com.google.gson.Gson
 import java.net.HttpURLConnection
 import java.net.URL
-import java.net.URLEncoder
 
 object AniSkip {
 
@@ -39,23 +38,23 @@ object AniSkip {
         }
     }
 
+    /**
+     * Skip times for one episode, straight from api.aniskip.com. Requests used to go through
+     * corsproxy.io — a browser workaround this native client never needed, which handed a third
+     * party every title and episode watched and failed whenever that proxy did.
+     */
     fun getResult(
         malId: Int,
         episodeNumber: Int,
         episodeLength: Long,
-        useProxyForTimeStamps: Boolean = false
     ): List<Stamp>? {
+        if (malId <= 0 || episodeNumber <= 0) return null
         val url =
             "https://api.aniskip.com/v2/skip-times/$malId/$episodeNumber?" +
                     "types[]=ed&types[]=mixed-ed&types[]=mixed-op&types[]=op&types[]=recap&episodeLength=$episodeLength"
 
         return try {
-            val responseText = if (useProxyForTimeStamps) {
-                val encoded = URLEncoder.encode(url, "utf-8").replace("+", "%20")
-                fetchUrl("https://corsproxy.io/?$encoded")
-            } else {
-                fetchUrl(url)
-            }
+            val responseText = fetchUrl(url)
 
             val parsed = gson.fromJson(responseText, AniSkipResponse::class.java)
             val stamps = if (parsed.found) parsed.results else null

@@ -72,6 +72,8 @@ object ExtensionLinkRules {
      *  * **A non-web scheme.** `file:`, `data:` and `javascript:` are refused outright. This
      *    endpoint hands its argument to code that downloads and loads a plugin, so the set
      *    of accepted schemes is a closed list, not a blocklist.
+     *  * **Plain `http`.** Refused too. The file it names is code this TV will load, and
+     *    anything on the network path can rewrite a cleartext download.
      */
     fun normalizeRepoUrl(input: String?, group: String? = null): String? {
         var s = (input ?: "").trim()
@@ -93,7 +95,7 @@ object ExtensionLinkRules {
         }
 
         val lower = s.lowercase(Locale.ROOT)
-        if (!lower.startsWith("http://") && !lower.startsWith("https://")) return null
+        if (!lower.startsWith("https://")) return null
 
         return rawifyGithub(s)
     }
@@ -134,6 +136,23 @@ object ExtensionLinkRules {
         if (lower.contains("aniyomi") || lower.contains("tachiyomi")) return ExtGroup.ANIYOMI
         if (lower.endsWith(".json")) return ExtGroup.CLOUDSTREAM
         return null
+    }
+
+    /** Wrong codes allowed before the server stops listening to anyone for a while. */
+    const val MAX_FREE_ATTEMPTS = 5
+
+    /**
+     * How long the server refuses every code after [failures] wrong ones: nothing for the
+     * first [MAX_FREE_ATTEMPTS] (people mistype), then 30s doubling to a 10-minute cap.
+     *
+     * A six-character code from a 32-letter alphabet is a billion guesses, but only while the
+     * guesses are slow — an open port answering as fast as it can is what makes a code short
+     * enough to type also short enough to walk.
+     */
+    fun lockoutMs(failures: Int): Long {
+        if (failures < MAX_FREE_ATTEMPTS) return 0L
+        val steps = (failures - MAX_FREE_ATTEMPTS).coerceAtMost(5)
+        return (30_000L shl steps).coerceAtMost(600_000L)
     }
 
     /** The address to print under the QR, for a viewer whose camera will not focus. */

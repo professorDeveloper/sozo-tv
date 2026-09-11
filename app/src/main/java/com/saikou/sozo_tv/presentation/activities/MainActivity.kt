@@ -24,6 +24,9 @@ import android.view.KeyEvent
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.saikou.sozo_tv.data.extensions.ExtensionContentRegistry
+import com.saikou.sozo_tv.data.extensions.ExtensionEngine
+import com.saikou.sozo_tv.data.remote.remote.RemoteCommand
 import com.saikou.sozo_tv.data.repository.RemoteControlManager
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -35,6 +38,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class MainActivity : AppCompatActivity() {
     private val model: SettingsViewModel by viewModel()
     private val remote: RemoteControlManager by inject()
+    private val engine: ExtensionEngine by inject()
     private var _binding: ActivityMainBinding? = null
     private var headerBinding: ContentHeaderMenuMainTvBinding? = null
     private val binding get() = _binding!!
@@ -74,8 +78,7 @@ class MainActivity : AppCompatActivity() {
                         if (command == null) return@collect
                         when (command.type) {
                             "text" -> command.text?.let(::openSearch)
-                            "open" ->
-                                command.title?.takeIf { it.isNotBlank() }?.let(::openSearch)
+                            "open" -> openTitle(command)
                             "home" -> navigateHome()
                         }
                         remote.consumeNavigation(command)
@@ -112,6 +115,46 @@ class MainActivity : AppCompatActivity() {
                 putBoolean(SearchScreen.ARG_SEARCH_ALL, true)
             },
         )
+    }
+
+    /**
+     * "Play on TV" from the phone.
+     *
+     * The phone sends the title's own source and url. When this TV has that source installed,
+     * the title opens directly — searching by name picked whichever source matched first, which
+     * is often not the one the viewer was looking at. Otherwise the name search is the fallback.
+     */
+    private fun openTitle(command: RemoteCommand) {
+        val title = command.title?.takeIf { it.isNotBlank() }
+        val url = command.contentUrl?.takeIf { it.isNotBlank() }
+        val provider = command.provider?.takeIf { it.isNotBlank() }?.let(::tvProviderId)
+        if (url == null || provider == null) {
+            title?.let(::openSearch)
+            return
+        }
+        lifecycleScope.launch {
+            if (engine.hasProvider(provider)) {
+                val id = ExtensionContentRegistry.encode(
+                    provider = provider,
+                    url = url,
+                    isAnime = provider.startsWith("an:"),
+                    title = title,
+                )
+                startActivity(
+                    Intent(this@MainActivity, PlayerActivity::class.java).putExtra("model", id)
+                )
+            } else {
+                title?.let(::openSearch)
+            }
+        }
+    }
+
+    /** The phone's source ids: `cs:`/`an:` match ours; a bare id is a Sozo server source. */
+    private fun tvProviderId(phoneProvider: String): String = when {
+        phoneProvider.startsWith("cs:") || phoneProvider.startsWith("an:") ||
+            phoneProvider.startsWith("sv:") -> phoneProvider
+        phoneProvider.contains(':') -> phoneProvider
+        else -> "sv:$phoneProvider"
     }
 
     private fun navigateHome() {
@@ -172,21 +215,9 @@ class MainActivity : AppCompatActivity() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             Log.d("Navigation", "Destination changed: ${destination.id}")
 
-            binding.navMain.headerView?.apply {
-                val header = ContentHeaderMenuMainTvBinding.bind(this)
-                headerBinding = header
-                handleUserDataState(header)
-                header.root.setOnClickListener {
-                    navigateProfile()
-                }
-
-                setOnOpenListener {
-                    header.headerContainer.visibility = View.VISIBLE
-                }
-                setOnCloseListener {
-                    header.headerContainer.visibility = View.GONE
-                }
-            }
+            // Once per activity. This ran on every destination change and each run added
+            // another profile observer that lived as long as the activity.
+            if (headerBinding == null) setupHeader()
 
             when (destination.id) {
                 R.id.search, R.id.home, R.id.categories, R.id.contact, R.id.tvgarden ->
@@ -194,6 +225,22 @@ class MainActivity : AppCompatActivity() {
 
                 else -> binding.navMain.visibility = View.GONE
             }
+        }
+    }
+
+    private fun setupHeader() {
+        val headerView = binding.navMain.headerView ?: return
+        val header = ContentHeaderMenuMainTvBinding.bind(headerView)
+        headerBinding = header
+        handleUserDataState(header)
+        header.root.setOnClickListener {
+            navigateProfile()
+        }
+        headerView.setOnOpenListener {
+            header.headerContainer.visibility = View.VISIBLE
+        }
+        headerView.setOnCloseListener {
+            header.headerContainer.visibility = View.GONE
         }
     }
 

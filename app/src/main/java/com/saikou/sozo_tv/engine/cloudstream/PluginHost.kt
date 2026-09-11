@@ -52,6 +52,8 @@ class PluginHost(private val appContext: Context) {
     }
 
     init {
+        // Lenient TLS for CloudStream's own client, as the CloudStream app does: plugins scrape
+        // arbitrary hosts with broken chains, and this client never carries a Sozo token.
         runCatching {
             app.baseClient = app.baseClient.newBuilder().ignoreAllSSLErrors().build()
         }
@@ -205,6 +207,33 @@ class PluginHost(private val appContext: Context) {
 
     /** Guards the load + provider-diff critical section. See [loadCs3]. */
     private val loadLock = Any()
+
+    /**
+     * Swap a loaded plugin for a newer .cs3.
+     *
+     * [loadCs3] hands back the instance already loaded in this process, so an update downloaded
+     * the new version and went on running the old code until the app was restarted. The old
+     * plugin's providers are taken out of the registry first so the new load registers — and
+     * reports — them again.
+     */
+    fun reloadCs3(file: File, internalName: String, iconUrl: String? = null, repo: String? = null): List<String> {
+        synchronized(loadLock) {
+            val old = pluginProviders[internalName].orEmpty().toSet()
+            if (old.isNotEmpty()) {
+                runCatching {
+                    synchronized(APIHolder.allProviders) {
+                        APIHolder.allProviders.removeAll { it.name in old }
+                    }
+                }
+            }
+            loaded.remove(internalName)
+            pluginProviders.remove(internalName)
+            failed.remove(internalName)
+            lastErrors.remove(internalName)
+            CsPluginManager.forget(internalName)
+        }
+        return loadCs3(file, internalName, iconUrl, repo)
+    }
 
     /** Every plugin that failed to load this session: internalName -> one-line reason. */
     fun lastErrorsJson(): String = JSONObject(lastErrors as Map<*, *>).toString()
@@ -503,12 +532,15 @@ class PluginHost(private val appContext: Context) {
         val subs = JSONArray()
         val seenUrls = HashSet<String>()
         val seenSubs = HashSet<String>()
+        // Extractors run in parallel and call back from their own threads, so every write to the
+        // collections above goes through this one lock.
+        val lock = Any()
         if (api != null) {
             try {
                 api.loadLinks(
                     data = data,
                     isCasting = false,
-                    subtitleCallback = { sf: com.lagradost.cloudstream3.SubtitleFile ->
+                    subtitleCallback = { sf: com.lagradost.cloudstream3.SubtitleFile -> synchronized(lock) {
                         if (sf.url.isNotEmpty() && seenSubs.add(sf.url)) {
                             subs.put(JSONObject().apply {
                                 put("label", sf.lang); put("file", sf.url); put("default", false)
@@ -523,8 +555,8 @@ class PluginHost(private val appContext: Context) {
                                 }
                             })
                         }
-                    },
-                    callback = { link: ExtractorLink ->
+                    } },
+                    callback = { link: ExtractorLink -> synchronized(lock) {
                         // Torrents and magnets are not streams. Passed through as an
                         // ordinary source they reached the player as a bare "Source
                         // error"; the honest thing is to not offer them. Relative urls
@@ -577,7 +609,7 @@ class PluginHost(private val appContext: Context) {
                                 }
                             })
                         }
-                    }
+                    } }
                 )
             } catch (t: Throwable) {
                 Log.e(TAG, "loadLinks ${api.name}: ${t.javaClass.simpleName}: ${t.message}")
@@ -589,7 +621,7 @@ class PluginHost(private val appContext: Context) {
         // won over a 1080p one that took a moment longer. CloudStream's own
         // player orders by quality for the same reason. The sort is stable, so
         // sources of equal quality keep the order the provider produced them in.
-        collected.sortByDescending { it.first }
+        synchronized(lock) { collected.sortByDescending { it.first } }
         val videoSources = JSONArray()
         collected.forEachIndexed { i, entry ->
             entry.second.put("isDefault", i == 0)

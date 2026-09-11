@@ -6,13 +6,30 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.model.anilist.Profile
 import com.saikou.sozo_tv.databinding.ExitDialogBinding
 import com.saikou.sozo_tv.utils.loadImage
 
-class ExitDialog(val data: Profile) : DialogFragment() {
+/**
+ * Sign-out confirmation.
+ *
+ * Built through [newInstance] with its data in the arguments bundle: the system recreates a
+ * DialogFragment with its no-arg constructor after a configuration change or process death, and
+ * the old constructor-argument version crashed there.
+ */
+class ExitDialog : DialogFragment() {
+
+    companion object {
+        private const val ARG_NAME = "name"
+        private const val ARG_AVATAR = "avatar"
+
+        fun newInstance(data: Profile): ExitDialog = ExitDialog().apply {
+            arguments = bundleOf(ARG_NAME to data.name, ARG_AVATAR to data.avatarUrl)
+        }
+    }
 
     private var _binding: ExitDialogBinding? = null
     private val binding get() = _binding!!
@@ -45,10 +62,12 @@ class ExitDialog(val data: Profile) : DialogFragment() {
         binding.notNowBtn.setOnClickListener {
             noClearListener?.invoke() ?: dismiss()
         }
-        binding.accountName.text = data.name
-        binding.coverImage.loadImage(data.avatarUrl)
+        binding.accountName.text = arguments?.getString(ARG_NAME).orEmpty()
+        binding.coverImage.loadImage(arguments?.getString(ARG_AVATAR))
         binding.yesExit.setOnClickListener {
-            yesContinueListener?.invoke()
+            // Listeners do not survive recreation; a restored dialog just closes rather than
+            // offering a button that does nothing.
+            yesContinueListener?.invoke() ?: dismiss()
         }
 
     }

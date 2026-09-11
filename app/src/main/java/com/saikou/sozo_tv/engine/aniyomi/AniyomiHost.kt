@@ -38,12 +38,16 @@ class AniyomiHost(private val context: Context) {
         val repoName: String,
     )
 
+    // Written while repos install and read by every catalogue call, from different threads.
+    // Every access holds its monitor; iteration works on a snapshot.
     private val sources = LinkedHashMap<String, SourceMeta>()
+
+    private fun meta(id: String): SourceMeta? = synchronized(sources) { sources[id] }
 
     fun registerMeta(entry: JSONObject, repoName: String) {
         val id = entry.optString("id")
         if (id.isEmpty()) return
-        sources[id] = SourceMeta(
+        val meta = SourceMeta(
             id = id,
             name = entry.optString("name"),
             lang = entry.optString("lang"),
@@ -55,10 +59,11 @@ class AniyomiHost(private val context: Context) {
             nsfw = entry.optBoolean("nsfw", false),
             repoName = repoName,
         )
+        synchronized(sources) { sources[id] = meta }
     }
 
     fun removeSources(ids: List<String>) {
-        ids.forEach { sources.remove(it) }
+        synchronized(sources) { ids.forEach { sources.remove(it) } }
     }
 
     private fun langRank(lang: String): Int = when (lang.trim().lowercase()) {
@@ -69,7 +74,8 @@ class AniyomiHost(private val context: Context) {
 
     fun providersJson(): String {
         val picked = LinkedHashMap<String, SourceMeta>()
-        for (s in sources.values) {
+        val all = synchronized(sources) { sources.values.toList() }
+        for (s in all) {
             val key = s.name.trim().lowercase()
             if (key.isEmpty()) continue
             val cur = picked[key]
@@ -116,7 +122,7 @@ class AniyomiHost(private val context: Context) {
     }
 
     private fun sourceFor(id: String): AnimeCatalogueSource? {
-        val meta = sources[id] ?: return null
+        val meta = meta(id) ?: return null
         val apk = ensureApk(meta) ?: return null
         return AniyomiRuntime.source(context, apk.absolutePath, meta.pkg, meta.id)
     }
@@ -281,7 +287,7 @@ class AniyomiHost(private val context: Context) {
     }
 
     fun loadLinksJson(id: String, data: String): String {
-        val meta = sources[id]
+        val meta = meta(id)
         val src = sourceFor(id)
         val videoSources = JSONArray()
         val subs = JSONArray()

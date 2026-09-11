@@ -41,6 +41,7 @@ class HomeScreen : Fragment() {
     private val homeAdapter = HomeAdapter()
     private val settingsViewModel: SettingsViewModel by activityViewModel()
     private var initialFocusPlaced = false
+    private var ownListeners: List<Any?> = emptyList()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -49,6 +50,12 @@ class HomeScreen : Fragment() {
         return binding.root
     }
 
+
+    override fun onDestroyView() {
+        LocalData.releaseListeners(ownListeners)
+        ownListeners = emptyList()
+        super.onDestroyView()
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -161,6 +168,9 @@ class HomeScreen : Fragment() {
                 intent.putExtra("isMovie", !it.content.isSeries)
                 binding.root.context.startActivity(intent)
             }
+            // Remembered so onDestroyView can take them back out of LocalData: each captures
+            // this fragment, and nothing else ever cleared them.
+            ownListeners = LocalData.currentListeners()
         }
 
         is UiState.Loading -> {

@@ -10,16 +10,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.adapters.HistoryAdapter
-import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.HistoryPageBinding
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.viewmodel.PlayAnimeViewModel
-import com.saikou.sozo_tv.utils.LocalData
 import com.saikou.sozo_tv.utils.keepFocusAlive
 import com.saikou.sozo_tv.utils.LocalData.isAnimeEnabled
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class HistoryPage : Fragment() {
@@ -57,11 +53,11 @@ class HistoryPage : Fragment() {
 
     @SuppressLint("SetTextI18n")
     private suspend fun renderHistory() {
+        // Every source is an extension now, so rows are no longer filtered by the stored source
+        // key — rows saved before the key was written carried a blank one and were hidden.
         val watchHistoryList = if (isAnimeEnabled) model.getAllWatchHistory()
                 .filter { it.isAnime }
-                .filter {
-                    it.source == PreferenceManager().getString(LocalData.SOURCE)
-                } else model.getAllWatchHistory()
+            else model.getAllWatchHistory()
                 .filter { !it.isAnime }
             if (watchHistoryList.isNotEmpty()) {
                 // renderHistory() runs twice on entry: once from the local DB, then
@@ -117,18 +113,7 @@ class HistoryPage : Fragment() {
     private fun clearHistory() {
         lifecycleScope.launch {
             model.clearAllHistory()
-            val watchHistoryList = withContext(Dispatchers.IO) {
-                model.getAllWatchHistory()
-            }
-            if (watchHistoryList.isNotEmpty()) {
-                binding.root.keepFocusAlive {
-                    binding.historyGroup.visibility = View.VISIBLE
-                    binding.placeHolder.root.visibility = View.GONE
-                    historyAdapter.submitList(watchHistoryList)
-                }
-            } else {
-                showEmptyState()
-            }
+            renderHistory()
         }
     }
 

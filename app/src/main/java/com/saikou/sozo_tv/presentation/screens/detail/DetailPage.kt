@@ -12,9 +12,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.OptIn
-import com.saikou.sozo_tv.presentation.screens.search.SearchScreen
-import com.saikou.sozo_tv.R
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -31,6 +28,7 @@ import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.databinding.DetailPageBinding
 import com.saikou.sozo_tv.domain.model.Cast
 import com.saikou.sozo_tv.domain.model.DetailCategory
+import com.saikou.sozo_tv.presentation.activities.MainActivity
 import com.saikou.sozo_tv.presentation.activities.PlayerActivity
 import com.saikou.sozo_tv.presentation.activities.ProfileActivity
 import com.saikou.sozo_tv.presentation.screens.profile.NfcDisabledDialog
@@ -100,7 +98,6 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         binding.seasonalBackground.setTheme(seasonalTheme)
         detailsAdapter.resetInitialFocus()
         initializeAdapter()
-        initializePlayer()
         showDetailLoading()
         binding.btnRetry.setOnClickListener {
             showDetailLoading()
@@ -153,7 +150,9 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
     @UnstableApi
     private fun initializePlayer() {
         val okHttpClient =
-            OkHttpClient.Builder().ignoreAllSSLErrors() // ⚠️ Sertifikat tekshiruvini bekor qiladi
+            // Trailers come from third-party media hosts whose chains are often incomplete,
+            // the same reason StreamHttp relaxes TLS; nothing here carries a Sozo token.
+            OkHttpClient.Builder().ignoreAllSSLErrors()
                 .connectTimeout(15, TimeUnit.SECONDS).readTimeout(15, TimeUnit.SECONDS)
                 .writeTimeout(15, TimeUnit.SECONDS)
                 .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.CLEARTEXT))
@@ -194,6 +193,9 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         }
         val mediaItem = MediaItem.Builder().setUri(hlsUrl).build()
 
+        // Built on the first trailer rather than with the view: most titles have none, and an
+        // idle ExoPlayer still holds codecs and a surface on a box with little memory to spare.
+        if (player == null) initializePlayer()
         player?.apply {
             setMediaItem(mediaItem)
             prepare()
@@ -323,12 +325,12 @@ class DetailPage : Fragment(), MovieDetailsAdapter.DetailsInterface {
         // wanted from tapping a face, and it uses a path that works.
         val name = item.name.trim()
         if (name.isEmpty()) return
-        findNavController().navigate(
-            R.id.search,
-            bundleOf(
-                SearchScreen.ARG_QUERY to name,
-                SearchScreen.ARG_SEARCH_ALL to true,
-            ),
+        // Search lives in MainActivity's graph, not in this activity's play_graph — navigating to
+        // R.id.search from here threw IllegalArgumentException. MainActivity opens its search for
+        // this extra, and Back from there returns to this detail page.
+        startActivity(
+            Intent(requireContext(), MainActivity::class.java)
+                .putExtra(MainActivity.EXTRA_SEARCH_QUERY, name)
         )
     }
 

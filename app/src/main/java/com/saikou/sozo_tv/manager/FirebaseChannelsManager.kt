@@ -15,22 +15,6 @@ import kotlinx.coroutines.flow.callbackFlow
 object FirebaseChannelsManager {
     private const val CHANNELS_REF = "liveChannels"
 
-    fun saveChannelsToRealtimeDatabase(
-        channels: CategoryChannel,
-        onComplete: (Boolean, String?) -> Unit
-    ) {
-        val database = FirebaseDatabase.getInstance()
-        val liveChannelsRef = database.getReference(CHANNELS_REF)
-
-        liveChannelsRef.setValue(channels)
-            .addOnSuccessListener {
-                onComplete(true, null)
-            }
-            .addOnFailureListener { exception ->
-                onComplete(false, exception.message)
-            }
-    }
-
     fun getChannelsFromRealtimeDatabase(onDataReceived: (CategoryChannel?) -> Unit) {
         val database = FirebaseDatabase.getInstance()
         val liveChannelsRef = database.getReference(CHANNELS_REF)
@@ -80,14 +64,9 @@ object FirebaseChannelsManager {
                     }
 
                 } else {
-                    val defaultChannels = initializeDefaultChannels()
-                    saveChannelsToRealtimeDatabase(defaultChannels) { success, error ->
-                        if (success) {
-                            onDataReceived(defaultChannels)
-                        } else {
-                            onDataReceived(null)
-                        }
-                    }
+                    // Shown locally only. The client used to write these defaults back to the
+                    // shared node, which only works while the database accepts writes from anyone.
+                    onDataReceived(initializeDefaultChannels())
                 }
             }
 
@@ -162,11 +141,8 @@ object FirebaseChannelsManager {
                         val channel = CategoryChannel(name, list, viewType)
                         trySend(channel)
                     } else {
-                        val defaultChannels = initializeDefaultChannels()
-                        saveChannelsToRealtimeDatabase(defaultChannels) { success, error ->
-                            if (success) trySend(defaultChannels)
-                            else trySend(null)
-                        }
+                        // Local fallback only — see getChannelsFromRealtimeDatabase.
+                        trySend(initializeDefaultChannels())
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()

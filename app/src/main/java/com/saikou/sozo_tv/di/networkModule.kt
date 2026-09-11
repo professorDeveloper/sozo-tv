@@ -29,6 +29,7 @@ import com.saikou.sozo_tv.data.remote.remote.RemoteControlClient
 import com.saikou.sozo_tv.data.repository.RemoteControlManager
 import com.saikou.sozo_tv.data.repository.UserListsRepository
 import com.saikou.sozo_tv.data.repository.WatchHistorySyncRepository
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
@@ -50,11 +51,16 @@ val NetworkModule = module {
     // of at construction breaks that cycle.
     single(named("authOkHttp")) {
         createAuthOkHttpClient(
-            authenticator = DeviceTokenAuthenticator {
+            authenticator = DeviceTokenAuthenticator(
+                apiHost = BuildConfig.SOZO_API_BASE_URL.toHttpUrlOrNull()?.host,
+            ) {
                 get<DeviceAuthRepository>().refreshNow()
             },
         )
     }
+    // Third-party APIs that carry their own tokens (AniList, MyAnimeList). Same platform TLS as
+    // the auth client, but no Sozo authenticator: their 401s are not ours to answer.
+    single(named("trackerOkHttp")) { createAuthOkHttpClient() }
     single {
         DeviceAuthClient(
             okHttpClient = get(named("authOkHttp")),
@@ -114,7 +120,7 @@ val NetworkModule = module {
             tokenProvider = { get<DeviceAuthRepository>().accessToken() },
         )
     }
-    single { AnilistGraphQlClient(okHttpClient = get(named("authOkHttp"))) }
+    single { AnilistGraphQlClient(okHttpClient = get(named("trackerOkHttp"))) }
     single { AnilistLinkStore(context = androidContext()) }
     single { AnilistSourceRegistry(context = androidContext()) }
     single { AnilistRepository(linkClient = get(), api = get(), links = get()) }
@@ -135,7 +141,7 @@ val NetworkModule = module {
             tokenProvider = { get<DeviceAuthRepository>().accessToken() },
         )
     }
-    single { MalApiClient(okHttpClient = get(named("authOkHttp"))) }
+    single { MalApiClient(okHttpClient = get(named("trackerOkHttp"))) }
     single { MalLinkStore(context = androidContext()) }
     single { MalRepository(linkClient = get(), api = get(), links = get()) }
     single {

@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.parser.models
 
+import com.saikou.sozo_tv.data.model.AudioTrackRef
 import com.saikou.sozo_tv.data.model.hianime.MegaTrack
 import java.io.Serializable
 
@@ -31,6 +32,8 @@ data class VideoOption(
     var requestTransform: String? = null,
     var useWebViewSniff: Boolean = false,
     var sniff: String? = null,
+    /** Separate audio renditions merged into playback alongside [videoUrl]. */
+    var audioTracks: List<AudioTrackRef> = emptyList(),
 )
 
 
