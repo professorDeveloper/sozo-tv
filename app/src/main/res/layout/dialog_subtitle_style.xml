@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.saikou.sozo_tv.views.TvDialogLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -50,16 +50,24 @@
         android:textSize="@dimen/tv_text_body" />
 
     <androidx.core.widget.NestedScrollView
+        android:clipToPadding="false"
+        android:clipChildren="false"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:padding="12dp"
         android:fillViewport="true"
         android:overScrollMode="never">
 
         <LinearLayout
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
             <LinearLayout
+            android:clipChildren="false"
+            android:clipToPadding="false"
                 android:id="@+id/subtitle_preview_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -96,6 +104,8 @@
                 android:textSize="@dimen/tv_text_body" />
 
             <LinearLayout
+            android:clipChildren="false"
+            android:clipToPadding="false"
                 android:id="@+id/subtitle_font_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -178,6 +188,8 @@
                 android:textSize="@dimen/tv_text_body" />
 
             <LinearLayout
+            android:clipChildren="false"
+            android:clipToPadding="false"
                 android:id="@+id/subtitle_color_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -301,6 +313,8 @@
                 android:textSize="@dimen/tv_text_body" />
 
             <LinearLayout
+            android:clipChildren="false"
+            android:clipToPadding="false"
                 android:id="@+id/subtitle_bg_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -336,6 +350,8 @@
                 android:textSize="@dimen/tv_text_body" />
 
             <LinearLayout
+            android:clipChildren="false"
+            android:clipToPadding="false"
                 android:id="@+id/subtitle_outline_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -364,4 +380,4 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-</LinearLayout>
+</com.saikou.sozo_tv.views.TvDialogLayout>

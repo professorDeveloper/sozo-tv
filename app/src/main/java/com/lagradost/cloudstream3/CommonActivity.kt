@@ -30,7 +30,6 @@ import com.saikou.sozo_tv.app.MyApp
 object CommonActivity {
 
     /** The resumed activity, or null while none is. */
-    @JvmStatic
     var activity: Activity?
         get() = MyApp.currentActivity
         set(_) {

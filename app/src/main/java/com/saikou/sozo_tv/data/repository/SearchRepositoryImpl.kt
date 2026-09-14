@@ -18,7 +18,9 @@ class SearchRepositoryImpl(
             val page = engine.search(null, query)
                 ?: return Result.failure(IllegalStateException("No source selected."))
             Result.success(page.items.map { it.toSearchModel() })
-        } catch (e: Exception) {
+        } catch (c: kotlinx.coroutines.CancellationException) {
+            throw c
+        } catch (e: Throwable) {
             Result.failure(e)
         }
     }

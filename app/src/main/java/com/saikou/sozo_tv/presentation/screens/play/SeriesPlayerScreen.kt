@@ -290,9 +290,10 @@ class SeriesPlayerScreen : Fragment() {
         timeBar()?.setOnFocusChangeListener { _, has ->
             showHint(if (has) R.string.player_hint_seek else null)
         }
-        controls.exoPlayPauseContainer.setOnFocusChangeListener { _, has ->
+        controls.exoPlayPauseContainer.setOnFocusChangeListener { view, has ->
+            if (_controls == null) return@setOnFocusChangeListener
             if (has) {
-                lastFocusedControl = controls.exoPlayPauseContainer
+                lastFocusedControl = view
                 showPlayPauseHint()
             } else {
                 showHint(null)

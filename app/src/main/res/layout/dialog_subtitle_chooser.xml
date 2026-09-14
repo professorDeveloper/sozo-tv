@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.saikou.sozo_tv.views.TvDialogLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/root"
     android:layout_width="700dp"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
+    android:clipToPadding="false"
     android:clipChildren="false"
     android:background="@drawable/glass_panel_bg"
     android:minWidth="700dp"
@@ -40,6 +41,8 @@
             app:tint="@color/close_icon_tint" />
     </FrameLayout>
     <LinearLayout
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:id="@+id/subtitle_toggle_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -92,6 +95,8 @@
             android:textSize="@dimen/tv_text_body" />
     </LinearLayout>
     <LinearLayout
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:id="@+id/subtitle_offset_row"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -130,7 +135,8 @@
         android:textColor="@color/netflix_gray"
         android:textSize="@dimen/tv_text_body"
         android:visibility="gone" />
-    <androidx.leanback.widget.VerticalGridView
+    <com.saikou.sozo_tv.views.TvDialogGridView
+        android:layout_weight="1"
         android:id="@+id/rv_subtitles"
         android:layout_width="match_parent"
         android:layout_height="276dp"
@@ -143,6 +149,8 @@
         app:focusOutEnd="true"
         app:focusOutFront="true" />
     <LinearLayout
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:id="@+id/search_online_row"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -173,4 +181,4 @@
             android:textSize="@dimen/tv_text_body" />
     </LinearLayout>
 
-</LinearLayout>
+</com.saikou.sozo_tv.views.TvDialogLayout>
