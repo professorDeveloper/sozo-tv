@@ -251,6 +251,7 @@ class PlayerTvView @JvmOverloads constructor(
 
     @OptIn(UnstableApi::class)
     private fun restoreControllerFocus() {
+        if (!isAttachedToWindow || !isShown) return
         val current = rootView.findFocus()
         if (current != null && current !== this && !isAncestorOf(current)) return
         // An overlay over the video holds focus deliberately — the skip-intro button appears and

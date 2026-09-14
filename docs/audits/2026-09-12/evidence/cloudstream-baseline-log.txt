@@ -1,0 +1,213 @@
+--------- beginning of main
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: failed to load CineStream@487.cs3: java.lang.NoSuchMethodError: No virtual method getSimklApi()Lcom/lagradost/cloudstream3/syncproviders/providers/SimklApi; in class Lcom/lagradost/cloudstream3/syncproviders/AccountManager$Companion; or its super classes (declaration of 'com.lagradost.cloudstream3.syncproviders.AccountManager$Companion' appears in /data/app/~~FYOpOxW1ReJR8WLA-OSPCQ==/com.saikou.sozo_tv-br1_bbHbo9bkA5yun1u4Zg==/base.apk!classes4.dex)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.megix.CineSimklProvider.<init>(CineSimklProvider.kt:56)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.megix.CineStream.load(CineStream.kt:27)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.saikou.sozo_tv.engine.cloudstream.PluginHost.loadCs3(PluginHost.kt:180)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.saikou.sozo_tv.engine.cloudstream.RepoManager.addRepoInternal(RepoManager.kt:393)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.saikou.sozo_tv.engine.cloudstream.RepoManager.addRepo(RepoManager.kt:358)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.saikou.sozo_tv.data.extensions.CloudStreamBackend.addRepo(ExtBackend.kt:76)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.saikou.sozo_tv.data.extensions.ExtensionEngine$addRepo$2.invokeSuspend(ExtensionEngine.kt:222)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.saikou.sozo_tv.data.extensions.ExtensionEngine$addRepo$2.invoke(Unknown Source:8)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.saikou.sozo_tv.data.extensions.ExtensionEngine$addRepo$2.invoke(Unknown Source:4)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlinx.coroutines.intrinsics.UndispatchedKt.startUndispatched(Undispatched.kt:66)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlinx.coroutines.intrinsics.UndispatchedKt.startUndispatchedOrReturn(Undispatched.kt:43)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlinx.coroutines.BuildersKt__Builders_commonKt.withContext(Builders.common.kt:497)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlinx.coroutines.BuildersKt.withContext(Unknown Source:1)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.saikou.sozo_tv.data.extensions.ExtensionEngine.addRepo(ExtensionEngine.kt:220)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.saikou.sozo_tv.data.extensions.ExtensionEngine$ensureDefaultsInstalled$2.invokeSuspend(ExtensionEngine.kt:133)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.saikou.sozo_tv.data.extensions.ExtensionEngine$ensureDefaultsInstalled$2.invoke(Unknown Source:8)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.saikou.sozo_tv.data.extensions.ExtensionEngine$ensureDefaultsInstalled$2.invoke(Unknown Source:4)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlinx.coroutines.intrinsics.UndispatchedKt.startUndispatched(Undispatched.kt:66)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlinx.coroutines.intrinsics.UndispatchedKt.startUndispatchedOrReturn(Undispatched.kt:43)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlinx.coroutines.BuildersKt__Builders_commonKt.withContext(Builders.common.kt:497)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlinx.coroutines.BuildersKt.withContext(Unknown Source:1)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.saikou.sozo_tv.data.extensions.ExtensionEngine.ensureDefaultsInstalled(ExtensionEngine.kt:113)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.saikou.sozo_tv.data.extensions.ExtensionEngine.ensureDefaultsInstalled$default(ExtensionEngine.kt:110)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at com.saikou.sozo_tv.data.extensions.ExtensionEngine$installDefaultsAsync$1$1.invokeSuspend(ExtensionEngine.kt:167)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:798)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+09-12 17:01:38.537  3253  3376 E CloudStreamHost: 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+09-12 17:07:12.749  4548  4650 I SozoAudit: {"provider":"ALL","stage":"inventory","status":"OK","ms":0,"detail":"118 providers"}
+09-12 17:07:12.902  4548  4676 E CloudStreamHost: search AniDB: NotImplementedError: An operation is not implemented.
+09-12 17:07:12.902  4548  4676 I SozoAudit: {"provider":"AniDB","stage":"search","status":"EMPTY","ms":144,"detail":"0 results: "}
+09-12 17:07:13.141  4548  4650 E CloudStreamHost: search Anikage: NotImplementedError: An operation is not implemented.
+09-12 17:07:13.142  4548  4650 I SozoAudit: {"provider":"Anikage","stage":"search","status":"EMPTY","ms":238,"detail":"0 results: "}
+09-12 17:07:13.607  4548  4673 E CloudStreamHost: search Anichi: NotImplementedError: An operation is not implemented.
+09-12 17:07:13.607  4548  4673 I SozoAudit: {"provider":"Anichi","stage":"search","status":"EMPTY","ms":851,"detail":"0 results: "}
+09-12 17:07:13.852  4548  4652 E CloudStreamHost: search AllWish: NotImplementedError: An operation is not implemented.
+09-12 17:07:13.856  4548  4652 I SozoAudit: {"provider":"AllWish","stage":"search","status":"EMPTY","ms":1101,"detail":"0 results: "}
+09-12 17:07:15.401  4548  4673 I SozoAudit: {"provider":"AnimeAv1","stage":"search","status":"OK","ms":1541,"detail":"19 results: Naruto, The Last: Naruto the Movie, Naruto: Shippuuden - Sunny Side Battle"}
+09-12 17:07:16.363  4548  4679 I SozoAudit: {"provider":"AllMovieLand","stage":"search","status":"EMPTY","ms":3607,"detail":"0 results: "}
+09-12 17:07:17.694  4548  4650 I SozoAudit: {"provider":"AniKoto","stage":"search","status":"OK","ms":4542,"detail":"26 results: Road of Naruto, Naruto: Shippuuden Movie 6: Road to Ninja, Naruto the Movie 3: Guardians of the Crescent Moon Kingdom"}
+09-12 17:07:18.044  4548  4676 I SozoAudit: {"provider":"Anilight","stage":"search","status":"OK","ms":4428,"detail":"24 results: Naruto, Naruto: Shippuden, Boruto: Naruto Next Generations"}
+09-12 17:07:18.295  4548  4676 E CloudStreamHost: search AnimeDubHindi: NotImplementedError: An operation is not implemented.
+09-12 17:07:18.296  4548  4676 I SozoAudit: {"provider":"AnimeDubHindi","stage":"search","status":"EMPTY","ms":251,"detail":"0 results: "}
+09-12 17:07:18.794  4548  4651 I SozoAudit: {"provider":"Animecloud","stage":"search","status":"OK","ms":3392,"detail":"4 results: Naruto, Naruto Shippuden, Naruto Spin-Off: Rock Lee & His Ninja Pals"}
+09-12 17:07:19.307  4548  4679 I SozoAudit: {"provider":"Anime Dekho","stage":"search","status":"OK","ms":2928,"detail":"3 results: Naruto Shippūden, Naruto the Movie: Ninja Clash in the Land of Snow, Naruto"}
+09-12 17:07:19.622  4548  4650 I SozoAudit: {"provider":"HindiSubAnime","stage":"search","status":"OK","ms":1923,"detail":"12 results: Boruto: Naruto Next Generations, Boruto: Naruto the Movie, The Last: Naruto the Movie"}
+09-12 17:07:20.222  4548  4650 I SozoAudit: {"provider":"Animekhor","stage":"search","status":"EMPTY","ms":1925,"detail":"0 results: "}
+09-12 17:07:20.251  4548  4651 E CloudStreamHost: search Animesalt: NotImplementedError: An operation is not implemented.
+09-12 17:07:20.295  4548  4651 I SozoAudit: {"provider":"Animesalt","stage":"search","status":"EMPTY","ms":28,"detail":"0 results: "}
+09-12 17:07:20.636  4548  4651 E CloudStreamHost: search Animexin: NotImplementedError: An operation is not implemented.
+09-12 17:07:20.638  4548  4676 I SozoAudit: {"provider":"Animenosub","stage":"search","status":"OK","ms":1799,"detail":"2 results: Naruto Shippuden, Boruto: Naruto Next Generations"}
+09-12 17:07:20.641  4548  4651 I SozoAudit: {"provider":"Animexin","stage":"search","status":"EMPTY","ms":342,"detail":"0 results: "}
+09-12 17:07:21.545  4548  4651 E CloudStreamHost: search AnimePahe: IncompatibleClassChangeError: The method 'android.app.Activity com.lagradost.cloudstream3.CommonActivity.getActivity()' was expected to be of type virtual but instead was found to be of type static (declaration of 'com.phisher98.AnimePaheKt$showCFBypassDialogAndWait$2' appears in /data/user/0/com.saikou.sozo_tv/files/cs3/AnimePahe@39.cs3)
+09-12 17:07:21.546  4548  4651 I SozoAudit: {"provider":"AnimePahe","stage":"search","status":"EMPTY","ms":1923,"detail":"0 results: "}
+09-12 17:07:22.220  4548  4651 I SozoAudit: {"provider":"Donghuaword","stage":"search","status":"EMPTY","ms":2911,"detail":"0 results: "}
+09-12 17:07:22.251  4548  4679 I SozoAudit: {"provider":"Aniworld","stage":"search","status":"OK","ms":703,"detail":"4 results: Naruto, Naruto Shippuden, Boruto: Naruto Next Generations"}
+09-12 17:07:22.646  4548  4679 I SozoAudit: {"provider":"AniVortex","stage":"search","status":"OK","ms":2000,"detail":"11 results: Naruto, Naruto Shippūden, Naruto Shippûden: The Movie"}
+09-12 17:07:22.653  4548  4676 I SozoAudit: {"provider":"Banglaplex","stage":"search","status":"EMPTY","ms":7,"detail":"0 results: "}
+09-12 17:07:22.662  4548  4676 E CloudStreamHost: search CinemaCity: NotImplementedError: An operation is not implemented.
+09-12 17:07:22.662  4548  4676 I SozoAudit: {"provider":"CinemaCity","stage":"search","status":"EMPTY","ms":9,"detail":"0 results: "}
+09-12 17:07:22.667  4548  4676 E CloudStreamHost: search Coflix: NotImplementedError: An operation is not implemented.
+09-12 17:07:22.667  4548  4676 I SozoAudit: {"provider":"Coflix","stage":"search","status":"EMPTY","ms":4,"detail":"0 results: "}
+09-12 17:07:23.705  4548  4676 I SozoAudit: {"provider":"Desicinemas","stage":"search","status":"EMPTY","ms":1038,"detail":"0 results: "}
+09-12 17:07:24.030  4548  4679 I SozoAudit: {"provider":"Serienstream","stage":"search","status":"OK","ms":1805,"detail":"8 results: Naruto Sugoi Doryoku: Rock Lee no Seishun Full-Power, Naruto Shippuden, Boruto: Naruto Next Generations"}
+09-12 17:07:24.527  4548  4679 I SozoAudit: {"provider":"Anineko","stage":"search","status":"OK","ms":3885,"detail":"26 results: Naruto the Movie 2: Legend of the Stone of Gelel, Naruto: Shippuden, Naruto"}
+09-12 17:07:24.581  4548  4679 E CloudStreamHost: search DoraBash: NotImplementedError: An operation is not implemented.
+09-12 17:07:24.587  4548  4679 I SozoAudit: {"provider":"DoraBash","stage":"search","status":"EMPTY","ms":54,"detail":"0 results: "}
+09-12 17:07:25.298  4548  4676 I SozoAudit: {"provider":"Donghuastream","stage":"search","status":"EMPTY","ms":1267,"detail":"0 results: "}
+09-12 17:07:25.525  4548  4679 E CloudStreamHost: search Cinefreak: NotImplementedError: An operation is not implemented.
+09-12 17:07:25.526  4548  4679 I SozoAudit: {"provider":"Cinefreak","stage":"search","status":"EMPTY","ms":939,"detail":"0 results: "}
+09-12 17:07:25.782  4548  4651 E CloudStreamHost: search Dudefilms: NotImplementedError: An operation is not implemented.
+09-12 17:07:25.783  4548  4651 I SozoAudit: {"provider":"Dudefilms","stage":"search","status":"EMPTY","ms":484,"detail":"0 results: "}
+09-12 17:07:26.298  4548  4679 E CloudStreamHost: search FibWatch Drama: NotImplementedError: An operation is not implemented.
+09-12 17:07:26.298  4548  4676 E CloudStreamHost: search FibWatch: NotImplementedError: An operation is not implemented.
+09-12 17:07:26.299  4548  4679 I SozoAudit: {"provider":"FibWatch Drama","stage":"search","status":"EMPTY","ms":772,"detail":"0 results: "}
+09-12 17:07:26.300  4548  4679 E CloudStreamHost: search FibToon: NotImplementedError: An operation is not implemented.
+09-12 17:07:26.301  4548  4679 I SozoAudit: {"provider":"FibToon","stage":"search","status":"EMPTY","ms":0,"detail":"0 results: "}
+09-12 17:07:26.301  4548  4676 I SozoAudit: {"provider":"FibWatch","stage":"search","status":"EMPTY","ms":512,"detail":"0 results: "}
+09-12 17:07:26.938  4548  4676 E CloudStreamHost: search Chikianimation: NotImplementedError: An operation is not implemented.
+09-12 17:07:26.942  4548  4676 I SozoAudit: {"provider":"Chikianimation","stage":"search","status":"EMPTY","ms":636,"detail":"0 results: "}
+09-12 17:07:26.962  4548  4679 I SozoAudit: {"provider":"Bollyzone","stage":"search","status":"EMPTY","ms":3255,"detail":"0 results: "}
+09-12 17:07:27.402  4548  4676 E CloudStreamHost: search Goojara: NotImplementedError: An operation is not implemented.
+09-12 17:07:27.414  4548  4676 I SozoAudit: {"provider":"Goojara","stage":"search","status":"EMPTY","ms":434,"detail":"0 results: "}
+09-12 17:07:27.929  4548  4650 I SozoAudit: {"provider":"4K HDHUB","stage":"search","status":"OK","ms":1628,"detail":"2 results: Naruto, Naruto the Movie: Ninja Clash in the Land of Snow"}
+09-12 17:07:27.937  4548  4676 E CloudStreamHost: search HDHub4U: NotImplementedError: An operation is not implemented.
+09-12 17:07:27.938  4548  4676 I SozoAudit: {"provider":"HDHub4U","stage":"search","status":"EMPTY","ms":509,"detail":"0 results: "}
+09-12 17:07:27.972  4548  4650 E CloudStreamHost: search Idlix: NotImplementedError: An operation is not implemented.
+09-12 17:07:27.973  4548  4650 I SozoAudit: {"provider":"Idlix","stage":"search","status":"EMPTY","ms":42,"detail":"0 results: "}
+09-12 17:07:28.698  4548  4651 E CloudStreamHost: search Hindmoviez: NotImplementedError: An operation is not implemented.
+09-12 17:07:28.699  4548  4651 I SozoAudit: {"provider":"Hindmoviez","stage":"search","status":"EMPTY","ms":760,"detail":"0 results: "}
+09-12 17:07:30.631  4548  4650 I SozoAudit: {"provider":"AniZone","stage":"search","status":"OK","ms":8379,"detail":"6 results: Boruto: Naruto Next Generations, Naruto Shippuden, Naruto"}
+09-12 17:07:31.108  4548  4651 I SozoAudit: {"provider":"Hdmovie2","stage":"search","status":"EMPTY","ms":2407,"detail":"0 results: "}
+09-12 17:07:31.401  4548  4652 I SozoAudit: {"provider":"5movierulz","stage":"search","status":"EMPTY","ms":4354,"detail":"0 results: "}
+09-12 17:07:32.033  4548  4679 I SozoAudit: {"provider":"IPTV Player","stage":"search","status":"EMPTY","ms":4058,"detail":"0 results: "}
+09-12 17:07:33.182  4548  4673 E CloudStreamHost: search Jellyfin: IllegalArgumentException: Expected URL scheme 'http' or 'https' but no scheme was found for null/U...
+09-12 17:07:33.182  4548  4673 I SozoAudit: {"provider":"Jellyfin","stage":"search","status":"EMPTY","ms":2069,"detail":"0 results: "}
+09-12 17:07:33.383  4548  4652 E CloudStreamHost: search KickassAnime: NotImplementedError: An operation is not implemented.
+09-12 17:07:33.387  4548  4652 I SozoAudit: {"provider":"KickassAnime","stage":"search","status":"EMPTY","ms":1978,"detail":"0 results: "}
+09-12 17:07:33.914  4548  4676 E CloudStreamHost: search Kartoons: ErrorLoadingException: Not logged in. Please open the Kartoons extension settings and tap 'Kartoons Account' to login.
+09-12 17:07:33.915  4548  4676 I SozoAudit: {"provider":"Kartoons","stage":"search","status":"EMPTY","ms":732,"detail":"0 results: "}
+09-12 17:07:34.900  4548  4673 I SozoAudit: {"provider":"Latanime","stage":"search","status":"OK","ms":1507,"detail":"8 results: Boruto: Naruto Next Generations Castellano, Boruto: Naruto Next Generations Latino, Boruto: Naruto, La Película"}
+09-12 17:07:35.116  4548  4676 I SozoAudit: {"provider":"IStreamFlare","stage":"search","status":"OK","ms":4484,"detail":"9 results: Naruto, Grand Theft Auto VI: An Extended Look, Naruto: Shippuden Hindi"}
+09-12 17:07:35.251  4548  4650 I SozoAudit: {"provider":"Kisskh","stage":"search","status":"OK","ms":3210,"detail":"17 results: Naruto Shippuden, Naruto Shippuuden (Dub), Naruto"}
+09-12 17:07:35.380  4548  4651 E CloudStreamHost: search Microtv: NotImplementedError: An operation is not implemented.
+09-12 17:07:35.381  4548  4651 I SozoAudit: {"provider":"Microtv","stage":"search","status":"EMPTY","ms":130,"detail":"0 results: "}
+09-12 17:07:35.872  4548  4676 I SozoAudit: {"provider":"LayarKaca","stage":"search","status":"OK","ms":1956,"detail":"11 results: Naruto Shippuden: The Movie (2007), Naruto Shippuden: The Lost Tower (Gekijouban Naruto Shippuuden: Za rosuto tawa) (2010), Naruto Shippuden: The Movie 3: Inheritors of the Will of Fire (Gekijo-ban Naruto Shippuden: Hi no ishi wo tsugu mono) (2009)"}
+09-12 17:07:36.022  4548  4650 E CloudStreamHost: search MovieBox: NotImplementedError: An operation is not implemented.
+09-12 17:07:36.023  4548  4650 I SozoAudit: {"provider":"MovieBox","stage":"search","status":"EMPTY","ms":148,"detail":"0 results: "}
+09-12 17:07:36.363  4548  4651 I SozoAudit: {"provider":"MassTamilan","stage":"search","status":"EMPTY","ms":1463,"detail":"0 results: "}
+09-12 17:07:36.713  4548  4676 I SozoAudit: {"provider":"MovieBlast","stage":"search","status":"EMPTY","ms":1329,"detail":"0 results: "}
+09-12 17:07:36.907  4548  4650 E CloudStreamHost: search Movies4u: NotImplementedError: An operation is not implemented.
+09-12 17:07:36.907  4548  4650 I SozoAudit: {"provider":"Movies4u","stage":"search","status":"EMPTY","ms":853,"detail":"0 results: "}
+09-12 17:07:38.157  4548  4673 I SozoAudit: {"provider":"OHLI24","stage":"search","status":"EMPTY","ms":1443,"detail":"0 results: "}
+09-12 17:07:38.580  4548  4673 I SozoAudit: {"provider":"OnePace AD","stage":"search","status":"EMPTY","ms":1672,"detail":"0 results: "}
+09-12 17:07:39.215  4548  4676 I SozoAudit: {"provider":"MultiMovies","stage":"search","status":"EMPTY","ms":1056,"detail":"0 results: "}
+09-12 17:07:39.287  4548  4676 E CloudStreamHost: search OneTouchTV: NotImplementedError: An operation is not implemented.
+09-12 17:07:39.288  4548  4676 I SozoAudit: {"provider":"OneTouchTV","stage":"search","status":"EMPTY","ms":73,"detail":"0 results: "}
+09-12 17:07:39.438  4548  4651 I SozoAudit: {"provider":"M Player","stage":"search","status":"OK","ms":3074,"detail":"10 results: Jujutsu Kaisen, Demon Slayer, Classroom Of The Elite"}
+09-12 17:07:40.949  4548  4651 I SozoAudit: {"provider":"Bluray7","stage":"search","status":"EMPTY","ms":1510,"detail":"0 results: "}
+09-12 17:07:41.613  4548  4673 I SozoAudit: {"provider":"Pencurimovie","stage":"search","status":"OK","ms":2323,"detail":"1 results: Naruto Shippuden the Movie Inheritors of the Will of Fire"}
+09-12 17:07:41.813  4548  4651 I SozoAudit: {"provider":"Netcinez","stage":"search","status":"OK","ms":3232,"detail":"2 results: The Last Naruto – O Filme, Boruto: Naruto Next Generations"}
+09-12 17:07:42.247  4548  4651 E CloudStreamHost: search Piratexplay: NotImplementedError: An operation is not implemented.
+09-12 17:07:42.248  4548  4651 I SozoAudit: {"provider":"Piratexplay","stage":"search","status":"EMPTY","ms":433,"detail":"0 results: "}
+09-12 17:07:42.279  4548  4651 E CloudStreamHost: search PublicSportsIPTV: NotImplementedError: An operation is not implemented.
+09-12 17:07:42.280  4548  4651 I SozoAudit: {"provider":"PublicSportsIPTV","stage":"search","status":"EMPTY","ms":29,"detail":"0 results: "}
+09-12 17:07:42.499  4548  4650 I SozoAudit: {"provider":"Pinoymoviepedia","stage":"search","status":"EMPTY","ms":1549,"detail":"0 results: "}
+09-12 17:07:42.757  4548  4650 E CloudStreamHost: search Sports IPTV: InvalidHeader: Invalid file header. Header doesn't start with #EXTM3U
+09-12 17:07:42.757  4548  4650 I SozoAudit: {"provider":"Sports IPTV","stage":"search","status":"EMPTY","ms":476,"detail":"0 results: "}
+09-12 17:07:42.758  4548  4651 E CloudStreamHost: search Pirate IPTV: InvalidHeader: Invalid file header. Header doesn't start with #EXTM3U
+09-12 17:07:42.758  4548  4651 I SozoAudit: {"provider":"Pirate IPTV","stage":"search","status":"EMPTY","ms":257,"detail":"0 results: "}
+09-12 17:07:43.002  4548  4673 E CloudStreamHost: search Japan IPTV: InvalidHeader: Invalid file header. Header doesn't start with #EXTM3U
+09-12 17:07:43.002  4548  4650 E CloudStreamHost: search Sony IPTV: InvalidHeader: Invalid file header. Header doesn't start with #EXTM3U
+09-12 17:07:43.004  4548  4650 I SozoAudit: {"provider":"Sony IPTV","stage":"search","status":"EMPTY","ms":245,"detail":"0 results: "}
+09-12 17:07:43.004  4548  4673 I SozoAudit: {"provider":"Japan IPTV","stage":"search","status":"EMPTY","ms":244,"detail":"0 results: "}
+09-12 17:07:45.509  4548  4652 I SozoAudit: {"provider":"PMSM","stage":"search","status":"OK","ms":3896,"detail":"5 results: Boruto: Naruto the Movie , The Last: Naruto the Movie , Road to Ninja: Naruto the Movie "}
+09-12 17:07:46.315  4548  4676 I SozoAudit: {"provider":"RingZ","stage":"search","status":"OK","ms":3306,"detail":"26 results: Naruto Season 1, Naruto - Shippuden Season 16, Naruto - Shippuden Season 15"}
+09-12 17:07:46.551  4548  4676 I SozoAudit: {"provider":"Megakino","stage":"search","status":"OK","ms":11429,"detail":"20 results: Meat Kills, Lion Fist - Kampf der Champions, Dark Matter - Der Zeitenläufer - 2 Staffel"}
+09-12 17:07:46.789  4548  4673 I SozoAudit: {"provider":"Re:ANIME","stage":"search","status":"OK","ms":1279,"detail":"20 results: Naruto, Naruto: Shippuden, The Last: Naruto the Movie"}
+09-12 17:07:46.815  4548  4650 I SozoAudit: {"provider":"ShowBox","stage":"search","status":"OK","ms":3807,"detail":"15 results: Naruto, Naruto Shippūden, Boruto: Naruto Next Generations"}
+09-12 17:07:47.441  4548  4651 E CloudStreamHost: search StreamPlay: NotImplementedError: An operation is not implemented.
+09-12 17:07:47.441  4548  4651 I SozoAudit: {"provider":"StreamPlay","stage":"search","status":"EMPTY","ms":1126,"detail":"0 results: "}
+09-12 17:07:47.607  4548  4676 E CloudStreamHost: search Stremio: NotImplementedError: An operation is not implemented.
+09-12 17:07:47.608  4548  4676 I SozoAudit: {"provider":"Stremio","stage":"search","status":"EMPTY","ms":1056,"detail":"0 results: "}
+09-12 17:07:47.663  4548  4650 E CloudStreamHost: search StremioX: NotImplementedError: An operation is not implemented.
+09-12 17:07:47.664  4548  4650 I SozoAudit: {"provider":"StremioX","stage":"search","status":"EMPTY","ms":837,"detail":"0 results: "}
+09-12 17:07:47.722  4548  4651 E CloudStreamHost: search SuperStream: NotImplementedError: An operation is not implemented.
+09-12 17:07:47.723  4548  4651 I SozoAudit: {"provider":"SuperStream","stage":"search","status":"EMPTY","ms":279,"detail":"0 results: "}
+09-12 17:07:48.226  4548  4679 E CloudStreamHost: search StremioC: IllegalArgumentException: Expected URL scheme 'http' or 'https' but no scheme was found for /manif...
+09-12 17:07:48.226  4548  4679 I SozoAudit: {"provider":"StremioC","stage":"search","status":"EMPTY","ms":617,"detail":"0 results: "}
+09-12 17:07:48.588  4548  4651 I SozoAudit: {"provider":"StreamPlay-Anime","stage":"search","status":"OK","ms":1797,"detail":"20 results: Naruto, ROAD OF NARUTO, Naruto: Shippuuden Movie 6 - Road to Ninja"}
+09-12 17:07:48.610  4548  4650 E CloudStreamHost: search Toonstream: NotImplementedError: An operation is not implemented.
+09-12 17:07:48.615  4548  4650 I SozoAudit: {"provider":"Toonstream","stage":"search","status":"EMPTY","ms":383,"detail":"0 results: "}
+09-12 17:07:48.940  4548  4651 I SozoAudit: {"provider":"Tamilblasters","stage":"search","status":"EMPTY","ms":1274,"detail":"0 results: "}
+09-12 17:07:49.395  4548  4650 I SozoAudit: {"provider":"ToonHub4u","stage":"search","status":"OK","ms":1672,"detail":"10 results: 1080p Rocky Naruto: Shippuden Season 16 Episodes BluRay , Anime Series Rocky Naruto: Shippuden Season 15 Episodes BluRay , Anime Series Rocky Naruto: Shippuden Season 14 Episodes BluRay Multi Audio "}
+09-12 17:07:49.568  4548  4679 E CloudStreamHost: search TorraStream: NotImplementedError: An operation is not implemented.
+09-12 17:07:49.569  4548  4679 I SozoAudit: {"provider":"TorraStream","stage":"search","status":"EMPTY","ms":172,"detail":"0 results: "}
+09-12 17:07:49.574  4548  4651 I SozoAudit: {"provider":"ToonTales","stage":"search","status":"EMPTY","ms":984,"detail":"0 results: "}
+09-12 17:07:50.020  4548  4652 I SozoAudit: {"provider":"TorraStream-Anime","stage":"search","status":"OK","ms":450,"detail":"20 results: Naruto, ROAD OF NARUTO, Naruto: Shippuuden Movie 6 - Road to Ninja"}
+09-12 17:07:50.196  4548  4652 E CloudStreamHost: search Ultima: NotImplementedError: An operation is not implemented.
+09-12 17:07:50.197  4548  4652 I SozoAudit: {"provider":"Ultima","stage":"search","status":"EMPTY","ms":175,"detail":"0 results: "}
+09-12 17:07:50.399  4548  4651 I SozoAudit: {"provider":"Topcartoons","stage":"search","status":"EMPTY","ms":1783,"detail":"0 results: "}
+09-12 17:07:50.603  4548  4650 E CloudStreamHost: search XD Movies: NotImplementedError: An operation is not implemented.
+09-12 17:07:50.604  4548  4650 I SozoAudit: {"provider":"XD Movies","stage":"search","status":"EMPTY","ms":405,"detail":"0 results: "}
+09-12 17:07:50.873  4548  4652 I SozoAudit: {"provider":"TopStreamFilm","stage":"search","status":"OK","ms":1931,"detail":"14 results: Road to Ninja: Naruto the Movie – Der Film, Boruto - Naruto The Movie – Der Film, The Last: Naruto the Movie – Der Film"}
+09-12 17:07:51.142  4548  4673 I SozoAudit: {"provider":"UHDmovies","stage":"search","status":"OK","ms":1567,"detail":"1 results: Naruto Shippuden (2007) (Season 1-3)"}
+09-12 17:07:51.323  4548  4652 E CloudStreamHost: search Zinkmovies: NotImplementedError: An operation is not implemented.
+09-12 17:07:51.324  4548  4652 I SozoAudit: {"provider":"Zinkmovies","stage":"search","status":"EMPTY","ms":449,"detail":"0 results: "}
+09-12 17:07:52.193  4548  4652 I SozoAudit: {"provider":"9kMovies","stage":"search","status":"EMPTY","ms":1050,"detail":"0 results: "}
+09-12 17:07:53.373  4548  4652 I SozoAudit: {"provider":"YTS","stage":"search","status":"OK","ms":2971,"detail":"60 results: A Caribbean Mystery, Book of Love, Dao"}
+09-12 17:07:53.583  4548  4673 I SozoAudit: {"provider":"YTS MX","stage":"search","status":"OK","ms":2950,"detail":"14 results: [JA] Gekijouban Naruto: Buraddo purizun, [JA] Gekijô ban Naruto: Shippûden - Kizuna, [JA] Gekijouban Naruto Shippuuden: Za rosuto tawâ"}
+09-12 17:08:01.725  4548  4673 E CloudStreamHost: search (BDIX) BD IP TV: SocketTimeoutException: failed to connect to tv.bdiptv.net/103.89.248.2 (port 80) from /10.0.2.15 (port 56512) after 10000ms
+09-12 17:08:01.727  4548  4673 I SozoAudit: {"provider":"(BDIX) BD IP TV","stage":"search","status":"EMPTY","ms":10402,"detail":"0 results: "}
+09-12 17:08:02.498  4548  4673 E CloudStreamHost: search (BDIX) IpTvIDN: SocketTimeoutException: failed to connect to iptvidn.com/103.89.248.3 (port 80) from /10.0.2.15 (port 50838) after 10000ms
+09-12 17:08:02.499  4548  4673 I SozoAudit: {"provider":"(BDIX) IpTvIDN","stage":"search","status":"EMPTY","ms":10304,"detail":"0 results: "}
+09-12 17:08:03.834  4548  4652 I SozoAudit: {"provider":"(BDIX) CloudTV","stage":"search","status":"EMPTY","ms":10250,"detail":"0 results: "}
+09-12 17:08:13.381  4548  4650 E CloudStreamHost: search (BDIX) Circle FTP: TimeoutCancellationException: Timed out waiting for 20000 ms
+09-12 17:08:13.387  4548  4650 I SozoAudit: {"provider":"(BDIX) Circle FTP","stage":"search","status":"TIMEOUT_OR_NULL","ms":20011,"detail":"0 results: null"}
+09-12 17:08:13.874  4548  4650 E CloudStreamHost: search (BDIX) DhakaFlix 14: SocketTimeoutException: failed to connect to /172.16.50.14 (port 80) from /10.0.2.15 (port 50978) after 10000ms
+09-12 17:08:13.878  4548  4650 I SozoAudit: {"provider":"(BDIX) DhakaFlix 14","stage":"search","status":"EMPTY","ms":10041,"detail":"0 results: "}
+09-12 17:08:21.741  4548  4650 E CloudStreamHost: search (BDIX) Dflix Movies: TimeoutCancellationException: Timed out waiting for 20000 ms
+09-12 17:08:21.748  4548  4650 I SozoAudit: {"provider":"(BDIX) Dflix Movies","stage":"search","status":"TIMEOUT_OR_NULL","ms":20019,"detail":"0 results: null"}
+09-12 17:08:22.525  4548  4650 E CloudStreamHost: search (BDIX) Dflix Series: TimeoutCancellationException: Timed out waiting for 20000 ms
+09-12 17:08:22.527  4548  4650 I SozoAudit: {"provider":"(BDIX) Dflix Series","stage":"search","status":"TIMEOUT_OR_NULL","ms":20027,"detail":"0 results: null"}
+09-12 17:08:23.485  4548  4650 E CloudStreamHost: search (BDIX) DhakaFlix 7: SocketTimeoutException: failed to connect to /172.16.50.7 (port 80) from /10.0.2.15 (port 59694) after 10000ms
+09-12 17:08:23.486  4548  4650 I SozoAudit: {"provider":"(BDIX) DhakaFlix 7","stage":"search","status":"EMPTY","ms":10097,"detail":"0 results: "}
+09-12 17:08:24.017  4548  4673 E CloudStreamHost: search (BDIX) DhakaFlix 9: SocketTimeoutException: failed to connect to /172.16.50.9 (port 80) from /10.0.2.15 (port 58592) after 10000ms
+09-12 17:08:24.018  4548  4673 I SozoAudit: {"provider":"(BDIX) DhakaFlix 9","stage":"search","status":"EMPTY","ms":10138,"detail":"0 results: "}
+09-12 17:08:25.284  4548  4652 I SozoAudit: {"provider":"Prime Video","stage":"search","status":"OK","ms":1263,"detail":"2 results: NARUTO, Naruto Shippuden"}
+09-12 17:08:25.286  4548  4673 I SozoAudit: {"provider":"Netflix","stage":"search","status":"OK","ms":1797,"detail":"3 results: Naruto, Naruto Shippuden, Boruto: Naruto Next Generations"}
+09-12 17:08:25.607  4548  4650 I SozoAudit: {"provider":"Disney Plus","stage":"search","status":"EMPTY","ms":320,"detail":"0 results: "}
+09-12 17:08:25.616  4548  4652 I SozoAudit: {"provider":"Hotstar","stage":"search","status":"EMPTY","ms":326,"detail":"0 results: "}
+09-12 17:08:28.004  4548  4651 E CloudStreamHost: search BollyFlix: NotImplementedError: An operation is not implemented.
+09-12 17:08:28.006  4548  4651 I SozoAudit: {"provider":"BollyFlix","stage":"search","status":"EMPTY","ms":2394,"detail":"0 results: "}
+09-12 17:08:28.193  4548  4652 E CloudStreamHost: search MoviesDrive: NotImplementedError: An operation is not implemented.
+09-12 17:08:28.195  4548  4652 I SozoAudit: {"provider":"MoviesDrive","stage":"search","status":"EMPTY","ms":2577,"detail":"0 results: "}
+09-12 17:08:28.487  4548  4676 E CloudStreamHost: search Moviesmod: NotImplementedError: An operation is not implemented.
+09-12 17:08:28.487  4548  4650 E CloudStreamHost: search TopMovies: NotImplementedError: An operation is not implemented.
+09-12 17:08:28.488  4548  4676 I SozoAudit: {"provider":"Moviesmod","stage":"search","status":"EMPTY","ms":481,"detail":"0 results: "}
+09-12 17:08:28.489  4548  4650 I SozoAudit: {"provider":"TopMovies","stage":"search","status":"EMPTY","ms":292,"detail":"0 results: "}
+09-12 17:08:28.762  4548  4673 E CloudStreamHost: search Rogmovies: NotImplementedError: An operation is not implemented.
+09-12 17:08:28.762  4548  4651 E CloudStreamHost: search VegaMovies: NotImplementedError: An operation is not implemented.
+09-12 17:08:28.763  4548  4673 I SozoAudit: {"provider":"Rogmovies","stage":"search","status":"EMPTY","ms":273,"detail":"0 results: "}
+09-12 17:08:28.765  4548  4651 I SozoAudit: {"provider":"VegaMovies","stage":"search","status":"EMPTY","ms":273,"detail":"0 results: "}
+09-12 17:08:28.771  4548  4676 I SozoAudit: {"provider":"Mp4Moviez","stage":"search","status":"OK","ms":6242,"detail":"2 results: Naruto the Movie: Ninja Clash in the Land of Snow (2004) Hindi Dubbed Movie download full movie, The Last: Naruto the Movie (2014) Hindi Fan Dubbed Movie download full movie"}
+09-12 17:08:31.774  4548  4676 E CloudStreamHost: search (BDIX) DhakaFlix 12: SocketTimeoutException: failed to connect to /172.16.50.12 (port 80) from /10.0.2.15 (port 36410) after 10000ms
+09-12 17:08:31.775  4548  4676 I SozoAudit: {"provider":"(BDIX) DhakaFlix 12","stage":"search","status":"EMPTY","ms":10025,"detail":"0 results: "}
+09-12 17:08:31.779  4548  4676 I SozoAudit: {"provider":"ALL","stage":"complete","status":"DONE","ms":0,"detail":"{}"}

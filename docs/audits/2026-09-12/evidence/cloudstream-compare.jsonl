@@ -1,0 +1,18 @@
+{"provider":"ALL","stage":"inventory","status":"OK","ms":0,"detail":"8 providers"}
+{"provider":"Anichi","stage":"paged-search","status":"ERROR","ms":6,"detail":"java.lang.NoSuchMethodError: No virtual method encodeUrl(Ljava\/lang\/String;)Ljava\/lang\/String; in class Lcom\/lagradost\/cloudstream3\/utils\/StringUtils; or its super classes (declaration of 'com.lagradost.cloudstream3.utils.StringUtils' appears in \/data\/app\/~~bIZandDDPPx2nbd7MK4S5w==\/com.saikou.sozo_tv-y6LLMBfGImfeRRlRsUICLg==\/base.apk!classes21.dex)"}
+{"provider":"Anichi","stage":"search","status":"EMPTY","ms":509,"detail":"0 results: "}
+{"provider":"AniDB","stage":"paged-search","status":"EMPTY","ms":1244,"detail":"0 results: "}
+{"provider":"AniDB","stage":"search","status":"EMPTY","ms":1444,"detail":"0 results: "}
+{"provider":"AllWish","stage":"paged-search","status":"OK","ms":2199,"detail":"26 results: Naruto: Shippuuden Movie 5 - Blood Prison, Naruto Shippuuden Movie 3: Inheritors of Will of Fire, Boruto: Naruto the Movie"}
+{"provider":"AllWish","stage":"search","status":"EMPTY","ms":2651,"detail":"0 results: "}
+{"provider":"Anikage","stage":"paged-search","status":"OK","ms":2532,"detail":"25 results: Naruto, Naruto: Shippuden, Boruto: Naruto Next Generations"}
+{"provider":"Anikage","stage":"search","status":"EMPTY","ms":2785,"detail":"0 results: "}
+{"provider":"KickassAnime","stage":"paged-search","status":"OK","ms":3084,"detail":"29 results: Naruto, Naruto the Movie 1: Ninja Clash in the Land of Snow, Naruto: The Lost Story - Mission: Protect the Waterfall Village"}
+{"provider":"KickassAnime","stage":"search","status":"EMPTY","ms":3124,"detail":"0 results: "}
+{"provider":"MovieBox","stage":"paged-search","status":"OK","ms":3277,"detail":"14 results: Naruto, Naruto [Russian], Naruto [English]"}
+{"provider":"MovieBox","stage":"search","status":"EMPTY","ms":3474,"detail":"0 results: "}
+{"provider":"StreamPlay","stage":"paged-search","status":"OK","ms":1097,"detail":"20 results: Naruto, Naruto Shippūden, Boruto: Naruto Next Generations"}
+{"provider":"StreamPlay","stage":"search","status":"EMPTY","ms":2528,"detail":"0 results: "}
+{"provider":"SuperStream","stage":"paged-search","status":"OK","ms":1329,"detail":"20 results: Naruto, Naruto Shippūden, Boruto: Naruto Next Generations"}
+{"provider":"SuperStream","stage":"search","status":"EMPTY","ms":2646,"detail":"0 results: "}
+{"provider":"ALL","stage":"complete","status":"DONE","ms":0,"detail":"{}"}

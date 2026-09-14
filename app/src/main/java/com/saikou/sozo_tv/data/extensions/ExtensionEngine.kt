@@ -296,7 +296,7 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
      *
      * Four bounds, all load-bearing — a CloudStream repo alone can install
      * dozens of providers:
-     *   - [maxProviders] caps how many are queried at all;
+     *   - [maxProviders] is an optional caller limit; by default every installed source is queried;
      *   - [concurrency] caps how many run AT ONCE. The old fan-out launched all
      *     twelve together, and each one may dex-load an extension APK; on a
      *     low-end box that is a thundering herd that slows every leg down;
@@ -321,11 +321,9 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
         if (q.isEmpty()) return@channelFlow
 
         val active = getActiveProvider()
-        val candidates = listOf(ExtGroup.SERVER, ExtGroup.ANIYOMI, ExtGroup.CLOUDSTREAM)
+        val available = listOf(ExtGroup.SERVER, ExtGroup.ANIYOMI, ExtGroup.CLOUDSTREAM)
             .flatMap { g -> runCatching { providers(g) }.getOrDefault(emptyList()) }
-            .distinctBy { it.id }
-            .sortedByDescending { it.id == active }
-            .take(maxProviders)
+        val candidates = searchCandidates(available, active, maxProviders)
 
         if (candidates.isEmpty()) return@channelFlow
 
@@ -429,7 +427,7 @@ class ExtensionEngine(private val appContext: Context = MyApp.context) {
         // titles loaded on the phone.
         private const val DETAIL_TIMEOUT_MS = 45_000L
 
-        private const val MAX_GLOBAL_PROVIDERS = 12
+        private const val MAX_GLOBAL_PROVIDERS = Int.MAX_VALUE
 
         private const val GLOBAL_SEARCH_CONCURRENCY = 4
 

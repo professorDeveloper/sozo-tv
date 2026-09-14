@@ -412,16 +412,16 @@ class PluginHost(private val appContext: Context) {
 
     suspend fun searchJson(providerName: String, query: String): String {
         val api = apiByName(providerName)
+            ?: error("CloudStream provider '$providerName' is unavailable")
+        val result = searchCloudStream(api, query)
         val items = JSONArray()
-        if (api != null) {
-            val results = try { api.search(query) } catch (t: Throwable) {
-                Log.e(TAG, "search ${api.name}: ${t.javaClass.simpleName}: ${t.message}"); null
-            } ?: emptyList()
-            for (r in results) items.put(cardJson(r, api.name))
-        }
+        result?.items?.forEach { items.put(cardJson(it, api.name)) }
         return JSONObject().apply {
-            put("provider", providerName); put("items", items)
-            put("query", query); put("page", 1); put("totalPages", 1)
+            put("provider", providerName)
+            put("items", items)
+            put("query", query)
+            put("page", 1)
+            put("totalPages", if (result?.hasNext == true) 2 else 1)
         }.toString()
     }
 
@@ -494,13 +494,15 @@ class PluginHost(private val appContext: Context) {
             try {
                 val q = resp.name.replace(Regex("\\(.*?\\)"), "").trim()
                 if (q.length >= 2) {
-                    val results = api.search(q) ?: emptyList()
+                    val results = searchCloudStream(api, q)?.items.orEmpty()
                     for (sr in results) {
                         if (sr.url == resp.url) continue
                         related.put(cardJson(sr, api.name))
                         if (related.length() >= 20) break
                     }
                 }
+            } catch (c: kotlinx.coroutines.CancellationException) {
+                throw c
             } catch (_: Throwable) { }
         }
 

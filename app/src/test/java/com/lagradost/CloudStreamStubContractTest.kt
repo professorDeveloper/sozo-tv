@@ -33,6 +33,13 @@ import org.junit.Test
  * renames.
  */
 class CloudStreamStubContractTest {
+    @Test
+    fun `CommonActivity activity getter is callable on the singleton instance`() {
+        val getter = clazz("com.lagradost.cloudstream3.CommonActivity").getMethod("getActivity")
+        org.junit.Assert.assertFalse(java.lang.reflect.Modifier.isStatic(getter.modifiers))
+        assertEquals(android.app.Activity::class.java, getter.returnType)
+    }
+
 
     private fun clazz(name: String): Class<*> =
         try {
