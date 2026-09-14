@@ -1,0 +1,83 @@
+package com.saikou.sozo_tv.audit
+
+import android.os.Bundle
+import android.util.Log
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.saikou.sozo_tv.data.extensions.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import org.json.JSONObject
+import java.io.File
+
+class AuditActivity : AppCompatActivity() {
+    private lateinit var output: File
+    private lateinit var label: TextView
+    @Synchronized private fun record(provider: String, stage: String, status: String, ms: Long, detail: String) {
+        val row = JSONObject().put("provider",provider).put("stage",stage).put("status",status).put("ms",ms).put("detail",detail).toString()
+        output.appendText(row + "\n")
+        Log.i("SozoAudit", row)
+        runOnUiThread { label.text = "SOZO TV — CloudStream audit\n\n$provider\n$stage · $status · ${ms}ms\n\n${detail.take(400)}" }
+    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        label = TextView(this).apply { textSize=24f; setPadding(60,60,60,60); text="CloudStream audit starting…" }
+        setContentView(label)
+        output = File(filesDir,"cloudstream-audit.jsonl")
+        output.writeText("")
+        lifecycleScope.launch(Dispatchers.IO) {
+            delay(750)
+            val engine=ExtensionEngine.shared
+            val openProvider = intent.getStringExtra("openProvider")
+            if(openProvider != null) {
+                val page = engine.search(openProvider,"Naruto")
+                val card = page?.items?.firstOrNull { it.title.equals("Naruto",true) } ?: page?.items?.firstOrNull()
+                if(card!=null) {
+                    val id=ExtensionContentRegistry.encode(card)
+                    withContext(Dispatchers.Main) {
+                        startActivity(android.content.Intent(this@AuditActivity,com.saikou.sozo_tv.presentation.activities.PlayerActivity::class.java).putExtra("model",id))
+                    }
+                }
+                return@launch
+            }
+            val names=intent.getStringExtra("providers")?.split("|")
+            val providers=engine.providers(ExtGroup.CLOUDSTREAM).filter { names==null || it.name in names }
+            record("ALL","inventory","OK",0,"${providers.size} providers")
+            val sem=Semaphore(4)
+            providers.map { p -> async {
+                sem.withPermit {
+                    val started=System.currentTimeMillis()
+                    try {
+                        val result=withTimeoutOrNull(20_000) { engine.search(p.id,"Naruto") }
+                        var probe = result
+                        if(intent.getBooleanExtra("compare",false)) {
+                            val api=com.lagradost.cloudstream3.APIHolder.allProviders.firstOrNull { it.name==p.name }
+                            val t2=System.currentTimeMillis()
+                            try {
+                                val paged=withTimeoutOrNull(20_000) { api?.search("Naruto",1) }
+                                probe = paged?.let { ExtPage(p.id,it.items.map { c -> ExtCard(p.id,c.name,c.url,c.posterUrl,c.type?.name) },1,if(it.hasNext) 2 else 1) }
+                                record(p.name,"paged-search",if(paged==null) "NULL_OR_TIMEOUT" else if(paged.items.isEmpty()) "EMPTY" else "OK",System.currentTimeMillis()-t2,"${paged?.items?.size ?: 0} results: ${paged?.items?.take(3)?.joinToString { it.name }}")
+                            } catch(t:Throwable) { record(p.name,"paged-search","ERROR",System.currentTimeMillis()-t2,"${t.javaClass.name}: ${t.message}") }
+                        }
+                        record(p.name,"search",if(result==null) "TIMEOUT_OR_NULL" else if(result.items.isEmpty()) "EMPTY" else "OK",System.currentTimeMillis()-started,"${result?.items?.size ?: 0} results: ${result?.items?.take(3)?.joinToString { it.title }}")
+                        if(intent.getBooleanExtra("detail",false) && !probe?.items.isNullOrEmpty()) {
+                            val card=probe!!.items.first()
+                            val dt=System.currentTimeMillis()
+                            val d=withTimeoutOrNull(25_000) { engine.load(p.id,card.contentUrl) }
+                            record(p.name,"detail",if(d==null) "EMPTY_OR_TIMEOUT" else "OK",System.currentTimeMillis()-dt,"${d?.title}; episodes=${d?.episodes?.size}")
+                            val ep=d?.episodes?.firstOrNull()
+                            if(ep!=null) {
+                                val mt=System.currentTimeMillis()
+                                val m=withTimeoutOrNull(30_000) { engine.loadLinks(p.id,ep.mediaRef) }
+                                record(p.name,"links",if(m==null) "TIMEOUT" else if(m.sources.isEmpty() && m.videoUrl.isNullOrEmpty()) "EMPTY" else "OK",System.currentTimeMillis()-mt,"sources=${m?.sources?.size}; subtitles=${m?.subtitles?.size}")
+                            }
+                        }
+                    } catch(t:Throwable) { record(p.name,"request","ERROR",System.currentTimeMillis()-started,"${t.javaClass.name}: ${t.message}") }
+                }
+            } }.awaitAll()
+            record("ALL","complete","DONE",0,engine.loadErrors(ExtGroup.CLOUDSTREAM).toString())
+        }
+    }
+}

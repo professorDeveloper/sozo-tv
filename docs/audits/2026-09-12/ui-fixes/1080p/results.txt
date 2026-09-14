@@ -1,0 +1,8 @@
+first PASS: focused expected=782.07996x136.23999; visible=784x137; rect=Rect(48, 306 - 832, 443); class=LinearLayout
+quality PASS: focused expected=782.07996x148.72; visible=784x149; rect=Rect(48, 306 - 832, 455); class=LinearLayout
+popup PASS: focused expected=790.39996x114.399994; visible=792x116; rect=Rect(44, 133 - 836, 249); class=LinearLayout
+chooser PASS: focused expected=207.36002x103.68001; visible=208x104; rect=Rect(680, 160 - 888, 264); class=TvOptionChipView
+search PASS: focused expected=259.2x103.68001; visible=260x104; rect=Rect(598, 136 - 858, 240); class=TvOptionChipView
+last PASS: focused expected=782.07996x136.23999; visible=784x137; rect=Rect(48, 667 - 832, 804); class=LinearLayout
+single PASS: focused expected=782.07996x136.23999; visible=784x137; rect=Rect(48, 306 - 832, 443); class=LinearLayout
+style PASS: focused expected=338.04x120.96001; visible=339x122; rect=Rect(43, 464 - 382, 586); class=TvOptionChipView

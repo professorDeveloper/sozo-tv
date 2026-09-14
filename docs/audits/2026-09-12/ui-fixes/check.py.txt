@@ -1,0 +1,14 @@
+import subprocess,time,pathlib
+adb=['/Users/azamov/Library/Android/sdk/platform-tools/adb','-s','emulator-5556']
+for name,args in [('first',[]),('quality',['--es','kind','quality']),('popup',['--es','kind','popup']),('chooser',['--es','kind','chooser']),('search',['--es','kind','search']),('last',['--ei','selected','11']),('single',['--ei','count','1']),('style',['--es','kind','style'])]:
+ subprocess.run(adb+['shell','run-as','com.saikou.sozo_tv','rm','-f','files/ui-audit.txt'],capture_output=True)
+ subprocess.run(adb+['shell','am','start','-S','-n','com.saikou.sozo_tv/.audit.UiAuditActivity']+args,capture_output=True)
+ for attempt in range(30):
+  time.sleep(.5)
+  check=subprocess.run(adb+['shell','run-as','com.saikou.sozo_tv','cat','files/ui-audit.txt'],capture_output=True)
+  if check.returncode==0: break
+ else: raise RuntimeError('No fresh measurement: '+name)
+ result=subprocess.check_output(adb+['shell','run-as','com.saikou.sozo_tv','cat','files/ui-audit.txt']).decode()
+ pathlib.Path('/tmp/sozo-ui/'+name+'.txt').write_text(result)
+ pathlib.Path('/tmp/sozo-ui/'+name+'.png').write_bytes(subprocess.check_output(adb+['exec-out','screencap','-p']))
+ print(name,result,flush=True)

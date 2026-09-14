@@ -1,0 +1,2 @@
+PASS: newest query wins; actual=Naruto B
+PASS: failed request stops loading; actual=false

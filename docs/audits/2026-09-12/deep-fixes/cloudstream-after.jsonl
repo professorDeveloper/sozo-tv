@@ -1,0 +1,9 @@
+{"provider":"ALL","stage":"inventory","status":"OK","ms":0,"detail":"7 providers"}
+{"provider":"AllWish","stage":"search","status":"OK","ms":575,"detail":"26 results: Naruto: Shippuuden Movie 5 - Blood Prison, Naruto Shippuuden Movie 3: Inheritors of Will of Fire, Boruto: Naruto the Movie"}
+{"provider":"MovieBox","stage":"search","status":"OK","ms":970,"detail":"14 results: Naruto, Naruto [Russian], Naruto [English]"}
+{"provider":"Anikage","stage":"search","status":"OK","ms":1083,"detail":"25 results: Naruto, Naruto: Shippuden, Boruto: Naruto Next Generations"}
+{"provider":"KickassAnime","stage":"search","status":"OK","ms":2929,"detail":"29 results: Naruto, Naruto the Movie 1: Ninja Clash in the Land of Snow, Naruto: The Lost Story - Mission: Protect the Waterfall Village"}
+{"provider":"SuperStream","stage":"search","status":"OK","ms":2995,"detail":"20 results: Naruto, Naruto Shippūden, Boruto: Naruto Next Generations"}
+{"provider":"StreamPlay","stage":"search","status":"OK","ms":3774,"detail":"20 results: Naruto, Naruto Shippūden, Boruto: Naruto Next Generations"}
+{"provider":"AnimePahe","stage":"search","status":"TIMEOUT_OR_NULL","ms":20412,"detail":"0 results: null"}
+{"provider":"ALL","stage":"complete","status":"DONE","ms":0,"detail":"{}"}
