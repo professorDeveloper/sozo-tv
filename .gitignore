@@ -21,3 +21,7 @@ key.properties
 
 # Sozo Glass design-system working docs (generated)
 /.glass-spec
+
+# Internal docs — audits, plans, notes. This repository is public; these stay
+# on the developer's machine and are never published.
+/docs/

@@ -1,2 +1,0 @@
-FAIL: newest query wins; actual=Naruto A
-FAIL: failed request stops loading; actual=true

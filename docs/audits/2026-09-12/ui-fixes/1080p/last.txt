@@ -1,1 +1,0 @@
-PASS: focused expected=782.07996x136.23999; visible=784x137; rect=Rect(48, 667 - 832, 804); class=LinearLayout

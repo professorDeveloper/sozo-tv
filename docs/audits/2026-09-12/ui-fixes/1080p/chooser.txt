@@ -1,1 +1,0 @@
-PASS: focused expected=207.36002x103.68001; visible=208x104; rect=Rect(680, 160 - 888, 264); class=TvOptionChipView
