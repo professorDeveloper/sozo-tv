@@ -18,7 +18,8 @@ import kotlinx.coroutines.launch
 class SearchViewModel(private val repo: SearchRepository) : ViewModel() {
     private val _searchResults = MutableLiveData<List<SearchModel>>()
     val searchResults get() = _searchResults
-    val errorData = MutableLiveData<String>()
+    /** The last search's failure; null while a search is running or after one succeeds. */
+    val errorData = MutableLiveData<String?>()
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> get() = _loading
     private val _searchProgress = MutableStateFlow(SearchProgress())

@@ -516,6 +516,9 @@ class SearchScreen : Fragment() {
 
         lifecycleScope.launch {
             model.errorData.observe(viewLifecycleOwner) { errorMessage ->
+                // Cleared at the start of every search: that is not a failure,
+                // and must not replace the grid with the network-error state.
+                if (errorMessage == null) return@observe
                 hideResultsGrid()
                 binding.placeHolder.root.visibility = View.VISIBLE
                 binding.placeHolder.placeholderTxt.text = requireContext().humanError(errorMessage)
