@@ -310,10 +310,25 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-okio:1.7.3")
     implementation("io.reactivex:rxjava:1.3.8")
     // JS engine for Aniyomi extractors that deobfuscate links (QuickJS).
-    implementation("app.cash.quickjs:quickjs-android:0.9.2")
+    //
+    // The published app.cash.quickjs:quickjs-android:0.9.2 with its native
+    // library rebuilt 16 KB page-aligned (the same AAR as the phone app's
+    // android/app/libs). Upstream libquickjs.so is 4 KB-aligned, and on a
+    // 16 KB-page device dlopen refuses it outright. Same classes.jar, same
+    // sources (cashapp/zipline a738129cc4), same JNI entry points; built with
+    // NDK r28 and -Wl,-z,max-page-size=16384. Extensions compile against this
+    // API, so it has to stay this library and version.
+    implementation(files("libs/quickjs-android-0.9.2-16k.aar"))
+    implementation("androidx.annotation:annotation:1.9.1")
 
     testImplementation("junit:junit:4.13.2")
     // The android.jar stub's org.json does nothing; the repo parsers are built on it, so the
     // unit tests need the real implementation ahead of the stub on their classpath.
     testImplementation("org.json:json:20250517")
+}
+
+// See the quickjs entry in dependencies: the 16 KB-aligned rebuild replaces it,
+// so nothing may bring the published one back.
+configurations.all {
+    exclude(group = "app.cash.quickjs", module = "quickjs-android")
 }
