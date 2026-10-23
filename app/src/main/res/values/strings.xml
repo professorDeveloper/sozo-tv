@@ -1,20 +1,20 @@
 <resources>
-    <string name="profile_who_is_watching">Kim tomosha qilyapti?</string>
-    <string name="profile_picker_hint">Profilni tanlang va tomosha qilishni davom ettiring</string>
-    <string name="profile_add">+ Profil qo‘shish</string>
-    <string name="profile_manage">Profillarni boshqarish</string>
-    <string name="profile_done">Tayyor</string>
-    <string name="profile_kids">BOLALAR</string>
-    <string name="profile_kids_mode">Bolalar profili</string>
-    <string name="profile_choose_avatar">Avatarni tanlash</string>
-    <string name="profile_name_hint">Profil nomi</string>
-    <string name="profile_create_title">Yangi profil</string>
-    <string name="profile_edit_title">Profilni tahrirlash</string>
-    <string name="profile_save">Saqlash</string>
-    <string name="profile_delete">O‘chirish</string>
-    <string name="profile_load_failed">Profillarni yuklab bo‘lmadi</string>
-    <string name="profile_name_required">Profil nomini kiriting</string>
-    <string name="profile_delete_confirm">Bu profil va uning TV tarixini o‘chirasizmi?</string>
+    <string name="profile_who_is_watching">Who’s watching?</string>
+    <string name="profile_picker_hint">Pick a profile and keep watching</string>
+    <string name="profile_add">+ Add profile</string>
+    <string name="profile_manage">Manage profiles</string>
+    <string name="profile_done">Done</string>
+    <string name="profile_kids">KIDS</string>
+    <string name="profile_kids_mode">Kids profile</string>
+    <string name="profile_choose_avatar">Choose an avatar</string>
+    <string name="profile_name_hint">Profile name</string>
+    <string name="profile_create_title">New profile</string>
+    <string name="profile_edit_title">Edit profile</string>
+    <string name="profile_save">Save</string>
+    <string name="profile_delete">Delete</string>
+    <string name="profile_load_failed">Couldn’t load profiles</string>
+    <string name="profile_name_required">Enter a profile name</string>
+    <string name="profile_delete_confirm">Delete this profile and its TV history?</string>
     <string name="app_name">Sozo Tv</string>
 
     <!-- Error messages -->
