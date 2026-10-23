@@ -1,0 +1,62 @@
+name: SozoTV
+options:
+  bundleIdPrefix: com.saikou
+  deploymentTarget:
+    tvOS: "17.0"
+settings:
+  base:
+    SWIFT_VERSION: 5.9
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_LANGUAGE: en
+    DEVELOPMENT_TEAM: ""
+targets:
+  SozoTV:
+    type: application
+    platform: tvOS
+    sources:
+      - path: SozoTV
+      - path: Resources
+        buildPhase: resources
+    info:
+      path: SozoTV/Info.plist
+      properties:
+        CFBundleDisplayName: Sozo TV
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchScreen: {}
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoadsInWebContent: false
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.saikou.sozotv
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: false
+        CODE_SIGNING_ALLOWED: true
+        "CODE_SIGN_IDENTITY[sdk=appletvsimulator*]": "-"
+  SozoTVUITests:
+    type: bundle.ui-testing
+    platform: tvOS
+    sources:
+      - path: Tests/UI
+    dependencies:
+      - target: SozoTV
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+        CODE_SIGNING_ALLOWED: true
+        "CODE_SIGN_IDENTITY[sdk=appletvsimulator*]": "-"
+schemes:
+  SozoTV:
+    build:
+      targets:
+        SozoTV: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - SozoTVUITests

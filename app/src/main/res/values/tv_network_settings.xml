@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tv_dns_title">Source DNS</string>
+    <string name="tv_dns_hint">Choose how source addresses are resolved. Applies to new connections.</string>
+    <string name="tv_dns_system">System default</string>
+    <string name="tv_stream_quality_title">Streaming quality</string>
+    <string name="tv_stream_quality_hint">Preferred maximum for new playback. Actual quality depends on the source.</string>
+    <string name="tv_stream_quality_auto">Auto</string>
+    <string name="tv_stream_quality_data_saver">Data saver</string>
+    <string name="tv_library_tools">Downloads and watching together</string>
+    <string name="tv_watch_party_title">Watch Party</string>
+    <string name="tv_player_title">Video player</string>
+    <string name="tv_player_hint">External apps may not support protected sources or all playback controls.</string>
+    <string name="tv_player_internal">Built-in player</string>
+    <string name="tv_player_external">External app</string>
+</resources>

@@ -338,6 +338,7 @@
 
                 <FrameLayout
                     android:id="@+id/exo_server"
+                    android:contentDescription="@string/player_server_title"
                     style="@style/PlayerGlassButton"
                     android:layout_marginEnd="8dp"
                     android:nextFocusUp="@id/exo_progress"
@@ -350,6 +351,7 @@
 
                 <FrameLayout
                     android:id="@+id/exo_quality"
+                    android:contentDescription="@string/player_quality_title"
                     style="@style/PlayerGlassButton"
                     android:layout_marginEnd="8dp"
                     android:nextFocusUp="@id/exo_progress"

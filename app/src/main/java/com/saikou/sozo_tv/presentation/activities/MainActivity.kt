@@ -28,6 +28,8 @@ import com.saikou.sozo_tv.data.extensions.ExtensionContentRegistry
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.data.remote.remote.RemoteCommand
 import com.saikou.sozo_tv.data.repository.RemoteControlManager
+import com.saikou.sozo_tv.data.repository.HouseholdProfileRepository
+import com.saikou.sozo_tv.presentation.profiles.ProfileAvatarResources
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -39,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     private val model: SettingsViewModel by viewModel()
     private val remote: RemoteControlManager by inject()
     private val engine: ExtensionEngine by inject()
+    private val householdProfiles: HouseholdProfileRepository by inject()
     private var _binding: ActivityMainBinding? = null
     private var headerBinding: ContentHeaderMenuMainTvBinding? = null
     private val binding get() = _binding!!
@@ -47,7 +50,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         model.loadProfile()
         setupNavigation()
         setupBackBehaviour()
@@ -245,13 +248,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleUserDataState(header: ContentHeaderMenuMainTvBinding) {
-        model.profileData.observe(this) { profile ->
-            header.tvNavigationHeaderTitle.text = profile.name
-            // A guest has no avatar, and loadImage() falls back to the 404 wallpaper for a blank
-            // URL — leave the tinted placeholder icon in place instead.
-            if (profile.avatarUrl.isNullOrBlank()) return@observe
-            ImageViewCompat.setImageTintList(header.ivNavigationHeaderIcon, null)
-            header.ivNavigationHeaderIcon.loadImage(profile.avatarUrl)
+        model.profileData.observe(this) { account ->
+            if (householdProfiles.state.value.active == null) {
+                header.tvNavigationHeaderTitle.text = account.name
+                if (!account.avatarUrl.isNullOrBlank()) {
+                    ImageViewCompat.setImageTintList(header.ivNavigationHeaderIcon, null)
+                    header.ivNavigationHeaderIcon.loadImage(account.avatarUrl)
+                }
+            }
+        }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                householdProfiles.state.collect { state ->
+                    val profile = state.active ?: return@collect
+                    header.tvNavigationHeaderTitle.text = profile.name
+                    ProfileAvatarResources.drawable(profile.avatar)?.let { drawable ->
+                        ImageViewCompat.setImageTintList(header.ivNavigationHeaderIcon, null)
+                        header.ivNavigationHeaderIcon.setImageResource(drawable)
+                    }
+                }
+            }
         }
     }
 

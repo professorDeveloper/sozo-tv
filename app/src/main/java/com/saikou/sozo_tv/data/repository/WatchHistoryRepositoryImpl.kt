@@ -1,12 +1,20 @@
 package com.saikou.sozo_tv.data.repository
 
-import com.saikou.sozo_tv.data.local.dao.WatchHistoryDao
+import com.saikou.sozo_tv.data.local.database.ProfileDatabaseProvider
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 
 
-class WatchHistoryRepositoryImpl(private val watchHistoryDao: WatchHistoryDao) :
+class WatchHistoryRepositoryImpl(
+    private val databases: ProfileDatabaseProvider,
+    private val pinnedDao: com.saikou.sozo_tv.data.local.dao.WatchHistoryDao? = null,
+) :
     WatchHistoryRepository {
+
+    private val watchHistoryDao get() = pinnedDao ?: databases.historyDao()
+
+    override fun snapshot(namespace: String?): WatchHistoryRepository =
+        WatchHistoryRepositoryImpl(databases, databases.database(namespace).watchHistoryDao())
 
     override suspend fun addHistory(history: WatchHistoryEntity) {
         watchHistoryDao.insertOrUpdate(history)

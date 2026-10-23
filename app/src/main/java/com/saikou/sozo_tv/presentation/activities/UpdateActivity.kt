@@ -87,7 +87,7 @@ class UpdateActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityUpdateBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         binding.progressView1.apply {
             min = PV_MIN
             max = PV_MAX

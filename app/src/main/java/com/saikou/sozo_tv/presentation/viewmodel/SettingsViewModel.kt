@@ -15,6 +15,7 @@ import com.saikou.sozo_tv.data.repository.MalRepository
 import com.saikou.sozo_tv.data.repository.DeviceAuthRepository
 import com.saikou.sozo_tv.data.repository.WatchHistorySyncRepository
 import com.saikou.sozo_tv.data.repository.UserListsRepository
+import com.saikou.sozo_tv.data.repository.HouseholdProfileRepository
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 import com.saikou.sozo_tv.domain.repository.ProfileRepository
 import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
@@ -35,6 +36,7 @@ class SettingsViewModel(
     private val mal: MalRepository,
     private val history: WatchHistoryRepository,
     private val bookmarks: MovieBookmarkRepository,
+    private val householdProfiles: HouseholdProfileRepository,
 ) : ViewModel() {
 
     val contentMode: StateFlow<ContentMode> =
@@ -118,11 +120,12 @@ class SettingsViewModel(
         userLists.clear()
         // Clears the sync cursor and the local history rows, so the next account does not
         // inherit (and upload) this one's watch history.
-        historySync.forgetAccount()
+        historySync.clear()
         anilist.forgetLocal()
         // MAL was left linked in memory and kept scrobbling to the previous account until the
         // process restarted.
         mal.forgetLocal()
+        householdProfiles.clear()
 
         // Runs on the repository's scope, not viewModelScope: the Exit dialog relaunches
         // MainActivity with CLEAR_TASK in the same handler, which tears this ViewModel down and

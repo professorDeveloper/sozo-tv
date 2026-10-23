@@ -17,6 +17,7 @@ data class VodMovieResponse(
     val requestTransformJson: String? = null,
     /** Separate audio renditions the player merges in alongside [urlobj]. */
     val audioTracks: List<AudioTrackRef> = emptyList(),
+    val drm: String? = null,
 ) : Serializable
 
 data class AudioTrackRef(

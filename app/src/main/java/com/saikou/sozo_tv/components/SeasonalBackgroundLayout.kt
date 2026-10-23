@@ -36,11 +36,13 @@ class SeasonalBackgroundLayout @JvmOverloads constructor(
     fun setTheme(theme: SeasonalTheme) {
         if (theme == SeasonalTheme.WINTER) {
             if (snow == null) snow = SnowRenderer(context)
+            snow?.onSizeChanged(width, height)
         } else {
             snow = null
             festive = null
         }
-        startAnim()
+        if (hasEffects()) startAnim() else stopAnim()
+        invalidate()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -58,7 +60,7 @@ class SeasonalBackgroundLayout @JvmOverloads constructor(
     }
 
     private fun startAnim() {
-        if (animator != null) return
+        if (animator != null || !isAttachedToWindow || !hasEffects()) return
 
         lastFrame = SystemClock.uptimeMillis()
         animator = ValueAnimator.ofFloat(0f, 1f).apply {
@@ -72,9 +74,26 @@ class SeasonalBackgroundLayout @JvmOverloads constructor(
 
                 snow?.update(dt)
                 festive?.update(dt)
-                postInvalidateOnAnimation()
+                if (hasEffects()) postInvalidateOnAnimation()
             }
             start()
         }
+    }
+
+    private fun hasEffects() = snow != null || festive != null
+
+    private fun stopAnim() {
+        animator?.cancel()
+        animator = null
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        if (hasEffects()) startAnim()
+    }
+
+    override fun onDetachedFromWindow() {
+        stopAnim()
+        super.onDetachedFromWindow()
     }
 }

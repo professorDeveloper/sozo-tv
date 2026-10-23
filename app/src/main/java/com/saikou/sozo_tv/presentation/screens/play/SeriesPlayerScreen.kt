@@ -163,6 +163,7 @@ class SeriesPlayerScreen : Fragment() {
     private var playbackSpeed = 1.0f
     private var currentResizeIdx = 0
     private var autoSwitches = 0
+    private val failedSourceUrls = mutableSetOf<String>()
     private var errorRetry: (() -> Unit)? = null
 
     private var upNextShown = false
@@ -654,6 +655,7 @@ class SeriesPlayerScreen : Fragment() {
         selectedAudio = null
         selectedText = null
         autoSwitches = 0
+        failedSourceUrls.clear()
         onlineSubtitles = emptyList()
 
         adoptSubtitleList(vod.subtitleList.orEmpty())
@@ -663,6 +665,9 @@ class SeriesPlayerScreen : Fragment() {
         updateEpisodeMeta()
         episodeAdapter?.selectEpisode(model.currentEpIndex)
 
+        val preferExternal = requireContext().getSharedPreferences("playback_quality", android.content.Context.MODE_PRIVATE)
+            .getString("player_engine", "internal") == "external"
+        val openedExternal = preferExternal && openExternalPlayer(vod)
         val history = model.getWatchedHistoryEntity
         val saved = history?.lastPosition ?: 0L
         val askResume = initialOpen && model.isWatched && saved > 0
@@ -672,8 +677,8 @@ class SeriesPlayerScreen : Fragment() {
 
         p.stop()
         p.clearMediaItems()
-        loadSource(vod, startAt, autoPlay = !askResume) {
-            if (askResume && history != null) offerResume(history)
+        loadSource(vod, startAt, autoPlay = !askResume && !openedExternal) {
+            if (askResume && !openedExternal && history != null) offerResume(history)
         }
         controls.exoPlayPauseContainer.requestFocus()
     }
@@ -711,8 +716,16 @@ class SeriesPlayerScreen : Fragment() {
         val url = effectiveStreamUrl(vod)
         loadJob?.cancel()
         loadJob = viewLifecycleOwner.lifecycleScope.launch {
-            val source = withContext(Dispatchers.IO) {
-                withSeparateAudio(buildPlaybackSource(url, vod.type), vod)
+            val source = try {
+                withContext(Dispatchers.IO) {
+                    withSeparateAudio(buildPlaybackSource(url, vod.type), vod)
+                }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                handlePlaybackError(PlaybackException("Could not prepare stream", error,
+                    PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED))
+                return@launch
             }
             val p = player ?: return@launch
             if (_binding == null) return@launch
@@ -914,26 +927,26 @@ class SeriesPlayerScreen : Fragment() {
 
     private fun handlePlaybackError(error: PlaybackException) {
         val options = model.videoOptionsData.value.orEmpty()
-        when (val decision = PlayerErrorPolicy.decide(
-            error.errorCode, model.currentSelectedVideoOptionIndex, options.size, autoSwitches,
-        )) {
-            is PlayerErrorPolicy.Decision.SwitchSource -> {
-                autoSwitches++
-                model.currentSelectedVideoOptionIndex = decision.toIndex
-                showToast(getString(R.string.player_switching_source))
-                model.updateQualityByIndex()
-            }
-
-            is PlayerErrorPolicy.Decision.Explain -> {
-                val message = when (decision.kind) {
-                    PlayerErrorPolicy.Kind.CODEC -> R.string.player_error_codec
-                    PlayerErrorPolicy.Kind.SOURCE -> R.string.player_error_source
-                    PlayerErrorPolicy.Kind.NETWORK -> R.string.player_error_network
-                    PlayerErrorPolicy.Kind.GENERIC -> R.string.player_error_generic
-                }
-                showError(getString(message), decision.canSwitch) { restartCurrent() }
-            }
+        val kind = PlayerErrorPolicy.kindOf(error.errorCode)
+        options.getOrNull(model.currentSelectedVideoOptionIndex)?.let { failedSourceUrls.add(it.videoUrl) }
+        val next = if (kind == PlayerErrorPolicy.Kind.CODEC || kind == PlayerErrorPolicy.Kind.SOURCE)
+            com.saikou.sozo_tv.domain.player.SourceSelection.next(options,
+                model.currentSelectedVideoOptionIndex, failedSourceUrls, kind == PlayerErrorPolicy.Kind.CODEC)
+        else null
+        if (next != null) {
+            autoSwitches++
+            model.currentSelectedVideoOptionIndex = next
+            showToast(getString(R.string.player_switching_source))
+            model.updateQualityByIndex(rememberChoice = false)
+            return
         }
+        val message = when (kind) {
+            PlayerErrorPolicy.Kind.CODEC -> R.string.player_error_codec
+            PlayerErrorPolicy.Kind.SOURCE -> R.string.player_error_source
+            PlayerErrorPolicy.Kind.NETWORK -> R.string.player_error_network
+            PlayerErrorPolicy.Kind.GENERIC -> R.string.player_error_generic
+        }
+        showError(getString(message), options.size > 1) { failedSourceUrls.clear(); restartCurrent() }
     }
 
     private fun showEndCard() {
@@ -1292,7 +1305,75 @@ class SeriesPlayerScreen : Fragment() {
                 SettingRow(label, resizeHints[i], ticked = i == currentResizeIdx)
             },
         ) { i -> setResizeMode(i) }
+        currentVod?.let { vod ->
+            out += Setting(getString(R.string.player_external), "", emptyList()) { openExternalPlayer(vod) }
+            out += Setting(getString(R.string.player_download), "", emptyList()) { downloadCurrent(vod) }
+        }
+        out += Setting(getString(R.string.player_watch_party), "", emptyList()) { openWatchParty() }
         return out
+    }
+
+    private fun downloadCurrent(vod: VodMovieResponse) {
+        val title = if (model.contentIsSeries == true) "${args.name} · ${currentEpisodeNumber()}" else args.name
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                com.saikou.sozo_tv.engine.download.TvDownloads.enqueue(requireContext(), title, vod)
+                showToast(getString(R.string.player_download_started))
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                showToast(error.message ?: getString(R.string.player_error_source))
+            }
+        }
+    }
+
+    private fun openExternalPlayer(vod: VodMovieResponse): Boolean {
+        val uri = android.net.Uri.parse(vod.urlobj)
+        if (!com.saikou.sozo_tv.domain.player.ExternalPlaybackRules.canOpen(vod.urlobj, vod.drm, vod.useLocalProxy)) {
+            showToast(getString(R.string.player_external_unsupported))
+            return false
+        }
+        val intent = Intent(Intent.ACTION_VIEW).setDataAndType(uri, "video/*")
+            .putExtra("title", args.name)
+            .putExtra("headers", com.saikou.sozo_tv.domain.player.ExternalPlaybackRules.headerArray(vod.header))
+        // These hints are understood by common TV players; the standard intent has no header API.
+        vod.header.entries.firstOrNull { it.key.equals("Referer", true) }?.value?.let { intent.putExtra("http-referrer", it) }
+        vod.header.entries.firstOrNull { it.key.equals("User-Agent", true) }?.value?.let { intent.putExtra("http-user-agent", it) }
+        val candidates = requireContext().packageManager.queryIntentActivities(intent,
+            android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)
+        val realPlayers = candidates.filter {
+            com.saikou.sozo_tv.domain.player.ExternalPlaybackRules.isPlayerPackage(it.activityInfo.packageName)
+        }
+        if (realPlayers.isEmpty()) {
+            showToast(getString(R.string.player_external_unavailable))
+            return false
+        }
+        val excluded = candidates.filterNot { it in realPlayers }.map {
+            android.content.ComponentName(it.activityInfo.packageName, it.activityInfo.name)
+        }.toTypedArray()
+        return runCatching {
+            player?.pause()
+            startActivity(Intent.createChooser(intent, getString(R.string.player_external))
+                .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excluded))
+            true
+        }.getOrElse { showToast(getString(R.string.player_external_unavailable)); false }
+    }
+
+    private fun openWatchParty() {
+        val ep = episodeList.getOrNull(model.currentEpIndex)
+        fun raw(value: String) = value.substringAfter('\u0001', value)
+        val provider = contentProvider().removePrefix("sv:")
+        val intent = Intent().setClassName(requireContext(), "com.saikou.sozo_tv.presentation.activities.WatchPartyActivity")
+            .putExtra("provider", provider)
+            .putExtra("contentUrl", raw(args.seriesMainId))
+            .putExtra("mediaRef", raw(ep?.session.orEmpty()))
+            .putExtra("title", args.name)
+            .putExtra("thumbnail", args.image)
+            .putExtra("episode", ep?.episode ?: 1)
+            .putExtra("season", SeasonNumber.of(ep?.title, args.name) ?: 1)
+            .putExtra("type", if (model.contentIsSeries == false) "movie" else "series")
+        player?.pause()
+        startActivity(intent)
     }
 
     private fun speedLabel(speed: Float): String =
@@ -1471,9 +1552,14 @@ class SeriesPlayerScreen : Fragment() {
     private fun applyNativeQuality() {
         val selector = trackSelector ?: return
         val variant = selectedNativeQuality
+        val preferredQuality = requireContext().getSharedPreferences("playback_quality", android.content.Context.MODE_PRIVATE)
+            .getString("preferred_resolution", "auto")
+        val cap = preferredQuality?.toIntOrNull()?.takeIf { it > 0 } ?: Int.MAX_VALUE
         selector.setParameters(
             selector.buildUponParameters()
                 .clearOverridesOfType(C.TRACK_TYPE_VIDEO)
+                .setMaxVideoSize(Int.MAX_VALUE, cap)
+                .setForceLowestBitrate(preferredQuality == "lowest" || preferredQuality == "-1")
                 .apply { variant?.let { addOverride(NativeQualities.overrideFor(it)) } }
         )
     }
@@ -1653,21 +1739,28 @@ class SeriesPlayerScreen : Fragment() {
             .setTag(args.name)
             .apply { mime?.let { setMimeType(it) } }
             .setSubtitleConfigurations(listOf(subtitle))
+            .apply { com.saikou.sozo_tv.engine.player.StreamDrm.configure(this, currentVod?.drm) }
             .build()
-        return DefaultMediaSourceFactory(http.dataSourceFactory).createMediaSource(item)
+        return com.saikou.sozo_tv.engine.player.StreamDrm.configure(
+            DefaultMediaSourceFactory(http.dataSourceFactory), currentVod?.drm).createMediaSource(item)
     }
 
-    private fun createMediaSource(url: String, mimeType: String?): MediaSource {
+    private fun createMediaSource(url: String, mimeType: String?,
+        factory: androidx.media3.datasource.DataSource.Factory = http.dataSourceFactory,
+        drm: String? = currentVod?.drm): MediaSource {
         val mime = resolveMime(url, mimeType) ?: MimeTypes.APPLICATION_MP4
-        val item = MediaItem.Builder().setUri(url).setMimeType(mime).setTag(args.name).build()
+        val item = com.saikou.sozo_tv.engine.player.StreamDrm.configure(
+            MediaItem.Builder().setUri(url).setMimeType(mime).setTag(args.name), drm).build()
+        if (drm != null) return com.saikou.sozo_tv.engine.player.StreamDrm.configure(
+            DefaultMediaSourceFactory(factory), drm).createMediaSource(item)
         return when (mime) {
             MimeTypes.APPLICATION_M3U8 ->
-                HlsMediaSource.Factory(http.dataSourceFactory).createMediaSource(item)
+                HlsMediaSource.Factory(factory).createMediaSource(item)
             // A .mpd handed to the progressive loader never opens; the default factory has the
             // DASH module and picks it by MIME type.
             MimeTypes.APPLICATION_MPD ->
-                DefaultMediaSourceFactory(http.dataSourceFactory).createMediaSource(item)
-            else -> ProgressiveMediaSource.Factory(http.dataSourceFactory)
+                DefaultMediaSourceFactory(factory).createMediaSource(item)
+            else -> ProgressiveMediaSource.Factory(factory)
                 .setContinueLoadingCheckIntervalBytes(1024 * 1024).createMediaSource(item)
         }
     }
@@ -1680,7 +1773,7 @@ class SeriesPlayerScreen : Fragment() {
     private fun withSeparateAudio(video: MediaSource, vod: VodMovieResponse): MediaSource {
         if (vod.audioTracks.isEmpty()) return video
         val audio = vod.audioTracks.mapNotNull { track ->
-            runCatching { createMediaSource(track.url, null) }.getOrNull()
+            runCatching { createMediaSource(track.url, null, http.dataSourceFactoryFor(vod.header + track.headers), drm = null) }.getOrNull()
         }
         if (audio.isEmpty()) return video
         return MergingMediaSource(true, video, *audio.toTypedArray())
@@ -1877,6 +1970,8 @@ class SeriesPlayerScreen : Fragment() {
                 totalDuration = duration,
                 imdbID = args.seriesMainId,
                 isEpisode = true,
+                isSeries = model.contentIsSeries ?: existing.isSeries,
+                isAnime = model.contentIsAnime ?: existing.isAnime,
                 epIndex = model.currentEpIndex,
                 lastPosition = position,
                 videoUrl = vod?.urlobj ?: existing.videoUrl,
@@ -1905,6 +2000,8 @@ class SeriesPlayerScreen : Fragment() {
             imdbID = args.seriesMainId,
             epIndex = model.currentEpIndex,
             isEpisode = true,
+            isSeries = model.contentIsSeries ?: true,
+            isAnime = model.contentIsAnime ?: false,
             currentQualityIndex = model.currentSelectedVideoOptionIndex,
             source = prefs.getString(LocalData.SOURCE),
             providerId = provider,

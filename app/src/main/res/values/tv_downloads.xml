@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tv_downloads_title">Downloads</string>
+    <string name="tv_downloads_back">Back</string>
+    <string name="tv_downloads_empty">No downloads in this profile. Open a video and choose Download in the player settings.</string>
+    <string name="tv_downloads_count">%1$d downloads in this profile</string>
+    <string name="tv_downloads_ready">Ready to watch offline · %1$s</string>
+    <string name="tv_downloads_failed">Download failed. Retry, or choose a fresh source if the link expired.</string>
+    <string name="tv_downloads_paused">Paused · %1$s</string>
+    <string name="tv_downloads_removing">Removing…</string>
+    <string name="tv_downloads_queued">Queued · %1$s</string>
+    <string name="tv_downloads_play">Play offline</string>
+    <string name="tv_downloads_resume">Resume / retry</string>
+    <string name="tv_downloads_pause">Pause</string>
+    <string name="tv_downloads_delete">Delete download</string>
+</resources>

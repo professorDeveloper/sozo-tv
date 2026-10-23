@@ -35,6 +35,7 @@ class ProfileAdapter(
     // fetch has wired this up (the OK handler below is immediate, not debounced), and
     // a bare lateinit turns that into a crash rather than a no-op.
     private var onSectionClick: ((SectionItem, Int) -> Unit)? = null
+    private var accountClickListener: (() -> Unit)? = null
 
     private var selectedSectionIndex: Int = RecyclerView.NO_POSITION
 
@@ -56,6 +57,10 @@ class ProfileAdapter(
 
     fun sectionClickListener(listener: (SectionItem, Int) -> Unit) {
         onSectionClick = listener
+    }
+
+    fun setOnAccountClickListener(listener: () -> Unit) {
+        accountClickListener = listener
     }
 
 
@@ -102,6 +107,7 @@ class ProfileAdapter(
             binding.phoneTxt.alpha = 0.85f
             binding.root.isFocusable = true
             binding.root.isFocusableInTouchMode = true
+            binding.root.setOnClickListener { accountClickListener?.invoke() }
         }
     }
 
