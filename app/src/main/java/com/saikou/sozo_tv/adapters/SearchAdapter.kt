@@ -8,6 +8,7 @@ import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.AsyncListDiffer
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
@@ -18,7 +19,8 @@ import com.saikou.sozo_tv.domain.model.SearchModel
 
 class SearchAdapter :
     RecyclerView.Adapter<SearchAdapter.MovieViewHolder>() {
-    private var movieList = ArrayList<SearchModel>()
+    private val differ = AsyncListDiffer(this, SearchResultDiff)
+    private val movieList get() = differ.currentList
     var query: String = ""
 
     /** Only meaningful when results span providers; a single-source search knows. */
@@ -26,7 +28,7 @@ class SearchAdapter :
         set(value) {
             if (field == value) return
             field = value
-            notifyItemRangeChanged(0, movieList.size)
+            notifyItemRangeChanged(0, movieList.size, TEXT_PAYLOAD)
         }
 
     private lateinit var itemClickeddListener: (movie: SearchModel) -> Unit
@@ -42,7 +44,7 @@ class SearchAdapter :
     inner class MovieViewHolder(private val binding: SearchItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         @SuppressLint("SetTextI18n", "NewApi")
-        fun bind(movie: SearchModel) {
+        fun bindText(movie: SearchModel) {
             // Which source found this. In an all-sources search the same title
             // comes back from several, and without this the duplicates look
             // like a bug rather than a choice of where to play from.
@@ -53,14 +55,6 @@ class SearchAdapter :
                 ?.takeIf { it.isNotBlank() }
             binding.movieSource.isVisible = showSource && source != null
             binding.movieSource.text = source.orEmpty()
-
-            binding.root.setOnClickListener {
-                itemClickeddListener.invoke(movie)
-            }
-            binding.root.setOnLongClickListener {
-                itemLongClickListener?.invoke(movie)
-                itemLongClickListener != null
-            }
 
             val mainText = movie.title ?: "Unknown Title"
             val spannableString = SpannableString(mainText)
@@ -81,6 +75,18 @@ class SearchAdapter :
             }
 
             binding.movieTitle.text = spannableString
+
+        }
+
+        fun bind(movie: SearchModel) {
+            bindText(movie)
+            binding.root.setOnClickListener {
+                itemClickeddListener.invoke(movie)
+            }
+            binding.root.setOnLongClickListener {
+                itemLongClickListener?.invoke(movie)
+                itemLongClickListener != null
+            }
 
             val imageUrl = movie.image ?: ""
             Glide.with(binding.root.context)
@@ -103,17 +109,30 @@ class SearchAdapter :
         holder.bind(movieList[position])
     }
 
+    override fun onBindViewHolder(holder: MovieViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isNotEmpty() && payloads.all { it == TEXT_PAYLOAD }) {
+            holder.bindText(movieList[position])
+        } else {
+            holder.bind(movieList[position])
+        }
+    }
+
+    private companion object {
+        const val TEXT_PAYLOAD = "search-text"
+    }
+
     override fun getItemCount(): Int = movieList.size
 
     fun updateData(newMovies: List<SearchModel>) {
-        movieList.clear()
-        movieList.addAll(newMovies)
-        notifyDataSetChanged()
+        // Each arriving provider used to invalidate every visible poster and focus holder.
+        // Immutable snapshots + background diff keep unchanged cards attached.
+        differ.submitList(newMovies.toList())
     }
 
     fun setQueryText(query: String) {
+        if (this.query == query) return
         this.query = query
-        notifyDataSetChanged()
+        notifyItemRangeChanged(0, movieList.size, TEXT_PAYLOAD)
     }
 
 

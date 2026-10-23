@@ -73,17 +73,7 @@ open class UiText(private val value: String = "") {
     override fun toString(): String = value
 }
 
-/**
- * CloudStream's thread-safe list. `APIHolder.allProviders` is one upstream, so a plugin that
- * walks the provider list names this type in its own signatures.
- *
- * Backed by a synchronized list rather than a no-op: a plugin that adds to one expects to read
- * back what it added, and an always-empty collection would be a silent wrong answer rather than
- * a missing feature.
- */
-class AtomicMutableList<T>(
-    initial: Collection<T> = emptyList(),
-) : MutableList<T> by java.util.Collections.synchronizedList(ArrayList(initial))
+// AtomicMutableList is supplied by CloudStream library v4.8.0.
 
 object AppContextUtils {
     /**

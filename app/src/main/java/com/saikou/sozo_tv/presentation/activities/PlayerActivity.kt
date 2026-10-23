@@ -23,7 +23,7 @@ class PlayerActivity : AppCompatActivity() {
         enableEdgeToEdge()
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         val navController =
             (supportFragmentManager.findFragmentById(R.id.nav_main_fragment) as NavHostFragment).navController
         categoryDetails = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

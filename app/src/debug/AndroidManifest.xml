@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <instrumentation android:name="com.saikou.sozo_tv.debug.OfflineProbeInstrumentation"
+        android:targetPackage="com.saikou.sozo_tv" android:label="TV offline download probe" />
+    <instrumentation android:name="com.saikou.sozo_tv.debug.PlayerProbeInstrumentation"
+        android:targetPackage="com.saikou.sozo_tv" android:label="TV playback probe" />
+    <instrumentation android:name="com.saikou.sozo_tv.debug.CloudStreamProbeInstrumentation" android:targetPackage="com.saikou.sozo_tv" android:label="CloudStream runtime probe" />
+</manifest>

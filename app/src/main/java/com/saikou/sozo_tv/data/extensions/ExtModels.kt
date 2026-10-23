@@ -135,6 +135,7 @@ data class ExtVideoSource(
     val sniff: String? = null,             // raw JSON: patterns/timeoutMs/headers/blockHosts
     /** Separate audio renditions that belong with this video (CloudStream `audioTracks`). */
     val audioTracks: List<ExtAudioTrack> = emptyList(),
+    val drm: String? = null,
 )
 
 data class ExtAudioTrack(
@@ -347,11 +348,15 @@ internal object ExtParser {
     fun media(json: String): ExtMedia {
         val o = runCatching { JSONObject(json) }.getOrNull() ?: JSONObject()
         val srcArr = o.optJSONArray("videoSources")
+        if ((srcArr == null || srcArr.length() == 0) && !o.strOrNull("error").isNullOrBlank()) {
+            error(o.optString("error"))
+        }
         val sources = if (srcArr == null) emptyList() else (0 until srcArr.length()).mapNotNull { i ->
             val s = srcArr.optJSONObject(i) ?: return@mapNotNull null
             val url = s.optString("videoUrl").ifEmpty { return@mapNotNull null }
             ExtVideoSource(
                 quality = s.optString("quality").ifEmpty { "Source" },
+                drm = (s.optJSONObject("drm") ?: o.optJSONObject("drm"))?.toString(),
                 videoUrl = url,
                 type = s.optString("type").ifEmpty { "hls" },
                 host = s.strOrNull("host"),

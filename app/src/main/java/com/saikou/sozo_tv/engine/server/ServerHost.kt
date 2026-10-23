@@ -398,6 +398,7 @@ class ServerHost(
                 put("label", firstNonEmpty(s, "label", "lang", "language") ?: "Subtitle")
                 put("file", file)
                 put("default", s.optBoolean("default", s.optBoolean("isDefault", false)))
+                s.optJSONObject("headers")?.let { put("headers", it) }
             })
         }
         return JSONObject().apply {

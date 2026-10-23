@@ -4,6 +4,9 @@ import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 
 interface WatchHistoryRepository {
 
+    /** Pin storage before suspending so profile switches cannot redirect in-flight writes. */
+    fun snapshot(namespace: String?): WatchHistoryRepository = this
+
     suspend fun addHistory(history: WatchHistoryEntity)
 
     suspend fun removeHistory(videoUrl: String)

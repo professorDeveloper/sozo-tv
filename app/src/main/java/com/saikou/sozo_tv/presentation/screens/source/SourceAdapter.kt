@@ -51,8 +51,11 @@ class SourceAdapter(
     var anilistSources: Set<String> = emptySet()
         set(value) {
             if (field == value) return
+            val previous = field
             field = value
-            notifyDataSetChanged()
+            items.forEachIndexed { index, provider ->
+                if ((provider.id in previous) != (provider.id in value)) notifyItemChanged(index + 1)
+            }
         }
 
     private val allItems = mutableListOf<ExtProvider>()

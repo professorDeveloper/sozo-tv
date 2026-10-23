@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.AsyncListDiffer
+import androidx.recyclerview.widget.DiffUtil
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.local.entity.WatchHistoryEntity
 import com.saikou.sozo_tv.databinding.ItemMovieHistoryBinding
@@ -12,17 +14,20 @@ import com.saikou.sozo_tv.utils.loadImage
 import java.util.concurrent.TimeUnit
 
 class HistoryAdapter : RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder>() {
-    private val list = ArrayList<WatchHistoryEntity>()
+    private val differ = AsyncListDiffer(this, object : DiffUtil.ItemCallback<WatchHistoryEntity>() {
+        override fun areItemsTheSame(oldItem: WatchHistoryEntity, newItem: WatchHistoryEntity) =
+            oldItem.session == newItem.session
+        override fun areContentsTheSame(oldItem: WatchHistoryEntity, newItem: WatchHistoryEntity) =
+            oldItem == newItem
+    })
+    private val list get() = differ.currentList
     private lateinit var setItemHistoryListener: (WatchHistoryEntity) -> Unit
     fun setItemHistoryListener(listener: (WatchHistoryEntity) -> Unit) {
         setItemHistoryListener = listener
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     fun submitList(newList: List<WatchHistoryEntity>) {
-        this.list.clear()
-        this.list.addAll(newList)
-        notifyDataSetChanged()
+        differ.submitList(newList.map { it.copy() })
     }
 
     inner class HistoryViewHolder(private val itemBinding: ItemMovieHistoryBinding) :

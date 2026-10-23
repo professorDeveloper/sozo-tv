@@ -52,7 +52,7 @@ class WatchHistorySyncClient(
     private val tokenProvider: suspend () -> String?,
 ) {
 
-    suspend fun sync(items: List<HistorySyncItem>, since: String?): ApiResult<HistorySyncResult> =
+    suspend fun sync(items: List<HistorySyncItem>, since: String?, profile: com.saikou.sozo_tv.data.remote.profiles.ProfileRequestScope? = null): ApiResult<HistorySyncResult> =
         withContext(Dispatchers.IO) {
             val token = runCatching { tokenProvider() }.getOrNull()
                 ?: return@withContext ApiResult.Http(401, "Not signed in", null)
@@ -61,6 +61,7 @@ class WatchHistorySyncClient(
                 val payload = gson.toJson(SyncRequest(items, since)).toRequestBody(JSON)
                 val request = Request.Builder()
                     .url("${baseUrl.trimEnd('/')}$PATH")
+                    .tag(com.saikou.sozo_tv.data.remote.profiles.ProfileRequestScope::class.java, profile)
                     .addHeader("Authorization", "Bearer $token")
                     .addHeader("Accept", "application/json")
                     .addHeader("Content-Type", "application/json")

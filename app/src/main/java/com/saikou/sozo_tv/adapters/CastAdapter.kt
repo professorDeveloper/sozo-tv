@@ -12,50 +12,50 @@ import com.saikou.sozo_tv.utils.applyTvFocusScale
 import com.saikou.sozo_tv.utils.loadImage
 
 class CastAdapter : RecyclerView.Adapter<CastAdapter.CastVh>() {
-    private val castList = ArrayList<Cast>()
+    lateinit var itemClickkedListener: (Cast) -> Unit
+    var list = ArrayList<Cast>()
 
-    private lateinit var itemClickkedListener: (Cast) -> Unit
+    override fun onCreateViewHolder(
+        p0: ViewGroup,
+        p1: Int
+    ): CastVh {
+        return CastVh(ItemCastBinding.inflate(LayoutInflater.from(p0.context), p0, false))
+    }
+
 
     fun setOnItemClickListener(listener: (Cast) -> Unit) {
         itemClickkedListener = listener
     }
 
-    inner class CastVh(private val binding: ItemCastBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        fun onBind(cast: Cast) {
-            binding.userNameTxt.text = cast.name
-            // Most sources send no role at all, and an empty line under every face read as a
-            // half-loaded row.
-            binding.characterTxt.isVisible = cast.role.isNotBlank()
-            binding.characterTxt.text = cast.role
-            binding.accountImg.loadImage(cast.image)
-            // Making the card unfocusable to keep it out of a dead person-detail screen turned
-            // the whole row into a D-pad dead zone: the names and roles were on screen and
-            // could not be reached, let alone scrolled. Keep it reachable, and send a press
-            // somewhere that actually resolves - a search for the person across sources.
-            binding.root.isFocusable = true
-            binding.root.isClickable = true
-            binding.root.setOnClickListener {
-                if (::itemClickkedListener.isInitialized) itemClickkedListener(cast)
+    override fun onBindViewHolder(
+        p0: CastVh,
+        p1: Int
+    ) {
+        p0.onBind(list[p1])
+    }
+
+    override fun getItemCount(): Int {
+        return list.size
+    }
+
+    inner class CastVh(val binding: ItemCastBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun onBind(item: Cast) {
+            binding.apply {
+                binding.userNameTxt.text = item.name
+                binding.characterTxt.text = item.role
+                binding.accountImg.loadImage(item.image)
+                binding.root.isFocusable = true
+                binding.root.isClickable = true
+                binding.root.setOnClickListener {
+                    if (::itemClickkedListener.isInitialized) itemClickkedListener(item)
+                }
             }
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CastVh {
-        return CastVh(ItemCastBinding.inflate(LayoutInflater.from(parent.context), parent, false))
-    }
-
-    override fun getItemCount(): Int {
-        return castList.size
-    }
-
-    override fun onBindViewHolder(holder: CastVh, position: Int) {
-        holder.onBind(castList[position])
-    }
-
-    fun submitCast(cast: List<Cast>) {
-        castList.clear()
-        castList.addAll(cast)
+    fun submitList(newList: ArrayList<Cast>) {
+        list.clear()
+        list.addAll(newList)
         notifyDataSetChanged()
     }
 }

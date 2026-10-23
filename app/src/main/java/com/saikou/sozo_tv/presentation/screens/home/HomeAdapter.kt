@@ -15,6 +15,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
@@ -53,7 +54,7 @@ private fun ViewPager2.focusPage(position: Int) {
     pages.findViewHolderForAdapterPosition(position)?.itemView?.requestFocus()
 }
 
-class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf()) :
+class HomeAdapter :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     interface HomeData {
@@ -210,7 +211,7 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
         fun bind(item: BannerModel) {
             stopAutoAdvance()
 
-            val banners: ArrayList<BannerItem> = item.data as ArrayList<BannerItem>
+            val banners = item.data
             val adapter = childAdapter ?: HomeAdapter().also {
                 childAdapter = it
                 binding.viewPager.adapter = it
@@ -516,29 +517,22 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
     /**
      * Adapterdagi ma'lumotlarni yangilaydi va o‘zgarishlarni hisoblab chiqaradi.
      */
-    fun submitList(list: List<HomeData>) {
-        val result = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-
-            override fun getOldListSize(): Int = itemList.size
-
-            override fun getNewListSize(): Int = list.size
-
-            /**
-             * Ikkala ro‘yxatdagi bir xil elementlarni tekshiradi (masalan, ID orqali).
-             */
-            override fun areItemsTheSame(
-                oldItemPosition: Int, newItemPosition: Int
-            ): Boolean {
-                val oldItem = itemList[oldItemPosition]
-                val newItem = list[newItemPosition]
-
+    private val differ = AsyncListDiffer(this, object : DiffUtil.ItemCallback<HomeData>() {
+        override fun areItemsTheSame(oldItem: HomeData, newItem: HomeData): Boolean {
                 return when {
                     oldItem is BannerModel && newItem is BannerModel -> {
-                        oldItem.data == newItem.data
+                        true
                     }
 
                     oldItem is BannerItem && newItem is BannerItem -> {
-                        oldItem.contentItem.mal_id == newItem.contentItem.mal_id
+                        val old = oldItem.contentItem
+                        val new = newItem.contentItem
+                        when {
+                            old.anilistId != -1 || new.anilistId != -1 -> old.anilistId == new.anilistId
+                            old.imdb_id != -1 || new.imdb_id != -1 -> old.imdb_id == new.imdb_id
+                            old.mal_id != -1 || new.mal_id != -1 -> old.mal_id == new.mal_id
+                            else -> old.title == new.title && old.image == new.image
+                        }
                     }
 
                     oldItem is Category && newItem is Category -> {
@@ -582,23 +576,17 @@ class HomeAdapter(private val itemList: MutableList<HomeData> = mutableListOf())
 
                     else -> false
                 }
-            }
+        }
 
-            /**
-             * Ikkala ro‘yxatdagi elementlar mazmunining bir xil ekanligini tekshiradi.
-             */
-            override fun areContentsTheSame(
-                oldItemPosition: Int, newItemPosition: Int
-            ): Boolean {
-                val oldItem = itemList[oldItemPosition]
-                val newItem = list[newItemPosition]
-                return oldItem == newItem
-            }
-        })
+        override fun areContentsTheSame(oldItem: HomeData, newItem: HomeData): Boolean =
+            oldItem == newItem
+    })
+    private val itemList: List<HomeData> get() = differ.currentList
 
-        itemList.clear()
-        itemList.addAll(list)
-        result.dispatchUpdatesTo(this)
+    // Home rows can contain hundreds of cards. Compute diffs off the UI thread and let the
+    // differ discard stale generations when several provider updates arrive together.
+    fun submitList(list: List<HomeData>, onCommitted: (() -> Unit)? = null) {
+        differ.submitList(list.toList()) { onCommitted?.invoke() }
     }
 
 }

@@ -7,9 +7,15 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
     <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="video/*" />
+        </intent>
         <intent>
             <action android:name="android.speech.RecognitionService" />
         </intent>
@@ -51,8 +57,21 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Tv"
         android:usesCleartextTraffic="true">
+        <activity android:name=".presentation.activities.WatchPartyActivity" android:exported="false" android:screenOrientation="landscape" />
         <!-- Players: an HDR handshake or an HDMI mode switch mid-stream must not recreate the
              activity and restart playback. -->
+        <service
+            android:name=".engine.download.TvDownloadService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync">
+            <intent-filter>
+                <action android:name="androidx.media3.exoplayer.downloadService.action.RESTART" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
+        <activity android:name=".presentation.activities.DownloadsActivity" android:exported="false" />
+        <activity android:name=".presentation.activities.OfflinePlayerActivity" android:exported="false"
+            android:configChanges="keyboard|keyboardHidden|navigation|screenSize|smallestScreenSize|screenLayout|orientation|uiMode|density" />
         <activity
             android:name=".presentation.activities.LiveTvActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|screenSize|smallestScreenSize|screenLayout|orientation|uiMode|density"
@@ -70,6 +89,14 @@
             android:configChanges="keyboard|keyboardHidden|navigation"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".presentation.activities.ProfilePickerActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".presentation.activities.ProfileEditorActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
         <activity
             android:name=".presentation.activities.DeviceLoginActivity"
             android:exported="false"
