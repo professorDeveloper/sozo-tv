@@ -30,4 +30,9 @@ class SourceSelectionTest {
         val options = listOf(option("a", "1080p"), option("b", "1080p HEVC"), option("c", "720p AVC"))
         assertEquals(2, SourceSelection.next(options, 0, setOf("a"), true))
     }
+    @Test fun rememberedServerWinsWhenItsResolutionIsMissing() {
+        val dub = option("d1", "1080p", "Dub")
+        val next = listOf(option("s1", "1080p", "Sub"), option("s2", "720p", "Sub"), option("d2", "720p", "Dub"))
+        assertEquals(2, SourceSelection.initial(next, SourceSelection.label(dub), 0))
+    }
 }

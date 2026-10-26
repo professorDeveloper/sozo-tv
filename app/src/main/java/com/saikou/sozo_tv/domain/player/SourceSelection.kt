@@ -12,6 +12,17 @@ object SourceSelection {
             maxHeight == null || (VideoOptionGroups.resolutionOf(options[i]) ?: 0) <= maxHeight
         }.ifEmpty { options.indices.toList() }
         candidates.firstOrNull { label(options[it]) == preferred }?.let { return it }
+        // The same server at whatever resolutions this episode has: a server can be an audio
+        // language (Sub / Dub), and the next episode must not fall back to the other one.
+        val server = preferred?.substringBefore('|')
+        if (!server.isNullOrBlank()) {
+            val same = candidates.filter { options[it].fansub == server }
+            if (same.isNotEmpty() && same.size < candidates.size) {
+                val resolution = preferred.split('|').getOrNull(1)
+                same.firstOrNull { options[it].resolution == resolution }?.let { return it }
+                return same.maxByOrNull { VideoOptionGroups.resolutionOf(options[it]) ?: 0 } ?: same.first()
+            }
+        }
         val resolution = preferred?.split('|')?.getOrNull(1)
         if (!resolution.isNullOrBlank()) candidates.firstOrNull { options[it].resolution == resolution }?.let { return it }
         if (maxHeight != null) return candidates.maxByOrNull { VideoOptionGroups.resolutionOf(options[it]) ?: 0 } ?: 0
