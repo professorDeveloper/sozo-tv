@@ -58,6 +58,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             GeometryReader { geometry in
+                ScrollViewReader { scroller in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 34) {
                         header
@@ -75,6 +76,7 @@ struct HomeView: View {
                                         HStack(spacing: 26) {
                                             ForEach(Array(uniqueCards(section.items).enumerated()), id: \.element.id) { column, card in
                                                 MediaTile(card: card, provider: model.selected?.id ?? "")
+                                                    .id(shelfFocusID(section, card))
                                                     .focused($focusedShelfCard, equals: shelfFocusID(section, card))
                                                     .onChange(of: focusedShelfCard) { value in
                                                         if value == shelfFocusID(section, card) { shelfPositions[section.id] = column }
@@ -83,10 +85,10 @@ struct HomeView: View {
                                         }.padding(.horizontal, 12).padding(.vertical, 18)
                                     }.scrollIndicators(.hidden).focusSection()
                                         .onMoveCommand { direction in
-                                            if direction == .down { moveShelf(from: row, to: row + 1) }
-                                            if direction == .up { moveShelf(from: row, to: row - 1) }
+                                            if direction == .down { moveShelf(from: row, to: row + 1, scroller: scroller) }
+                                            if direction == .up { moveShelf(from: row, to: row - 1, scroller: scroller) }
                                         }
-                                }
+                                }.id(section.id)
                             }
                         }
                         if !model.loading && model.error == nil && model.payload != nil
@@ -97,6 +99,7 @@ struct HomeView: View {
                         }
                     }.padding(.horizontal, 70).padding(.top, 30).padding(.bottom, 70)
                 }.scrollIndicators(.hidden)
+                }
             }.background { SozoBackdrop() }
                 .task(id: session.profileScopeIdentity) { shelfPositions = [:]; await model.load(session: session, refreshSources: true) }
                 .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)) { _ in
@@ -113,12 +116,19 @@ struct HomeView: View {
         }
     }
     private func shelfFocusID(_ section: HomeSection, _ card: MediaCard) -> String { section.id + "|" + card.id }
-    private func moveShelf(from current: Int, to next: Int) {
+    private func moveShelf(from current: Int, to next: Int, scroller: ScrollViewProxy) {
         guard shelves.indices.contains(next) else { return }
         let section = shelves[next], cards = uniqueCards(section.items)
         guard !cards.isEmpty else { return }
         let column = min(shelfPositions[section.id] ?? shelfPositions[shelves[current].id] ?? 0, cards.count - 1)
-        focusedShelfCard = shelfFocusID(section, cards[column])
+        let target = shelfFocusID(section, cards[column])
+        focusedShelfCard = target
+        // Focus set from code does not scroll anything: the remembered card could be focused
+        // while its shelf was below the screen, or scrolled out of its own row.
+        withAnimation(.easeOut(duration: 0.25)) {
+            scroller.scrollTo(section.id)
+            scroller.scrollTo(target)
+        }
     }
     private func refresh() { actionTask?.cancel(); actionTask = Task { await model.load(session: session, refreshSources: true) } }
     private func choose(_ provider: Provider) { actionTask?.cancel(); actionTask = Task { await model.choose(provider, session: session) } }
