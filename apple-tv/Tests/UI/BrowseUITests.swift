@@ -24,7 +24,10 @@ final class BrowseUITests: XCTestCase {
                 if to.minY > from.maxY { remote.press(.down) }
                 else if to.maxY < from.minY { remote.press(.up) }
                 else { remote.press(to.midX < from.midX ? .left : .right) }
-            } else { remote.press(.down) }
+            } else {
+                print("select(\(id)): nothing reports focus, target \(target.frame)\n\(app.debugDescription)")
+                remote.press(.down)
+            }
             Thread.sleep(forTimeInterval: 0.2)
         }
         XCTFail("Could not focus \(id)\n\(app.debugDescription)")
@@ -225,7 +228,7 @@ final class BrowseUITests: XCTestCase {
         for _ in 0..<6 { remote.press(.down); Thread.sleep(forTimeInterval: 0.25) }
         let last = app.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true")).firstMatch
         XCTAssertTrue(last.identifier.contains("/title/7"), app.debugDescription)
-        XCTAssertTrue(last.frame.intersects(app.frame))
+        XCTAssertTrue(last.frame.intersects(app.frame), "\(last.identifier) at \(last.frame)\n\(app.debugDescription)")
         for _ in 0..<6 { remote.press(.up); Thread.sleep(forTimeInterval: 0.25) }
         XCTAssertEqual(app.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true")).firstMatch.identifier, remembered, "A shelf must keep its focused title after leaving the viewport")
         screenshot("Long horizontal shelves after vertical navigation")

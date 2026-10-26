@@ -41,7 +41,6 @@ struct ProfileHubView: View {
     @EnvironmentObject private var session: SessionStore
     let destination: (ProfileDestination) -> AnyView
     @State private var confirmSignOut = false
-    @FocusState private var manageFocused: Bool
     private let columns = [GridItem(.flexible(), spacing: 28), GridItem(.flexible(), spacing: 28), GridItem(.flexible(), spacing: 28)]
     var body: some View {
         ZStack {
@@ -55,12 +54,9 @@ struct ProfileHubView: View {
                             Text(session.activeProfile?.isKids == true ? "Kids profile" : "Your space on the big screen").font(.system(size: 24)).foregroundStyle(.secondary)
                         }
                         Spacer()
-                        NavigationLink { destination(.profiles) } label: { Label("Profiles", systemImage: "person.2").padding(24) }.buttonStyle(SozoProfileButtonStyle()).focused($manageFocused).accessibilityIdentifier("profile.manage")
+                        NavigationLink { destination(.profiles) } label: { SozoActionLabel(title: "Profiles", symbol: "person.2") }.buttonStyle(SozoProfileButtonStyle()).accessibilityIdentifier("profile.manage")
                     }.padding(28).sozoContentSurface(cornerRadius: 28).focusSection().padding(.bottom, 8)
-                    // Profiles sits at the far right with nothing under it, so the focus engine
-                    // went past it when moving up from the first row.
                     hubSection("Your viewing", routes: [.library, .history, .activity])
-                        .onMoveCommand { if $0 == .up { manageFocused = true } }
                     hubSection("Your account", routes: session.activeProfile?.isKids == true ? [.account, .notifications] : [.account, .notifications, .friends])
                     hubSection("Connected to you", routes: [.connections, .sources, .security])
                     Text("Make it yours").font(.system(size: 30, weight: .bold))
