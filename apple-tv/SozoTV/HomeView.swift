@@ -72,6 +72,7 @@ struct HomeView: View {
                             if !section.items.isEmpty {
                                 VStack(alignment: .leading, spacing: 16) {
                                     Text(section.label ?? "Discover").font(.system(size: 30, weight: .bold))
+                                    ScrollViewReader { row in
                                     ScrollView(.horizontal) {
                                         HStack(spacing: 26) {
                                             ForEach(Array(uniqueCards(section.items).enumerated()), id: \.element.id) { column, card in
@@ -84,6 +85,13 @@ struct HomeView: View {
                                             }
                                         }.padding(.horizontal, 12).padding(.vertical, 18)
                                     }.scrollIndicators(.hidden).focusSection()
+                                        // The outer reader only scrolls vertically: a card focused
+                                        // from code is brought into view along its own row here.
+                                        .onChange(of: focusedShelfCard) { value in
+                                            guard let value, value.hasPrefix(section.id + "|") else { return }
+                                            withAnimation(.easeOut(duration: 0.2)) { row.scrollTo(value) }
+                                        }
+                                    }
                                         .onMoveCommand { direction in
                                             if direction == .down { moveShelf(from: row, to: row + 1, scroller: scroller) }
                                             if direction == .up { moveShelf(from: row, to: row - 1, scroller: scroller) }
@@ -124,11 +132,9 @@ struct HomeView: View {
         let target = shelfFocusID(section, cards[column])
         focusedShelfCard = target
         // Focus set from code does not scroll anything: the remembered card could be focused
-        // while its shelf was below the screen, or scrolled out of its own row.
-        withAnimation(.easeOut(duration: 0.25)) {
-            scroller.scrollTo(section.id)
-            scroller.scrollTo(target)
-        }
+        // while its shelf was below the screen, or scrolled out of its own row (see the shelf's
+        // own reader).
+        withAnimation(.easeOut(duration: 0.25)) { scroller.scrollTo(section.id) }
     }
     private func refresh() { actionTask?.cancel(); actionTask = Task { await model.load(session: session, refreshSources: true) } }
     private func choose(_ provider: Provider) { actionTask?.cancel(); actionTask = Task { await model.choose(provider, session: session) } }

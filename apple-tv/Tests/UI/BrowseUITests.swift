@@ -20,6 +20,7 @@ final class BrowseUITests: XCTestCase {
             let current = app.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true")).firstMatch
             if current.exists {
                 let from = current.frame, to = target.frame
+                print("select(\(id)): focus \(current.elementType.rawValue) '\(current.identifier)' '\(current.label)' \(from), target \(to)")
                 if to.minY > from.maxY { remote.press(.down) }
                 else if to.maxY < from.minY { remote.press(.up) }
                 else { remote.press(to.midX < from.midX ? .left : .right) }
