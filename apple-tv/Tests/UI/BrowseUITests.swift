@@ -15,16 +15,22 @@ final class BrowseUITests: XCTestCase {
         let target = control ?? app.buttons[id]
         if !target.exists { _ = target.waitForExistence(timeout: 2) }
         var unseen = 0
+        var last: XCUIRemote.Button?
+        let focused = NSPredicate(format: "hasFocus == true")
         for _ in 0..<limit {
             if !target.exists { remote.press(.down); Thread.sleep(forTimeInterval: 0.2); continue }
             if target.hasFocus || target.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true")).firstMatch.exists || app.cells.containing(.any, identifier: id).matching(NSPredicate(format: "hasFocus == true")).firstMatch.exists { Thread.sleep(forTimeInterval: 0.2); if activate { remote.press(.select) }; return }
-            let current = app.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true")).firstMatch
-            if current.exists {
+            // The any-element query can miss a focused button the buttons query finds.
+            let current = [app.descendants(matching: .any).matching(focused).firstMatch,
+                           app.buttons.matching(focused).firstMatch].first { $0.exists }
+            if let current {
                 let from = current.frame, to = target.frame
                 print("select(\(id)): focus \(current.elementType.rawValue) '\(current.identifier)' '\(current.label)' \(from), target \(to)")
-                if to.minY > from.maxY { remote.press(.down) }
-                else if to.maxY < from.minY { remote.press(.up) }
-                else { remote.press(to.midX < from.midX ? .left : .right) }
+                let move: XCUIRemote.Button
+                if to.minY > from.maxY { move = .down }
+                else if to.maxY < from.minY { move = .up }
+                else { move = to.midX < from.midX ? .left : .right }
+                remote.press(move); last = move
             } else if unseen < 3 {
                 // Mid-move, while the scroll view follows the new focus, the query can find no
                 // focused element although one is. Pressing Down then undid the move just made.
@@ -32,8 +38,10 @@ final class BrowseUITests: XCTestCase {
                 Thread.sleep(forTimeInterval: 0.3)
                 continue
             } else {
+                // Keep going the way the last move went: Down here undid an Up that had
+                // worked, and the walk went back and forth between two rows.
                 print("select(\(id)): nothing reports focus, target \(target.frame)")
-                remote.press(.down)
+                remote.press(last ?? .down)
             }
             unseen = 0
             Thread.sleep(forTimeInterval: 0.2)
