@@ -59,6 +59,9 @@ class PlayAnimeViewModel(
     private var qualityJob: Job? = null
     private var stampsJob: Job? = null
     var currentEpIndex: Int = -1
+    /** The 100-episode part on screen, and how many there are. -1 until the player sets it. */
+    var currentPart: Int = -1
+    var lastPart: Int = 1
     var currentSubEpIndex: Int = 0
 
     val videoOptionsData = MutableLiveData<List<VideoOption>>()

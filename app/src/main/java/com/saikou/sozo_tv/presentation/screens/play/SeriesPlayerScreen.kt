@@ -223,13 +223,14 @@ class SeriesPlayerScreen : Fragment() {
         observeRemote()
 
         if (model.currentEpIndex < 0) model.currentEpIndex = args.currentIndex
+        if (model.currentPart < 0) model.currentPart = args.currentPage.coerceAtLeast(1)
         controls.filmTitle.text = args.name
         updateEpisodeMeta()
 
         if (model.allEpisodeData.value !is Resource.Success) {
-            showLoading(getString(R.string.part_are_episodes_loading, args.currentPage))
+            showLoading(getString(R.string.part_are_episodes_loading, model.currentPart))
             model.getAllEpisodeByPage(
-                args.currentPage, args.seriesMainId, ShowResponse(args.name, args.id, args.image)
+                model.currentPart, args.seriesMainId, ShowResponse(args.name, args.id, args.image)
             )
         }
     }
@@ -390,15 +391,16 @@ class SeriesPlayerScreen : Fragment() {
         model.allEpisodeData.observe(viewLifecycleOwner) { res ->
             when (res) {
                 Resource.Loading ->
-                    showLoading(getString(R.string.part_are_episodes_loading, args.currentPage))
+                    showLoading(getString(R.string.part_are_episodes_loading, model.currentPart))
 
                 is Resource.Success -> {
                     episodeList.clear()
                     episodeList.addAll(res.data.data ?: listOf())
+                    model.lastPart = res.data.last_page ?: 1
                     binding.textView9.text = resources.getQuantityString(
                         R.plurals.part_episode_count,
                         episodeList.size,
-                        args.currentPage,
+                        model.currentPart,
                         episodeList.size,
                     )
                     episodeAdapter = EpisodePlayerAdapter(model.currentEpIndex, args.image).also {
@@ -415,6 +417,12 @@ class SeriesPlayerScreen : Fragment() {
                         episodeRequested = true
                         model.loadWatched(args.id)
                     }
+                    pendingPartOpen?.let { last ->
+                        pendingPartOpen = null
+                        // The old index points into the old part; nothing of it is saved again.
+                        model.currentEpIndex = -1
+                        openEpisode(if (last) episodeList.lastIndex else 0)
+                    }
                 }
 
                 is Resource.Error -> showError(
@@ -422,7 +430,7 @@ class SeriesPlayerScreen : Fragment() {
                     canSwitch = false,
                 ) {
                     model.getAllEpisodeByPage(
-                        args.currentPage, args.seriesMainId,
+                        model.currentPart, args.seriesMainId,
                         ShowResponse(args.name, args.id, args.image),
                     )
                 }
@@ -586,7 +594,7 @@ class SeriesPlayerScreen : Fragment() {
 
     private fun currentEpisodeNumber(): Int =
         episodeList.getOrNull(model.currentEpIndex)?.episode?.takeIf { it > 0 }
-            ?: ((args.currentPage.coerceAtLeast(1) - 1) * ExtensionParser.EPISODE_PAGE_SIZE +
+            ?: ((model.currentPart.coerceAtLeast(1) - 1) * ExtensionParser.EPISODE_PAGE_SIZE +
                 model.currentEpIndex + 1)
 
     /**
@@ -608,6 +616,13 @@ class SeriesPlayerScreen : Fragment() {
     private fun openEpisode(index: Int) {
         if (index == model.currentEpIndex) return
         if (index !in episodeList.indices) {
+            // The player holds one 100-episode part. Past either end of it, the next or the
+            // previous part is loaded and played on from, instead of stopping at episode 100.
+            val target = if (index < 0) model.currentPart - 1 else model.currentPart + 1
+            if (episodeList.isNotEmpty() && target in 1..model.lastPart) {
+                switchPart(target, openLast = index < 0)
+                return
+            }
             showToast(
                 getString(
                     if (index < 0) R.string.this_is_the_first_episode
@@ -634,6 +649,24 @@ class SeriesPlayerScreen : Fragment() {
     }
 
     private fun openNextEpisode() = openEpisode(model.currentEpIndex + 1)
+
+    /** Set while another part loads: whether to open its last episode (true) or its first. */
+    private var pendingPartOpen: Boolean? = null
+
+    private fun hasNextPart() = model.currentPart < model.lastPart
+
+    private fun switchPart(part: Int, openLast: Boolean) {
+        persistProgress()
+        loadJob?.cancel()
+        stopProgressTracking()
+        binding.upNextOverlay.dismiss()
+        player?.stop()
+        pendingPartOpen = openLast
+        model.currentPart = part
+        model.getAllEpisodeByPage(
+            part, args.seriesMainId, ShowResponse(args.name, args.id, args.image),
+        )
+    }
 
     private fun openPreviousEpisode() = openEpisode(model.currentEpIndex - 1)
 
@@ -904,7 +937,7 @@ class SeriesPlayerScreen : Fragment() {
         if (p.duration <= 0) return
         if (binding.upNextOverlay.isShowing) return
         when {
-            model.currentEpIndex >= episodeList.size - 1 -> showEndCard()
+            model.currentEpIndex >= episodeList.size - 1 && !hasNextPart() -> showEndCard()
             !upNextCancelled -> openNextEpisode()
             else -> binding.pvPlayer.showController()
         }
@@ -1103,15 +1136,17 @@ class SeriesPlayerScreen : Fragment() {
     private fun showUpNext() {
         if (dialogOpen || binding.playerError.root.isVisible) return
         val next = model.currentEpIndex + 1
-        val ep = episodeList.getOrNull(next) ?: return
+        val ep = episodeList.getOrNull(next)
+        // The first episode of the next part is not loaded yet; it is announced by number.
+        if (ep == null && !(next == episodeList.size && hasNextPart())) return
         upNextShown = true
         binding.pvPlayer.hideController()
-        val number = ep.episode?.takeIf { it > 0 } ?: (next + 1)
+        val number = ep?.episode?.takeIf { it > 0 } ?: (currentEpisodeNumber() + 1)
         binding.upNextOverlay.show(
             UpNextOverlayView.Spec(
                 title = args.name,
                 episodeLabel = getString(R.string.player_up_next_episode, number),
-                thumbnailUrl = ep.snapshot ?: args.image,
+                thumbnailUrl = ep?.snapshot ?: args.image,
                 seconds = AutoAdvance.COUNTDOWN_SECONDS,
             ),
             onPlayNow = { openEpisode(next) },
@@ -1992,7 +2027,7 @@ class SeriesPlayerScreen : Fragment() {
             description = "",
             language = "",
             rating = 0.0,
-            page = args.currentPage,
+            page = model.currentPart,
             release_year = "",
             videoUrl = vod?.urlobj.orEmpty(),
             totalDuration = duration,
