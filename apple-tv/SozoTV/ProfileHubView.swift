@@ -54,7 +54,7 @@ struct ProfileHubView: View {
                             Text(session.activeProfile?.isKids == true ? "Kids profile" : "Your space on the big screen").font(.system(size: 24)).foregroundStyle(.secondary)
                         }
                         Spacer()
-                        NavigationLink { destination(.profiles) } label: { SozoActionLabel(title: "Profiles", symbol: "person.2") }.buttonStyle(SozoProfileButtonStyle()).accessibilityIdentifier("profile.manage")
+                        NavigationLink { destination(.profiles) } label: { Label("Profiles", systemImage: "person.2").padding(24) }.buttonStyle(SozoProfileButtonStyle()).accessibilityIdentifier("profile.manage")
                     }.padding(28).sozoContentSurface(cornerRadius: 28).focusSection().padding(.bottom, 8)
                     hubSection("Your viewing", routes: [.library, .history, .activity])
                     hubSection("Your account", routes: session.activeProfile?.isKids == true ? [.account, .notifications] : [.account, .notifications, .friends])

@@ -14,6 +14,7 @@ final class BrowseUITests: XCTestCase {
     private func select(_ id: String, limit: Int = 40, control: XCUIElement? = nil, activate: Bool = true) {
         let target = control ?? app.buttons[id]
         if !target.exists { _ = target.waitForExistence(timeout: 2) }
+        var unseen = 0
         for _ in 0..<limit {
             if !target.exists { remote.press(.down); Thread.sleep(forTimeInterval: 0.2); continue }
             if target.hasFocus || target.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true")).firstMatch.exists || app.cells.containing(.any, identifier: id).matching(NSPredicate(format: "hasFocus == true")).firstMatch.exists { Thread.sleep(forTimeInterval: 0.2); if activate { remote.press(.select) }; return }
@@ -24,10 +25,17 @@ final class BrowseUITests: XCTestCase {
                 if to.minY > from.maxY { remote.press(.down) }
                 else if to.maxY < from.minY { remote.press(.up) }
                 else { remote.press(to.midX < from.midX ? .left : .right) }
+            } else if unseen < 3 {
+                // Mid-move, while the scroll view follows the new focus, the query can find no
+                // focused element although one is. Pressing Down then undid the move just made.
+                unseen += 1
+                Thread.sleep(forTimeInterval: 0.3)
+                continue
             } else {
-                print("select(\(id)): nothing reports focus, target \(target.frame)\n\(app.debugDescription)")
+                print("select(\(id)): nothing reports focus, target \(target.frame)")
                 remote.press(.down)
             }
+            unseen = 0
             Thread.sleep(forTimeInterval: 0.2)
         }
         XCTFail("Could not focus \(id)\n\(app.debugDescription)")
@@ -228,7 +236,8 @@ final class BrowseUITests: XCTestCase {
         for _ in 0..<6 { remote.press(.down); Thread.sleep(forTimeInterval: 0.25) }
         let last = app.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true")).firstMatch
         XCTAssertTrue(last.identifier.contains("/title/7"), app.debugDescription)
-        XCTAssertTrue(last.frame.intersects(app.frame), "\(last.identifier) at \(last.frame)\n\(app.debugDescription)")
+        // The window, not `app`: the application element's own frame is empty on tvOS.
+        XCTAssertTrue(last.frame.intersects(app.windows.firstMatch.frame), "\(last.identifier) at \(last.frame)")
         for _ in 0..<6 { remote.press(.up); Thread.sleep(forTimeInterval: 0.25) }
         XCTAssertEqual(app.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true")).firstMatch.identifier, remembered, "A shelf must keep its focused title after leaving the viewport")
         screenshot("Long horizontal shelves after vertical navigation")
