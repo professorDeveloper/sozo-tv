@@ -258,6 +258,7 @@ class EpisodeScreen : Fragment() {
         if (binding.tabRv.adapter !== categoriesAdapter) {
             binding.tabRv.adapter = categoriesAdapter
         }
+
         if (categoriesAdapter.itemCount != partList.size) {
             categoriesAdapter.submitList(partList)
         }

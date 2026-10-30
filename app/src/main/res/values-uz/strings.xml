@@ -395,4 +395,21 @@
     <string name="content_controls_summary">Bosh sahifa kanallari: %1$s \u2022 Kattalar: %2$s</string>
     <string name="language_section_title">Til</string>
     <string name="language_section_hint">Sozo shu televizorda qaysi tilda gapiradi</string>
+    <!-- Profiles -->
+    <string name="profile_who_is_watching">Kim tomosha qilyapti?</string>
+    <string name="profile_picker_hint">Profilni tanlang va tomosha qilishni davom ettiring</string>
+    <string name="profile_add">+ Profil qo‘shish</string>
+    <string name="profile_manage">Profillarni boshqarish</string>
+    <string name="profile_done">Tayyor</string>
+    <string name="profile_kids">BOLALAR</string>
+    <string name="profile_kids_mode">Bolalar profili</string>
+    <string name="profile_choose_avatar">Avatarni tanlash</string>
+    <string name="profile_name_hint">Profil nomi</string>
+    <string name="profile_create_title">Yangi profil</string>
+    <string name="profile_edit_title">Profilni tahrirlash</string>
+    <string name="profile_save">Saqlash</string>
+    <string name="profile_delete">O‘chirish</string>
+    <string name="profile_load_failed">Profillarni yuklab bo‘lmadi</string>
+    <string name="profile_name_required">Profil nomini kiriting</string>
+    <string name="profile_delete_confirm">Bu profil va uning TV tarixini o‘chirasizmi?</string>
 </resources>

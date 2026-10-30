@@ -34,6 +34,8 @@ data class VideoOption(
     var sniff: String? = null,
     /** Separate audio renditions merged into playback alongside [videoUrl]. */
     var audioTracks: List<AudioTrackRef> = emptyList(),
+    val drm: String? = null,
+    val streamType: String? = null,
 )
 
 

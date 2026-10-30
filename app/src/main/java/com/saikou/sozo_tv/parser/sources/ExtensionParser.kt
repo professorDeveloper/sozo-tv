@@ -32,6 +32,12 @@ class ExtensionParser : BaseParser() {
 
     override val name: String = "Extensions"
 
+    data class ContentKind(val isSeries: Boolean, val isAnime: Boolean)
+    private val contentKinds = object : LinkedHashMap<String, ContentKind>(64, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, ContentKind>?): Boolean = size > 64
+    }
+    fun contentKind(id: String): ContentKind? = synchronized(contentKinds) { contentKinds[id] }
+
     private val engine get() = ExtensionEngine.shared
     private fun activeProvider(): String? = engine.getActiveProvider()
 
@@ -59,6 +65,9 @@ class ExtensionParser : BaseParser() {
         val (encoded, url) = untag(id)
         val p = encoded ?: activeProvider() ?: return null
         val detail = engine.load(p, url) ?: return null
+        synchronized(contentKinds) {
+            contentKinds[id] = ContentKind(detail.isSerial, p.startsWith("an:") || detail.type?.contains("anime", true) == true)
+        }
         // Paged here, not by the source. The engine hands over the whole list —
         // a long-running series is a thousand episodes — and returning it as one
         // page meant the screen hid its part tabs (`last_page = 1`) and left the
@@ -102,6 +111,8 @@ class ExtensionParser : BaseParser() {
         return media.sources.map { s ->
             VideoOption(
                 videoUrl = s.videoUrl,
+                drm = s.drm,
+                streamType = s.type,
                 fansub = s.host ?: "",
                 resolution = s.quality,
                 audioType = AudioType.SUB,

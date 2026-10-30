@@ -75,17 +75,6 @@ class DetailViewModel(
         }
     }
 
-    fun loadMovieById(id: Int) {
-        viewModelScope.launch {
-            val result = repo.loadMovieDetail(id)
-            if (result.isSuccess) {
-                detailData.postValue(
-                    DetailCategory(content = result.getOrNull()!!.copy(episodes = 1))
-                )
-            } else errorData.postValue(result.exceptionOrNull()?.message)
-        }
-    }
-
     fun loadSeriesById(id: Int) {
         viewModelScope.launch {
             val result = repo.loadSeriesDetail(id)
@@ -99,10 +88,7 @@ class DetailViewModel(
             val result = repo.loadAnimeRelations(id)
             if (result.isSuccess) {
                 val list = result.getOrNull().orEmpty()
-                // Anything the source actually related is worth showing. The old floor of
-                // five threw away shorter lists in favour of loadRandomAnime(), which is a
-                // stub that returns nothing — so a title with four sequels showed none.
-                relationsData.postValue(list)
+                        relationsData.postValue(list)
             } else errorData.postValue(result.exceptionOrNull()?.message)
         }
     }

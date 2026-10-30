@@ -1,4 +1,20 @@
 <resources>
+    <string name="profile_who_is_watching">Who’s watching?</string>
+    <string name="profile_picker_hint">Pick a profile and keep watching</string>
+    <string name="profile_add">+ Add profile</string>
+    <string name="profile_manage">Manage profiles</string>
+    <string name="profile_done">Done</string>
+    <string name="profile_kids">KIDS</string>
+    <string name="profile_kids_mode">Kids profile</string>
+    <string name="profile_choose_avatar">Choose an avatar</string>
+    <string name="profile_name_hint">Profile name</string>
+    <string name="profile_create_title">New profile</string>
+    <string name="profile_edit_title">Edit profile</string>
+    <string name="profile_save">Save</string>
+    <string name="profile_delete">Delete</string>
+    <string name="profile_load_failed">Couldn’t load profiles</string>
+    <string name="profile_name_required">Enter a profile name</string>
+    <string name="profile_delete_confirm">Delete this profile and its TV history?</string>
     <string name="app_name">Sozo Tv</string>
 
     <!-- Error messages -->

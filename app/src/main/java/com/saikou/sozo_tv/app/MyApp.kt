@@ -38,6 +38,7 @@ class MyApp : Application() {
         instance = this
 
         initSozoUserAgent(this)
+        com.saikou.sozo_tv.engine.network.ExtensionDns.initialize(this)
         Bugsnag.start(this)
         AndroidThreeTen.init(this)
         FirebaseApp.initializeApp(this)

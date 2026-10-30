@@ -25,3 +25,13 @@ key.properties
 # Internal docs — audits, plans, notes. This repository is public; these stay
 # on the developer's machine and are never published.
 /docs/
+
+# Native Apple TV generated project, build artifacts and distribution secrets.
+/apple-tv/build/
+/apple-tv/SozoTV.xcodeproj/
+*.xcarchive
+*.xcresult
+*.ipa
+*.p12
+*.mobileprovision
+AuthKey_*.p8

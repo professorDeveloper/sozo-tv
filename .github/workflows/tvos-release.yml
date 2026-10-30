@@ -1,0 +1,55 @@
+name: Apple TV Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Marketing version, e.g. 1.0.0'
+        required: true
+        default: '1.0.0'
+        type: string
+      build_number:
+        description: 'New App Store build number (1–9999, higher than previous upload)'
+        required: true
+        type: string
+      upload_testflight:
+        description: 'Upload to App Store Connect for TestFlight processing'
+        default: false
+        type: boolean
+permissions:
+  contents: read
+concurrency:
+  group: tvos-release
+  cancel-in-progress: false
+jobs:
+  verify:
+    uses: ./.github/workflows/tvos-ci.yml
+  distribute:
+    needs: verify
+    runs-on: macos-26
+    timeout-minutes: 40
+    environment: apple-tv
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install project generator
+        run: brew install xcodegen
+      - name: Archive and export; upload only when requested
+        env:
+          SOZO_TV_VERSION: ${{ inputs.version }}
+          SOZO_TV_BUILD_NUMBER: ${{ inputs.build_number }}
+          SOZO_TV_UPLOAD_TESTFLIGHT: ${{ inputs.upload_testflight }}
+          APPLE_TV_TEAM_ID: ${{ secrets.APPLE_TV_TEAM_ID }}
+          APPLE_TV_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_TV_CERTIFICATE_P12_BASE64 }}
+          APPLE_TV_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_TV_CERTIFICATE_PASSWORD }}
+          APPLE_TV_PROFILE_BASE64: ${{ secrets.APPLE_TV_PROFILE_BASE64 }}
+          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+        run: apple-tv/scripts/release.sh
+      - name: Save distribution artifacts and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tvos-release-${{ inputs.version }}-${{ inputs.build_number }}-${{ github.run_attempt }}
+          path: apple-tv/build/release/
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,0 +1,41 @@
+name: Apple TV CI
+on:
+  push:
+    paths: ['apple-tv/**', '.github/workflows/tvos-*.yml']
+  pull_request:
+    paths: ['apple-tv/**', '.github/workflows/tvos-*.yml']
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+concurrency:
+  group: tvos-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    name: tvOS Foundation, remote UI and signed Release
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build and fixture tools
+        run: brew install xcodegen ffmpeg actionlint shellcheck
+      - name: Validate workflow and shell scripts
+        run: |
+          actionlint .github/workflows/tvos-ci.yml .github/workflows/tvos-release.yml
+          shellcheck apple-tv/scripts/*.sh
+      - name: Run the same checks as local development
+        run: apple-tv/scripts/ci.sh
+      - name: Save logs, screenshots, results and simulator app
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tvos-verification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            apple-tv/build/ci/*.log
+            apple-tv/build/ci/*.json
+            apple-tv/build/ci/*.txt
+            apple-tv/build/ci/*.zip
+            apple-tv/build/ci/*.xcresult
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.konan.properties.Properties
+import java.util.Properties
 import java.io.FileInputStream
 
 plugins {
@@ -7,7 +7,7 @@ plugins {
     id("kotlin-parcelize")
     id("androidx.navigation.safeargs.kotlin")
     id("kotlin-kapt")
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.24"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
     id("com.google.gms.google-services")
 }
 val localProps = Properties()
@@ -42,7 +42,7 @@ val hasReleaseKeystore = keystorePropertiesFile.exists() &&
 
 android {
     namespace = "com.saikou.sozo_tv"
-    compileSdk = 35
+    compileSdk = 36
     kapt {
         correctErrorTypes = true
         useBuildCache = true
@@ -54,8 +54,8 @@ android {
         minSdk = 24
         //noinspection OldTargetApi
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "1.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -106,7 +106,7 @@ android {
         jvmTarget = "17"
         // Vendored Aniyomi OkHttpExtensions.parseAs uses context receivers.
         // Skip-metadata: the CloudStream `library` + serialization runtime are
-        // built with a newer Kotlin than this module (1.9) — read their metadata.
+        // may carry newer Kotlin metadata than this compiler — read their metadata.
         freeCompilerArgs += listOf("-Xcontext-receivers", "-Xskip-metadata-version-check")
     }
     buildFeatures {
@@ -142,42 +142,16 @@ android {
     }
 }
 
-// The CloudStream runtime drags kotlin-stdlib up to 2.3.0 (metadata 2.3.0), which
-// the Room/kapt annotation processor can't read (and which is newer than this
-// module's Kotlin 1.9 compiler). Pin the whole kotlin-stdlib family back to 1.9.x
+// Keep plugin runtime ABI current and the Kotlin compiler/runtime aligned.
 configurations.all {
-    // Compile against 1.7.3, SHIP 1.11.0.
-    //
-    // Plugins built against a current CloudStream call `BuildersKt.runBlockingK`,
-    // which is simply what `runBlocking` is named on the JVM from coroutines
-    // 1.11.0 onward. With 1.7.3 in the APK that symbol does not exist, so those
-    // plugins died in their MainAPI constructor with NoSuchMethodError, went
-    // into PluginHost's `failed` set, and never got retried — 18 of the 79
-    // providers were dead for the life of the process, silently.
-    //
-    // The compile classpath cannot follow: 1.11.0 ships Kotlin metadata 2.2,
-    // which this module's Kotlin 1.9.24 compiler (held there by Room/kapt)
-    // cannot read. What lands in the APK comes from the *RuntimeClasspath
-    // configurations, so versioning by configuration name gives each side what
-    // it needs. The one stdlib-2.x class 1.11.0 reaches for, SpillingKt, is
-    // already shimmed in app/src/main/java/kotlin/coroutines/jvm/internal.
-    //
-    // An in-app shim is not an option here: kotlinx-coroutines-core-jvm already
-    // defines kotlinx.coroutines.BuildersKt, so a second copy is a D8 duplicate.
-    val coroutinesVersion = if (name.endsWith("RuntimeClasspath")) "1.11.0" else "1.7.3"
+    exclude(group = "com.github.recloudstream", module = "torrentserver")
     resolutionStrategy.eachDependency {
-        // The CloudStream runtime drags kotlin-stdlib up to 2.3.0 (metadata 2.3.0),
-        // which the Room/kapt annotation processor can't read. kotlin-reflect rides
-        // along for the same reason.
         if (requested.group == "org.jetbrains.kotlin" &&
-            (requested.name.startsWith("kotlin-stdlib") || requested.name == "kotlin-reflect")
-        ) {
-            useVersion("1.9.24")
+            (requested.name.startsWith("kotlin-stdlib") || requested.name == "kotlin-reflect")) {
+            useVersion("2.2.20")
         }
-        if (requested.group == "org.jetbrains.kotlinx" &&
-            requested.name.startsWith("kotlinx-coroutines")
-        ) {
-            useVersion(coroutinesVersion)
+        if (requested.group == "org.jetbrains.kotlinx" && requested.name.startsWith("kotlinx-coroutines")) {
+            useVersion("1.11.0")
         }
     }
 }
@@ -264,8 +238,7 @@ dependencies {
         "org.kamranzafar:jtar:2.0.1"
     )
 
-    val dialogx_version = "0.0.49"
-    implementation("com.kongzue.dialogx:DialogX:${dialogx_version}")
+    implementation("com.kongzue.dialogx:DialogX:0.0.49")
     implementation("org.apache.commons:commons-compress:1.21")
     implementation("com.bugsnag:bugsnag-android:6.+")
     implementation("com.bugsnag:bugsnag-android-performance:1.+")
@@ -290,23 +263,21 @@ dependencies {
 
     // ---- Extension engine (Aniyomi .apk + CloudStream .cs3 runtime) ----
     // CloudStream provider runtime: MainAPI/APIHolder/`app` HTTP/extractors/BasePlugin.
-    // Held at v4.7.0. v4.8.0 is what plugins calling `MainAPIKt.getJson()` need
-    // (five of the six unblocked by the coroutines change below will hit that
-    // next), but its manifest requires compileSdk 36, which in turn needs an AGP
-    // and Gradle upgrade — a build-infrastructure change, not a dependency bump.
-    implementation("com.github.recloudstream.cloudstream:library:v4.7.0")
+    // Match the mobile plugin ABI, including getJson and DrmExtractorLink.
+    implementation("com.github.recloudstream.cloudstream:library:v4.8.0")
+    implementation("androidx.webkit:webkit:1.12.1")
+    implementation("com.squareup.okhttp3:okhttp-dnsoverhttps:4.12.0")
+    implementation(files("libs/torrentserver-7861970-16k.aar"))
     // Plugins are compiled against the full CloudStream app, which carries Ktor; the
     // `library` artifact does not. Without it a plugin that touches io.ktor.http dies with
     // NoClassDefFoundError the moment load() runs (AllMovieLand, among others).
     implementation("io.ktor:ktor-http:2.3.12")
-    // Declared at 1.7.3 because that is what this module COMPILES against; the
-    // resolutionStrategy above ships 1.11.0. See the comment there.
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     // compileOnly: our clean-room CloudflareKiller implements okhttp3.Interceptor;
     // okhttp itself is supplied at runtime by the CloudStream `library`.
     compileOnly("com.squareup.okhttp3:okhttp:4.12.0")
     // Aniyomi extension runtime supplied to DexClassLoader at load time.
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.24")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:2.2.20")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-okio:1.7.3")
     implementation("io.reactivex:rxjava:1.3.8")
     // JS engine for Aniyomi extractors that deobfuscate links (QuickJS).

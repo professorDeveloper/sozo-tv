@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.engine.player
 
+import com.saikou.sozo_tv.engine.network.ExtensionDns
 import android.content.Context
 import android.util.Log
 import androidx.media3.common.util.UnstableApi
@@ -27,6 +28,7 @@ class StreamHttp(context: Context) {
     // Lenient TLS on purpose: this carries only third-party stream traffic, whose CDNs often serve
     // incomplete chains (no AIA fetch on Android), and never a Sozo token.
     val client: OkHttpClient = OkHttpClient.Builder()
+            .dns(ExtensionDns.dns)
         .followRedirects(true).followSslRedirects(true)
         .connectionSpecs(
             listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.COMPATIBLE_TLS, ConnectionSpec.CLEARTEXT)
@@ -54,6 +56,11 @@ class StreamHttp(context: Context) {
     val dataSourceFactory: DataSource.Factory =
         DefaultDataSource.Factory(appContext, OkHttpDataSource.Factory(client))
 
+    /** Independent rendition headers must not be overwritten by the video's mutable headers. */
+    fun dataSourceFactoryFor(requestHeaders: Map<String, String>): DataSource.Factory =
+        DefaultDataSource.Factory(appContext, OkHttpDataSource.Factory(proxyClient)
+            .setDefaultRequestProperties(requestHeaders))
+
     val subtitleClient: OkHttpClient by lazy {
         client.newBuilder()
             .apply { networkInterceptors().clear() }
@@ -64,6 +71,7 @@ class StreamHttp(context: Context) {
 
     val proxyClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
+            .dns(ExtensionDns.dns)
             .followRedirects(true).followSslRedirects(true)
             .cookieJar(AndroidCookieJar())
             .addInterceptor(cloudflare)

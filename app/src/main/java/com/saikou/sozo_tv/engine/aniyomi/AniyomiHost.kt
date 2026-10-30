@@ -10,7 +10,7 @@ import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.animesource.model.SAnimeImpl
 import eu.kanade.tachiyomi.animesource.model.SEpisodeImpl
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CancellationException
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -117,6 +117,7 @@ class AniyomiHost(private val context: Context) {
             conn.inputStream.use { input -> FileOutputStream(file).use { input.copyTo(it) } }
             file
         } catch (t: Throwable) {
+                if (t is CancellationException) throw t;
             Log.e(TAG, "apk download failed: ${t.message}"); null
         }
     }
@@ -141,13 +142,13 @@ class AniyomiHost(private val context: Context) {
 
     private fun newAnime(url: String) = SAnimeImpl().apply { this.url = url; title = "" }
 
-    fun getMainPageJson(id: String, page: Int): String {
+    suspend fun getMainPageJson(id: String, page: Int): String {
         val src = sourceFor(id)
         val sections = JSONArray()
         val banner = JSONArray()
         if (src != null) {
             try {
-                val pop = runBlocking { src.getPopularAnime(page) }
+                val pop = run { src.getPopularAnime(page) }
                 pop.animes.firstOrNull()?.let {
                     val t = runCatching { it.title }.getOrDefault("<unset>")
                     Log.i(TAG, "popular[0] title='$t' url='${it.url}'")
@@ -163,10 +164,11 @@ class AniyomiHost(private val context: Context) {
                         put("items", items)
                     })
                 }
-            } catch (t: Throwable) { Log.e(TAG, "getPopular $id: ${t.message}") }
+            } catch (t: Throwable) {
+                if (t is CancellationException) throw t; Log.e(TAG, "getPopular $id: ${t.message}") }
             try {
                 if (src.supportsLatest) {
-                    val lat = runBlocking { src.getLatestUpdates(page) }
+                    val lat = run { src.getLatestUpdates(page) }
                     val items = JSONArray()
                     for (a in lat.animes.take(30)) items.put(cardJson(a, id))
                     if (items.length() > 0) sections.put(JSONObject().apply {
@@ -175,41 +177,41 @@ class AniyomiHost(private val context: Context) {
                         put("items", items)
                     })
                 }
-            } catch (t: Throwable) { Log.e(TAG, "getLatest $id: ${t.message}") }
+            } catch (t: Throwable) {
+                if (t is CancellationException) throw t; Log.e(TAG, "getLatest $id: ${t.message}") }
         }
         return JSONObject().apply {
             put("provider", "an:$id"); put("banner", banner); put("sections", sections)
         }.toString()
     }
 
-    fun getSectionJson(id: String, data: String, page: Int): String {
+    suspend fun getSectionJson(id: String, data: String, page: Int): String {
         val src = sourceFor(id)
         val items = JSONArray()
         var hasNext = false
         if (src != null) try {
-            val pg = runBlocking {
+            val pg = run {
                 if (data == "latest" && src.supportsLatest) src.getLatestUpdates(page)
                 else src.getPopularAnime(page)
             }
             for (a in pg.animes) items.put(cardJson(a, id))
             hasNext = pg.hasNextPage
-        } catch (t: Throwable) { Log.e(TAG, "getSection $id: ${t.message}") }
+        } catch (t: Throwable) {
+                if (t is CancellationException) throw t; Log.e(TAG, "getSection $id: ${t.message}") }
         return JSONObject().apply {
             put("provider", "an:$id"); put("items", items); put("page", page)
             put("totalPages", if (hasNext) page + 1 else page)
         }.toString()
     }
 
-    fun searchJson(id: String, query: String): String {
-        val src = sourceFor(id)
+    suspend fun searchJson(id: String, query: String): String {
+        val src = sourceFor(id) ?: error("Aniyomi source '$id' is unavailable")
+        val page = src.getSearchAnime(1, query, AnimeFilterList())
         val items = JSONArray()
-        if (src != null) try {
-            val pg = runBlocking { src.getSearchAnime(1, query, AnimeFilterList()) }
-            for (a in pg.animes) items.put(cardJson(a, id))
-        } catch (t: Throwable) { Log.e(TAG, "search $id: ${t.message}") }
+        for (anime in page.animes) items.put(cardJson(anime, id))
         return JSONObject().apply {
             put("provider", "an:$id"); put("items", items)
-            put("query", query); put("page", 1); put("totalPages", 1)
+            put("query", query); put("page", 1); put("totalPages", if (page.hasNextPage) 2 else 1)
         }.toString()
     }
 
@@ -225,13 +227,15 @@ class AniyomiHost(private val context: Context) {
         else -> null
     }
 
-    fun loadJson(id: String, url: String): String {
+    suspend fun loadJson(id: String, url: String): String {
         val src = sourceFor(id) ?: return "{}"
         val anime = newAnime(url)
-        val details = try { runBlocking { src.getAnimeDetails(anime) } }
-        catch (t: Throwable) { Log.e(TAG, "details $id: ${t.message}"); anime }
-        val eps = try { runBlocking { src.getEpisodeList(anime) } }
-        catch (t: Throwable) { Log.e(TAG, "episodes $id: ${t.message}"); emptyList() }
+        val details = try { run { src.getAnimeDetails(anime) } }
+        catch (t: Throwable) {
+                if (t is CancellationException) throw t; Log.e(TAG, "details $id: ${t.message}"); anime }
+        val eps = try { run { src.getEpisodeList(anime) } }
+        catch (t: Throwable) {
+                if (t is CancellationException) throw t; Log.e(TAG, "episodes $id: ${t.message}"); emptyList() }
         // A single-episode entry is a movie; multiple episodes is a series.
         val isMovie = eps.size <= 1
         val episodes = JSONArray()
@@ -260,14 +264,15 @@ class AniyomiHost(private val context: Context) {
         try {
             val q = title.replace(Regex("\\(.*?\\)"), "").trim()
             if (q.length >= 2) {
-                val results = runBlocking { src.getSearchAnime(1, q, AnimeFilterList()) }
+                val results = run { src.getSearchAnime(1, q, AnimeFilterList()) }
                 for (a in results.animes) {
                     if (a.url == url) continue
                     related.put(cardJson(a, id))
                     if (related.length() >= 20) break
                 }
             }
-        } catch (t: Throwable) { Log.e(TAG, "related $id: ${t.message}") }
+        } catch (t: Throwable) {
+                if (t is CancellationException) throw t; Log.e(TAG, "related $id: ${t.message}") }
         return JSONObject().apply {
             put("provider", "an:$id")
             put("contentId", url); put("contentUrl", url)
@@ -286,9 +291,9 @@ class AniyomiHost(private val context: Context) {
         }.toString()
     }
 
-    fun loadLinksJson(id: String, data: String): String {
-        val meta = meta(id)
-        val src = sourceFor(id)
+    suspend fun loadLinksJson(id: String, data: String): String {
+        val meta = meta(id) ?: error("Aniyomi source '$id' is unavailable")
+        val src = sourceFor(id) ?: error("Aniyomi source '$id' could not load")
         val videoSources = JSONArray()
         val subs = JSONArray()
         val seen = HashSet<String>()
@@ -299,14 +304,14 @@ class AniyomiHost(private val context: Context) {
             // User-Agent / Referer the CDN gates on). Many extensions don't repeat these on
             // each Video, so without this fallback the player's own client gets a 403.
             val baseHeaders = (src as? AnimeHttpSource)?.headers
-            val videos = try { runBlocking { src.getVideoList(episode) } }
-            catch (t: Throwable) { Log.e(TAG, "videos $id: ${t.message}"); emptyList() }
+            val videos = src.getVideoList(episode)
             for (v in videos) {
                 var vu = v.videoUrl
                 if (vu.isNullOrEmpty()) {
                     vu = try {
-                        runBlocking { (src as? AnimeHttpSource)?.getVideoUrl(v) }
+                        run { (src as? AnimeHttpSource)?.getVideoUrl(v) }
                     } catch (t: Throwable) {
+                if (t is CancellationException) throw t;
                         Log.e(TAG, "getVideoUrl $id: ${t.message}"); null
                     }
                 }
@@ -315,19 +320,30 @@ class AniyomiHost(private val context: Context) {
                 val headers = JSONObject()
                 baseHeaders?.forEach { (k, value) -> headers.put(k, value) }
                 v.headers?.forEach { (k, value) -> headers.put(k, value) }
-                val isHls = vu.contains(".m3u8")
+                val path = vu.substringBefore('?').lowercase()
+                val type = when {
+                    path.endsWith(".m3u8") || v.quality.contains("hls", true) -> "hls"
+                    path.endsWith(".mpd") -> "dash"
+                    else -> "http"
+                }
                 videoSources.put(JSONObject().apply {
                     put("quality", v.quality.ifEmpty { "Source" })
                     put("videoUrl", vu)
-                    put("type", if (isHls) "hls" else "http")
+                    put("type", type)
                     put("host", meta.name)
                     put("isDefault", videoSources.length() == 0)
                     put("accessible", true)
                     put("headers", headers)
+                    if (v.audioTracks.isNotEmpty()) put("audioTracks", JSONArray().apply {
+                        v.audioTracks.filter { it.url.startsWith("http", true) }.forEach { track ->
+                            put(JSONObject().put("url", track.url).put("headers", headers))
+                        }
+                    })
                 })
                 for (t in v.subtitleTracks) {
                     if (t.url.isNotEmpty() && seenSub.add(t.url)) subs.put(JSONObject().apply {
                         put("label", t.lang); put("file", t.url); put("default", false)
+                        put("headers", headers)
                     })
                 }
             }

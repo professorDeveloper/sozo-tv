@@ -16,10 +16,13 @@ dependencyResolutionManagement {
         flatDir {
             dirs("libs")
         }
-        maven(url = "https://jitpack.io")
-        maven("https://oss.sonatype.org/content/repositories/snapshots/")
-
         mavenCentral()
+        maven(url = "https://jitpack.io") {
+            content { includeGroupByRegex("com\\.github\\..*") }
+        }
+        maven("https://oss.sonatype.org/content/repositories/snapshots/") {
+            mavenContent { snapshotsOnly() }
+        }
     }
 }
 
