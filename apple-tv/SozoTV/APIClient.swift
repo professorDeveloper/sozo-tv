@@ -6,7 +6,15 @@ actor APIClient {
     private let session: URLSession
     private let decoder = JSONDecoder()
 
-    init(base: URL = URL(string: "https://apisozo.azamov.me/api")!, session: URLSession? = nil) {
+    // Encoded the same way as AppConstants in the phone app.
+    private static let defaultBase: URL = {
+        let key = Array("1v_a2f9_y3k_n1p_0Z0s".utf8.reversed())
+        let bytes = Array(Data(base64Encoded: "G0QuQCxKHkE+G1oKMEMJHAAlF1wcRnRdOl9QHjY=")!)
+        let plain = bytes.enumerated().map { $1 ^ key[$0 % key.count] }
+        return URL(string: String(decoding: plain, as: UTF8.self))!
+    }()
+
+    init(base: URL = APIClient.defaultBase, session: URLSession? = nil) {
         self.base = base
         self.session = session ?? URLSession(configuration: .ephemeral, delegate: SameOriginRedirects(), delegateQueue: nil)
     }

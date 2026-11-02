@@ -1,3 +1,4 @@
+import java.util.Base64
 import java.util.Properties
 import java.io.FileInputStream
 
@@ -28,7 +29,14 @@ fun readLocalProperty(name: String, default: String = ""): String {
 // local.properties holds only sdk.dir on a fresh checkout, so every one of these MUST carry a
 // working default — APISOZO_BASE_URL already compiles to "" for exactly that reason, which is
 // why ApisozoClient ends up building relative URLs.
-val sozoApiBaseUrl = readLocalProperty("SOZO_API_BASE_URL", "https://apisozo.azamov.me/api/")
+// Encoded the same way as AppConstants in the phone app.
+fun decodeAddress(payload: String): String {
+    val key = "1v_a2f9_y3k_n1p_0Z0s".reversed().toByteArray()
+    val bytes = Base64.getDecoder().decode(payload)
+    return String(ByteArray(bytes.size) { i -> (bytes[i].toInt() xor key[i % key.size].toInt()).toByte() })
+}
+
+val sozoApiBaseUrl = readLocalProperty("SOZO_API_BASE_URL", decodeAddress("G0QuQCxKHkE+G1oKMEMJHAAlF1wcRnRdOl9QHjZE"))
 val sozoLinkBaseUrl = readLocalProperty("SOZO_LINK_BASE_URL", "https://sozo.azamov.me/link/")
 
 val keystorePropertiesFile = rootProject.file("key.properties")
