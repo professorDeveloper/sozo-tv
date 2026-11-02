@@ -1,6 +1,21 @@
 name: Apple TV CI
+
+# `push` is the default branch only. It had no branch filter, and with
+# `pull_request` alongside it every push to a branch with a pull request open
+# ran this whole thing TWICE. On 2 Nov that was runs 41400668675 (push) and
+# 41400672636 (pull_request) on the same commit, 21 and 18 minutes — and this
+# job is on `macos-26`, which GitHub bills at TEN TIMES the Linux rate. So one
+# push to this branch cost about 390 billed minutes where 210 would have done,
+# and did it by booting a tvOS simulator and running the identical suite twice.
+#
+# The pair still covers everything between them: a branch with a pull request
+# is covered by `pull_request`, a push straight to the default branch by
+# `push`. A branch with no pull request yet now gets no Apple TV CI, which is
+# the state where nobody is waiting on a verdict — and `workflow_dispatch`
+# below is there for when somebody is.
 on:
   push:
+    branches: [master]
     paths: ['apple-tv/**', '.github/workflows/tvos-*.yml']
   pull_request:
     paths: ['apple-tv/**', '.github/workflows/tvos-*.yml']
