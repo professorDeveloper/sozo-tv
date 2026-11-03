@@ -86,17 +86,30 @@ struct DeviceLinkView: View {
         do {
             let value = try await session.createDeviceCode()
             try Task.checkCancellation()
-            code = value; expiresAt = Date().addingTimeInterval(TimeInterval(max(1, value.expiresIn))); loading = false
-            for _ in 0..<max(1, value.expiresIn / max(value.interval, 1)) {
-                try await Task.sleep(for: .seconds(max(value.interval, 1)))
-                let result = try await session.pollDeviceToken(value.deviceCode)
+            let deadline = Date().addingTimeInterval(TimeInterval(max(1, value.expiresIn)))
+            code = value; expiresAt = deadline; loading = false
+            var failures = 0, retryAfter: TimeInterval?
+            while deadline.timeIntervalSinceNow > 0 {
+                let wait = DeviceLinkPolling.delay(interval: value.interval, failures: failures, retryAfter: retryAfter)
+                try await Task.sleep(for: .seconds(min(wait, max(1, deadline.timeIntervalSinceNow))))
+                let result: DeviceToken
+                do { result = try await session.pollDeviceToken(value.deviceCode) }
+                catch where DeviceLinkPolling.isTransient(error) && !Task.isCancelled {
+                    failures += 1; retryAfter = (error as? APIError)?.retryAfter
+                    continue
+                }
+                failures = 0; retryAfter = nil
                 try Task.checkCancellation()
                 if result.accessToken != nil { try await session.accept(result); return }
-                if result.status == "denied" { code = nil; message = "Sign-in was declined. Get a new code to try again."; return }
                 if result.status == "expired" { break }
             }
             code = nil; message = "This code has expired. Get a new code to continue."
-        } catch is CancellationError {} catch { if !Task.isCancelled { code = nil; message = error.localizedDescription } }
+        } catch is CancellationError {} catch {
+            guard !Task.isCancelled else { return }
+            code = nil
+            let status = (error as? APIError)?.statusCode
+            message = status == 404 || status == 410 ? String(localized: "This code is no longer valid. Get a new code to continue.") : error.localizedDescription
+        }
     }
 }
 

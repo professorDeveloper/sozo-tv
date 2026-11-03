@@ -53,7 +53,8 @@ final class SessionStore: ObservableObject {
 
     /// Authenticated calls capture their profile before awaiting; replies from old scopes never escape.
     func request<T: Decodable>(_ path: String, query: [URLQueryItem] = [], method: String = "GET",
-                               body: [String: Any]? = nil, profileScoped: Bool = true) async throws -> T {
+                               body: [String: Any]? = nil, profileScoped: Bool = true,
+                               timeout: TimeInterval = APIClient.defaultTimeout) async throws -> T {
         let generation = accountGeneration, scopeRevision = revision
         let profile = profileScoped ? activeProfile?.id : nil
         guard let initial = credentials?.accessToken else { throw APIError.unauthenticated }
@@ -62,14 +63,21 @@ final class SessionStore: ObservableObject {
             try Task.checkCancellation()
         }
         do {
-            let value: T = try await api.request(path, query: query, method: method, body: body, token: initial, profileId: profile)
-            try validate(); return value
-        } catch let failure as APIError where failure.statusCode == 401 {
-            try validate()
-            let fresh = try await refreshedToken(rejected: initial)
-            try validate()
-            let value: T = try await api.request(path, query: query, method: method, body: body, token: fresh, profileId: profile)
-            try validate(); return value
+            do {
+                let value: T = try await api.request(path, query: query, method: method, body: body, token: initial, profileId: profile, timeout: timeout)
+                try validate(); return value
+            } catch let failure as APIError where failure.statusCode == 401 {
+                try validate()
+                let fresh = try await refreshedToken(rejected: initial)
+                try validate()
+                let value: T = try await api.request(path, query: query, method: method, body: body, token: fresh, profileId: profile, timeout: timeout)
+                try validate(); return value
+            }
+        } catch let failure as APIError where failure.code == "PROFILE_NOT_FOUND" {
+            // The missing profile may be the active one or only the target of a profile edit, PIN check or delete.
+            // A fresh listing tells them apart; loadProfiles drops the active profile only when it is gone.
+            if profile != nil, generation == accountGeneration, path != "auth/profiles" { Task { await loadProfiles() } }
+            throw failure
         }
     }
 

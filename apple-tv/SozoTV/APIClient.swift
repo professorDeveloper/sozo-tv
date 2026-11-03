@@ -14,16 +14,24 @@ actor APIClient {
         return URL(string: String(decoding: plain, as: UTF8.self))!
     }()
 
+    /// The backend allows /contents/media 60 s to resolve a slow provider before it answers.
+    static let mediaTimeout: TimeInterval = 75
+    static let defaultTimeout: TimeInterval = 30
+    /// A throttled GET waits this long at most before its single retry.
+    static let maximumRetryWait: TimeInterval = 5
     static let mediaSegmentEndpoint = defaultBase.appendingPathComponent("contents/media-segment")
 
     init(base: URL = APIClient.defaultBase, session: URLSession? = nil) {
         self.base = base
-        self.session = session ?? URLSession(configuration: .ephemeral, delegate: SameOriginRedirects(), delegateQueue: nil)
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = APIClient.mediaTimeout + 15
+        self.session = session ?? URLSession(configuration: config, delegate: SameOriginRedirects(), delegateQueue: nil)
     }
 
     func request<T: Decodable>(
         _ path: String, query: [URLQueryItem] = [], method: String = "GET",
-        body: [String: Any]? = nil, token: String? = nil, profileId: String? = nil
+        body: [String: Any]? = nil, token: String? = nil, profileId: String? = nil,
+        timeout: TimeInterval = APIClient.defaultTimeout
     ) async throws -> T {
         guard !path.hasPrefix("/"), !path.contains("://"), !path.split(separator: "/").contains("..") else {
             throw APIError.invalidRequest
@@ -33,7 +41,7 @@ actor APIClient {
         guard let url = parts.url else { throw APIError.invalidRequest }
         var request = URLRequest(url: url)
         request.httpMethod = method
-        request.timeoutInterval = 30
+        request.timeoutInterval = timeout
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("en", forHTTPHeaderField: "Accept-Language")
         request.setValue("SozoTV/tvOS", forHTTPHeaderField: "User-Agent")
@@ -43,13 +51,24 @@ actor APIClient {
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
+        do { return try await send(request) }
+        catch let failure as APIError where method == "GET" && failure.isThrottled {
+            guard let wait = failure.retryAfter, wait <= APIClient.maximumRetryWait else { throw failure }
+            try await Task.sleep(nanoseconds: UInt64(max(wait, 0.5) * 1_000_000_000))
+            return try await send(request)
+        }
+    }
+
+    private func send<T: Decodable>(_ request: URLRequest) async throws -> T {
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw APIError.http(-1) }
         guard 200..<300 ~= http.statusCode else {
             let payload = try? decoder.decode(ErrorPayload.self, from: data)
-            throw APIError.server(status: http.statusCode, code: payload?.code, message: payload?.message)
+            throw APIError.server(status: http.statusCode, code: payload?.code, message: payload?.message,
+                                  retryAfter: http.value(forHTTPHeaderField: "Retry-After").flatMap(APIError.retryAfter))
         }
-        return try decoder.decode(T.self, from: data)
+        do { return try decoder.decode(T.self, from: data) }
+        catch { throw APIError.invalidResponse }
     }
 
     func providers() async throws -> [Provider] { let catalog: ProviderCatalog = try await request("contents/providers"); return catalog.items }
@@ -75,7 +94,7 @@ actor APIClient {
         try await request("contents/media", query: [
             .init(name: "provider", value: provider), .init(name: "ref", value: ref),
             .init(name: "lang", value: "sub"),
-        ])
+        ], timeout: APIClient.mediaTimeout)
     }
 }
 
@@ -94,34 +113,71 @@ private final class SameOriginRedirects: NSObject, URLSessionTaskDelegate, @unch
 }
 
 enum APIError: LocalizedError {
-    case http(Int), server(status: Int, code: String?, message: String?)
-    case noPlayableSource, invalidRequest, unauthenticated, staleSession, pinRequired, incompleteDeviceSession
+    case http(Int), server(status: Int, code: String?, message: String?, retryAfter: TimeInterval? = nil)
+    case noPlayableSource, invalidRequest, invalidResponse, unauthenticated, staleSession, pinRequired, incompleteDeviceSession
     case keychain(Int32)
     var statusCode: Int? {
-        switch self { case .http(let code): code; case .server(let code, _, _): code; default: nil }
+        switch self { case .http(let code): code; case .server(let code, _, _, _): code; default: nil }
     }
-    var code: String? { if case .server(_, let code, _) = self { code } else { nil } }
+    var code: String? { if case .server(_, let code, _, _) = self { code } else { nil } }
+    var retryAfter: TimeInterval? { if case .server(_, _, _, let wait) = self { wait } else { nil } }
+    var isThrottled: Bool { statusCode == 429 || statusCode == 503 }
+
+    /// Retry-After is either delay-seconds or an HTTP date.
+    static func retryAfter(_ header: String) -> TimeInterval? {
+        let value = header.trimmingCharacters(in: .whitespaces)
+        if let seconds = TimeInterval(value), seconds >= 0 { return seconds }
+        let format = DateFormatter()
+        format.locale = Locale(identifier: "en_US_POSIX"); format.timeZone = TimeZone(identifier: "GMT")
+        format.dateFormat = "EEE, dd MMM yyyy HH:mm:ss zzz"
+        return format.date(from: value).map { max(0, $0.timeIntervalSinceNow) }
+    }
+
+    // Backend messages are Uzbek and mostly uncoded, so only the code and status choose the text.
     var errorDescription: String? {
         switch self {
-        case .http(let code): "Server error (\(code))"
-        case .server(let status, let code, let message):
+        case .http(let code) where code < 0: String(localized: "Sozo could not be reached. Please try again.")
+        case .http(let code): String(localized: "Sozo could not be reached (\(code)). Please try again.")
+        case .server(let status, let code, _, let wait):
             switch code {
-            case "PIN_INVALID": "Incorrect PIN. Please try again."
-            case "PIN_REQUIRED": "Enter the PIN for this profile."
-            case "PROFILE_LIMIT": "The maximum number of profiles has been reached."
-            case "KIDS_PROFILE": "Switch to an adult profile to continue."
-            case "DEFAULT_PROFILE": "The default profile cannot be deleted or made a kids profile."
-            case "PROFILE_NOT_FOUND": "This profile could not be found."
-            case "PROFILE_NAME_TAKEN": "This profile name is already in use."
-            default: message ?? "Server error (\(status))"
+            case "PIN_INVALID": String(localized: "Incorrect PIN. Please try again.")
+            case "PIN_REQUIRED": String(localized: "Enter the PIN for this profile.")
+            case "PROFILE_LIMIT": String(localized: "The maximum number of profiles has been reached.")
+            case "KIDS_PROFILE": String(localized: "Switch to an adult profile to continue.")
+            case "DEFAULT_PROFILE": String(localized: "The default profile cannot be deleted or made a kids profile.")
+            case "PROFILE_NOT_FOUND": String(localized: "This profile was removed. Choose a profile to continue.")
+            case "PROFILE_NAME_TAKEN": String(localized: "This profile name is already in use.")
+            default: Self.describe(status: status, retryAfter: wait)
             }
-        case .noPlayableSource: "This video could not be opened on Apple TV."
-        case .invalidRequest: "The request address is invalid."
-        case .unauthenticated: "Link this Apple TV again."
-        case .staleSession: "The profile or account changed. Please try again."
-        case .pinRequired: "Enter the PIN for this profile."
-        case .incompleteDeviceSession: "The sign-in response was incomplete. Link this Apple TV again."
-        case .keychain: "Your sign-in could not be saved securely."
+        case .noPlayableSource: String(localized: "This video could not be opened on Apple TV.")
+        case .invalidRequest: String(localized: "The request address is invalid.")
+        case .invalidResponse: String(localized: "Sozo sent a response this app could not read. Please try again later.")
+        case .unauthenticated: String(localized: "Link this Apple TV again.")
+        case .staleSession: String(localized: "The profile or account changed. Please try again.")
+        case .pinRequired: String(localized: "Enter the PIN for this profile.")
+        case .incompleteDeviceSession: String(localized: "The sign-in response was incomplete. Link this Apple TV again.")
+        case .keychain: String(localized: "Your sign-in could not be saved securely.")
+        }
+    }
+
+    static func describe(status: Int, retryAfter: TimeInterval?) -> String {
+        let seconds = retryAfter.map { max(1, Int($0.rounded(.up))) }
+        switch status {
+        case 429:
+            if let seconds { return String(localized: "Too many requests. Try again in \(seconds) seconds.") }
+            return String(localized: "Too many requests. Please wait a moment and try again.")
+        case 503:
+            if let seconds { return String(localized: "Sozo is busy right now. Try again in \(seconds) seconds.") }
+            return String(localized: "Sozo is busy right now. Please try again in a moment.")
+        case 400: return String(localized: "The request could not be completed. Please try again.")
+        case 401: return String(localized: "Link this Apple TV again.")
+        case 403: return String(localized: "This account is not allowed to do this.")
+        case 404: return String(localized: "This could not be found. It may have been removed.")
+        case 409: return String(localized: "This changed on another device. Refresh and try again.")
+        case 410: return String(localized: "This is no longer available.")
+        case 408, 504: return String(localized: "Sozo took too long to respond. Please try again.")
+        case 500...599: return String(localized: "Sozo is having trouble right now (\(status)). Please try again.")
+        default: return String(localized: "Something went wrong (\(status)). Please try again.")
         }
     }
 }

@@ -16,8 +16,9 @@ struct TVPlayerView: UIViewControllerRepresentable {
     let item: PlaybackItem
     var changeSource: ((Double?) -> Void)? = nil
     var nextEpisode: (() -> Void)? = nil
+    var retry: ((Double?) -> Void)? = nil
 
-    func makeCoordinator() -> Coordinator { Coordinator(session: session, history: item.history, close: { dismiss() }, changeSource: changeSource, nextEpisode: nextEpisode, item: item) }
+    func makeCoordinator() -> Coordinator { Coordinator(session: session, history: item.history, close: { dismiss() }, changeSource: changeSource, nextEpisode: nextEpisode, retry: retry, item: item) }
 
     func makeUIViewController(context: Context) -> AVPlayerViewController {
         let asset: AVURLAsset
@@ -73,6 +74,7 @@ struct TVPlayerView: UIViewControllerRepresentable {
         private let close: () -> Void
         private let changeSource: ((Double?) -> Void)?
         private let nextEpisode: (() -> Void)?
+        private let retry: ((Double?) -> Void)?
         private let item: PlaybackItem
         var playlistLoader: RelayedPlaylistLoader?
         #if DEBUG
@@ -92,6 +94,11 @@ struct TVPlayerView: UIViewControllerRepresentable {
         private var lifecycleObservers: [NSObjectProtocol] = []
         private var startupTimeout: Task<Void, Never>?
         private var failurePresented = false
+        private var stallTimeout: Task<Void, Never>?
+        private var lastLogStatus: Int?
+        private var lastLogComment: String?
+        private var lastLogTime = 0.0
+        private var timeControlObservation: NSKeyValueObservation?
         private var player: AVPlayer?
         private var observer: Any?
         private var statusObservation: NSKeyValueObservation?
@@ -105,9 +112,9 @@ struct TVPlayerView: UIViewControllerRepresentable {
         private var pending: [String: Any]?
         private var saving = false
 
-        init(session: SessionStore, history: PlaybackHistoryContext?, close: @escaping () -> Void, changeSource: ((Double?) -> Void)?, nextEpisode: (() -> Void)?, item: PlaybackItem) {
+        init(session: SessionStore, history: PlaybackHistoryContext?, close: @escaping () -> Void, changeSource: ((Double?) -> Void)?, nextEpisode: (() -> Void)?, retry: ((Double?) -> Void)?, item: PlaybackItem) {
             self.close = close; self.changeSource = changeSource
-            self.nextEpisode = nextEpisode; self.item = item
+            self.nextEpisode = nextEpisode; self.retry = retry; self.item = item
             self.session = session; self.history = history
             scope = session.profileScopeIdentity; revision = session.revision
             super.init()
@@ -196,7 +203,7 @@ struct TVPlayerView: UIViewControllerRepresentable {
             startupTimeout = Task { [weak self] in
                 try? await Task.sleep(for: .seconds(35))
                 guard !Task.isCancelled, let self, !self.didResume else { return }
-                self.showFailure("The stream did not become ready. Return and choose another source.")
+                self.showFailure(.timedOut)
             }
             lifecycleObservers.append(NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
                 Task { @MainActor [weak self] in
@@ -233,6 +240,28 @@ struct TVPlayerView: UIViewControllerRepresentable {
                     self.offerNextEpisode()
                 }
             })
+            lifecycleObservers.append(NotificationCenter.default.addObserver(forName: .AVPlayerItemFailedToPlayToEndTime, object: player.currentItem, queue: .main) { [weak self] note in
+                let error = note.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? Error
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    self.showFailure(self.failure(for: error))
+                }
+            })
+            lifecycleObservers.append(NotificationCenter.default.addObserver(forName: .AVPlayerItemPlaybackStalled, object: player.currentItem, queue: .main) { [weak self] _ in
+                Task { @MainActor [weak self] in self?.watchStall() }
+            })
+            lifecycleObservers.append(NotificationCenter.default.addObserver(forName: AVPlayerItem.newErrorLogEntryNotification, object: player.currentItem, queue: .main) { [weak self] note in
+                let event = (note.object as? AVPlayerItem)?.errorLog()?.events.last
+                let status = event?.errorStatusCode, comment = event?.errorComment
+                Task { @MainActor [weak self] in
+                    self?.lastLogStatus = status; self?.lastLogComment = comment
+                    self?.lastLogTime = ProcessInfo.processInfo.systemUptime
+                }
+            })
+            timeControlObservation = player.observe(\.timeControlStatus, options: [.new]) { [weak self] _, change in
+                guard change.newValue == .playing else { return }
+                Task { @MainActor [weak self] in self?.stallTimeout?.cancel(); self?.stallTimeout = nil }
+            }
             statusObservation = player.currentItem?.observe(\.status, options: [.initial, .new]) { [weak self] _, _ in
                 Task { @MainActor [weak self] in self?.ready() }
             }
@@ -353,7 +382,7 @@ struct TVPlayerView: UIViewControllerRepresentable {
             #endif
             guard sameScope else { player?.pause(); close(); return }
             if player?.currentItem?.status == .failed {
-                showFailure(player?.currentItem?.error?.localizedDescription ?? "This stream cannot be played. Choose another source.")
+                showFailure(failure(for: player?.currentItem?.error))
                 return
             }
             guard !didResume, let player, player.currentItem?.status == .readyToPlay else { return }
@@ -440,12 +469,41 @@ struct TVPlayerView: UIViewControllerRepresentable {
                 userInfo: ["status": "\(player.rate > 0 ? "Playing" : "Paused") • \(Int(position))s"])
         }
         #endif
-        private func showFailure(_ message: String) {
+        /// AVPlayer usually recovers from a stall by itself; only a long one is reported.
+        private func watchStall() {
+            stallTimeout?.cancel()
+            stallTimeout = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(30))
+                guard !Task.isCancelled, let self, let player = self.player,
+                      player.timeControlStatus == .waitingToPlayAtSpecifiedRate else { return }
+                self.showFailure(.stalled)
+            }
+        }
+        /// Error-log entries AVPlayer already recovered from must not explain a later failure.
+        private func failure(for error: Error?) -> PlaybackFailure {
+            let recent = ProcessInfo.processInfo.systemUptime - lastLogTime < 10
+            return PlaybackFailure(error: error, logStatus: recent ? lastLogStatus : nil, logComment: recent ? lastLogComment : nil)
+        }
+        private func showFailure(_ failure: PlaybackFailure) {
             guard !failurePresented, sameScope, let controller else { return }
-            failurePresented = true; player?.pause(); startupTimeout?.cancel()
-            let alert = UIAlertController(title: "Playback unavailable", message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Choose another source", style: .default) { [weak self] _ in if let self { if let changeSource = self.changeSource { changeSource(self.sourceSwitchPosition) } else { self.close() } } })
-            controller.present(alert, animated: true)
+            let position = sourceSwitchPosition
+            failurePresented = true; player?.pause(); startupTimeout?.cancel(); stallTimeout?.cancel()
+            enqueueSnapshot()
+            let alert = UIAlertController(title: "Playback unavailable", message: failure.message, preferredStyle: .alert)
+            if failure.isRetryable, let retry {
+                alert.addAction(UIAlertAction(title: "Retry", style: .default) { [weak self] _ in
+                    guard let self else { return }
+                    if self.sameScope { retry(position) } else { self.close() }
+                })
+            }
+            if let changeSource {
+                alert.addAction(UIAlertAction(title: "Choose another source", style: .default) { [weak self] _ in
+                    guard let self else { return }
+                    if self.sameScope { changeSource(position) } else { self.close() }
+                })
+            }
+            alert.addAction(UIAlertAction(title: "Close", style: .cancel) { [weak self] _ in self?.close() })
+            (controller.presentedViewController ?? controller).present(alert, animated: true)
         }
         func finish() {
             startupState.finish()
@@ -457,8 +515,9 @@ struct TVPlayerView: UIViewControllerRepresentable {
             #endif
             subtitleObserver = nil; subtitleTask?.cancel(); subtitleTask = nil
             subtitleLabel?.removeFromSuperview(); subtitleLabel = nil; subtitleBottom = nil; cues = []
-            observer = nil; statusObservation = nil; player = nil
+            observer = nil; statusObservation = nil; timeControlObservation = nil; player = nil
             startupTimeout?.cancel(); startupTimeout = nil
+            stallTimeout?.cancel(); stallTimeout = nil
             hintTask?.cancel(); hintTask = nil
             lifecycleObservers.forEach { NotificationCenter.default.removeObserver($0) }
             lifecycleObservers = []; controller = nil
