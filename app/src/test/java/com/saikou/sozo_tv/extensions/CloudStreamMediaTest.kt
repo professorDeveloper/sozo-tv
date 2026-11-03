@@ -21,6 +21,14 @@ class CloudStreamMediaTest {
         assertEquals("https://site", media.sources.single().audioTracks.single().headers["Origin"])
         assertEquals("https://page", media.subtitles.single().headers["Referer"])
     }
+    @Test fun `a source's ad rule and signer survive media parsing`() {
+        val media = ExtParser.media("""{"videoSources":[{"videoUrl":"https://a/f.mp4","dropSegments":"^/v\\d+/","signer":{"url":"https://s/","param":"u[]"}},{"videoUrl":"https://b/v.m3u8","dropSegments":null}]}""")
+        val (signed, plain) = media.sources
+        assertEquals("^/v\\d+/", signed.dropSegments)
+        assertEquals("u[]", JSONObject(signed.signer!!).getString("param"))
+        assertNull(plain.dropSegments)
+        assertNull(plain.signer)
+    }
     @Test fun `empty failed provider remains an error rather than successful empty media`() {
         try { ExtParser.media("""{"videoSources":[],"error":"Provider: timed out"}"""); fail("expected failure") }
         catch (e: IllegalStateException) { assertEquals("Provider: timed out", e.message) }

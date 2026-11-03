@@ -136,6 +136,8 @@ class ExtensionParser : BaseParser() {
                 useLocalProxy = s.useLocalProxy,
                 localProxy = s.localProxy,
                 requestTransform = s.requestTransform,
+                dropSegments = s.dropSegments,
+                signer = s.signer,
                 useWebViewSniff = s.useWebViewSniff,
                 sniff = s.sniff,
                 audioTracks = s.audioTracks.map { AudioTrackRef(it.url, media.headers + it.headers) },

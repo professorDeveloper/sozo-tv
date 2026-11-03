@@ -212,13 +212,15 @@ class WatchPartyActivity : AppCompatActivity() {
                     val stream = torrent.resolve(url, room.optJSONObject("content")?.optInt("episode", -1)?.takeIf { it > 0 })
                     torrentHash = stream.hash; url = stream.url; type = "http"
                 }
+                if (source.signer != null) url = withContext(Dispatchers.IO) { UrlSigner.signedOrSelf(source.signer, url, headers) }
                 if (source.useWebViewSniff || WebViewStreamExtractor.needsExtraction(url)) {
                     val sniffed = WebViewStreamExtractor.extract(this@WatchPartyActivity, url, headers) ?: error("Could not open the embedded player")
                     url = sniffed.url; headers = sniffed.headers; type = sniffed.playType
                 }
-                if (source.useLocalProxy || StreamRequestRules.needsManifestProxy(url)) {
+                if (source.useLocalProxy || source.dropSegments != null || StreamRequestRules.needsManifestProxy(url)) {
                     url = withContext(Dispatchers.IO) { proxy.register(url, headers,
-                        source.localProxy?.let(::JSONObject) ?: JSONObject(), source.requestTransform?.let(::JSONObject) ?: JSONObject()) }
+                        source.localProxy?.let(::JSONObject) ?: JSONObject(), source.requestTransform?.let(::JSONObject) ?: JSONObject(),
+                        source.dropSegments) }
                     headers = emptyMap()
                 }
                 ensureActive(); if (stamp != generation) return@launch
