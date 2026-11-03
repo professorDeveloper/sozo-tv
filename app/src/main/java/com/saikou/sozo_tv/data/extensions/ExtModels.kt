@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.data.extensions
 
 import android.util.Log
+import com.saikou.sozo_tv.domain.player.SubtitleCipher
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -157,6 +158,7 @@ data class ExtSubtitle(
     val file: String,
     val default: Boolean,
     val headers: Map<String, String> = emptyMap(),
+    val cipher: SubtitleCipher? = null,
 )
 
 data class ExtMedia(
@@ -394,6 +396,7 @@ internal object ExtParser {
                 file,
                 s.optBoolean("default", false),
                 s.headersMap("headers"),
+                SubtitleCipher.from(s.optJSONObject("cipher")),
             )
         }
         // Seek-preview thumbnails: soplay emits a bare VTT url String or a {url,type,template,...}

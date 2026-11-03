@@ -300,7 +300,13 @@ struct TVPlayerView: UIViewControllerRepresentable {
                     #else
                     data = try await subtitleData(url)
                     #endif
-                    let parsed = try await Task.detached(priority: .userInitiated) { try SidecarSubtitles.parse(data) }.value
+                    let cipher = track.cipher
+                    let parsed = try await Task.detached(priority: .userInitiated) {
+                        let plain = try cipher.map {
+                            try SidecarSubtitles.decryptCueText(data, alg: $0.alg, key: $0.key, iv: $0.iv, scope: $0.scope, encoding: $0.encoding)
+                        } ?? data
+                        return try SidecarSubtitles.parse(plain)
+                    }.value
                     guard !Task.isCancelled, sameScope, selectedSubtitle == track.file else { return }
                     let group = try? await player?.currentItem?.asset.loadMediaSelectionGroup(for: .legible)
                     guard !Task.isCancelled, sameScope, selectedSubtitle == track.file else { return }

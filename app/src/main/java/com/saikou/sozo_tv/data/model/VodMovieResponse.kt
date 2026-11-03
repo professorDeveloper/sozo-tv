@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.data.model
 
 import androidx.media3.common.MimeTypes
+import com.saikou.sozo_tv.domain.player.SubtitleCipher
 import java.io.Serializable
 
 data class VodMovieResponse(
@@ -35,4 +36,5 @@ data class SubTitle(
     val flag: String = "",
     /** Headers for the subtitle request itself; empty for sources that need none. */
     val headers: Map<String, String> = emptyMap(),
+    val cipher: SubtitleCipher? = null,
 )

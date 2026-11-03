@@ -107,7 +107,7 @@ class ExtensionParser : BaseParser() {
         val (encoded, mediaRef) = untag(epId)
         val p = encoded ?: activeProvider() ?: return emptyList()
         val media = engine.loadLinks(p, mediaRef)
-        val tracks = media.subtitles.map { MegaTrack(it.file, it.label, "captions", it.headers) }
+        val tracks = media.subtitles.map { MegaTrack(it.file, it.label, "captions", it.headers, it.cipher) }
         return media.sources.map { s ->
             VideoOption(
                 videoUrl = s.videoUrl,
