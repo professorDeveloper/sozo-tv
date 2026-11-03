@@ -14,6 +14,8 @@ actor APIClient {
         return URL(string: String(decoding: plain, as: UTF8.self))!
     }()
 
+    static let mediaSegmentEndpoint = defaultBase.appendingPathComponent("contents/media-segment")
+
     init(base: URL = APIClient.defaultBase, session: URLSession? = nil) {
         self.base = base
         self.session = session ?? URLSession(configuration: .ephemeral, delegate: SameOriginRedirects(), delegateQueue: nil)
