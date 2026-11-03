@@ -1,4 +1,6 @@
 name: Apple TV Release
+run-name: >-
+  Apple TV ${{ inputs.version }} (build ${{ inputs.build_number || 'auto' }})${{ inputs.upload_testflight && ', TestFlight upload' || ', archive only' }}
 on:
   workflow_dispatch:
     inputs:
@@ -8,34 +10,110 @@ on:
         default: '1.0.0'
         type: string
       build_number:
-        description: 'New App Store build number (1–9999, higher than previous upload)'
-        required: true
+        description: 'Build number override (1–9999). Empty = latest TestFlight build + 1'
+        required: false
+        default: ''
         type: string
       upload_testflight:
         description: 'Upload to App Store Connect for TestFlight processing'
         default: false
         type: boolean
+      wait_for_processing:
+        description: 'After upload, wait until App Store Connect finishes processing'
+        default: true
+        type: boolean
+      testflight_group:
+        description: 'Internal TestFlight group to add the processed build to (empty = none)'
+        required: false
+        default: ''
+        type: string
+      xcode_version:
+        description: 'Xcode on the runner: exact (26.1) or newest of a major (26)'
+        default: '26'
+        type: string
 permissions:
   contents: read
 concurrency:
   group: tvos-release
   cancel-in-progress: false
 jobs:
+  # Linux, and before the macOS gate, so missing secrets cost seconds, not macOS minutes.
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: apple-tv
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check secrets and inputs
+        env:
+          SOZO_TV_VERSION: ${{ inputs.version }}
+          SOZO_TV_BUILD_NUMBER: ${{ inputs.build_number }}
+          SOZO_TV_UPLOAD_TESTFLIGHT: ${{ inputs.upload_testflight }}
+          SOZO_TV_WAIT_PROCESSING: ${{ inputs.upload_testflight && inputs.wait_for_processing }}
+          SOZO_TV_TESTFLIGHT_GROUP: ${{ inputs.testflight_group }}
+          APPLE_TV_TEAM_ID: ${{ secrets.APPLE_TV_TEAM_ID }}
+          APPLE_TV_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_TV_CERTIFICATE_P12_BASE64 }}
+          APPLE_TV_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_TV_CERTIFICATE_PASSWORD }}
+          APPLE_TV_PROFILE_BASE64: ${{ secrets.APPLE_TV_PROFILE_BASE64 }}
+          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
+        run: apple-tv/scripts/preflight.sh
+      - name: Refuse a build number that is already tagged
+        if: inputs.build_number != '' && inputs.build_number != 'auto'
+        env:
+          TAG: tvos-${{ inputs.version }}-${{ inputs.build_number }}
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null; then
+            echo "::error title=Tag exists::${TAG} was already uploaded. Use a higher build number or leave it empty."
+            exit 1
+          fi
+
   verify:
+    needs: preflight
     uses: ./.github/workflows/tvos-ci.yml
+    with:
+      xcode_version: ${{ inputs.xcode_version }}
+
   distribute:
     needs: verify
     runs-on: macos-26
     timeout-minutes: 40
     environment: apple-tv
+    permissions:
+      contents: write
+    outputs:
+      build_number: ${{ steps.release.outputs.build_number }}
+      uploaded: ${{ steps.release.outputs.uploaded }}
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: '1'
+      HOMEBREW_NO_INSTALL_CLEANUP: '1'
+      HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: '1'
     steps:
       - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: apple-tv/scripts/select-xcode.sh "${{ inputs.xcode_version }}"
+      - name: Locate Homebrew download cache
+        id: brew
+        run: |
+          echo "cache=$(brew --cache)" >> "$GITHUB_OUTPUT"
+          echo "key=$(date +%Y-%m)-xcodegen" >> "$GITHUB_OUTPUT"
+      - name: Restore Homebrew downloads
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.brew.outputs.cache }}
+          key: brew-${{ runner.os }}-${{ runner.arch }}-${{ steps.brew.outputs.key }}
+          restore-keys: brew-${{ runner.os }}-${{ runner.arch }}-
       - name: Install project generator
         run: brew install xcodegen
       - name: Archive and export; upload only when requested
+        id: release
         env:
           SOZO_TV_VERSION: ${{ inputs.version }}
           SOZO_TV_BUILD_NUMBER: ${{ inputs.build_number }}
+          SOZO_TV_BUILD_NUMBER_FALLBACK: ${{ github.run_number }}
           SOZO_TV_UPLOAD_TESTFLIGHT: ${{ inputs.upload_testflight }}
           APPLE_TV_TEAM_ID: ${{ secrets.APPLE_TV_TEAM_ID }}
           APPLE_TV_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_TV_CERTIFICATE_P12_BASE64 }}
@@ -45,11 +123,116 @@ jobs:
           ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
           ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
         run: apple-tv/scripts/release.sh
+      # The build number is spent once App Store Connect has it, so tag even if a later step fails.
+      - name: Tag the uploaded build
+        if: always() && steps.release.outputs.uploaded == 'true'
+        env:
+          TAG: tvos-${{ inputs.version }}-${{ steps.release.outputs.build_number }}
+        run: |
+          git tag "${TAG}" "${GITHUB_SHA}"
+          if git push origin "refs/tags/${TAG}"; then
+            echo "::notice title=Tagged::${TAG}"
+          else
+            echo "::warning title=Tag not pushed::${TAG} could not be pushed; the upload itself succeeded."
+          fi
       - name: Save distribution artifacts and diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: tvos-release-${{ inputs.version }}-${{ inputs.build_number }}-${{ github.run_attempt }}
+          name: tvos-release-${{ inputs.version }}-${{ steps.release.outputs.build_number || 'unresolved' }}-${{ github.run_attempt }}
           path: apple-tv/build/release/
           if-no-files-found: warn
           retention-days: 14
+
+  # Polling App Store Connect is plain HTTPS, so it waits on Linux at a tenth of the macOS rate.
+  testflight:
+    needs: distribute
+    if: >-
+      always() && needs.distribute.outputs.uploaded == 'true' &&
+      (inputs.wait_for_processing || inputs.testflight_group != '')
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    environment: apple-tv
+    outputs:
+      processed: ${{ steps.wait.outputs.processed }}
+      grouped: ${{ steps.group.outputs.grouped }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for App Store Connect processing
+        id: wait
+        env:
+          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          VERSION: ${{ inputs.version }}
+          BUILD: ${{ needs.distribute.outputs.build_number }}
+        run: |
+          umask 077
+          export ASC_API_KEY_PATH="${RUNNER_TEMP}/AuthKey.p8"
+          printf '%s' "${ASC_API_KEY_P8_BASE64}" | tr -d '[:space:]' | base64 -d > "${ASC_API_KEY_PATH}"
+          build_id="$(python3 apple-tv/scripts/asc.py wait "${VERSION}" "${BUILD}" 60)"
+          echo "build_id=${build_id}" >> "$GITHUB_OUTPUT"
+          echo 'processed=true' >> "$GITHUB_OUTPUT"
+      - name: Add to internal TestFlight group
+        id: group
+        if: inputs.testflight_group != ''
+        env:
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          BUILD_ID: ${{ steps.wait.outputs.build_id }}
+          GROUP: ${{ inputs.testflight_group }}
+        run: |
+          ASC_API_KEY_PATH="${RUNNER_TEMP}/AuthKey.p8" python3 apple-tv/scripts/asc.py add-to-group "${BUILD_ID}" "${GROUP}"
+          echo 'grouped=true' >> "$GITHUB_OUTPUT"
+      - name: Remove the API key
+        if: always()
+        run: rm -f "${RUNNER_TEMP}/AuthKey.p8"
+
+  notify:
+    needs: [preflight, verify, distribute, testflight]
+    if: always() && !cancelled()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Send to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
+          VERSION: ${{ inputs.version }}
+          BUILD: ${{ needs.distribute.outputs.build_number }}
+          UPLOAD_REQUESTED: ${{ inputs.upload_testflight }}
+          UPLOADED: ${{ needs.distribute.outputs.uploaded }}
+          PROCESSED: ${{ needs.testflight.outputs.processed }}
+          GROUPED: ${{ needs.testflight.outputs.grouped }}
+          GROUP: ${{ inputs.testflight_group }}
+          RESULTS: >-
+            preflight=${{ needs.preflight.result }} verify=${{ needs.verify.result }}
+            distribute=${{ needs.distribute.result }} testflight=${{ needs.testflight.result }}
+        run: |
+          set -uo pipefail
+          if [ -z "${TELEGRAM_BOT_TOKEN}" ] || [ -z "${TELEGRAM_CHAT_IDS}" ]; then
+            echo "::warning title=Telegram skipped::TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_IDS not set."
+            exit 0
+          fi
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          if [ "${UPLOADED}" = true ]; then
+            MSG="Sozo Apple TV ${VERSION} (${BUILD}) uploaded to TestFlight."
+            if [ "${PROCESSED}" = true ]; then MSG="${MSG} Processing finished."; fi
+            if [ "${GROUPED}" = true ]; then MSG="${MSG} Added to group \"${GROUP}\"."; fi
+            if [[ "${RESULTS}" == *failure* ]]; then MSG="${MSG} A later step failed: ${RESULTS}."; fi
+          elif [ "${UPLOAD_REQUESTED}" = true ] || [[ "${RESULTS}" == *failure* ]]; then
+            MSG="Sozo Apple TV ${VERSION} release FAILED, nothing uploaded. ${RESULTS}."
+          else
+            MSG="Sozo Apple TV ${VERSION} (${BUILD:-?}) archived and signed; upload was not requested."
+          fi
+          MSG="$(printf '%s\n\n%s' "${MSG}" "${RUN_URL}")"
+          IFS=',' read -ra CHATS <<< "${TELEGRAM_CHAT_IDS}"
+          for raw in "${CHATS[@]}"; do
+            chat="$(echo "${raw}" | xargs)"
+            [ -z "${chat}" ] && continue
+            curl -sS --fail-with-body -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              --data-urlencode "chat_id=${chat}" \
+              --data-urlencode "text=${MSG}" \
+              --data "disable_web_page_preview=true" -o /dev/null \
+              || echo "::warning::Telegram sendMessage to one chat failed."
+          done
