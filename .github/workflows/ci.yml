@@ -19,14 +19,26 @@ name: CI
 on:
   push:
     branches: [master]
+    paths-ignore: ['apple-tv/**']
   pull_request:
+    paths-ignore: ['apple-tv/**']
+  # release.yml runs the same gates before it builds; it skips the debug
+  # assemble because it builds a release APK right after.
+  workflow_call:
+    inputs:
+      skip_assemble:
+        type: boolean
+        default: false
 
 # A new push to a branch makes the run already in flight worthless, and these
 # jobs are not short — the Gradle ones were measured at five to six minutes.
 # Without this, pushing three times in ten minutes queues three full builds and
 # waits for all of them.
+#
+# github.workflow is the caller's name when release.yml calls this, so a push
+# to master cannot cancel the tests a release is waiting on.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -93,6 +105,7 @@ jobs:
 
   build:
     name: Assemble debug
+    if: ${{ !inputs.skip_assemble }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
