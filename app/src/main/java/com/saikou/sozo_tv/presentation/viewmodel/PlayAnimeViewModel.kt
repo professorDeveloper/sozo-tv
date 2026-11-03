@@ -195,13 +195,14 @@ class PlayAnimeViewModel(
      * made clearing look like it had failed. The server push still runs in the background.
      */
     suspend fun clearAllHistory() {
-        withContext(Dispatchers.IO) {
+        // On viewModelScope so a caller torn down mid-clear cannot leave the tombstone without its sync.
+        viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 historySync.rememberClearedAll()
                 watchHistoryRepository.clearAllHistory()
             }
-        }
-        viewModelScope.launch(Dispatchers.IO) { runCatching { historySync.sync() } }
+            viewModelScope.launch(Dispatchers.IO) { runCatching { historySync.sync() } }
+        }.join()
     }
 
     fun syncHistory() {
