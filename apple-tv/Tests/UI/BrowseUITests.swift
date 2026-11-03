@@ -244,8 +244,28 @@ final class BrowseUITests: XCTestCase {
         for _ in 0..<6 { remote.press(.down); Thread.sleep(forTimeInterval: 0.25) }
         let last = app.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true")).firstMatch
         XCTAssertTrue(last.identifier.contains("/title/7"), app.debugDescription)
-        // The window, not `app`: the application element's own frame is empty on tvOS.
-        XCTAssertTrue(last.frame.intersects(app.windows.firstMatch.frame), "\(last.identifier) at \(last.frame)")
+        // The focused title has to be ON SCREEN, not merely focused — that is the
+        // whole claim of this test, since a shelf that does not scroll leaves
+        // focus on something nobody can see.
+        //
+        // Asking the accessibility hierarchy for the viewport is what broke:
+        // `app.frame` is empty on tvOS, which the old comment here knew, and on
+        // the macos-26 runner `app.windows.firstMatch.frame` became empty too.
+        // An empty rect intersects nothing, so the assertion failed on a title
+        // that was plainly on screen — run 41400672636 reported
+        // /title/709 at (1488.05, 881.5, 293.89, 492.0), inside tvOS's 1920x1080
+        // points. So: use the window when it still reports a frame, and fall
+        // back to the fixed point size tvOS renders at, which does not vary
+        // between the 1080p and 4K simulators.
+        let reported = app.windows.firstMatch.frame
+        let viewport = reported.isEmpty
+            ? CGRect(x: 0, y: 0, width: 1920, height: 1080)
+            : reported
+        XCTAssertFalse(last.frame.isEmpty, "the focused title reported no frame at all")
+        XCTAssertTrue(
+            last.frame.intersects(viewport),
+            "\(last.identifier) at \(last.frame) is outside \(viewport)"
+        )
         for _ in 0..<6 { remote.press(.up); Thread.sleep(forTimeInterval: 0.25) }
         XCTAssertEqual(app.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true")).firstMatch.identifier, remembered, "A shelf must keep its focused title after leaving the viewport")
         screenshot("Long horizontal shelves after vertical navigation")
