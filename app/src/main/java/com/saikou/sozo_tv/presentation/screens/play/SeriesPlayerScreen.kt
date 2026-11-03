@@ -746,11 +746,11 @@ class SeriesPlayerScreen : Fragment() {
         autoPlay: Boolean,
         then: () -> Unit = {},
     ) {
-        val url = effectiveStreamUrl(vod)
         loadJob?.cancel()
         loadJob = viewLifecycleOwner.lifecycleScope.launch {
             val source = try {
                 withContext(Dispatchers.IO) {
+                    val url = effectiveStreamUrl(vod, signedUrl(vod))
                     withSeparateAudio(buildPlaybackSource(url, vod.type), vod)
                 }
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
@@ -1352,7 +1352,9 @@ class SeriesPlayerScreen : Fragment() {
         val title = if (model.contentIsSeries == true) "${args.name} · ${currentEpisodeNumber()}" else args.name
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                com.saikou.sozo_tv.engine.download.TvDownloads.enqueue(requireContext(), title, vod)
+                val signed = if (vod.signerJson == null) vod
+                    else vod.copy(urlobj = withContext(Dispatchers.IO) { signedUrl(vod) })
+                com.saikou.sozo_tv.engine.download.TvDownloads.enqueue(requireContext(), title, signed)
                 showToast(getString(R.string.player_download_started))
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
@@ -1386,12 +1388,19 @@ class SeriesPlayerScreen : Fragment() {
         val excluded = candidates.filterNot { it in realPlayers }.map {
             android.content.ComponentName(it.activityInfo.packageName, it.activityInfo.name)
         }.toTypedArray()
-        return runCatching {
+        fun start(): Boolean = runCatching {
             player?.pause()
             startActivity(Intent.createChooser(intent, getString(R.string.player_external))
                 .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excluded))
             true
         }.getOrElse { showToast(getString(R.string.player_external_unavailable)); false }
+        if (vod.signerJson == null) return start()
+        player?.pause()
+        viewLifecycleOwner.lifecycleScope.launch {
+            intent.setDataAndType(android.net.Uri.parse(withContext(Dispatchers.IO) { signedUrl(vod) }), "video/*")
+            start()
+        }
+        return true
     }
 
     private fun openWatchParty() {
@@ -1827,17 +1836,21 @@ class SeriesPlayerScreen : Fragment() {
         }
     }
 
-    private fun effectiveStreamUrl(vod: VodMovieResponse): String {
-        if (!vod.useLocalProxy) return vod.urlobj
+    /** Blocking: a signed source asks its host for a fresh token. */
+    private fun signedUrl(vod: VodMovieResponse): String =
+        com.saikou.sozo_tv.engine.player.UrlSigner.signedOrSelf(vod.signerJson, vod.urlobj, vod.header)
+
+    private fun effectiveStreamUrl(vod: VodMovieResponse, url: String): String {
+        if (!vod.useLocalProxy && vod.dropSegments == null) return url
         return runCatching {
             hlsProxy.register(
-                upstreamUrl = vod.urlobj,
+                upstreamUrl = url,
                 headers = vod.header,
                 localProxy = vod.localProxyJson?.let { JSONObject(it) } ?: JSONObject(),
                 requestTransform = vod.requestTransformJson?.let { JSONObject(it) } ?: JSONObject(),
                 dropSegments = vod.dropSegments,
             )
-        }.getOrDefault(vod.urlobj)
+        }.getOrDefault(url)
     }
 
     private fun applySubtitleStyle() {

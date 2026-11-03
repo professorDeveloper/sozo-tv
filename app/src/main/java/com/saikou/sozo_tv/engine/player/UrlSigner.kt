@@ -74,6 +74,10 @@ class UrlSigner(
                 .build()
         }
 
+        /** [file] signed by the source's [signerJson], or [file] itself. Blocking. */
+        fun signedOrSelf(signerJson: String?, file: String, playerHeaders: Map<String, String>): String =
+            fromJson(signerJson)?.sign(file, playerHeaders) ?: file
+
         fun fromJson(json: String?): UrlSigner? {
             if (json.isNullOrBlank()) return null
             val o = runCatching { JSONObject(json) }.getOrNull() ?: return null

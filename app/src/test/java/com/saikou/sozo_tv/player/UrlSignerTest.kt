@@ -58,6 +58,10 @@ class UrlSignerTest {
         assertNull(UrlSigner.fromJson(null))
     }
 
+    @Test fun aSourceWithoutASignerPlaysAsGiven() {
+        assertEquals("https://cdn/a.mp4", UrlSigner.signedOrSelf(null, "https://cdn/a.mp4", emptyMap()))
+    }
+
     @Test fun refusesAnAnswerThatIsNotAUrl() {
         val refusing = OkHttpClient.Builder().addInterceptor { chain ->
             Response.Builder().request(chain.request()).protocol(Protocol.HTTP_1_1).code(200).message("OK")

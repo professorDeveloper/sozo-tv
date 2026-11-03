@@ -16,6 +16,8 @@ data class VodMovieResponse(
     val localProxyJson: String? = null,
     val requestTransformJson: String? = null,
     val dropSegments: String? = null,
+    /** [urlobj] is the unsigned file; this signs it each time it is opened. See UrlSigner. */
+    val signerJson: String? = null,
     /** Separate audio renditions the player merges in alongside [urlobj]. */
     val audioTracks: List<AudioTrackRef> = emptyList(),
     val drm: String? = null,

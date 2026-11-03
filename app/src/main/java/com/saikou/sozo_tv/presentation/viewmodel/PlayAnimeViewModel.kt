@@ -331,16 +331,19 @@ class PlayAnimeViewModel(
             torrentSource = true
         }
         var headers = option.headers
-        com.saikou.sozo_tv.engine.player.UrlSigner.fromJson(option.signer)?.let { signer ->
-            val signed = withContext(Dispatchers.IO) { signer.sign(url, headers) }
-            if (signed != null) url = signed
-            else Log.w(TAG, "signing refused, playing the file as given")
-        }
+        // Signed by the player on every start, so a retry after the token expires gets a new one.
+        var signer = option.signer
         var mime = if (torrentSource) MimeTypes.VIDEO_MP4 else option.mimeTypes.ifEmpty { MimeTypes.APPLICATION_M3U8 }
 
         if (option.useWebViewSniff ||
             com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.needsExtraction(url)
         ) {
+            if (signer != null) {
+                url = withContext(Dispatchers.IO) {
+                    com.saikou.sozo_tv.engine.player.UrlSigner.signedOrSelf(signer, url, headers)
+                }
+                signer = null
+            }
             val directive = parseSniff(option.sniff)
             val sniffed = com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.extract(
                 context = com.saikou.sozo_tv.app.MyApp.context,
@@ -370,11 +373,11 @@ class PlayAnimeViewModel(
             header = headers,
             type = mime,
             thumbnail = option.thumbnail ?: "",
-            useLocalProxy = option.useLocalProxy || option.dropSegments != null ||
-                com.saikou.sozo_tv.engine.player.StreamRequestRules.needsManifestProxy(url),
+            useLocalProxy = option.useLocalProxy || com.saikou.sozo_tv.engine.player.StreamRequestRules.needsManifestProxy(url),
             localProxyJson = option.localProxy,
             requestTransformJson = option.requestTransform,
             dropSegments = option.dropSegments,
+            signerJson = signer,
             audioTracks = option.audioTracks,
             drm = option.drm,
         )
