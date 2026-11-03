@@ -54,3 +54,77 @@ with tempfile.TemporaryDirectory() as tmp:
                        input=f'{head}.{body}'.encode(), check=True, capture_output=True)
     assert json.loads(base64.urlsafe_b64decode(body + '==='))['aud'] == 'appstoreconnect-v1'
 print('App Store Connect JWT PASS (20 ES256 signatures verified)')
+
+import contextlib, io
+def fake(responses):
+    calls = []
+    def call(path, params=None, body=None):
+        calls.append((path, params, body))
+        return responses(path, params or {}, body)
+    return call, calls
+def builds(*versions):
+    return {'data': [{'id': f'b{v}', 'attributes': {'version': v}} for v in versions]}
+def expect_exit(fn, *args):
+    try:
+        with contextlib.redirect_stderr(io.StringIO()): fn(*args)
+    except SystemExit as e:
+        assert e.code not in (None, 0); return str(e.code)
+    raise AssertionError(f'{fn.__name__}{args} did not fail')
+def stdout_of(fn, *args):
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()): fn(*args)
+    return out.getvalue().strip()
+app = {'data': [{'id': 'app1', 'attributes': {'bundleId': asc.BUNDLE_ID}}]}
+def with_builds(data):
+    return lambda path, params, body: app if path == '/apps' else data
+asc.tagged_builds = lambda: []
+asc.call, _ = fake(with_builds(builds('3', '12', '1.2', 'abc')))
+assert stdout_of(asc.next_build) == '13'
+asc.call, _ = fake(with_builds(builds()))
+assert stdout_of(asc.next_build) == '1'
+asc.tagged_builds = lambda: [20]
+asc.call, _ = fake(with_builds(builds('12')))
+assert stdout_of(asc.next_build) == '21', 'a fresh tag must beat an unlisted build'
+asc.tagged_builds = lambda: []
+asc.call, calls = fake(with_builds(builds('5')))
+expect_exit(asc.check_build, '1.0.0', '5')
+stdout_of(asc.check_build, '1.0.0', '6')
+assert calls[-1][1]['filter[preReleaseVersion.version]'] == '1.0.0'
+
+asc.time.sleep = lambda s: None
+def states(*seq):
+    it = iter(seq)
+    def respond(path, params, body):
+        if path == '/apps': return app
+        state = next(it)
+        return {'data': []} if state is None else {'data': [{'id': 'B1', 'attributes': {'processingState': state}}]}
+    return respond
+asc.call, _ = fake(states(None, 'PROCESSING', 'VALID'))
+assert stdout_of(asc.wait, '1.0.0', '7') == 'B1'
+for bad in ('FAILED', 'INVALID'):
+    asc.call, _ = fake(states('PROCESSING', bad))
+    assert bad in expect_exit(asc.wait, '1.0.0', '7')
+asc.call, _ = fake(states(*['PROCESSING'] * 5))
+real_time, clock = asc.time.time, iter([0, 0, 120])
+asc.time.time = lambda: next(clock)
+assert 'after 1 minutes' in expect_exit(asc.wait, '1.0.0', '7', 1)
+asc.time.time = real_time
+
+def groups(internal):
+    def respond(path, params, body):
+        if path == '/apps': return app
+        if path == '/betaGroups':
+            return {'data': [{'id': 'G1', 'attributes': {'name': 'Team', 'isInternalGroup': internal}},
+                             {'id': 'G2', 'attributes': {'name': 'Team 2', 'isInternalGroup': True}}]}
+        return {}
+    return respond
+asc.call, calls = fake(groups(False))
+assert 'external' in expect_exit(asc.add_to_group, 'B1', 'Team')
+assert not any(c[2] for c in calls), 'nothing may be posted to an external group'
+asc.call, calls = fake(groups(True))
+stdout_of(asc.add_to_group, 'B1', 'Team')
+assert calls[-1][0] == '/betaGroups/G1/relationships/builds'
+assert calls[-1][2] == {'data': [{'type': 'builds', 'id': 'B1'}]}
+asc.call, _ = fake(groups(True))
+expect_exit(asc.add_to_group, 'B1', 'Nobody')
+print('App Store Connect client PASS (next-build, check-build, wait states, group guard)')

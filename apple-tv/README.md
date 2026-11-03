@@ -153,9 +153,13 @@ not an installable package for physical Apple TV.
 A Linux preflight job first lists every missing secret by name, then the complete CI gate
 runs, then the device archive is signed and exported as an App Store IPA. `upload_testflight`
 defaults to false, so you choose which build ships. Leave `build_number` empty to use the
-latest App Store Connect build + 1 (falls back to the run number if the API query fails);
-fill it in to override. After a successful upload the commit is tagged
-`tvos-<version>-<build>` (never `v*`, which belongs to Android). Waiting for processing and
+higher of the latest App Store Connect build and the latest `tvos-*` tag, + 1. If that
+query fails, an upload stops; an archive-only run falls back to the run number. A manual
+number is refused in preflight if it is already tagged or not above the latest App Store
+Connect build of that version. Right after a successful upload the commit is tagged
+`tvos-<version>-<build>` (never `v*`, which belongs to Android). The tag only means the
+number is spent: it is pushed before processing, so it does not prove the build reached
+TestFlight. Waiting for processing and
 adding to an internal group run on Linux; Telegram reports the outcome when
 `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_IDS` are set. It never submits for App Review or
 distributes to external testers. `xcode_version` pins Xcode (`26` = newest 26.x on the

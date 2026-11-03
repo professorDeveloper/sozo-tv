@@ -1,7 +1,8 @@
 #!/bin/bash
 # Manual App Store distribution signing. Upload is off unless explicitly enabled.
 # SOZO_TV_BUILD_NUMBER empty or "auto": latest App Store Connect build + 1, else
-# SOZO_TV_BUILD_NUMBER_FALLBACK (CI passes github.run_number).
+# SOZO_TV_BUILD_NUMBER_FALLBACK (CI passes github.run_number) for archive-only runs.
+# An upload never falls back: a guessed number can collide and fail only after archiving.
 set -euo pipefail
 umask 077
 cd "$(dirname "$0")/.."
@@ -78,6 +79,9 @@ if [ "$SOZO_TV_BUILD_NUMBER" = auto ]; then
   sozo_resolved=''
   if [ "$sozo_has_asc" = true ]; then
     sozo_resolved="$(python3 scripts/asc.py next-build)" || sozo_resolved=''
+  fi
+  if [ -z "$sozo_resolved" ] && [ "$sozo_upload" = true ]; then
+    echo 'Could not read the latest build from App Store Connect; retry, or set SOZO_TV_BUILD_NUMBER' >&2; exit 1
   fi
   if [ -z "$sozo_resolved" ]; then
     : "${SOZO_TV_BUILD_NUMBER_FALLBACK:?Could not read the latest build from App Store Connect; set SOZO_TV_BUILD_NUMBER}"

@@ -49,7 +49,9 @@ jobs:
       - uses: actions/checkout@v4
       # push/pull_request runs have no inputs; '26' must match the input defaults above.
       - name: Select Xcode
-        run: apple-tv/scripts/select-xcode.sh "${{ inputs.xcode_version || '26' }}"
+        env:
+          XCODE_VERSION: ${{ inputs.xcode_version || '26' }}
+        run: apple-tv/scripts/select-xcode.sh "${XCODE_VERSION}"
       - name: Locate Homebrew download cache
         id: brew
         run: |
@@ -75,7 +77,7 @@ jobs:
         working-directory: apple-tv
         run: |
           xcodegen generate
-          git diff --exit-code -- . || { echo '::error::Run xcodegen generate in apple-tv/ and commit the result.'; exit 1; }
+          git diff --exit-code -- . || { echo "::error::Run xcodegen generate in apple-tv/ and commit the result. CI has xcodegen $(xcodegen --version), unpinned; the committed files were made with 2.46.0, so a version change alone can cause this diff."; exit 1; }
           untracked="$(git ls-files --others --exclude-standard -- .)"
           if [ -n "$untracked" ]; then echo "::error::xcodegen created untracked files: $untracked"; exit 1; fi
       - name: Run the same checks as local development

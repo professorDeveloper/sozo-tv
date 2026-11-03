@@ -34,6 +34,9 @@ done
 want TELEGRAM_BOT_TOKEN 'Telegram notification (repository secret)'
 want TELEGRAM_CHAT_IDS 'Comma-separated Telegram chat ids (repository secret)'
 
+if [ -n "${APPLE_TV_TEAM_ID:-}" ] && ! printf '%s' "$APPLE_TV_TEAM_ID" | grep -Eq '^[A-Z0-9]{10}$'; then
+  row INVALID APPLE_TV_TEAM_ID 'Secret: must be 10 uppercase letters or digits'; sozo_failed=1
+fi
 if ! printf '%s' "${SOZO_TV_VERSION:-}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
   row INVALID version 'Input: three-part marketing version, e.g. 1.0.0'; sozo_failed=1
 fi

@@ -70,6 +70,23 @@ jobs:
             echo "::error title=Tag exists::${TAG} was already uploaded. Use a higher build number or leave it empty."
             exit 1
           fi
+      - name: Refuse a build number App Store Connect already passed
+        if: inputs.build_number != '' && inputs.build_number != 'auto'
+        env:
+          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          VERSION: ${{ inputs.version }}
+          BUILD: ${{ inputs.build_number }}
+        run: |
+          if [ -z "${ASC_API_KEY_P8_BASE64}" ] || [ -z "${ASC_API_KEY_ID}" ] || [ -z "${ASC_API_ISSUER_ID}" ]; then
+            echo 'No App Store Connect key; skipping.'; exit 0
+          fi
+          umask 077
+          export ASC_API_KEY_PATH="${RUNNER_TEMP}/AuthKey.p8"
+          trap 'rm -f "${ASC_API_KEY_PATH}"' EXIT
+          printf '%s' "${ASC_API_KEY_P8_BASE64}" | tr -d '[:space:]' | base64 -d > "${ASC_API_KEY_PATH}"
+          python3 apple-tv/scripts/asc.py check-build "${VERSION}" "${BUILD}"
 
   verify:
     needs: preflight
@@ -94,7 +111,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode
-        run: apple-tv/scripts/select-xcode.sh "${{ inputs.xcode_version }}"
+        env:
+          XCODE_VERSION: ${{ inputs.xcode_version }}
+        run: apple-tv/scripts/select-xcode.sh "${XCODE_VERSION}"
       - name: Locate Homebrew download cache
         id: brew
         run: |

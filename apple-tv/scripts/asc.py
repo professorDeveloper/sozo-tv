@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Minimal App Store Connect API client for the tvOS release (stdlib + openssl only).
 
-  asc.py next-build                      latest uploaded tvOS build number + 1
+  asc.py next-build                      latest uploaded tvOS build number (or tvos-* tag) + 1
+  asc.py check-build VERSION BUILD       fail if BUILD is not above every build of VERSION
   asc.py wait VERSION BUILD [MINUTES]    block until the build is VALID; prints its id
   asc.py add-to-group BUILD_ID GROUP     add a processed build to an internal TestFlight group
 
@@ -10,6 +11,7 @@ Needs ASC_API_KEY_ID, ASC_API_ISSUER_ID and ASC_API_KEY_PATH (the decoded .p8).
 import base64
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -41,7 +43,7 @@ def der_to_raw(der):
 def token():
     header = {'alg': 'ES256', 'kid': os.environ['ASC_API_KEY_ID'], 'typ': 'JWT'}
     now = int(time.time())
-    claims = {'iss': os.environ['ASC_API_ISSUER_ID'], 'iat': now, 'exp': now + 1200, 'aud': 'appstoreconnect-v1'}
+    claims = {'iss': os.environ['ASC_API_ISSUER_ID'], 'iat': now, 'exp': now + 1140, 'aud': 'appstoreconnect-v1'}
     signing_input = b64url(json.dumps(header).encode()) + b'.' + b64url(json.dumps(claims).encode())
     der = subprocess.run(['openssl', 'dgst', '-sha256', '-sign', os.environ['ASC_API_KEY_PATH']],
                          input=signing_input, capture_output=True, check=True).stdout
@@ -72,11 +74,33 @@ def app_id():
     return apps[0]['id']
 
 
+def tagged_builds():
+    # A build uploaded seconds ago may not be listed by App Store Connect yet; its tag is.
+    try:
+        out = subprocess.run(['git', 'ls-remote', '--tags', 'origin', 'refs/tags/tvos-*'],
+                             capture_output=True, text=True, timeout=60).stdout
+    except (OSError, subprocess.SubprocessError):
+        return []
+    return [int(m.group(1)) for m in re.finditer(r'refs/tags/tvos-[^\s]*-(\d+)$', out, re.M)]
+
+
+def build_numbers(**filters):
+    params = {'filter[app]': app_id(), 'filter[preReleaseVersion.platform]': 'TV_OS',
+              'sort': '-uploadedDate', 'limit': 200, 'fields[builds]': 'version'}
+    params.update(filters)
+    builds = call('/builds', params)['data']
+    return [int(b['attributes']['version']) for b in builds if b['attributes']['version'].isdigit()]
+
+
 def next_build():
-    builds = call('/builds', {'filter[app]': app_id(), 'filter[preReleaseVersion.platform]': 'TV_OS',
-                              'sort': '-uploadedDate', 'limit': 200, 'fields[builds]': 'version'})['data']
-    numbers = [int(b['attributes']['version']) for b in builds if b['attributes']['version'].isdigit()]
-    print(max(numbers, default=0) + 1)
+    print(max(build_numbers() + tagged_builds(), default=0) + 1)
+
+
+def check_build(version, build):
+    latest = max(build_numbers(**{'filter[preReleaseVersion.version]': version}), default=0)
+    if int(build) <= latest:
+        sys.exit(f'Build {build} is not above {latest}, the latest App Store Connect build of {version}')
+    print(f'Build {build} is above {latest}, the latest build of {version}', file=sys.stderr)
 
 
 def wait(version, build, minutes=45):
@@ -115,6 +139,8 @@ if __name__ == '__main__':
     command, args = (sys.argv[1], sys.argv[2:]) if len(sys.argv) > 1 else ('', [])
     if command == 'next-build' and not args:
         next_build()
+    elif command == 'check-build' and len(args) == 2:
+        check_build(*args)
     elif command == 'wait' and len(args) in (2, 3):
         wait(args[0], args[1], *(int(a) for a in args[2:]))
     elif command == 'add-to-group' and len(args) == 2:
