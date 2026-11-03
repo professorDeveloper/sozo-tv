@@ -28,24 +28,27 @@ final class RelayedPlaylistLoader: NSObject, AVAssetResourceLoaderDelegate, @unc
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let key = ObjectIdentifier(loadingRequest)
         let endpoint = endpoint
+        let queue = queue
         let task = session.dataTask(with: request) { [weak self] data, response, error in
             self?.lock.withLock { _ = self?.tasks.removeValue(forKey: key) }
-            guard !loadingRequest.isCancelled else { return }
-            guard let data, data.count <= HLSPlaylistRelay.maximumPlaylistBytes,
-                  let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
-                  let text = String(data: data, encoding: .utf8),
-                  let playlist = HLSPlaylistRelay.rewrite(text, base: http.url ?? upstream, endpoint: endpoint) else {
-                loadingRequest.finishLoading(with: error ?? URLError(.badServerResponse))
-                return
+            queue.async {
+                guard !loadingRequest.isCancelled else { return }
+                guard let data, data.count <= HLSPlaylistRelay.maximumPlaylistBytes,
+                      let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
+                      let text = String(data: data, encoding: .utf8),
+                      let playlist = HLSPlaylistRelay.rewrite(text, base: http.url ?? upstream, endpoint: endpoint) else {
+                    loadingRequest.finishLoading(with: error ?? URLError(.badServerResponse))
+                    return
+                }
+                let body = Data(playlist.utf8)
+                if let info = loadingRequest.contentInformationRequest {
+                    info.contentType = "public.m3u-playlist"
+                    info.contentLength = Int64(body.count)
+                    info.isByteRangeAccessSupported = false
+                }
+                loadingRequest.dataRequest?.respond(with: body)
+                loadingRequest.finishLoading()
             }
-            let body = Data(playlist.utf8)
-            if let info = loadingRequest.contentInformationRequest {
-                info.contentType = "public.m3u-playlist"
-                info.contentLength = Int64(body.count)
-                info.isByteRangeAccessSupported = false
-            }
-            loadingRequest.dataRequest?.respond(with: body)
-            loadingRequest.finishLoading()
         }
         lock.withLock { tasks[key] = task }
         task.resume()

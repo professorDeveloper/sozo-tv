@@ -22,9 +22,9 @@ struct TVPlayerView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> AVPlayerViewController {
         let asset: AVURLAsset
         if HLSPlaylistRelay.needsManifestProxy(item.url), let relayed = HLSPlaylistRelay.loaderURL(item.url) {
-            // Its playlists carry the source headers themselves; the relayed segments need none.
+            // The loader sends the headers on playlists; the asset option still covers direct segments and keys.
             let loader = RelayedPlaylistLoader(headers: item.headers, endpoint: APIClient.mediaSegmentEndpoint)
-            asset = AVURLAsset(url: relayed)
+            asset = AVURLAsset(url: relayed, options: ["AVURLAssetHTTPHeaderFieldsKey": item.headers])
             asset.resourceLoader.setDelegate(loader, queue: loader.queue)
             context.coordinator.playlistLoader = loader
         } else {
