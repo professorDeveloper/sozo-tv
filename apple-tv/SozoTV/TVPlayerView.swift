@@ -20,7 +20,16 @@ struct TVPlayerView: UIViewControllerRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(session: session, history: item.history, close: { dismiss() }, changeSource: changeSource, nextEpisode: nextEpisode, item: item) }
 
     func makeUIViewController(context: Context) -> AVPlayerViewController {
-        let asset = AVURLAsset(url: item.url, options: ["AVURLAssetHTTPHeaderFieldsKey": item.headers])
+        let asset: AVURLAsset
+        if HLSPlaylistRelay.needsManifestProxy(item.url), let relayed = HLSPlaylistRelay.loaderURL(item.url) {
+            // The loader sends the headers on playlists; the asset option still covers direct segments and keys.
+            let loader = RelayedPlaylistLoader(headers: item.headers, endpoint: APIClient.mediaSegmentEndpoint)
+            asset = AVURLAsset(url: relayed, options: ["AVURLAssetHTTPHeaderFieldsKey": item.headers])
+            asset.resourceLoader.setDelegate(loader, queue: loader.queue)
+            context.coordinator.playlistLoader = loader
+        } else {
+            asset = AVURLAsset(url: item.url, options: ["AVURLAssetHTTPHeaderFieldsKey": item.headers])
+        }
         let playerItem = AVPlayerItem(asset: asset)
         let title = AVMutableMetadataItem()
         title.identifier = .commonIdentifierTitle
@@ -65,6 +74,7 @@ struct TVPlayerView: UIViewControllerRepresentable {
         private let changeSource: ((Double?) -> Void)?
         private let nextEpisode: (() -> Void)?
         private let item: PlaybackItem
+        var playlistLoader: RelayedPlaylistLoader?
         #if DEBUG
         private var positionProbe: UILabel?
         #endif

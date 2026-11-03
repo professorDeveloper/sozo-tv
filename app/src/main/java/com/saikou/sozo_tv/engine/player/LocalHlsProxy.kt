@@ -19,7 +19,8 @@ import java.util.concurrent.ConcurrentHashMap
  * variant playlists, segments, keys — through the same OkHttp client (which shares the WebView
  * cookie jar), so IP + cookies + signed headers match end to end.
  *
- * Activates only when a source arrives with `useLocalProxy: true`. For uzmovi it also applies the
+ * Activates when a source arrives with `useLocalProxy: true`, or with a `dropSegments` rule whose
+ * ad segments it takes out of each media playlist. For uzmovi it also applies the
  * `uzmovi-rc4-v1` request transform (RC4-signed X-ATT-DeviceId / X-Match / X-Path + randomized URL).
  */
 class LocalHlsProxy(private val client: OkHttpClient) {
@@ -81,13 +82,15 @@ class LocalHlsProxy(private val client: OkHttpClient) {
         headers: Map<String, String>,
         localProxy: JSONObject,
         requestTransform: JSONObject,
+        dropSegments: String? = null,
     ): String {
         ensureStarted()
         val id = randomId()
         val parsed = URI(upstreamUrl)
         require(parsed.scheme in setOf("http", "https") && parsed.host != null)
         sessions[id] = Session(headers = HashMap(headers),
-            transform = RequestTransform.fromMaps(localProxy, requestTransform))
+            transform = RequestTransform.fromMaps(localProxy, requestTransform),
+            dropSegments = HlsSegmentFilter.ruleFrom(dropSegments))
         return "http://127.0.0.1:$port/hls/$id/${b64UrlEncode(upstreamUrl)}"
     }
 
@@ -150,7 +153,7 @@ class LocalHlsProxy(private val client: OkHttpClient) {
                 }
             } else {
                 if (!text.trimStart().startsWith("#EXTM3U")) return error(502)
-                rewriteM3u8(text, "/hls/$sid", effectiveUrl)
+                rewriteM3u8(sess.dropSegments?.let { HlsSegmentFilter.drop(text, it) } ?: text, "/hls/$sid", effectiveUrl)
             }
             return NanoHTTPD.newFixedLengthResponse(statusOf(200),
                 if (isDash) "application/dash+xml" else "application/vnd.apple.mpegurl", rewritten)
@@ -205,7 +208,7 @@ class LocalHlsProxy(private val client: OkHttpClient) {
     private fun b64UrlDecode(s: String): String =
         String(Base64.decode(s, Base64.URL_SAFE), Charsets.UTF_8)
 
-    private class Session(val headers: Map<String, String>, val transform: RequestTransform?)
+    private class Session(val headers: Map<String, String>, val transform: RequestTransform?, val dropSegments: Regex?)
 
     private class TransformedRequest(val url: String, val headers: Map<String, String>)
 

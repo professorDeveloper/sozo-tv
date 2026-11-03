@@ -19,6 +19,7 @@ actor APIClient {
     static let defaultTimeout: TimeInterval = 30
     /// A throttled GET waits this long at most before its single retry.
     static let maximumRetryWait: TimeInterval = 5
+    static let mediaSegmentEndpoint = defaultBase.appendingPathComponent("contents/media-segment")
 
     init(base: URL = APIClient.defaultBase, session: URLSession? = nil) {
         self.base = base

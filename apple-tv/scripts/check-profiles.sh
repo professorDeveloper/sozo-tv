@@ -41,3 +41,6 @@ swiftc SozoTV/ProfileColorContrast.swift Tests/ProfileColorContrast/main.swift -
 
 swiftc -parse-as-library SozoTV/BoundedArtworkData.swift Tests/ArtworkData/main.swift -o "$check_dir/artwork"
 "$check_dir/artwork"
+
+swiftc SozoTV/HLSPlaylistRelay.swift Tests/HLSPlaylistRelay/main.swift -o "$check_dir/hlsRelay"
+"$check_dir/hlsRelay"
