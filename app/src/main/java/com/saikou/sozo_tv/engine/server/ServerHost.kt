@@ -431,6 +431,8 @@ class ServerHost(
                 if (s.optBoolean("useLocalProxy", false)) put("useLocalProxy", true)
                 s.optJSONObject("localProxy")?.let { put("localProxy", it) }
                 s.optJSONObject("requestTransform")?.let { put("requestTransform", it) }
+                s.optString("dropSegments").takeIf { it.isNotEmpty() }?.let { put("dropSegments", it) }
+                s.optJSONObject("signer")?.let { put("signer", it) }
                 // Headless-WebView sniff directive (embed pages whose manifest is
                 // only produced by the page's own JS) — forward raw, per source
                 // or inherited from the media level.

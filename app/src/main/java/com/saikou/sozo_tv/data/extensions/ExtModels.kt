@@ -136,6 +136,9 @@ data class ExtVideoSource(
     /** Separate audio renditions that belong with this video (CloudStream `audioTracks`). */
     val audioTracks: List<ExtAudioTrack> = emptyList(),
     val drm: String? = null,
+    /** Regex for ad segments the local proxy takes out of the playlist. */
+    val dropSegments: String? = null,
+    val signer: String? = null,            // raw JSON, see UrlSigner
 )
 
 data class ExtAudioTrack(
@@ -369,6 +372,8 @@ internal object ExtParser {
                 sniff = (s.optJSONObject("sniff") ?: o.optJSONObject("sniff"))?.toString(),
                 localProxy = s.optJSONObject("localProxy")?.toString(),
                 requestTransform = s.optJSONObject("requestTransform")?.toString(),
+                dropSegments = s.strOrNull("dropSegments"),
+                signer = s.optJSONObject("signer")?.toString(),
                 // PluginHost emits these for dual-audio releases; dropping them here left the
                 // player with one track and nothing to switch to.
                 audioTracks = s.optJSONArray("audioTracks")?.let { arr ->

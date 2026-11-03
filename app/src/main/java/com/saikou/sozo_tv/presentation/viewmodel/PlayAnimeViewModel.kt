@@ -331,6 +331,11 @@ class PlayAnimeViewModel(
             torrentSource = true
         }
         var headers = option.headers
+        com.saikou.sozo_tv.engine.player.UrlSigner.fromJson(option.signer)?.let { signer ->
+            val signed = withContext(Dispatchers.IO) { signer.sign(url, headers) }
+            if (signed != null) url = signed
+            else Log.w(TAG, "signing refused, playing the file as given")
+        }
         var mime = if (torrentSource) MimeTypes.VIDEO_MP4 else option.mimeTypes.ifEmpty { MimeTypes.APPLICATION_M3U8 }
 
         if (option.useWebViewSniff ||
@@ -365,9 +370,11 @@ class PlayAnimeViewModel(
             header = headers,
             type = mime,
             thumbnail = option.thumbnail ?: "",
-            useLocalProxy = option.useLocalProxy || com.saikou.sozo_tv.engine.player.StreamRequestRules.needsManifestProxy(url),
+            useLocalProxy = option.useLocalProxy || option.dropSegments != null ||
+                com.saikou.sozo_tv.engine.player.StreamRequestRules.needsManifestProxy(url),
             localProxyJson = option.localProxy,
             requestTransformJson = option.requestTransform,
+            dropSegments = option.dropSegments,
             audioTracks = option.audioTracks,
             drm = option.drm,
         )

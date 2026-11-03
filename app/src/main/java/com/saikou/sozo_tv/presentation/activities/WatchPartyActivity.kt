@@ -216,9 +216,13 @@ class WatchPartyActivity : AppCompatActivity() {
                     val sniffed = WebViewStreamExtractor.extract(this@WatchPartyActivity, url, headers) ?: error("Could not open the embedded player")
                     url = sniffed.url; headers = sniffed.headers; type = sniffed.playType
                 }
-                if (source.useLocalProxy || StreamRequestRules.needsManifestProxy(url)) {
+                UrlSigner.fromJson(source.signer)?.let { signer ->
+                    withContext(Dispatchers.IO) { signer.sign(url, headers) }?.let { url = it }
+                }
+                if (source.useLocalProxy || source.dropSegments != null || StreamRequestRules.needsManifestProxy(url)) {
                     url = withContext(Dispatchers.IO) { proxy.register(url, headers,
-                        source.localProxy?.let(::JSONObject) ?: JSONObject(), source.requestTransform?.let(::JSONObject) ?: JSONObject()) }
+                        source.localProxy?.let(::JSONObject) ?: JSONObject(), source.requestTransform?.let(::JSONObject) ?: JSONObject(),
+                        source.dropSegments) }
                     headers = emptyMap()
                 }
                 ensureActive(); if (stamp != generation) return@launch

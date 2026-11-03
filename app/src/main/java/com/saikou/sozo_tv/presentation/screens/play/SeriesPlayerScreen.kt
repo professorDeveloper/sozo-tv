@@ -1835,6 +1835,7 @@ class SeriesPlayerScreen : Fragment() {
                 headers = vod.header,
                 localProxy = vod.localProxyJson?.let { JSONObject(it) } ?: JSONObject(),
                 requestTransform = vod.requestTransformJson?.let { JSONObject(it) } ?: JSONObject(),
+                dropSegments = vod.dropSegments,
             )
         }.getOrDefault(vod.urlobj)
     }

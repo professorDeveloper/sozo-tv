@@ -15,6 +15,7 @@ data class VodMovieResponse(
     val useLocalProxy: Boolean = false,
     val localProxyJson: String? = null,
     val requestTransformJson: String? = null,
+    val dropSegments: String? = null,
     /** Separate audio renditions the player merges in alongside [urlobj]. */
     val audioTracks: List<AudioTrackRef> = emptyList(),
     val drm: String? = null,
