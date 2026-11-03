@@ -131,9 +131,7 @@ class TvGardenScreen : Fragment() {
                     binding.tabRv.visible()
                     binding.progressBar.pbIsLoading.gone()
                     binding.progressBar.root.gone()
-                    val data = ArrayList(categories.map { it.name })
-                    data.add("Adlt")
-                    categoriesAdapter.submitList(data)
+                    categoriesAdapter.submitList(ArrayList(categories.map { it.name }))
                     categoryList.clear()
                     categoryList.addAll(categories)
                     val restored = categoryList.getOrNull(selectedPosCat - 1)
@@ -177,19 +175,14 @@ class TvGardenScreen : Fragment() {
             }
             categoriesAdapter.setFocusedItemListener { s, i ->
                 if (model.currentSort != "Custom List") {
-                    if (s != "Adlt") {
-                        if (model.isCountrySelected) {
-                            val findCategory = countryList.find { it.name == s }
-                            selectedPosCount = i
-                            findCategory?.let { model.loadChannelsByCountry(it) }
-                        } else {
-                            selectedPosCat = i
-                            val findCategory = categoryList.find { it.name == s }
-                            findCategory?.let { model.loadChannelsByCategory(it) }
-                        }
+                    if (model.isCountrySelected) {
+                        val findCategory = countryList.find { it.name == s }
+                        selectedPosCount = i
+                        findCategory?.let { model.loadChannelsByCountry(it) }
                     } else {
-                        channelsAdapter.updateChannels(LocalData.channelsd)
-
+                        selectedPosCat = i
+                        val findCategory = categoryList.find { it.name == s }
+                        findCategory?.let { model.loadChannelsByCategory(it) }
                     }
                 } else {
                     channelsAdapter.updateChannels(
