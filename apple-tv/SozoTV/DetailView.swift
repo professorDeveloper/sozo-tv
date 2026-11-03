@@ -100,7 +100,11 @@ struct DetailView: View {
         .onAppear { visible = true }
         .onDisappear { visible = false; actionTask?.cancel() }
         .fullScreenCover(item: $playback, onDismiss: {
-            if reopenSourcePicker { reopenSourcePicker = false; showingSources = true }
+            if reopenSourcePicker, let episode = selectedEpisode {
+                // Signed stream URLs expire, so another source starts from a fresh resolution.
+                reopenSourcePicker = false
+                run { await resolve(episode, choosingSource: true) }
+            }
             else if pendingNextEpisode {
                 pendingNextEpisode = false
                 run { await playNextEpisode() }
@@ -209,17 +213,25 @@ struct DetailView: View {
             }
         } catch { if current(scope) { self.error = error.localizedDescription } }
     }
-    private func resolve(_ episode: Episode) async {
+    private func resolve(_ episode: Episode, choosingSource: Bool = false) async {
         let scope = session.profileScopeIdentity
-        resolving = true; error = nil; sourceSwitchPositionMs = nil
+        resolving = true; error = nil
+        if !choosingSource { sourceSwitchPositionMs = nil }
         defer { resolving = false }
         do {
             let envelope: MediaEnvelope
             if !isSerial && !movieSources.isEmpty {
+                // Film sources come inline with the episodes reply and carry no media ref; fetch them again.
+                let value: EpisodePage = try await session.request("contents/episodes", query: [.init(name: "provider", value: provider), .init(name: "url", value: url), .init(name: "page", value: "1"), .init(name: "size", value: "100")])
+                guard current(scope) else { return }
+                let movie = value.movieEnvelope
+                if let fresh = movie.videoSources, !fresh.isEmpty {
+                    movieSources = fresh; movieSubtitles = movie.subtitles ?? []; movieHeaders = movie.headers ?? [:]
+                }
                 envelope = MediaEnvelope(videoUrl: nil, type: nil, headers: movieHeaders, videoSources: movieSources, subtitles: movieSubtitles)
             } else {
                 guard let ref = episode.mediaRef, !ref.isEmpty else { throw APIError.noPlayableSource }
-                envelope = try await session.request("contents/media", query: [.init(name: "provider", value: provider), .init(name: "ref", value: ref), .init(name: "lang", value: "sub")])
+                envelope = try await session.request("contents/media", query: [.init(name: "provider", value: provider), .init(name: "ref", value: ref), .init(name: "lang", value: "sub")], timeout: APIClient.mediaTimeout)
             }
             guard current(scope) else { return }
             let options = envelope.playbackSources
@@ -229,7 +241,7 @@ struct DetailView: View {
             let playable = PlaybackSourcePolicy.preferred(eligible, quality: UserDefaults.standard.string(forKey: choiceKey))
             guard !playable.isEmpty else { error = "This source did not provide an Apple TV compatible stream. Embedded web pages, DASH and torrents cannot play here. Try another source or adjust your maximum quality setting."; return }
             candidates = playable; candidateHeaders = envelope.headers ?? [:]; candidateSubtitles = envelope.subtitles ?? []; selectedEpisode = episode
-            if playable.count == 1 { start(playable[0]) } else { showingSources = true }
+            if playable.count == 1 && !choosingSource { start(playable[0]) } else { showingSources = true }
         } catch { if current(scope) { self.error = error.localizedDescription } }
     }
     private var canPlayNextEpisode: Bool {

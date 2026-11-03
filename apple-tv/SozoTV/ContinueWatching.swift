@@ -1,6 +1,18 @@
 import Foundation
 
-struct ContinueWatchingEnvelope: Decodable { let items: [ContinueWatchingItem] }
+struct ContinueWatchingEnvelope: Decodable {
+    let items: [ContinueWatchingItem]
+    private enum CodingKeys: String, CodingKey { case items }
+    private struct Row: Decodable {
+        let item: ContinueWatchingItem?
+        init(from decoder: Decoder) { item = try? ContinueWatchingItem(from: decoder) }
+    }
+    /// One malformed row is skipped instead of emptying the whole rail.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        items = (try c.decodeIfPresent([Row].self, forKey: .items) ?? []).compactMap(\.item)
+    }
+}
 struct ContinueWatchingItem: Decodable, Identifiable {
     let provider: String
     let contentUrl: String

@@ -4,6 +4,7 @@ private struct Stub {
     let status: Int
     let body: String
     var delay: Double = 0
+    var headers: [String: String] = [:]
 }
 private final class StubProtocol: URLProtocol, @unchecked Sendable {
     static let lock = NSLock()
@@ -18,7 +19,7 @@ private final class StubProtocol: URLProtocol, @unchecked Sendable {
             stateLock.lock(); let canceled = stopped; stateLock.unlock()
             guard !canceled else { return }
             client?.urlProtocol(self, didReceive: HTTPURLResponse(url: request.url!, statusCode: stub.status,
-                httpVersion: "HTTP/1.1", headerFields: ["Content-Type": "application/json"])!, cacheStoragePolicy: .notAllowed)
+                httpVersion: "HTTP/1.1", headerFields: stub.headers.merging(["Content-Type": "application/json"]) { a, _ in a })!, cacheStoragePolicy: .notAllowed)
             client?.urlProtocol(self, didLoad: Data(stub.body.utf8))
             client?.urlProtocolDidFinishLoading(self)
         }
@@ -53,7 +54,9 @@ private func require(_ condition: @autoclosure () -> Bool, _ label: String) {
         try await logoutDuringRefresh()
         try await pinAndDraft()
         try await staleProfileSelection()
-        print("PASS: refresh coalescing and atomic persistence; profile response isolation; logout rotation revocation; PIN and draft contracts; stale profile selection protection")
+        try await removedProfile()
+        try await errorPresentation()
+        print("PASS: refresh coalescing and atomic persistence; profile response isolation; logout rotation revocation; PIN and draft contracts; stale profile selection protection; removed profile recovery; error presentation and Retry-After")
     }
     @MainActor static func concurrentRefresh() async throws {
         let memory = MemoryCredentials(); let session = make(memory)
@@ -147,6 +150,59 @@ private func require(_ condition: @autoclosure () -> Bool, _ label: String) {
         require(session.activeProfile?.isKids == true && !session.canManage,
                 "stale adult snapshot cannot restore management permission")
         require(session.activeProfile?.name == "Updated child", "selection keeps current display metadata")
+    }
+
+    @MainActor static func removedProfile() async throws {
+        let session = make(MemoryCredentials())
+        var removed = false
+        StubProtocol.handler = { request in
+            if request.url!.path.hasSuffix("/profiles") {
+                return Stub(status: 200, body: removed
+                    ? "{\"profiles\":[{\"id\":\"p1\",\"name\":\"One\",\"hasPin\":true},{\"id\":\"p3\",\"name\":\"Three\"}],\"max\":4}"
+                    : profileJSON)
+            }
+            return Stub(status: 404, body: "{\"message\":\"Profil topilmadi\",\"code\":\"PROFILE_NOT_FOUND\"}")
+        }
+        await session.loadProfiles()
+        try await session.select(session.profiles[1])
+        removed = true
+        do { let _: Value = try await session.request("history"); fatalError("Removed profile request succeeded") }
+        catch let error as APIError { require(error.code == "PROFILE_NOT_FOUND", "removed profile error surfaces") }
+        require(session.activeProfile == nil, "removed profile is no longer active, so the picker shows")
+        for _ in 0..<50 where session.profiles.map(\.id) != ["p1", "p3"] { try await Task.sleep(nanoseconds: 10_000_000) }
+        require(session.profiles.map(\.id) == ["p1", "p3"], "profiles reloaded after removal")
+        require(session.activeProfile == nil, "no profile chosen on the viewer's behalf")
+    }
+
+    @MainActor static func errorPresentation() async throws {
+        let session = make(MemoryCredentials())
+        var calls = 0
+        StubProtocol.handler = { request in
+            calls += 1
+            if request.url!.path.hasSuffix("busy") {
+                return calls == 1 ? Stub(status: 503, body: "{\"message\":\"Server hozir bandlik darajasida\"}", headers: ["Retry-After": "0"])
+                    : Stub(status: 200, body: "{\"value\":5}")
+            }
+            if request.url!.path.hasSuffix("limited") {
+                return Stub(status: 429, body: "{\"message\":\"Juda ko'p so'rov\"}", headers: ["Retry-After": "30"])
+            }
+            return Stub(status: 200, body: "{\"unexpected\":true}")
+        }
+        let value: Value = try await session.request("busy", profileScoped: false)
+        require(value.value == 5 && calls == 2, "short Retry-After on a GET is waited out once")
+        calls = 0
+        do { let _: Value = try await session.request("limited", profileScoped: false); fatalError("429 succeeded") }
+        catch let error as APIError {
+            require(calls == 1 && error.retryAfter == 30, "long Retry-After is reported, not slept through")
+            let text = error.localizedDescription
+            require(text == "Too many requests. Try again in 30 seconds." && !text.contains("so'rov"), "no Uzbek backend text: \(text)")
+        }
+        do { let _: Value = try await session.request("shape", profileScoped: false); fatalError("bad shape decoded") }
+        catch let error as APIError {
+            guard case .invalidResponse = error else { fatalError("FAILED: decode error kept Foundation text") }
+        }
+        require(APIError.server(status: 403, code: nil, message: "Hisobingiz bloklangan").localizedDescription == "This account is not allowed to do this.", "uncoded 403 is English")
+        require(APIError.retryAfter("Wed, 21 Oct 2015 07:28:00 GMT") == 0, "past HTTP date clamps to zero")
     }
 
     @MainActor static func pinAndDraft() async throws {
