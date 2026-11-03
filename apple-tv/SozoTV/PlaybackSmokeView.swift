@@ -14,7 +14,7 @@ struct PlaybackSmokeView: View {
     @State private var route = ""
     var body: some View {
         ZStack(alignment: .bottom) {
-            if let item { TVPlayerView(item: item, changeSource: { _ in route = "Source picker requested"; self.item = nil }, nextEpisode: { route = "Next episode requested"; self.item = nil }).ignoresSafeArea() }
+            if let item { TVPlayerView(item: item, changeSource: { _ in route = "Source picker requested"; self.item = nil }, nextEpisode: { route = "Next episode requested"; self.item = nil }, retry: { _ in route = "Retry requested"; self.item = nil }).ignoresSafeArea() }
             if !route.isEmpty { Text(route).accessibilityIdentifier("playback.route") }
             Text(status).font(.system(size: 24)).padding(20).background(.black.opacity(0.7))
                 .accessibilityIdentifier("playback.probe").padding(.bottom, 70)

@@ -141,3 +141,75 @@ struct PlaybackStartupState {
     mutating func enteredBackground() { autoPlay = false; pendingPlay = false }
     mutating func finish() { phase = .finished; pendingPlay = false; autoPlay = false }
 }
+
+/// Turns AVFoundation errors and access-log details into a reason the viewer can act on.
+enum PlaybackFailure: Equatable {
+    case offline, expired, missing, blocked, unsupported, stalled, timedOut, generic
+
+    /// The error chain wins; an error-log entry only explains an error that maps to nothing.
+    init(error: Error?, logStatus: Int? = nil, logComment: String? = nil) {
+        var next = error.map { $0 as NSError }
+        var depth = 0
+        while let current = next, depth < 6 {
+            if let mapped = Self.forError(current) { self = mapped; return }
+            next = current.userInfo[NSUnderlyingErrorKey] as? NSError
+            depth += 1
+        }
+        self = Self.httpStatus(code: logStatus, comment: logComment).flatMap(Self.forHTTP) ?? .generic
+    }
+
+    var isRetryable: Bool { self != .unsupported && self != .missing && self != .blocked }
+
+    var message: String {
+        switch self {
+        case .offline: return "Apple TV lost its internet connection. Check the network, then retry."
+        case .expired: return "The source refused this stream. Its link may have expired: retry to fetch a new one, or choose another source."
+        case .missing: return "This stream is no longer available from the source. Choose another source."
+        case .blocked: return "Couldn't open the video source. The server may have blocked it. Choose another source."
+        case .unsupported: return "This stream uses a format Apple TV cannot play. Choose another source."
+        case .stalled: return "The stream stopped loading. Retry, or choose another source if it keeps happening."
+        case .timedOut: return "The stream did not start in time. Retry or choose another source."
+        case .generic: return "This stream could not be played. Retry or choose another source."
+        }
+    }
+
+    private static func httpStatus(code: Int?, comment: String?) -> Int? {
+        if let code, (400..<600).contains(code) { return code }
+        // CoreMedia reports some HTTP failures with its own codes.
+        switch code {
+        case -12660: return 403
+        case -12938: return 404
+        default: break
+        }
+        guard let comment, let range = comment.range(of: #"HTTP (\d{3})"#, options: .regularExpression) else { return nil }
+        return Int(comment[range].dropFirst(5))
+    }
+
+    private static func forHTTP(_ status: Int) -> PlaybackFailure? {
+        switch status {
+        case 401, 403: return .expired
+        case 404, 410: return .missing
+        default: return nil
+        }
+    }
+
+    private static func forError(_ error: NSError) -> PlaybackFailure? {
+        switch (error.domain, error.code) {
+        case (NSURLErrorDomain, NSURLErrorNotConnectedToInternet), (NSURLErrorDomain, NSURLErrorNetworkConnectionLost),
+             (NSURLErrorDomain, NSURLErrorDataNotAllowed), (NSURLErrorDomain, NSURLErrorInternationalRoamingOff):
+            return .offline
+        case (NSURLErrorDomain, NSURLErrorTimedOut): return .timedOut
+        case (NSURLErrorDomain, NSURLErrorFileDoesNotExist), (NSURLErrorDomain, NSURLErrorResourceUnavailable): return .missing
+        case (NSURLErrorDomain, NSURLErrorUserAuthenticationRequired), (NSURLErrorDomain, NSURLErrorNoPermissionsToReadFile): return .expired
+        // fileFormatNotRecognized: usually a block or challenge page served instead of media.
+        case ("AVFoundationErrorDomain", -11828): return .blocked
+        // AVError fileFailedToParse, failedToParse, decodeFailed, decoderNotFound, formatUnsupported.
+        case ("AVFoundationErrorDomain", -11829), ("AVFoundationErrorDomain", -11853),
+             ("AVFoundationErrorDomain", -11821), ("AVFoundationErrorDomain", -11833), ("AVFoundationErrorDomain", -11864):
+            return .unsupported
+        case ("CoreMediaErrorDomain", let code):
+            return httpStatus(code: code, comment: nil).flatMap(forHTTP)
+        default: return nil
+        }
+    }
+}
