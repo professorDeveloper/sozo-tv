@@ -261,10 +261,19 @@ final class BrowseUITests: XCTestCase {
         let viewport = reported.isEmpty
             ? CGRect(x: 0, y: 0, width: 1920, height: 1080)
             : reported
-        XCTAssertFalse(last.frame.isEmpty, "the focused title reported no frame at all")
+        // The shelf may still be scrolling: read the frame until it settles, then
+        // assert and report that one reading.
+        var frame = last.frame
+        for _ in 0..<12 {
+            Thread.sleep(forTimeInterval: 0.25)
+            let next = last.frame
+            if next == frame { break }
+            frame = next
+        }
+        XCTAssertFalse(frame.isEmpty, "the focused title reported no frame at all")
         XCTAssertTrue(
-            last.frame.intersects(viewport),
-            "\(last.identifier) at \(last.frame) is outside \(viewport)"
+            frame.intersects(viewport),
+            "\(last.identifier) at \(frame) is outside \(viewport)"
         )
         for _ in 0..<6 { remote.press(.up); Thread.sleep(forTimeInterval: 0.25) }
         XCTAssertEqual(app.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true")).firstMatch.identifier, remembered, "A shelf must keep its focused title after leaving the viewport")
@@ -294,7 +303,7 @@ final class BrowseUITests: XCTestCase {
         select("profile.route.notifications")
         XCTAssertTrue(app.buttons["notifications.item.notice-1"].waitForExistence(timeout: 8))
         select("Load more")
-        XCTAssertTrue(app.staticTexts["Notification page failed once"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.staticTexts["Sozo is busy right now. Please try again in a moment."].waitForExistence(timeout: 8))
         select("Retry")
         XCTAssertTrue(app.buttons["notifications.item.notice-2"].waitForExistence(timeout: 8))
         XCTAssertFalse(app.buttons["notifications.item.notice-3"].exists)
