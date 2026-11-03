@@ -119,9 +119,9 @@ jobs:
           BUMPED=yes
 
           if [ -n "${EXPLICIT}" ]; then
-            case "${EXPLICIT}" in
-              *[!0-9.]*) echo "::error title=Bad version::'${EXPLICIT}' must be digits and dots only, e.g. 11.0.0"; exit 1 ;;
-            esac
+            if ! [[ "${EXPLICIT}" =~ ^[0-9]+(\.[0-9]+){0,3}$ ]]; then
+              echo "::error title=Bad version::'${EXPLICIT}' must be numbers separated by dots, e.g. 11.0.0"; exit 1
+            fi
             NEW_NAME="${EXPLICIT}"
           else
             case "${BUMP}" in
@@ -135,6 +135,12 @@ jobs:
           fi
 
           TAG="v${NEW_NAME}"
+          # Same name, new versionCode (code-only, or none after a hand-edited
+          # code): the plain name tag is taken, so the code goes into the tag.
+          if [ "${NEW_NAME}" = "${NAME}" ] \
+             && git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            TAG="v${NEW_NAME}-${NEW_CODE}"
+          fi
           if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
             echo "::error title=Tag exists::${TAG} is already published. Pick a different bump, or delete the tag first."
             exit 1
@@ -166,7 +172,15 @@ jobs:
           SOZO_API_BASE_URL: ${{ vars.SOZO_API_BASE_URL }}
         run: |
           set -euo pipefail
-          API="$(python3 tools/release/api_base.py)"
+          API="$(python3 tools/release/api_base.py)" || API=""
+          if [ -z "${API}" ]; then
+            if [ "${SKIP_GUARD}" = true ]; then
+              echo "::warning title=Version guard skipped::Could not work out the API base; continuing because skip_version_guard is set."
+              exit 0
+            fi
+            echo "::error title=Version guard::Could not work out the API base from app/build.gradle.kts or vars.SOZO_API_BASE_URL."
+            exit 1
+          fi
           echo "::add-mask::${API}"
 
           HTTP="$(curl -sS --max-time 20 --retry 3 --retry-all-errors \
@@ -427,6 +441,9 @@ jobs:
           name: sozo-tv-apk
           path: dist
 
+      # Not idempotent: re-running this job after the download row was created
+      # uploads again and adds a second active androidtv row; switch the extra
+      # one off in the admin panel.
       - name: Upload to the CDN
         id: cdn
         env:
@@ -534,7 +551,7 @@ jobs:
              '{version: $code,
                minVersion: (.minVersion // 1),
                downloadUrl: $url,
-               storeUrl: (.storeUrl // null),
+               storeUrl: null,   # the backend refuses a storeUrl from the release token
                releaseNotes: $notes,
                forceUpdate: (.forceUpdate // false),
                active: (.active != false)}' current.json > updater-req.json
@@ -558,6 +575,7 @@ jobs:
     # indistinguishable from one nobody started.
     if: ${{ always() && !cancelled() }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       # Not fatal: when the build failed there is no artifact, and the message
       # saying so is what this job is for.
