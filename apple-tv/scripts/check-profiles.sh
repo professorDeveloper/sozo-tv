@@ -16,6 +16,8 @@ swiftc SozoTV/Models.swift SozoTV/PlaybackSourcePolicy.swift Tests/PlaybackSourc
 "$check_dir/sources"
 swiftc SozoTV/ProfileRequestState.swift Tests/ProfileRequestChecks.swift -o "$check_dir/requests"
 "$check_dir/requests"
+swiftc SozoTV/Models.swift SozoTV/APIClient.swift SozoTV/DeviceLinkPolling.swift Tests/DeviceLinkPolling/main.swift -o "$check_dir/polling"
+"$check_dir/polling"
 
 swiftc SozoTV/Models.swift SozoTV/PlaybackHistoryContext.swift SozoTV/ContinueWatching.swift Tests/ContinueWatching/main.swift -o "$check_dir/continuing"
 "$check_dir/continuing"

@@ -119,7 +119,11 @@ struct DetailView: View {
                 pendingRetry = nil
                 run { await resolve(retry.episode, retrying: retry.source, positionMs: retry.positionMs) }
             }
-            else if reopenSourcePicker { reopenSourcePicker = false; showingSources = true }
+            else if reopenSourcePicker {
+                // Signed stream URLs expire, so another source starts from a fresh resolution.
+                reopenSourcePicker = false
+                if let episode = selectedEpisode { run { await resolve(episode, choosingSource: true) } }
+            }
             else if pendingNextEpisode {
                 pendingNextEpisode = false
                 run { await playNextEpisode() }
@@ -267,18 +271,22 @@ struct DetailView: View {
             }
         } catch { if current(scope) { self.error = error.localizedDescription } }
     }
-    private func resolve(_ episode: Episode, retrying failed: VideoSource? = nil, positionMs: Int64? = nil) async {
+    private func resolve(_ episode: Episode, retrying failed: VideoSource? = nil, positionMs: Int64? = nil, choosingSource: Bool = false) async {
         let scope = session.profileScopeIdentity
-        resolving = true; error = nil; sourceSwitchPositionMs = positionMs
+        resolving = true; error = nil
+        if failed != nil { sourceSwitchPositionMs = positionMs } else if !choosingSource { sourceSwitchPositionMs = nil }
         defer { resolving = false }
         do {
             let envelope: MediaEnvelope
             if !isSerial && !movieSources.isEmpty {
-                if failed != nil { await refreshMovieSources() }
+                if failed != nil || choosingSource {
+                    await refreshMovieSources()
+                    guard current(scope) else { return }
+                }
                 envelope = MediaEnvelope(videoUrl: nil, type: nil, headers: movieHeaders, videoSources: movieSources, subtitles: movieSubtitles)
             } else {
                 guard let ref = episode.mediaRef, !ref.isEmpty else { throw APIError.noPlayableSource }
-                envelope = try await session.request("contents/media", query: [.init(name: "provider", value: provider), .init(name: "ref", value: ref), .init(name: "lang", value: "sub")])
+                envelope = try await session.request("contents/media", query: [.init(name: "provider", value: provider), .init(name: "ref", value: ref), .init(name: "lang", value: "sub")], timeout: APIClient.mediaTimeout)
             }
             guard current(scope) else { return }
             let options = envelope.playbackSources
@@ -291,8 +299,15 @@ struct DetailView: View {
             let same = failed.flatMap { failed in
                 playable.first { $0.videoUrl == failed.videoUrl } ?? playable.first { $0.quality == failed.quality && $0.type == failed.type }
             }
-            if let source = same ?? (playable.count == 1 ? playable[0] : nil) { start(source) } else { showingSources = true }
-        } catch { if current(scope) { self.error = error.localizedDescription } }
+            if let source = same { start(source) }
+            else if playable.count == 1 && !choosingSource { start(playable[0]) }
+            else { showingSources = true }
+        } catch {
+            guard current(scope) else { return }
+            if choosingSource, selectedEpisode?.id == episode.id, !candidates.isEmpty { showingSources = true; return }
+            sourceSwitchPositionMs = nil
+            self.error = error.localizedDescription
+        }
     }
     /// A film's links come with the first episode page; fetch it again so a retry gets fresh ones.
     private func refreshMovieSources() async {
