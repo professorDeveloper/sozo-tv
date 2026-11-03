@@ -135,7 +135,7 @@ fun ExtMedia.toVod(thumbnail: String = "", language: String = ""): VodMovieRespo
     return VodMovieResponse(
         authInfo = "",
         header = chosen?.headers ?: headers,
-        subtitleList = subtitles.map { SubTitle(file = it.file, label = it.label, headers = it.headers) },
+        subtitleList = subtitles.map { SubTitle(file = it.file, label = it.label, headers = it.headers, cipher = it.cipher) },
         urlobj = url,
         type = mime,
         thumbnail = thumbnail,

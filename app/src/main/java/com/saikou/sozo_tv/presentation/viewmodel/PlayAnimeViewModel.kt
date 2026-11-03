@@ -369,7 +369,7 @@ class PlayAnimeViewModel(
 
         return VodMovieResponse(
             authInfo = "",
-            subtitleList = option.tracks.map { SubTitle(it.file, it.label ?: "", headers = it.headers) },
+            subtitleList = option.tracks.map { SubTitle(it.file, it.label ?: "", headers = it.headers, cipher = it.cipher) },
             urlobj = url,
             header = headers,
             type = mime,

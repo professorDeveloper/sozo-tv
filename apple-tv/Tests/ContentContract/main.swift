@@ -15,3 +15,8 @@ print("PASS: legacy compatibility and phone-only source exclusion")
 let hero = try JSONDecoder().decode(MediaCard.self, from: Data(#"{"provider":"vidapi","title":"Featured","thumbnail":"https://image.test/poster.jpg","banner":"https://image.test/backdrop.jpg"}"#.utf8))
 assert(hero.banner == "https://image.test/backdrop.jpg")
 print("PASS: featured card retains its widescreen banner instead of only its portrait poster")
+
+let media = try JSONDecoder().decode(MediaEnvelope.self, from: Data(#"{"videoUrl":"https://v.test/a.m3u8","subtitles":[{"label":"English","file":"https://s.test/a.srt.txt1","cipher":{"alg":"aes-128-cbc","key":"AmSmZVcH93UQUezi","iv":"ReBKWW8cqdjPEnF6","scope":"cue-text","encoding":"base64"}},{"file":"https://s.test/b.srt","cipher":{"alg":1}}]}"#.utf8))
+precondition(media.subtitles?[0].cipher?.key == "AmSmZVcH93UQUezi" && media.subtitles?[0].cipher?.iv == "ReBKWW8cqdjPEnF6")
+precondition(media.subtitles?.count == 2 && media.subtitles?[1].cipher == nil)
+print("PASS: subtitle cipher survives decoding and a malformed one does not drop the track")

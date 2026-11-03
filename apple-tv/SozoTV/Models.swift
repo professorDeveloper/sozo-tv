@@ -150,6 +150,26 @@ struct SubtitleTrack: Decodable, Identifiable, Hashable {
     var id: String { file }
     let label: String?
     let file: String
+    var cipher: SubtitleCipher? = nil
+}
+
+extension SubtitleTrack {
+    private enum CodingKeys: String, CodingKey { case label, file, cipher }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        label = try c.decodeIfPresent(String.self, forKey: .label)
+        file = try c.decode(String.self, forKey: .file)
+        cipher = try? c.decodeIfPresent(SubtitleCipher.self, forKey: .cipher)
+    }
+}
+
+/// Key for subtitles whose cue text lines are each encrypted (KissKH `.txt1`).
+struct SubtitleCipher: Decodable, Hashable, Sendable {
+    let alg: String
+    let key: String
+    let iv: String
+    let scope: String?
+    let encoding: String?
 }
 
 struct MediaEnvelope: Decodable {

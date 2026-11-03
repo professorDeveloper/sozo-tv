@@ -49,3 +49,15 @@ precondition(!SidecarSubtitles.isRemoteURL(URL(string: "https://user:secret@medi
 precondition(!SidecarSubtitles.isRemoteURL(URL(string: "file:///tmp/en.vtt")!))
 precondition(!SidecarSubtitles.isRemoteURL(URL(string: "https:/en.vtt")!))
 print("PASS: HTML error documents and credential-bearing subtitle URLs rejected")
+let encrypted = Data("1\r\n00:00:01,000 --> 00:00:02,500\r\nSq/yslS8glo0CoTCWZBT0GepZqSNY4KqATqtSAO1798=\r\n".utf8)
+let opened = try SidecarSubtitles.decryptCueText(encrypted, alg: "aes-128-cbc", key: "AmSmZVcH93UQUezi", iv: "ReBKWW8cqdjPEnF6", scope: "cue-text", encoding: "base64")
+precondition(String(decoding: opened, as: UTF8.self) == "1\n00:00:01,000 --> 00:00:02,500\n<i>♫ Set off ♫</i>\n")
+let openedCues = try SidecarSubtitles.parse(opened)
+precondition(openedCues.count == 1 && openedCues[0].start == 1 && openedCues[0].text == "♫ Set off ♫")
+func refusesKey(_ key: String, alg: String = "aes-128-cbc") {
+    do { _ = try SidecarSubtitles.decryptCueText(encrypted, alg: alg, key: key, iv: "ReBKWW8cqdjPEnF6"); fatalError("Must refuse") }
+    catch { }
+}
+refusesKey("8056483646328763")
+refusesKey("AmSmZVcH93UQUezi", alg: "aes-256-gcm")
+print("PASS: encrypted cue text decrypts; wrong keys and unknown algorithms are refused")
