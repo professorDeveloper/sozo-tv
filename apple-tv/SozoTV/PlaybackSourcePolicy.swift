@@ -144,12 +144,10 @@ struct PlaybackStartupState {
 
 /// Turns AVFoundation errors and access-log details into a reason the viewer can act on.
 enum PlaybackFailure: Equatable {
-    case offline, expired, missing, unsupported, stalled, timedOut, generic
+    case offline, expired, missing, blocked, unsupported, stalled, timedOut, generic
 
+    /// The error chain wins; an error-log entry only explains an error that maps to nothing.
     init(error: Error?, logStatus: Int? = nil, logComment: String? = nil) {
-        if let status = Self.httpStatus(code: logStatus, comment: logComment), let mapped = Self.forHTTP(status) {
-            self = mapped; return
-        }
         var next = error.map { $0 as NSError }
         var depth = 0
         while let current = next, depth < 6 {
@@ -157,16 +155,17 @@ enum PlaybackFailure: Equatable {
             next = current.userInfo[NSUnderlyingErrorKey] as? NSError
             depth += 1
         }
-        self = .generic
+        self = Self.httpStatus(code: logStatus, comment: logComment).flatMap(Self.forHTTP) ?? .generic
     }
 
-    var isRetryable: Bool { self != .unsupported && self != .missing }
+    var isRetryable: Bool { self != .unsupported && self != .missing && self != .blocked }
 
     var message: String {
         switch self {
         case .offline: return "Apple TV lost its internet connection. Check the network, then retry."
-        case .expired: return "The source refused this stream. Its link may have expired, so retry or choose another source."
+        case .expired: return "The source refused this stream. Its link may have expired: retry to fetch a new one, or choose another source."
         case .missing: return "This stream is no longer available from the source. Choose another source."
+        case .blocked: return "Couldn't open the video source. The server may have blocked it. Choose another source."
         case .unsupported: return "This stream uses a format Apple TV cannot play. Choose another source."
         case .stalled: return "The stream stopped loading. Retry, or choose another source if it keeps happening."
         case .timedOut: return "The stream did not start in time. Retry or choose another source."
@@ -202,8 +201,10 @@ enum PlaybackFailure: Equatable {
         case (NSURLErrorDomain, NSURLErrorTimedOut): return .timedOut
         case (NSURLErrorDomain, NSURLErrorFileDoesNotExist), (NSURLErrorDomain, NSURLErrorResourceUnavailable): return .missing
         case (NSURLErrorDomain, NSURLErrorUserAuthenticationRequired), (NSURLErrorDomain, NSURLErrorNoPermissionsToReadFile): return .expired
-        // AVError fileFormatNotRecognized, fileFailedToParse, failedToParse, decodeFailed, decoderNotFound, formatUnsupported.
-        case ("AVFoundationErrorDomain", -11828), ("AVFoundationErrorDomain", -11829), ("AVFoundationErrorDomain", -11853),
+        // fileFormatNotRecognized: usually a block or challenge page served instead of media.
+        case ("AVFoundationErrorDomain", -11828): return .blocked
+        // AVError fileFailedToParse, failedToParse, decodeFailed, decoderNotFound, formatUnsupported.
+        case ("AVFoundationErrorDomain", -11829), ("AVFoundationErrorDomain", -11853),
              ("AVFoundationErrorDomain", -11821), ("AVFoundationErrorDomain", -11833), ("AVFoundationErrorDomain", -11864):
             return .unsupported
         case ("CoreMediaErrorDomain", let code):

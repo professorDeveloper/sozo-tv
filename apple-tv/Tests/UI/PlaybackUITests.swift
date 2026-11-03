@@ -44,6 +44,7 @@ final class PlaybackUITests: XCTestCase {
         XCTAssertTrue(app.alerts["Playback unavailable"].waitForExistence(timeout: 15), app.debugDescription)
         XCTAssertTrue(app.buttons["Choose another source"].exists)
         XCTAssertTrue(app.buttons["Close"].exists)
+        XCTAssertFalse(app.buttons["Retry"].exists, "Retrying the same unreadable file cannot help")
     }
 
     func testRemoteSelectShowsNativeTimelineAndPlaybackControls() throws {

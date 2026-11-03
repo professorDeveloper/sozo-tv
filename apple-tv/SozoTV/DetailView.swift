@@ -21,7 +21,8 @@ struct DetailView: View {
     @State private var error: String?
     @State private var notice: String?
     @State private var favorite: Bool?
-    @State private var retryItem: PlaybackItem?
+    @State private var pendingRetry: (episode: Episode, source: VideoSource?, positionMs: Int64?)?
+    @State private var playingSource: VideoSource?
     @State private var primaryFocused = false
     @FocusState private var focus: DetailFocus?
     private enum DetailFocus: Hashable { case primary, episode(Int) }
@@ -114,7 +115,10 @@ struct DetailView: View {
         .onAppear { visible = true }
         .onDisappear { visible = false; actionTask?.cancel() }
         .fullScreenCover(item: $playback, onDismiss: {
-            if let retryItem { self.retryItem = nil; playback = retryItem }
+            if let retry = pendingRetry {
+                pendingRetry = nil
+                run { await resolve(retry.episode, retrying: retry.source, positionMs: retry.positionMs) }
+            }
             else if reopenSourcePicker { reopenSourcePicker = false; showingSources = true }
             else if pendingNextEpisode {
                 pendingNextEpisode = false
@@ -128,12 +132,7 @@ struct DetailView: View {
                 reopenSourcePicker = true; playback = nil
             },
                          nextEpisode: canPlayNextEpisode ? { pendingNextEpisode = true; playback = nil } : nil,
-                         retry: { position in
-                var history = item.history
-                if let position, position.isFinite, position >= 0, position < Double(Int64.max) / 1000 { history?.positionMs = Int64(position * 1000) }
-                retryItem = PlaybackItem(url: item.url, title: item.title, headers: item.headers, history: history, subtitles: item.subtitles)
-                playback = nil
-            }).ignoresSafeArea()
+                         retry: retryAction(for: item)).ignoresSafeArea()
         }
         .sheet(isPresented: $showingSources) {
             VStack(alignment: .leading, spacing: 24) {
@@ -160,6 +159,17 @@ struct DetailView: View {
                 }
                 Button { showingSources = false } label: { SozoActionLabel(title: "Cancel", symbol: "xmark") }.buttonStyle(SozoProfileButtonStyle())
             }.padding(60)
+        }
+    }
+    /// Resolves again rather than replaying the URL, because signed links expire.
+    private func retryAction(for item: PlaybackItem) -> ((Double?) -> Void)? {
+        guard let episode = selectedEpisode else { return nil }
+        let source = playingSource
+        return { position in
+            var positionMs = item.history?.positionMs
+            if let position, position.isFinite, position >= 0, position < Double(Int64.max) / 1000 { positionMs = Int64(position * 1000) }
+            pendingRetry = (episode, source, positionMs)
+            playback = nil
         }
     }
     private var primaryEpisodeID: Episode.ID? {
@@ -212,7 +222,7 @@ struct DetailView: View {
         favorite = nil
         guard !url.isEmpty, let value: ProfileJSON = try? await session.request("auth/favorites") else { return }
         guard current(scope), favorite == nil else { return }
-        favorite = value["items"].array.contains { $0["contentUrl"].string == url && $0["deletedAt"].string.isEmpty }
+        favorite = value["items"].array.contains { $0["contentUrl"].string == url }
     }
     private func load() async {
         let scope = session.profileScopeIdentity
@@ -257,13 +267,14 @@ struct DetailView: View {
             }
         } catch { if current(scope) { self.error = error.localizedDescription } }
     }
-    private func resolve(_ episode: Episode) async {
+    private func resolve(_ episode: Episode, retrying failed: VideoSource? = nil, positionMs: Int64? = nil) async {
         let scope = session.profileScopeIdentity
-        resolving = true; error = nil; sourceSwitchPositionMs = nil
+        resolving = true; error = nil; sourceSwitchPositionMs = positionMs
         defer { resolving = false }
         do {
             let envelope: MediaEnvelope
             if !isSerial && !movieSources.isEmpty {
+                if failed != nil { await refreshMovieSources() }
                 envelope = MediaEnvelope(videoUrl: nil, type: nil, headers: movieHeaders, videoSources: movieSources, subtitles: movieSubtitles)
             } else {
                 guard let ref = episode.mediaRef, !ref.isEmpty else { throw APIError.noPlayableSource }
@@ -277,8 +288,19 @@ struct DetailView: View {
             let playable = PlaybackSourcePolicy.preferred(eligible, quality: UserDefaults.standard.string(forKey: choiceKey))
             guard !playable.isEmpty else { error = "This source did not provide an Apple TV compatible stream. Embedded web pages, DASH and torrents cannot play here. Try another source or adjust your maximum quality setting."; return }
             candidates = playable; candidateHeaders = envelope.headers ?? [:]; candidateSubtitles = envelope.subtitles ?? []; selectedEpisode = episode
-            if playable.count == 1 { start(playable[0]) } else { showingSources = true }
+            let same = failed.flatMap { failed in
+                playable.first { $0.videoUrl == failed.videoUrl } ?? playable.first { $0.quality == failed.quality && $0.type == failed.type }
+            }
+            if let source = same ?? (playable.count == 1 ? playable[0] : nil) { start(source) } else { showingSources = true }
         } catch { if current(scope) { self.error = error.localizedDescription } }
+    }
+    /// A film's links come with the first episode page; fetch it again so a retry gets fresh ones.
+    private func refreshMovieSources() async {
+        let scope = session.profileScopeIdentity
+        guard let value: EpisodePage = try? await session.request("contents/episodes", query: [.init(name: "provider", value: provider), .init(name: "url", value: url), .init(name: "page", value: "1"), .init(name: "size", value: "100")]),
+              current(scope), let sources = value.movieEnvelope.videoSources, !sources.isEmpty else { return }
+        let movie = value.movieEnvelope
+        movieSources = sources; movieSubtitles = movie.subtitles ?? []; movieHeaders = movie.headers ?? [:]
     }
     private var canPlayNextEpisode: Bool {
         guard isSerial, let selectedEpisode,
@@ -301,6 +323,7 @@ struct DetailView: View {
     }
     private func start(_ source: VideoSource) {
         guard let stream = PlaybackSourcePolicy.playableURL(source.videoUrl, type: source.type) else { return }
+        playingSource = source
         let playbackTitle = isSerial ? title + " · " + (selectedEpisode?.label ?? "Episode") : title
         playback = PlaybackItem(url: stream, title: playbackTitle, headers: PlaybackSourcePolicy.headers(base: candidateHeaders, source: source.headers ?? [:]), history: PlaybackHistoryContext(provider: provider, contentUrl: url, title: title, thumbnail: detail?.thumbnail ?? card.thumbnail, isSerial: isSerial, episodeIndex: selectedEpisode.flatMap { selected in episodeList.firstIndex(where: { $0.id == selected.id }) }, episodeNumber: selectedEpisode?.episode, positionMs: sourceSwitchPositionMs ?? resumePosition(for: selectedEpisode)), subtitles: candidateSubtitles)
     }

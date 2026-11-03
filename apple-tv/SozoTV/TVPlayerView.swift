@@ -87,6 +87,8 @@ struct TVPlayerView: UIViewControllerRepresentable {
         private var stallTimeout: Task<Void, Never>?
         private var lastLogStatus: Int?
         private var lastLogComment: String?
+        private var lastLogTime = 0.0
+        private var timeControlObservation: NSKeyValueObservation?
         private var player: AVPlayer?
         private var observer: Any?
         private var statusObservation: NSKeyValueObservation?
@@ -232,7 +234,7 @@ struct TVPlayerView: UIViewControllerRepresentable {
                 let error = note.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? Error
                 Task { @MainActor [weak self] in
                     guard let self else { return }
-                    self.showFailure(PlaybackFailure(error: error, logStatus: self.lastLogStatus, logComment: self.lastLogComment))
+                    self.showFailure(self.failure(for: error))
                 }
             })
             lifecycleObservers.append(NotificationCenter.default.addObserver(forName: .AVPlayerItemPlaybackStalled, object: player.currentItem, queue: .main) { [weak self] _ in
@@ -241,8 +243,15 @@ struct TVPlayerView: UIViewControllerRepresentable {
             lifecycleObservers.append(NotificationCenter.default.addObserver(forName: AVPlayerItem.newErrorLogEntryNotification, object: player.currentItem, queue: .main) { [weak self] note in
                 let event = (note.object as? AVPlayerItem)?.errorLog()?.events.last
                 let status = event?.errorStatusCode, comment = event?.errorComment
-                Task { @MainActor [weak self] in self?.lastLogStatus = status; self?.lastLogComment = comment }
+                Task { @MainActor [weak self] in
+                    self?.lastLogStatus = status; self?.lastLogComment = comment
+                    self?.lastLogTime = ProcessInfo.processInfo.systemUptime
+                }
             })
+            timeControlObservation = player.observe(\.timeControlStatus, options: [.new]) { [weak self] _, change in
+                guard change.newValue == .playing else { return }
+                Task { @MainActor [weak self] in self?.stallTimeout?.cancel(); self?.stallTimeout = nil }
+            }
             statusObservation = player.currentItem?.observe(\.status, options: [.initial, .new]) { [weak self] _, _ in
                 Task { @MainActor [weak self] in self?.ready() }
             }
@@ -363,7 +372,7 @@ struct TVPlayerView: UIViewControllerRepresentable {
             #endif
             guard sameScope else { player?.pause(); close(); return }
             if player?.currentItem?.status == .failed {
-                showFailure(PlaybackFailure(error: player?.currentItem?.error, logStatus: lastLogStatus, logComment: lastLogComment))
+                showFailure(failure(for: player?.currentItem?.error))
                 return
             }
             guard !didResume, let player, player.currentItem?.status == .readyToPlay else { return }
@@ -460,6 +469,11 @@ struct TVPlayerView: UIViewControllerRepresentable {
                 self.showFailure(.stalled)
             }
         }
+        /// Error-log entries AVPlayer already recovered from must not explain a later failure.
+        private func failure(for error: Error?) -> PlaybackFailure {
+            let recent = ProcessInfo.processInfo.systemUptime - lastLogTime < 10
+            return PlaybackFailure(error: error, logStatus: recent ? lastLogStatus : nil, logComment: recent ? lastLogComment : nil)
+        }
         private func showFailure(_ failure: PlaybackFailure) {
             guard !failurePresented, sameScope, let controller else { return }
             let position = sourceSwitchPosition
@@ -491,7 +505,7 @@ struct TVPlayerView: UIViewControllerRepresentable {
             #endif
             subtitleObserver = nil; subtitleTask?.cancel(); subtitleTask = nil
             subtitleLabel?.removeFromSuperview(); subtitleLabel = nil; subtitleBottom = nil; cues = []
-            observer = nil; statusObservation = nil; player = nil
+            observer = nil; statusObservation = nil; timeControlObservation = nil; player = nil
             startupTimeout?.cancel(); startupTimeout = nil
             stallTimeout?.cancel(); stallTimeout = nil
             hintTask?.cancel(); hintTask = nil
