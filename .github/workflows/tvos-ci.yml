@@ -20,7 +20,16 @@ on:
   pull_request:
     paths: ['apple-tv/**', '.github/workflows/tvos-*.yml']
   workflow_dispatch:
+    inputs:
+      xcode_version:
+        description: 'Xcode on the runner: exact (26.1) or newest of a major (26)'
+        default: '26'
+        type: string
   workflow_call:
+    inputs:
+      xcode_version:
+        default: '26'
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -31,14 +40,46 @@ jobs:
     name: tvOS Foundation, remote UI and signed Release
     runs-on: macos-26
     timeout-minutes: 45
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: '1'
+      HOMEBREW_NO_INSTALL_CLEANUP: '1'
+      HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: '1'
+      SOZO_BREW_TOOLS: xcodegen ffmpeg actionlint shellcheck
     steps:
       - uses: actions/checkout@v4
+      # push/pull_request runs have no inputs; '26' must match the input defaults above.
+      - name: Select Xcode
+        env:
+          XCODE_VERSION: ${{ inputs.xcode_version || '26' }}
+        run: apple-tv/scripts/select-xcode.sh "${XCODE_VERSION}"
+      - name: Locate Homebrew download cache
+        id: brew
+        run: |
+          echo "cache=$(brew --cache)" >> "$GITHUB_OUTPUT"
+          echo "key=$(date +%Y-%m)-${SOZO_BREW_TOOLS// /-}" >> "$GITHUB_OUTPUT"
+      - name: Restore Homebrew downloads
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.brew.outputs.cache }}
+          key: brew-${{ runner.os }}-${{ runner.arch }}-${{ steps.brew.outputs.key }}
+          restore-keys: brew-${{ runner.os }}-${{ runner.arch }}-
       - name: Install build and fixture tools
-        run: brew install xcodegen ffmpeg actionlint shellcheck
+        run: |
+          # shellcheck disable=SC2086
+          brew install $SOZO_BREW_TOOLS
       - name: Validate workflow and shell scripts
         run: |
           actionlint .github/workflows/tvos-ci.yml .github/workflows/tvos-release.yml
           shellcheck apple-tv/scripts/*.sh
+      # SozoTV.xcodeproj is gitignored, so the committed outputs of project.yml
+      # are what can drift: Info.plist and anything else xcodegen writes.
+      - name: Check xcodegen output matches the committed files
+        working-directory: apple-tv
+        run: |
+          xcodegen generate
+          git diff --exit-code -- . || { echo "::error::Run xcodegen generate in apple-tv/ and commit the result. CI has xcodegen $(xcodegen --version), unpinned; the committed files were made with 2.46.0, so a version change alone can cause this diff."; exit 1; }
+          untracked="$(git ls-files --others --exclude-standard -- .)"
+          if [ -n "$untracked" ]; then echo "::error::xcodegen created untracked files: $untracked"; exit 1; fi
       - name: Run the same checks as local development
         run: apple-tv/scripts/ci.sh
       - name: Save logs, screenshots, results and simulator app
