@@ -57,9 +57,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Tv"
         android:usesCleartextTraffic="true">
-        <activity android:name=".presentation.activities.WatchPartyActivity" android:exported="false" android:screenOrientation="landscape" />
         <!-- Players: an HDR handshake or an HDMI mode switch mid-stream must not recreate the
              activity and restart playback. -->
+        <activity android:name=".presentation.activities.WatchPartyActivity" android:exported="false" android:screenOrientation="landscape"
+            android:configChanges="keyboard|keyboardHidden|navigation|screenSize|smallestScreenSize|screenLayout|orientation|uiMode|density" />
         <service
             android:name=".engine.download.TvDownloadService"
             android:exported="false"

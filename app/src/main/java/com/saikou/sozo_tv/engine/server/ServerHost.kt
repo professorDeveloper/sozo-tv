@@ -312,13 +312,11 @@ class ServerHost(
             val s = sectionsIn.optJSONObject(i) ?: continue
             val items = cards(s.optJSONArray("items"), bareProvider)
             if (items.length() == 0) continue
-            val va = s.optJSONObject("viewAll")
-            val type = va?.optString("type").orEmpty()
-            val slug = va?.optString("slug").orEmpty()
+            val viewAll = viewAllSlug(s.optJSONObject("viewAll"))
             sectionsOut.put(JSONObject().apply {
                 put("key", s.optString("key"))
                 put("label", s.optString("label"))
-                put("viewAll", JSONObject().put("slug", "$type::$slug"))
+                if (viewAll != null) put("viewAll", JSONObject().put("slug", viewAll))
                 put("items", items)
             })
         }
@@ -535,4 +533,12 @@ class ServerHost(
         const val MAX_LANGS = 6
         const val EXTRA_LANG_TIMEOUT_MS = 20_000L
     }
+}
+
+/** A section without a viewAll target would page "/contents/" or getCategory(""), so it gets none. */
+internal fun viewAllSlug(viewAll: JSONObject?): String? {
+    if (viewAll == null) return null
+    val type = if (viewAll.isNull("type")) "" else viewAll.optString("type")
+    val slug = if (viewAll.isNull("slug")) "" else viewAll.optString("slug")
+    return if (type.isEmpty() && slug.isEmpty()) null else "$type::$slug"
 }
