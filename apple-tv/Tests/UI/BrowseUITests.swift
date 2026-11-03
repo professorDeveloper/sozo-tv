@@ -286,7 +286,7 @@ final class BrowseUITests: XCTestCase {
         select("profile.route.account")
         XCTAssertTrue(app.textFields["account.name"].waitForExistence(timeout: 8))
         select("Save name")
-        XCTAssertTrue(app.staticTexts["Name save failed once"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.staticTexts["Sozo is busy right now. Please try again in a moment."].waitForExistence(timeout: 8))
         select("Try again")
         XCTAssertTrue(app.staticTexts["Saved"].waitForExistence(timeout: 8))
         XCTAssertEqual(app.textFields["account.name"].value as? String, "New account name")
@@ -325,7 +325,7 @@ final class BrowseUITests: XCTestCase {
         app.launch(); select("profile.pick.adult"); select("home.profile"); select("profile.route.support")
         XCTAssertTrue(app.buttons["support.ticket.ticket-1"].waitForExistence(timeout: 8))
         select("support.loadMore")
-        XCTAssertTrue(app.staticTexts["Support page failed once"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.staticTexts["Sozo is busy right now. Please try again in a moment."].waitForExistence(timeout: 8))
         select("Try again")
         XCTAssertTrue(app.buttons["support.ticket.ticket-2"].waitForExistence(timeout: 8))
         XCTAssertFalse(app.buttons["support.loadMore"].exists)
@@ -335,7 +335,7 @@ final class BrowseUITests: XCTestCase {
         app.launchArguments = ["--browse-ui-fixture", "--friends-query=alex", "--friends-retry-fixture"]
         app.launch(); select("profile.pick.adult"); select("home.profile"); select("profile.route.friends")
         select("friends.search.submit")
-        XCTAssertTrue(app.staticTexts["Friend search failed once"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.staticTexts["Sozo is busy right now. Please try again in a moment."].waitForExistence(timeout: 8))
         select("Retry")
         XCTAssertTrue(app.staticTexts["Alex found"].waitForExistence(timeout: 8))
     }

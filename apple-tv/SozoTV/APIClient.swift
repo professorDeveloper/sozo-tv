@@ -147,6 +147,8 @@ enum APIError: LocalizedError {
             case "DEFAULT_PROFILE": String(localized: "The default profile cannot be deleted or made a kids profile.")
             case "PROFILE_NOT_FOUND": String(localized: "This profile was removed. Choose a profile to continue.")
             case "PROFILE_NAME_TAKEN": String(localized: "This profile name is already in use.")
+            case let code? where code == "SOURCE_DOWN" || code == "SOURCE_UNAVAILABLE" || code.hasPrefix("UPSTREAM_"):
+                String(localized: "This source is temporarily unavailable.")
             default: Self.describe(status: status, retryAfter: wait)
             }
         case .noPlayableSource: String(localized: "This video could not be opened on Apple TV.")
