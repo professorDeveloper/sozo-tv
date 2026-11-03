@@ -482,7 +482,8 @@ class HomeAdapter :
         fun bind(item: Category) {
             binding.tvCategoryTitle.text = item.name
 
-            val listWithViewAll: List<HomeData> = item.list + ViewAllData(
+            val listWithViewAll: List<HomeData> = if (item.slug.isNullOrEmpty()) item.list
+            else item.list + ViewAllData(
                 rowId = item.rowId,
                 categoryTitle = item.name,
                 slug = item.slug
