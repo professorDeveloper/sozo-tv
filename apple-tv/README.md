@@ -80,7 +80,7 @@ placeholder geometry. Native glass containers group nearby controls; content pan
 readable solid surfaces. Siri Remote tests cover navigation between the header/grid, search
 pagination, profile management, PINs, notifications, closed support conversations and settings
 isolation. Avatars load their bundled PNGs as original images. App Icon and Top Shelf use
-native layered/static branded assets.
+native layered/static branded assets; the wide Top Shelf is the standard one padded with its own background.
 
 For the actual AVKit integration checks, install FFmpeg and run:
 
@@ -149,33 +149,52 @@ SOZO_TV_OUTPUT_DIR=/tmp/sozo-tvos-ci-new-run apple-tv/scripts/ci.sh
 Use a new output directory for each run. A simulator ZIP is for macOS Simulator,
 not an installable package for physical Apple TV.
 
-`.github/workflows/tvos-release.yml` is manual. It first passes the complete CI gate,
-then signs a device archive and exports an App Store IPA. `upload_testflight` defaults
-to false; enabling it uploads the validated archive for App Store Connect processing.
-It never submits for App Review or automatically distributes to external testers.
-Marketing version and build number are supplied explicitly; use a higher build number
-than the previous upload. It does not commit version changes or create Android tags.
+`.github/workflows/tvos-release.yml` is manual (Actions, Apple TV Release, Run workflow).
+A Linux preflight job first lists every missing secret by name, then the complete CI gate
+runs, then the device archive is signed and exported as an App Store IPA. `upload_testflight`
+defaults to false, so you choose which build ships. Leave `build_number` empty to use the
+higher of the latest App Store Connect build and the latest `tvos-*` tag, + 1. If that
+query fails, an upload stops; an archive-only run falls back to the run number. A manual
+number is refused in preflight if it is already tagged or not above the latest App Store
+Connect build of that version. Right after a successful upload the commit is tagged
+`tvos-<version>-<build>` (never `v*`, which belongs to Android). The tag only means the
+number is spent: it is pushed before processing, so it does not prove the build reached
+TestFlight. Waiting for processing and
+adding to an internal group run on Linux; Telegram reports the outcome when
+`TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_IDS` are set. It never submits for App Review or
+distributes to external testers. `xcode_version` pins Xcode (`26` = newest 26.x on the
+runner, `26.1` = exactly that one); CI also fails if `xcodegen generate` changes committed files.
 
-Create the `apple-tv` GitHub environment and set these secrets:
+### First TestFlight upload
 
-| Secret | Contents |
+Create the `apple-tv` environment (Settings, Environments) and add these as its secrets:
+
+| Step | Secret |
 | --- | --- |
-| `APPLE_TV_TEAM_ID` | Your Apple Developer team ID |
-| `APPLE_TV_CERTIFICATE_P12_BASE64` | Base64 Apple Distribution certificate **with its private key** |
-| `APPLE_TV_CERTIFICATE_PASSWORD` | Password protecting that P12 |
-| `APPLE_TV_PROFILE_BASE64` | Base64 **tvOS App Store** provisioning profile for `com.saikou.sozotv` |
-| `ASC_API_KEY_P8_BASE64` | Base64 App Store Connect team API private key; required for upload |
-| `ASC_API_KEY_ID` | App Store Connect key ID; required for upload |
-| `ASC_API_ISSUER_ID` | App Store Connect issuer ID; required for upload |
+| Team ID from developer.apple.com, Membership | `APPLE_TV_TEAM_ID` |
+| Apple Distribution certificate exported from Keychain as .p12 **with its private key**: `base64 -i dist.p12 \| pbcopy` | `APPLE_TV_CERTIFICATE_P12_BASE64` |
+| Password chosen when exporting that .p12 | `APPLE_TV_CERTIFICATE_PASSWORD` |
+| Identifier `com.saikou.sozotv`, then a **tvOS App Store** provisioning profile for it using that certificate: `base64 -i SozoTV.mobileprovision \| pbcopy` | `APPLE_TV_PROFILE_BASE64` |
+| App Store Connect, Users and Access, Integrations: team API key with App Manager role; download the .p8 once: `base64 -i AuthKey_XXXX.p8 \| pbcopy` | `ASC_API_KEY_P8_BASE64` |
+| Key ID shown next to that key | `ASC_API_KEY_ID` |
+| Issuer ID shown above the key list | `ASC_API_ISSUER_ID` |
 
-The app must already exist in App Store Connect under that bundle ID and team. The
-profile must authorize the supplied distribution certificate. The pipeline rejects a
-wrong team, bundle, platform, expired profile and development/ad-hoc/enterprise profiles.
-Signing runs in a temporary keychain, restores the original search list and removes its
-private material/profile on exit. Do not put these secrets in the repository.
+Then, in App Store Connect:
+
+1. Create the app record (My Apps, +, New App, platform tvOS, bundle ID `com.saikou.sozotv`).
+2. TestFlight, Internal Testing: create a group (e.g. `Team`) and add testers.
+3. Run the workflow with `upload_testflight` on and `testflight_group` set to that group's exact name.
+
+Telegram uses the existing repository secrets `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_IDS`;
+without them the run only warns. The profile must authorize the supplied distribution
+certificate. The pipeline rejects a wrong team, bundle, platform, expired profile and
+development/ad-hoc/enterprise profiles. Signing runs in a temporary keychain, restores the
+original search list and removes its private material/profile on exit. Do not put these
+secrets in the repository.
 
 On a dedicated local Mac, set the same environment variables plus `SOZO_TV_VERSION`,
-`SOZO_TV_BUILD_NUMBER` and optionally `SOZO_TV_UPLOAD_TESTFLIGHT=true`, then run
+optionally `SOZO_TV_BUILD_NUMBER` (default: App Store Connect + 1), `SOZO_TV_UPLOAD_TESTFLIGHT=true`,
+`SOZO_TV_WAIT_PROCESSING=true` and `SOZO_TV_TESTFLIGHT_GROUP`, then run
 `apple-tv/scripts/release.sh` **after** `apple-tv/scripts/ci.sh` passes. This is the
 fallback when GitHub Actions is unavailable. Signed device archive/export/upload needs
 those credentials; a successful simulator build does not prove distribution signing.
