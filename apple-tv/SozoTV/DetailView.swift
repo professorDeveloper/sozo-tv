@@ -19,7 +19,12 @@ struct DetailView: View {
     @State private var sourceSwitchPositionMs: Int64?
     @State private var pendingNextEpisode = false
     @State private var error: String?
-    @State private var saved = false
+    @State private var notice: String?
+    @State private var favorite: Bool?
+    @State private var retryItem: PlaybackItem?
+    @State private var primaryFocused = false
+    @FocusState private var focus: DetailFocus?
+    private enum DetailFocus: Hashable { case primary, episode(Int) }
     @State private var saving = false
     @State private var resolving = false
     @State private var loading = false
@@ -53,15 +58,17 @@ struct DetailView: View {
                     Text(([detail?.year?.text].compactMap { $0 } + (detail?.genres ?? [])).joined(separator: " · ")).font(.system(size: 22)).foregroundStyle(.secondary)
                     Text(detail?.description ?? "").font(.system(size: 24)).foregroundStyle(.secondary).frame(maxWidth: 1100, alignment: .leading)
                     if loading || resolving || saving { SozoLoadingState(title: loading ? "Loading title…" : resolving ? "Finding playable sources…" : "Saving…") }
-                    if saved { Label("Saved to this profile", systemImage: "checkmark.circle").foregroundStyle(.green) }
+                    if let notice { Label(notice, systemImage: "checkmark.circle").foregroundStyle(.green) }
                     if let error {
                         Text(error).foregroundStyle(.red).accessibilityIdentifier("detail.error")
                         Button { run { await load() } } label: { SozoActionLabel(title: "Reload title", symbol: "arrow.clockwise") }.buttonStyle(SozoProfileButtonStyle()).disabled(busy)
                     }
                     SozoGlassGroup {
                         HStack(spacing: 24) {
-                            Button { run { await saveTo("auth/favorites") } } label: { SozoActionLabel(title: "Add to favorites", symbol: "heart") }
-                            Button { run { await saveTo("auth/lists/watch-later") } } label: { SozoActionLabel(title: "Watch later", symbol: "bookmark") }
+                            Button { run { await toggleFavorite() } } label: {
+                                SozoActionLabel(title: favorite == true ? "Remove from favorites" : "Add to favorites", symbol: favorite == true ? "heart.fill" : "heart")
+                            }.accessibilityIdentifier("detail.favorite")
+                            Button { run { await saveTo("auth/lists/watch-later", notice: "Added to Watch later") } } label: { SozoActionLabel(title: "Watch later", symbol: "bookmark") }
                         }.buttonStyle(SozoProfileButtonStyle()).disabled(busy || url.isEmpty)
                     }
                     if loadComplete {
@@ -85,22 +92,30 @@ struct DetailView: View {
                             if episodeList.isEmpty { SozoEmptyState(title: "No episodes", message: "No episodes are available from this source.", symbol: "film.stack") }
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: 22)], spacing: 24) {
                                 ForEach(visibleEpisodes) { episode in
-                                    episodeButton(episode, index: episodeList.firstIndex(where: { $0.id == episode.id }) ?? 0)
+                                    episodeButton(episode, index: episodeList.firstIndex(where: { $0.id == episode.id }) ?? 0, primary: episode.id == primaryEpisodeID)
                                 }
                             }
                             if hasMore { Button { run { await loadPage() } } label: { SozoActionLabel(title: loadingPage ? "Loading episodes…" : "Load more episodes", symbol: "plus") }.buttonStyle(SozoProfileButtonStyle()).disabled(busy).accessibilityIdentifier("detail.episodes.more") }
                         } else {
-                            episodeButton(Episode(episode: nil, label: resumePosition(for: nil) > 0 ? "Resume film" : "Play film", mediaRef: episodeList.first?.mediaRef ?? url, image: card.thumbnail), index: 0)
+                            episodeButton(Episode(episode: nil, label: resumePosition(for: nil) > 0 ? "Resume film" : "Play film", mediaRef: episodeList.first?.mediaRef ?? url, image: card.thumbnail), index: 0, primary: true)
                         }
                     }
                 }.padding(70)
             }
         }
         .task(id: session.profileScopeIdentity) { visible = true; await load() }
+        .task(id: session.profileScopeIdentity) { await loadFavorite() }
+        .defaultFocus($focus, .primary)
+        .onChange(of: loadComplete && !busy) { _, ready in
+            // Land on Play or the episodes, not the save row above them.
+            guard ready, !primaryFocused else { return }
+            primaryFocused = true; focus = .primary
+        }
         .onAppear { visible = true }
         .onDisappear { visible = false; actionTask?.cancel() }
         .fullScreenCover(item: $playback, onDismiss: {
-            if reopenSourcePicker { reopenSourcePicker = false; showingSources = true }
+            if let retryItem { self.retryItem = nil; playback = retryItem }
+            else if reopenSourcePicker { reopenSourcePicker = false; showingSources = true }
             else if pendingNextEpisode {
                 pendingNextEpisode = false
                 run { await playNextEpisode() }
@@ -112,7 +127,13 @@ struct DetailView: View {
                 }
                 reopenSourcePicker = true; playback = nil
             },
-                         nextEpisode: canPlayNextEpisode ? { pendingNextEpisode = true; playback = nil } : nil).ignoresSafeArea()
+                         nextEpisode: canPlayNextEpisode ? { pendingNextEpisode = true; playback = nil } : nil,
+                         retry: { position in
+                var history = item.history
+                if let position, position.isFinite, position >= 0, position < Double(Int64.max) / 1000 { history?.positionMs = Int64(position * 1000) }
+                retryItem = PlaybackItem(url: item.url, title: item.title, headers: item.headers, history: history, subtitles: item.subtitles)
+                playback = nil
+            }).ignoresSafeArea()
         }
         .sheet(isPresented: $showingSources) {
             VStack(alignment: .leading, spacing: 24) {
@@ -141,13 +162,18 @@ struct DetailView: View {
             }.padding(60)
         }
     }
-    private func episodeButton(_ episode: Episode, index: Int) -> some View {
+    private var primaryEpisodeID: Episode.ID? {
+        let resumed = EpisodeCatalog.resumedEpisode(in: episodeList, number: resume?.episodeNumber, index: resume?.episodeIndex)
+        if let resumed, visibleEpisodes.contains(where: { $0.id == resumed.id }) { return resumed.id }
+        return visibleEpisodes.first?.id
+    }
+    private func episodeButton(_ episode: Episode, index: Int, primary: Bool = false) -> some View {
         Button { run { await resolve(episode) } } label: {
             VStack(alignment: .leading, spacing: 10) {
                 Text(episode.label ?? "Episode \(episode.episode ?? index + 1)").font(.system(size: 24, weight: .semibold)).lineLimit(2)
                 if isSerial && resumePosition(for: episode) > 0 { Label("Resume", systemImage: "play.circle").font(.caption) }
             }.frame(maxWidth: .infinity, minHeight: 70, alignment: .leading).padding(20)
-        }.buttonStyle(SozoProfileButtonStyle()).disabled(busy).accessibilityIdentifier("detail.episode.\(index)")
+        }.buttonStyle(SozoProfileButtonStyle()).disabled(busy).focused($focus, equals: primary ? .primary : .episode(index)).accessibilityIdentifier("detail.episode.\(index)")
     }
     private func run(_ work: @escaping () async -> Void) { guard !busy else { return }; actionTask = Task { await work() } }
     private func current(_ scope: String) -> Bool { visible && !Task.isCancelled && session.profileScopeIdentity == scope }
@@ -157,18 +183,40 @@ struct DetailView: View {
         guard let episode else { return 0 }
         return EpisodeCatalog.resumedEpisode(in: episodeList, number: resume.episodeNumber, index: resume.episodeIndex)?.id == episode.id ? resume.positionMs : 0
     }
-    private func saveTo(_ path: String) async {
+    private func saveTo(_ path: String, notice message: String) async {
         let scope = session.profileScopeIdentity
-        saving = true; saved = false; error = nil
+        saving = true; notice = nil; error = nil
         defer { saving = false }
         do {
             let _: ProfileJSON = try await session.request(path, method: "POST", body: ["provider": provider, "contentUrl": url, "title": title, "thumbnail": detail?.thumbnail ?? card.thumbnail ?? ""])
-            if current(scope) { saved = true }
+            if current(scope) { notice = message }
         } catch { if current(scope) { self.error = error.localizedDescription } }
+    }
+    private func toggleFavorite() async {
+        guard favorite == true else {
+            await saveTo("auth/favorites", notice: "Added to favorites")
+            if notice != nil { favorite = true }
+            return
+        }
+        let scope = session.profileScopeIdentity
+        saving = true; notice = nil; error = nil
+        defer { saving = false }
+        do {
+            let _: ProfileJSON = try await session.request("auth/favorites", method: "DELETE", body: ["contentUrl": url])
+            if current(scope) { favorite = false; notice = "Removed from favorites" }
+        } catch { if current(scope) { self.error = error.localizedDescription } }
+    }
+    /// Unknown stays nil so a failed lookup still offers Add.
+    private func loadFavorite() async {
+        let scope = session.profileScopeIdentity
+        favorite = nil
+        guard !url.isEmpty, let value: ProfileJSON = try? await session.request("auth/favorites") else { return }
+        guard current(scope), favorite == nil else { return }
+        favorite = value["items"].array.contains { $0["contentUrl"].string == url && $0["deletedAt"].string.isEmpty }
     }
     private func load() async {
         let scope = session.profileScopeIdentity
-        loading = true; error = nil; loadComplete = false; episodeList = []; selectedSeason = nil; page = 0; hasMore = false; detail = nil; movieSources = []; movieSubtitles = []; movieHeaders = [:]; episodeSerial = nil; hasExternalSubtitles = false
+        loading = true; error = nil; notice = nil; primaryFocused = false; loadComplete = false; episodeList = []; selectedSeason = nil; page = 0; hasMore = false; detail = nil; movieSources = []; movieSubtitles = []; movieHeaders = [:]; episodeSerial = nil; hasExternalSubtitles = false
         defer { loading = false }
         do {
             let value: MediaDetail = try await session.request("contents/detail", query: [.init(name: "provider", value: provider), .init(name: "url", value: url)])
