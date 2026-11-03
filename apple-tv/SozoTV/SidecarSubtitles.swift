@@ -63,7 +63,7 @@ enum SidecarSubtitles {
             opened += 1
             return plain
         }
-        if encrypted > 0 && opened == 0 { throw ParseError.undecryptable }
+        if encrypted > 0 && opened * 2 < encrypted { throw ParseError.undecryptable }
         return Data(lines.joined(separator: "\n").utf8)
     }
 

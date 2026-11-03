@@ -3,6 +3,8 @@ package com.saikou.sozo_tv.domain.player
 import okio.ByteString.Companion.decodeBase64
 import org.json.JSONObject
 import java.io.IOException
+import java.nio.ByteBuffer
+import java.nio.charset.CodingErrorAction
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -39,14 +41,21 @@ data class SubtitleCipher(
             val plain = runCatching {
                 aes.init(Cipher.DECRYPT_MODE, secret, IvParameterSpec(ivBytes))
                 val bytes = text.decodeBase64() ?: return@runCatching null
-                String(aes.doFinal(bytes.toByteArray()), Charsets.UTF_8)
+                strictUtf8(aes.doFinal(bytes.toByteArray()))
             }.getOrNull() ?: return@map line
             opened++
-            plain
+            if (line.endsWith('\r')) "$plain\r" else plain
         }
-        if (encrypted > 0 && opened == 0) throw IOException("subtitle cipher opened no cue")
+        // A wrong key still yields valid padding now and then, so a few opened lines prove nothing.
+        if (encrypted > 0 && opened * 2 < encrypted) throw IOException("subtitle cipher opened $opened of $encrypted cues")
         return out.joinToString("\n")
     }
+
+    private fun strictUtf8(bytes: ByteArray): String =
+        Charsets.UTF_8.newDecoder()
+            .onMalformedInput(CodingErrorAction.REPORT)
+            .onUnmappableCharacter(CodingErrorAction.REPORT)
+            .decode(ByteBuffer.wrap(bytes)).toString()
 
     private fun isCueText(line: String): Boolean =
         line.isNotEmpty() && !line.contains("-->") && !line.all { it.isDigit() } && line != "WEBVTT"

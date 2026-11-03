@@ -411,7 +411,7 @@ class ServerHost(
         }.toString()
     }
 
-    private fun translateMedia(soplay: String?): String {
+    internal fun translateMedia(soplay: String?): String {
         val o = parseObject(soplay ?: return "{}")
         val srcIn = o.optJSONArray("videoSources") ?: JSONArray()
         val srcOut = JSONArray()
@@ -450,6 +450,7 @@ class ServerHost(
                 put("file", file)
                 put("default", s.optBoolean("default", s.optBoolean("isDefault", false)))
                 s.optJSONObject("headers")?.let { put("headers", it) }
+                s.optJSONObject("cipher")?.let { put("cipher", it) }
             })
         }
         return JSONObject().apply {
