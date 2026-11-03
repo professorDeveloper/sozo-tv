@@ -1,32 +1,28 @@
 name: Release → Telegram
 run-name: >-
-  Release ${{ inputs.version != '' && inputs.version || inputs.bump || github.ref_name }}
+  Release ${{ inputs.version != '' && inputs.version || inputs.bump }}
 
-# Builds a signed Android TV APK and hands it to Telegram.
+# Builds a signed Android TV APK, then records it in git, uploads it to the
+# CDN, optionally offers it to the in-app updater, and sends it to Telegram.
+# Runs only from Actions → this workflow → Run workflow, on the default branch.
 #
-# It NEVER touches GitHub Releases — cut those yourself if you want them. It runs
-# only when you ask:
-#   * Actions → this workflow → Run workflow (pick how to raise the version)
-#   * or on a version tag: git tag v11.0.0 && git push origin v11.0.0
+# Order: version + guard → tests → APK → bump commit, tag, GitHub Release →
+# CDN + updater → Telegram. Nothing is pushed or published until the APK built.
 #
-# Required repo secrets (Settings → Secrets and variables → Actions):
+# Secrets:
 #   ANDROID_TV_KEYSTORE_B64   base64 of the release keystore (.jks)
-#   ANDROID_TV_KEY_PROPERTIES contents of key.properties — storeFile,
-#                             storePassword, keyAlias, keyPassword
+#   ANDROID_TV_KEY_PROPERTIES key.properties: storeFile, storePassword, keyAlias, keyPassword
+#   RELEASE_PAT               fine-grained PAT, Contents: read and write; the default
+#                             branch blocks direct pushes from GITHUB_TOKEN
+#   SOZO_RELEASE_TOKEN        backend release token (X-Release-Token); without it the
+#                             CDN upload and updater are skipped with a warning
 #   TELEGRAM_BOT_TOKEN        bot token from @BotFather
-#   RELEASE_PAT               fine-grained PAT with Contents: read and write.
-#                             Required because the default branch blocks direct
-#                             pushes and GITHUB_TOKEN is not an admin.
-#   TELEGRAM_CHAT_IDS         comma-separated NUMERIC chat ids. The Bot API
-#                             cannot message a person by @username; each
-#                             recipient must press Start on the bot once.
+#   TELEGRAM_CHAT_IDS         comma-separated numeric chat ids
+# Optional variable: SOZO_API_BASE_URL overrides the API address baked into the app.
 #
 # The signing key was replaced on 22 Aug 2026 because the original was lost, and
-# the version line restarted at 1.0.0 with it. A different certificate cannot be
-# installed over an existing copy: anyone still running a pre-1.0.0 build gets
-# "package conflicts with an existing package" and has to uninstall first. The
-# build still verifies the fingerprint and refuses to ship anything signed by
-# another key — see EXPECTED_CERT_SHA256 below.
+# the version line restarted at 1.0.0 with it. Builds signed by any other key are
+# refused — see EXPECTED_CERT_SHA256 below.
 
 on:
   workflow_dispatch:
@@ -46,32 +42,56 @@ on:
         type: string
         required: false
       notes:
-        description: 'Release notes for the Telegram message'
+        description: 'Release notes (Telegram, CDN, updater, GitHub Release)'
         type: string
         required: false
-  push:
-    tags: ['v*']
+      updater:
+        description: 'Offer this build to the in-app updater'
+        type: choice
+        default: skip
+        options: [skip, publish]
+      github_release:
+        description: 'GitHub Release for the tag'
+        type: choice
+        default: draft
+        options: [draft, publish, skip]
+      skip_version_guard:
+        description: 'Proceed if the published version cannot be read (a readable one is always enforced)'
+        type: boolean
+        default: false
 
 concurrency:
   group: release-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  APK_CONTENT_TYPE: application/vnd.android.package-archive
 
 jobs:
   version:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       name: ${{ steps.resolve.outputs.name }}
       code: ${{ steps.resolve.outputs.code }}
       tag: ${{ steps.resolve.outputs.tag }}
-      sha: ${{ steps.sha.outputs.sha }}
+      bumped: ${{ steps.resolve.outputs.bumped }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Refuse anything but the default branch
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if [ "${GITHUB_REF}" != "refs/heads/${DEFAULT_BRANCH}" ]; then
+            echo "::error title=Wrong branch::Releases run only from ${DEFAULT_BRANCH}; this run was started from ${GITHUB_REF}."
+            exit 1
+          fi
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          fetch-depth: 0
-          # RELEASE_PAT is an admin token. The default GITHUB_TOKEN is not an
-          # admin, so the version-bump push below is rejected by the branch
-          # ruleset that blocks direct pushes to the default branch.
-          token: ${{ secrets.RELEASE_PAT || github.token }}
+          persist-credentials: false
 
       - name: Resolve version
         id: resolve
@@ -91,41 +111,41 @@ jobs:
           if [ -z "${NAME}" ]; then
             echo "::error title=Malformed versionName::could not read it from ${GRADLE}"; exit 1
           fi
-
           echo "::notice title=Current version::${NAME} (versionCode ${CODE})"
 
-          if [ "${GITHUB_EVENT_NAME}" != "workflow_dispatch" ]; then
-            echo "Tag build — using the committed version verbatim."
-            NEW_NAME="${NAME}"
-            NEW_CODE="${CODE}"
-            BUMPED=no
-          else
-            IFS=. read -r MA MI PA <<< "${NAME}"
-            MA="${MA:-0}"; MI="${MI:-0}"; PA="${PA:-0}"
-            NEW_CODE="$((CODE + 1))"
+          IFS=. read -r MA MI PA <<< "${NAME}"
+          MA="${MA:-0}"; MI="${MI:-0}"; PA="${PA:-0}"
+          NEW_CODE="$((CODE + 1))"
+          BUMPED=yes
 
-            if [ -n "${EXPLICIT}" ]; then
-              case "${EXPLICIT}" in
-                *[!0-9.]*) echo "::error title=Bad version::'${EXPLICIT}' must be digits and dots only, e.g. 11.0.0"; exit 1 ;;
-              esac
-              NEW_NAME="${EXPLICIT}"
-              BUMPED=yes
-            else
-              case "${BUMP}" in
-                patch)     NEW_NAME="${MA}.${MI}.$((PA + 1))"; BUMPED=yes ;;
-                minor)     NEW_NAME="${MA}.$((MI + 1)).0";     BUMPED=yes ;;
-                major)     NEW_NAME="$((MA + 1)).0.0";         BUMPED=yes ;;
-                code-only) NEW_NAME="${NAME}";                 BUMPED=yes ;;
-                none)      NEW_NAME="${NAME}"; NEW_CODE="${CODE}"; BUMPED=no ;;
-                *)         echo "::error title=Unknown bump::'${BUMP}'"; exit 1 ;;
-              esac
-            fi
+          if [ -n "${EXPLICIT}" ]; then
+            case "${EXPLICIT}" in
+              *[!0-9.]*) echo "::error title=Bad version::'${EXPLICIT}' must be digits and dots only, e.g. 11.0.0"; exit 1 ;;
+            esac
+            NEW_NAME="${EXPLICIT}"
+          else
+            case "${BUMP}" in
+              patch)     NEW_NAME="${MA}.${MI}.$((PA + 1))" ;;
+              minor)     NEW_NAME="${MA}.$((MI + 1)).0" ;;
+              major)     NEW_NAME="$((MA + 1)).0.0" ;;
+              code-only) NEW_NAME="${NAME}" ;;
+              none)      NEW_NAME="${NAME}"; NEW_CODE="${CODE}"; BUMPED=no ;;
+              *)         echo "::error title=Unknown bump::'${BUMP}'"; exit 1 ;;
+            esac
           fi
 
-          echo "name=${NEW_NAME}" >> "$GITHUB_OUTPUT"
-          echo "code=${NEW_CODE}" >> "$GITHUB_OUTPUT"
-          echo "tag=v${NEW_NAME}" >> "$GITHUB_OUTPUT"
-          echo "bumped=${BUMPED}" >> "$GITHUB_OUTPUT"
+          TAG="v${NEW_NAME}"
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "::error title=Tag exists::${TAG} is already published. Pick a different bump, or delete the tag first."
+            exit 1
+          fi
+
+          {
+            echo "name=${NEW_NAME}"
+            echo "code=${NEW_CODE}"
+            echo "tag=${TAG}"
+            echo "bumped=${BUMPED}"
+          } >> "$GITHUB_OUTPUT"
           {
             echo "### Release version"
             echo ""
@@ -133,126 +153,78 @@ jobs:
             echo "|---|---|---|"
             echo "| was | \`${NAME}\` | \`${CODE}\` |"
             echo "| now | \`${NEW_NAME}\` | \`${NEW_CODE}\` |"
-            echo ""
-            echo "Publish \`versionCode ${NEW_CODE}\` on the admin panel under platform **androidtv** for the in-app updater to offer it."
           } >> "$GITHUB_STEP_SUMMARY"
-
           echo "::notice title=Releasing::${NEW_NAME} (versionCode ${NEW_CODE})"
 
-      - name: Commit and tag
-        id: commit
-        if: steps.resolve.outputs.bumped == 'yes'
+      # Devices only install an update whose versionCode is higher than what
+      # they run, so shipping one that is not higher than the published row
+      # is a release nobody receives.
+      - name: Check versionCode against the published one
         env:
-          NAME: ${{ steps.resolve.outputs.name }}
-          CODE: ${{ steps.resolve.outputs.code }}
-          TAG: ${{ steps.resolve.outputs.tag }}
+          NEW_CODE: ${{ steps.resolve.outputs.code }}
+          SKIP_GUARD: ${{ inputs.skip_version_guard }}
+          SOZO_API_BASE_URL: ${{ vars.SOZO_API_BASE_URL }}
         run: |
           set -euo pipefail
+          API="$(python3 tools/release/api_base.py)"
+          echo "::add-mask::${API}"
 
-          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null || \
-             git ls-remote --exit-code --tags origin "${TAG}" >/dev/null 2>&1; then
-            echo "::error title=Tag exists::${TAG} is already published. Pick a different bump, or delete the tag first."
+          HTTP="$(curl -sS --max-time 20 --retry 3 --retry-all-errors \
+                    -A 'sozo-tv-release' -o version.json -w '%{http_code}' \
+                    "${API}/app-version?platform=androidtv")" || HTTP=000
+          PUBLISHED=""
+          if [ "${HTTP}" = 200 ]; then
+            PUBLISHED="$(jq -er '.version // 0' version.json 2>/dev/null)" || PUBLISHED=""
+          fi
+          case "${PUBLISHED}" in
+            ''|*[!0-9]*)
+              if [ "${SKIP_GUARD}" = true ]; then
+                echo "::warning title=Version guard skipped::Could not read the published Android TV version (HTTP ${HTTP}); continuing because skip_version_guard is set."
+                exit 0
+              fi
+              echo "::error title=Version guard::Could not read the published Android TV version (GET /api/app-version?platform=androidtv, HTTP ${HTTP}). Re-run with skip_version_guard only if you know versionCode ${NEW_CODE} is higher than the published one."
+              exit 1
+              ;;
+          esac
+
+          if [ "${NEW_CODE}" -le "${PUBLISHED}" ]; then
+            echo "::error title=versionCode not higher::This build would be versionCode ${NEW_CODE}, but ${PUBLISHED} is already published. Devices would never be offered it. Commit a higher versionCode in app/build.gradle.kts first."
             exit 1
           fi
+          echo "::notice title=Version guard::versionCode ${NEW_CODE} > published ${PUBLISHED}"
 
-          python3 - "${NAME}" "${CODE}" <<'PY'
-          import re, sys
-          name, code = sys.argv[1], sys.argv[2]
-          path = 'app/build.gradle.kts'
-          src = open(path, encoding='utf-8').read()
-          src, n1 = re.subn(r'(?m)^(\s*versionCode\s*=\s*)\d+', rf'\g<1>{code}', src, count=1)
-          src, n2 = re.subn(r'(?m)^(\s*versionName\s*=\s*)"[^"]*"', rf'\g<1>"{name}"', src, count=1)
-          if n1 != 1 or n2 != 1:
-              sys.exit(f'expected one versionCode and one versionName, replaced {n1}/{n2}')
-          open(path, 'w', encoding='utf-8').write(src)
-          PY
-          grep -E '^\s*version(Code|Name)\s*=' app/build.gradle.kts
-
-          git config user.name  "${GITHUB_ACTOR}"
-          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          git commit -am "chore: ${NAME} (${CODE})"
-          git tag "${TAG}"
-
-          # A rejected push must not cancel the release.
-          #
-          # The default branch is protected and GITHUB_TOKEN is not an admin, so
-          # without a RELEASE_PAT this push is refused — and refusing to build
-          # because a bookkeeping commit could not land is the wrong trade. The
-          # version is already resolved and already written into the working
-          # tree, so the build below ships exactly the version it says it does.
-          # What is lost is the record in git, which is worth a loud warning and
-          # nothing more.
-          if git push origin HEAD:"${GITHUB_REF_NAME}"; then
-            git push origin "${TAG}" || echo "::warning title=Tag not pushed::${TAG} could not be pushed."
-            echo "pushed=yes" >> "$GITHUB_OUTPUT"
-          else
-            git tag -d "${TAG}" || true
-            echo "pushed=no" >> "$GITHUB_OUTPUT"
-            echo "::warning title=Version bump not committed::The default branch is protected and this run is not an admin, so ${NAME} was NOT written back to git — this build still ships as ${NAME}, but the repo still says the old one. Add a RELEASE_PAT secret (fine-grained PAT, Contents: read and write) to close the gap."
-            {
-              echo "### ⚠️ Version bump was not committed"
-              echo ""
-              echo "This build ships as **${NAME}**, but the repository still records the previous version."
-              echo "Add a \`RELEASE_PAT\` secret (fine-grained PAT with **Contents: read and write**) so the bump can land."
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-      # The build must check out a commit the remote actually has.
-      #
-      # When the bump could not be pushed, the commit exists only on this
-      # runner — checking it out in the next job fails with "reference is not a
-      # tree", which is a far more confusing failure than the rejected push it
-      # came from. So: the pushed commit when there is one, otherwise the commit
-      # the run started from, and the build applies the version itself.
-      - name: Record the commit the build job will use
-        id: sha
-        run: |
-          set -euo pipefail
-          if [ "${{ steps.commit.outputs.pushed }}" = "yes" ]; then
-            echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          else
-            echo "sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-          fi
+  ci:
+    needs: version
+    uses: ./.github/workflows/ci.yml
+    with:
+      skip_assemble: true
 
   apk:
-    needs: version
+    needs: [version, ci]
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          ref: ${{ needs.version.outputs.sha }}
+          persist-credentials: false
 
-      # Applied here rather than trusted from the checkout. When the bump could
-      # not be committed, the checked-out tree still carries the OLD version —
-      # and an apk whose versionCode disagrees with the release it was cut as is
-      # invisible to the in-app updater. Idempotent: a no-op when the commit did
-      # land.
+      # The bump is committed only after this build succeeds, so the checkout
+      # still carries the old version; the git job applies the same stamp.
       - name: Stamp the resolved version into the build
         env:
           NAME: ${{ needs.version.outputs.name }}
           CODE: ${{ needs.version.outputs.code }}
         run: |
           set -euo pipefail
-          python3 - "$NAME" "$CODE" <<'PY'
-          import re, sys
-          name, code = sys.argv[1], sys.argv[2]
-          path = 'app/build.gradle.kts'
-          src = open(path, encoding='utf-8').read()
-          src, n1 = re.subn(r'(?m)^(\s*versionCode\s*=\s*)\d+', rf'\g<1>{code}', src, count=1)
-          src, n2 = re.subn(r'(?m)^(\s*versionName\s*=\s*)"[^"]*"', rf'\g<1>"{name}"', src, count=1)
-          if n1 != 1 or n2 != 1:
-              sys.exit(f'expected one versionCode and one versionName, replaced {n1}/{n2}')
-          open(path, 'w', encoding='utf-8').write(src)
-          PY
+          python3 tools/release/stamp_version.py "${NAME}" "${CODE}"
           grep -E '^\s*version(Code|Name)\s*=' app/build.gradle.kts
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
         with:
           distribution: temurin
           java-version: '17'
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
 
       - name: Restore signing key
         env:
@@ -277,7 +249,7 @@ jobs:
         run: |
           set -euo pipefail
           APKSIGNER="$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/build-tools" -name apksigner | sort | tail -1)"
-          APK="$(ls app/build/outputs/apk/release/*.apk | head -1)"
+          APK="$(find app/build/outputs/apk/release -name '*.apk' | head -1)"
           CERTS="$("$APKSIGNER" verify --print-certs "$APK")"
           echo "$CERTS"
 
@@ -292,14 +264,14 @@ jobs:
           fi
           echo "::notice title=Signature::matches the certificate already on devices"
 
-      - name: Report the version inside the APK
+      - name: Check the version inside the APK
         env:
           EXPECTED_CODE: ${{ needs.version.outputs.code }}
           EXPECTED_NAME: ${{ needs.version.outputs.name }}
         run: |
           set -euo pipefail
           AAPT="$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/build-tools" -name aapt2 | sort | tail -1)"
-          APK="$(ls app/build/outputs/apk/release/*.apk | head -1)"
+          APK="$(find app/build/outputs/apk/release -name '*.apk' | head -1)"
           LINE="$("$AAPT" dump badging "$APK" | head -1)"
           CODE="$(echo "$LINE" | grep -oE "versionCode='[0-9]+'" | grep -oE '[0-9]+')"
           NAME="$(echo "$LINE" | grep -oE "versionName='[^']*'" | cut -d"'" -f2)"
@@ -315,47 +287,299 @@ jobs:
             echo "- signature verified against the certificate already on devices"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Name the APK after its version
+      - name: Name the APK after its version and checksum it
         env:
           NAME: ${{ needs.version.outputs.name }}
           CODE: ${{ needs.version.outputs.code }}
         run: |
           set -euo pipefail
           mkdir -p dist
-          cp "$(ls app/build/outputs/apk/release/*.apk | head -1)" \
+          cp "$(find app/build/outputs/apk/release -name '*.apk' | head -1)" \
              "dist/sozo-tv-${NAME}-${CODE}.apk"
+          (cd dist && sha256sum ./*.apk | sed 's# \./# #' > SHA256SUMS)
+          cat dist/SHA256SUMS
           ls -lh dist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: sozo-tv-apk
-          path: dist/*.apk
+          path: |
+            dist/*.apk
+            dist/SHA256SUMS
           if-no-files-found: error
 
-  deliver:
+  git:
+    name: Commit, tag and GitHub Release
     needs: [version, apk]
-    # Always, even when the build failed. A release that goes quiet is
-    # indistinguishable from one nobody started, and the whole point of this job
-    # is that somebody finds out.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.tag.outputs.sha }}
+      release: ${{ steps.release.outputs.status }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PAT || github.token }}
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: sozo-tv-apk
+          path: dist
+
+      - name: Commit the bump and push the tag
+        id: tag
+        env:
+          NAME: ${{ needs.version.outputs.name }}
+          CODE: ${{ needs.version.outputs.code }}
+          TAG: ${{ needs.version.outputs.tag }}
+          BUMPED: ${{ needs.version.outputs.bumped }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+
+          # A re-run of this job after the tag already landed reuses it.
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            git fetch -q origin "refs/tags/${TAG}:refs/tags/${TAG}"
+            echo "sha=$(git rev-parse "${TAG}^{commit}")" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Tag already pushed::${TAG} exists; reusing it."
+            exit 0
+          fi
+
+          git config user.name  "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          if [ "${BUMPED}" = yes ]; then
+            python3 tools/release/stamp_version.py "${NAME}" "${CODE}"
+            git commit -m "chore: ${NAME} (${CODE})" -- app/build.gradle.kts
+          fi
+          git tag "${TAG}"
+          SHA="$(git rev-parse HEAD)"
+
+          # The tag carries the exact tree that was built, so it is the record
+          # that must land. The branch may have moved since the run started.
+          git push origin "refs/tags/${TAG}"
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+
+          if [ "${BUMPED}" = yes ]; then
+            if git push origin "HEAD:refs/heads/${DEFAULT_BRANCH}"; then
+              echo "::notice title=Version bump committed::${NAME} (${CODE}) on ${DEFAULT_BRANCH}"
+            else
+              echo "::warning title=Version bump not on ${DEFAULT_BRANCH}::The push was rejected (branch moved, or no RELEASE_PAT). ${TAG} records the build, but ${DEFAULT_BRANCH} still has the old versionCode; commit ${CODE} or higher before the next release, or the version guard will stop it."
+            fi
+          fi
+
+      - name: GitHub Release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          MODE: ${{ inputs.github_release }}
+          NAME: ${{ needs.version.outputs.name }}
+          CODE: ${{ needs.version.outputs.code }}
+          TAG: ${{ needs.version.outputs.tag }}
+          SHA: ${{ steps.tag.outputs.sha }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          set -euo pipefail
+          if [ "${MODE}" = skip ]; then
+            echo "status=skipped" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          FILES=(dist/*.apk dist/SHA256SUMS)
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release upload "${TAG}" "${FILES[@]}" --clobber
+          else
+            ARGS=(--target "${SHA}" --title "Sozo TV ${NAME}" --notes "${NOTES:-Sozo TV ${NAME} (versionCode ${CODE})}")
+            if [ "${MODE}" = draft ]; then
+              ARGS+=(--draft)
+            fi
+            gh release create "${TAG}" "${FILES[@]}" "${ARGS[@]}"
+          fi
+          if [ "${MODE}" = draft ]; then
+            echo "status=draft" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=published" >> "$GITHUB_OUTPUT"
+          fi
+
+  publish:
+    name: CDN and in-app updater
+    needs: [version, apk, git]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      cdn: ${{ steps.cdn.outputs.status }}
+      cdn_url: ${{ steps.cdn.outputs.url }}
+      updater: ${{ steps.updater.outputs.status }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tools/release
+            app/build.gradle.kts
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: sozo-tv-apk
+          path: dist
+
+      - name: Upload to the CDN
+        id: cdn
+        env:
+          SOZO_RELEASE_TOKEN: ${{ secrets.SOZO_RELEASE_TOKEN }}
+          SOZO_API_BASE_URL: ${{ vars.SOZO_API_BASE_URL }}
+          NAME: ${{ needs.version.outputs.name }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SOZO_RELEASE_TOKEN}" ]; then
+            echo "status=skipped" >> "$GITHUB_OUTPUT"
+            echo "::warning title=CDN skipped::SOZO_RELEASE_TOKEN is not set, so the APK was not uploaded to the CDN and the updater was not touched."
+            exit 0
+          fi
+          API="$(python3 tools/release/api_base.py)"
+          echo "::add-mask::${API}"
+
+          APK="$(find dist -name '*.apk' | head -1)"
+          SIZE="$(stat -c%s "${APK}")"
+
+          jq -n --arg filename "$(basename "${APK}")" --arg ct "${APK_CONTENT_TYPE}" \
+                --arg version "${NAME}" --argjson size "${SIZE}" \
+                '{platform: "androidtv", filename: $filename, contentType: $ct,
+                  size: $size, version: $version, arch: "universal"}' > presign-req.json
+          HTTP="$(curl -sS --max-time 30 -X POST "${API}/admin/downloads/upload-url" \
+                    -H "X-Release-Token: ${SOZO_RELEASE_TOKEN}" -H 'Content-Type: application/json' \
+                    --data @presign-req.json -o presign.json -w '%{http_code}')" || HTTP=000
+          if [ "${HTTP}" != 200 ]; then
+            echo "::error title=CDN upload URL::POST /admin/downloads/upload-url returned HTTP ${HTTP}: $(head -c 300 presign.json 2>/dev/null)"
+            exit 1
+          fi
+          UPLOAD_URL="$(jq -er .uploadUrl presign.json)"
+          echo "::add-mask::${UPLOAD_URL}"
+          KEY="$(jq -er .key presign.json)"
+          PUBLIC_URL="$(jq -er .publicUrl presign.json)"
+
+          # Content-Type is part of the signature: it must match what was presigned.
+          HTTP="$(curl -sS --max-time 900 --upload-file "${APK}" \
+                    -H "Content-Type: ${APK_CONTENT_TYPE}" \
+                    -o put.txt -w '%{http_code}' "${UPLOAD_URL}")" || HTTP=000
+          if [ "${HTTP}" != 200 ]; then
+            echo "::error title=CDN upload::PUT to R2 returned HTTP ${HTTP}: $(head -c 300 put.txt 2>/dev/null)"
+            exit 1
+          fi
+
+          jq -n --arg version "${NAME}" --arg url "${PUBLIC_URL}" --arg key "${KEY}" \
+                --argjson size "${SIZE}" --arg notes "${NOTES}" \
+                '{platform: "androidtv", version: $version, arch: "universal", format: "apk",
+                  fileUrl: $url, fileKey: $key, fileSize: $size, releaseNotes: $notes,
+                  isBeta: false, active: true}' > download-req.json
+          HTTP="$(curl -sS --max-time 30 -X POST "${API}/admin/downloads" \
+                    -H "X-Release-Token: ${SOZO_RELEASE_TOKEN}" -H 'Content-Type: application/json' \
+                    --data @download-req.json -o download.json -w '%{http_code}')" || HTTP=000
+          if [ "${HTTP}" != 201 ]; then
+            echo "::error title=Download row::POST /admin/downloads returned HTTP ${HTTP}: $(head -c 300 download.json 2>/dev/null). The file is on the CDN at ${PUBLIC_URL} but not listed."
+            exit 1
+          fi
+
+          {
+            echo "status=uploaded"
+            echo "url=${PUBLIC_URL}"
+          } >> "$GITHUB_OUTPUT"
+          echo "### CDN" >> "$GITHUB_STEP_SUMMARY"
+          echo "- ${PUBLIC_URL}" >> "$GITHUB_STEP_SUMMARY"
+
+      # The PUT replaces the whole row, so the current row is read first and
+      # only version, downloadUrl and releaseNotes change.
+      - name: Publish to the in-app updater
+        id: updater
+        env:
+          MODE: ${{ inputs.updater }}
+          CDN: ${{ steps.cdn.outputs.status }}
+          URL: ${{ steps.cdn.outputs.url }}
+          CODE: ${{ needs.version.outputs.code }}
+          NOTES: ${{ inputs.notes }}
+          SOZO_RELEASE_TOKEN: ${{ secrets.SOZO_RELEASE_TOKEN }}
+          SOZO_API_BASE_URL: ${{ vars.SOZO_API_BASE_URL }}
+        run: |
+          set -euo pipefail
+          if [ "${MODE}" != publish ]; then
+            echo "status=skipped" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "${CDN}" != uploaded ]; then
+            echo "status=skipped (no CDN upload)" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Updater skipped::updater=publish needs the CDN upload, which did not happen (SOZO_RELEASE_TOKEN missing)."
+            exit 0
+          fi
+          API="$(python3 tools/release/api_base.py)"
+          echo "::add-mask::${API}"
+
+          HTTP="$(curl -sS --max-time 30 "${API}/admin/app-versions/androidtv" \
+                    -H "X-Release-Token: ${SOZO_RELEASE_TOKEN}" \
+                    -o current.json -w '%{http_code}')" || HTTP=000
+          case "${HTTP}" in
+            200) ;;
+            404) echo '{"minVersion": 1, "forceUpdate": false, "active": true}' > current.json ;;
+            *)
+              echo "::error title=Updater read::GET /admin/app-versions/androidtv returned HTTP ${HTTP}: $(head -c 300 current.json 2>/dev/null)"
+              exit 1
+              ;;
+          esac
+
+          jq --argjson code "${CODE}" --arg url "${URL}" --arg notes "${NOTES}" \
+             '{version: $code,
+               minVersion: (.minVersion // 1),
+               downloadUrl: $url,
+               storeUrl: (.storeUrl // null),
+               releaseNotes: $notes,
+               forceUpdate: (.forceUpdate // false),
+               active: (.active != false)}' current.json > updater-req.json
+          if [ "$(jq -r .active updater-req.json)" != true ]; then
+            echo "::warning title=Updater row inactive::The androidtv row is switched off in the admin panel and stays off; devices will not be offered ${CODE} until it is switched on."
+          fi
+
+          HTTP="$(curl -sS --max-time 30 -X PUT "${API}/admin/app-versions/androidtv" \
+                    -H "X-Release-Token: ${SOZO_RELEASE_TOKEN}" -H 'Content-Type: application/json' \
+                    --data @updater-req.json -o updated.json -w '%{http_code}')" || HTTP=000
+          if [ "${HTTP}" != 200 ]; then
+            echo "::error title=Updater write::PUT /admin/app-versions/androidtv returned HTTP ${HTTP}: $(head -c 300 updated.json 2>/dev/null)"
+            exit 1
+          fi
+          echo "status=published" >> "$GITHUB_OUTPUT"
+          echo "::notice title=Updater::androidtv now offers versionCode ${CODE}"
+
+  deliver:
+    needs: [version, apk, git, publish]
+    # Always, even when something failed: a release that goes quiet is
+    # indistinguishable from one nobody started.
     if: ${{ always() && !cancelled() }}
     runs-on: ubuntu-latest
     steps:
       # Not fatal: when the build failed there is no artifact, and the message
-      # saying so is exactly what this job now exists to send.
-      - uses: actions/download-artifact@v4
+      # saying so is what this job is for.
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         continue-on-error: true
         with:
           name: sozo-tv-apk
           path: dist
 
       - name: Send to Telegram
-        if: always()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
           VERSION_NAME: ${{ needs.version.outputs.name }}
           VERSION_CODE: ${{ needs.version.outputs.code }}
           RELEASE_NOTES: ${{ inputs.notes }}
+          GIT_RESULT: ${{ needs.git.result }}
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+          CDN_STATUS: ${{ needs.publish.outputs.cdn }}
+          CDN_URL: ${{ needs.publish.outputs.cdn_url }}
+          UPDATER_STATUS: ${{ needs.publish.outputs.updater }}
+          RELEASE_STATUS: ${{ needs.git.outputs.release }}
         run: |
           set -uo pipefail
 
@@ -367,13 +591,11 @@ jobs:
           API="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}"
           MAX=$((49 * 1024 * 1024))   # Bot API sendDocument limit is 50 MB
           RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          IFS=',' read -ra CHATS <<< "${TELEGRAM_CHAT_IDS}"
 
-          # Nothing built. Say that, rather than announcing a version that does
-          # not exist and attaching nothing to it.
           if ! ls dist/*.apk >/dev/null 2>&1; then
             MSG="$(printf '⚠️ Sozo TV %s — release YIQILDI, APK chiqmadi.\n\n🔎 %s' \
                    "${VERSION_NAME:-?}" "${RUN_URL}")"
-            IFS=',' read -ra CHATS <<< "${TELEGRAM_CHAT_IDS}"
             for raw in "${CHATS[@]}"; do
               chat="$(echo "${raw}" | xargs)"
               [ -z "${chat}" ] && continue
@@ -386,16 +608,36 @@ jobs:
             exit 0
           fi
 
+          if [ "${PUBLISH_RESULT}" = success ]; then
+            case "${CDN_STATUS}" in
+              uploaded) CDN_LINE="⬇️ CDN: ${CDN_URL}" ;;
+              *)        CDN_LINE="⬇️ CDN: o'tkazib yuborildi (SOZO_RELEASE_TOKEN yo'q)" ;;
+            esac
+            case "${UPDATER_STATUS}" in
+              published) UPD_LINE="🔄 Updater: versionCode ${VERSION_CODE} e'lon qilindi" ;;
+              *)         UPD_LINE="🔄 Updater: e'lon qilinmadi (${UPDATER_STATUS:-skipped})" ;;
+            esac
+          else
+            CDN_LINE="⚠️ CDN/updater: bajarilmadi (${PUBLISH_RESULT})"
+            UPD_LINE=""
+          fi
+          if [ "${GIT_RESULT}" = success ]; then
+            GH_LINE="🏷 GitHub Release: ${RELEASE_STATUS:-skipped}"
+          else
+            GH_LINE="⚠️ Tag/GitHub Release: bajarilmadi (${GIT_RESULT})"
+          fi
+
           HEAD="$(printf '📺 Sozo TV %s (versionCode %s)' "${VERSION_NAME}" "${VERSION_CODE}")"
           if [ -n "${RELEASE_NOTES}" ]; then
             HEAD="$(printf '%s\n\n📝 %s' "${HEAD}" "${RELEASE_NOTES}")"
           fi
-          HEAD="$(printf '%s\n\n⚙️ Ichki updater buni ko'"'"'rishi uchun admin panelda platforma **androidtv** ostida versionCode %s ni e'"'"'lon qiling.' \
-                  "${HEAD}" "${VERSION_CODE}")"
-          HEAD="$(printf '%s\n\n🧰 Run: %s' "${HEAD}" "${RUN_URL}")"
+          HEAD="$(printf '%s\n\n%s' "${HEAD}" "${CDN_LINE}")"
+          if [ -n "${UPD_LINE}" ]; then
+            HEAD="$(printf '%s\n%s' "${HEAD}" "${UPD_LINE}")"
+          fi
+          HEAD="$(printf '%s\n%s\n\n🧰 Run: %s' "${HEAD}" "${GH_LINE}" "${RUN_URL}")"
 
           fail=0
-          IFS=',' read -ra CHATS <<< "${TELEGRAM_CHAT_IDS}"
           for raw in "${CHATS[@]}"; do
             chat="$(echo "${raw}" | xargs)"
             [ -z "${chat}" ] && continue
