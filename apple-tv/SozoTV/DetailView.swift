@@ -100,10 +100,10 @@ struct DetailView: View {
         .onAppear { visible = true }
         .onDisappear { visible = false; actionTask?.cancel() }
         .fullScreenCover(item: $playback, onDismiss: {
-            if reopenSourcePicker, let episode = selectedEpisode {
+            if reopenSourcePicker {
                 // Signed stream URLs expire, so another source starts from a fresh resolution.
                 reopenSourcePicker = false
-                run { await resolve(episode, choosingSource: true) }
+                if let episode = selectedEpisode { run { await resolve(episode, choosingSource: true) } }
             }
             else if pendingNextEpisode {
                 pendingNextEpisode = false
@@ -221,12 +221,14 @@ struct DetailView: View {
         do {
             let envelope: MediaEnvelope
             if !isSerial && !movieSources.isEmpty {
-                // Film sources come inline with the episodes reply and carry no media ref; fetch them again.
-                let value: EpisodePage = try await session.request("contents/episodes", query: [.init(name: "provider", value: provider), .init(name: "url", value: url), .init(name: "page", value: "1"), .init(name: "size", value: "100")])
-                guard current(scope) else { return }
-                let movie = value.movieEnvelope
-                if let fresh = movie.videoSources, !fresh.isEmpty {
-                    movieSources = fresh; movieSubtitles = movie.subtitles ?? []; movieHeaders = movie.headers ?? [:]
+                // Film sources come inline with the episodes reply and carry no media ref; refresh them
+                // before switching sources, and keep the loaded ones if that fails.
+                if choosingSource, let value: EpisodePage = try? await session.request("contents/episodes", query: [.init(name: "provider", value: provider), .init(name: "url", value: url), .init(name: "page", value: "1"), .init(name: "size", value: "100")]) {
+                    guard current(scope) else { return }
+                    let movie = value.movieEnvelope
+                    if let fresh = movie.videoSources, !fresh.isEmpty {
+                        movieSources = fresh; movieSubtitles = movie.subtitles ?? []; movieHeaders = movie.headers ?? [:]
+                    }
                 }
                 envelope = MediaEnvelope(videoUrl: nil, type: nil, headers: movieHeaders, videoSources: movieSources, subtitles: movieSubtitles)
             } else {
@@ -242,7 +244,12 @@ struct DetailView: View {
             guard !playable.isEmpty else { error = "This source did not provide an Apple TV compatible stream. Embedded web pages, DASH and torrents cannot play here. Try another source or adjust your maximum quality setting."; return }
             candidates = playable; candidateHeaders = envelope.headers ?? [:]; candidateSubtitles = envelope.subtitles ?? []; selectedEpisode = episode
             if playable.count == 1 && !choosingSource { start(playable[0]) } else { showingSources = true }
-        } catch { if current(scope) { self.error = error.localizedDescription } }
+        } catch {
+            guard current(scope) else { return }
+            if choosingSource, selectedEpisode?.id == episode.id, !candidates.isEmpty { showingSources = true; return }
+            sourceSwitchPositionMs = nil
+            self.error = error.localizedDescription
+        }
     }
     private var canPlayNextEpisode: Bool {
         guard isSerial, let selectedEpisode,

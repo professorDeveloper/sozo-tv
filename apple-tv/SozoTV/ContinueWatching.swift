@@ -35,7 +35,8 @@ struct ContinueWatchingItem: Decodable, Identifiable {
         let number = (try? c.decode(Double.self, forKey: .episodeNumber))
             ?? (try? c.decode(String.self, forKey: .episodeNumber)).flatMap(Double.init)
         episodeNumber = number.flatMap { Int(exactly: $0) }
-        episodeIndex = try c.decodeIfPresent(Int.self, forKey: .episodeIndex)
+        episodeIndex = (try? c.decode(Int.self, forKey: .episodeIndex))
+            ?? (try? c.decode(String.self, forKey: .episodeIndex)).flatMap { Int($0) }
         positionMs = try c.decodeIfPresent(Int64.self, forKey: .positionMs)
         durationMs = try c.decodeIfPresent(Int64.self, forKey: .durationMs)
         deletedAt = try c.decodeIfPresent(String.self, forKey: .deletedAt)

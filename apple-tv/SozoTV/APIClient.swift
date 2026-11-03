@@ -135,6 +135,7 @@ enum APIError: LocalizedError {
     // Backend messages are Uzbek and mostly uncoded, so only the code and status choose the text.
     var errorDescription: String? {
         switch self {
+        case .http(let code) where code < 0: String(localized: "Sozo could not be reached. Please try again.")
         case .http(let code): String(localized: "Sozo could not be reached (\(code)). Please try again.")
         case .server(let status, let code, _, let wait):
             switch code {

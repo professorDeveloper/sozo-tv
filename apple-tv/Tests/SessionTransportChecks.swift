@@ -154,24 +154,30 @@ private func require(_ condition: @autoclosure () -> Bool, _ label: String) {
 
     @MainActor static func removedProfile() async throws {
         let session = make(MemoryCredentials())
-        var removed = false
+        var listing = "{\"profiles\":[{\"id\":\"p1\",\"name\":\"One\",\"isDefault\":true},{\"id\":\"p2\",\"name\":\"Two\"},{\"id\":\"p3\",\"name\":\"Three\"}],\"max\":4}"
         StubProtocol.handler = { request in
-            if request.url!.path.hasSuffix("/profiles") {
-                return Stub(status: 200, body: removed
-                    ? "{\"profiles\":[{\"id\":\"p1\",\"name\":\"One\",\"hasPin\":true},{\"id\":\"p3\",\"name\":\"Three\"}],\"max\":4}"
-                    : profileJSON)
-            }
+            if request.url!.path.hasSuffix("/profiles") { return Stub(status: 200, body: listing) }
             return Stub(status: 404, body: "{\"message\":\"Profil topilmadi\",\"code\":\"PROFILE_NOT_FOUND\"}")
+        }
+        func settle(_ ids: [String]) async throws {
+            for _ in 0..<50 where session.profiles.map(\.id) != ids { try await Task.sleep(nanoseconds: 10_000_000) }
+            require(session.profiles.map(\.id) == ids, "profiles reloaded to \(ids)")
         }
         await session.loadProfiles()
         try await session.select(session.profiles[1])
-        removed = true
+
+        // Another device deleted the profile being managed, not the one watching.
+        listing = "{\"profiles\":[{\"id\":\"p1\",\"name\":\"One\",\"isDefault\":true},{\"id\":\"p2\",\"name\":\"Two\"}],\"max\":4}"
+        do { try await session.deleteProfile(id: "p3"); fatalError("Deleting a missing profile succeeded") }
+        catch let error as APIError { require(error.code == "PROFILE_NOT_FOUND", "missing target error surfaces") }
+        try await settle(["p1", "p2"])
+        require(session.activeProfile?.id == "p2", "a missing target profile leaves the active profile selected")
+
+        listing = "{\"profiles\":[{\"id\":\"p1\",\"name\":\"One\",\"hasPin\":true},{\"id\":\"p3\",\"name\":\"Three\"}],\"max\":4}"
         do { let _: Value = try await session.request("history"); fatalError("Removed profile request succeeded") }
         catch let error as APIError { require(error.code == "PROFILE_NOT_FOUND", "removed profile error surfaces") }
-        require(session.activeProfile == nil, "removed profile is no longer active, so the picker shows")
-        for _ in 0..<50 where session.profiles.map(\.id) != ["p1", "p3"] { try await Task.sleep(nanoseconds: 10_000_000) }
-        require(session.profiles.map(\.id) == ["p1", "p3"], "profiles reloaded after removal")
-        require(session.activeProfile == nil, "no profile chosen on the viewer's behalf")
+        try await settle(["p1", "p3"])
+        require(session.activeProfile == nil, "removed active profile is dropped, so the picker shows")
     }
 
     @MainActor static func errorPresentation() async throws {
@@ -203,6 +209,7 @@ private func require(_ condition: @autoclosure () -> Bool, _ label: String) {
         }
         require(APIError.server(status: 403, code: nil, message: "Hisobingiz bloklangan").localizedDescription == "This account is not allowed to do this.", "uncoded 403 is English")
         require(APIError.retryAfter("Wed, 21 Oct 2015 07:28:00 GMT") == 0, "past HTTP date clamps to zero")
+        require(!APIError.http(-1).localizedDescription.contains("-1"), "internal sentinel status is not shown")
     }
 
     @MainActor static func pinAndDraft() async throws {

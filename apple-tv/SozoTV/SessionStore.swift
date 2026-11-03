@@ -74,17 +74,11 @@ final class SessionStore: ObservableObject {
                 try validate(); return value
             }
         } catch let failure as APIError where failure.code == "PROFILE_NOT_FOUND" {
-            if let profile, generation == accountGeneration, activeProfile?.id == profile { profileRemoved(profile) }
+            // The missing profile may be the active one or only the target of a profile edit, PIN check or delete.
+            // A fresh listing tells them apart; loadProfiles drops the active profile only when it is gone.
+            if profile != nil, generation == accountGeneration, path != "auth/profiles" { Task { await loadProfiles() } }
             throw failure
         }
-    }
-
-    /// The active profile was deleted elsewhere: drop it, so RootView shows the picker, and reload the list.
-    private func profileRemoved(_ id: String) {
-        profiles.removeAll { $0.id == id }
-        activeProfile = nil; revision &+= 1
-        defaults.removeObject(forKey: profileKey)
-        Task { await loadProfiles() }
     }
 
     private func refreshedToken(rejected: String) async throws -> String {
