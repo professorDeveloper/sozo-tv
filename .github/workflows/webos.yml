@@ -1,0 +1,48 @@
+name: webOS CI
+
+# `push` is the default branch only, with `pull_request` alongside it, for the
+# reason given in ci.yml: nothing is covered twice.
+on:
+  push:
+    branches: [master]
+    paths: ['webos/**', '.github/workflows/webos.yml']
+  pull_request:
+    paths: ['webos/**', '.github/workflows/webos.yml']
+
+concurrency:
+  group: webos-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Unit tests, ES5 checks and ipk
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: webos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: webos/package-lock.json
+      - name: Install
+        run: npm ci --ignore-scripts
+      # Includes the ES5 parse and the API and CSS lint in test/compat.test.js.
+      - name: Unit and ES5 checks
+        run: npm test
+      # Fails if the ipk holds anything but the shipped files, byte for byte.
+      - name: Build the ipk
+        run: npm run package
+      - name: Keep the ipk
+        uses: actions/upload-artifact@v4
+        with:
+          name: sozo-webos-ipk
+          path: webos/dist/ipk/*.ipk
+          if-no-files-found: error
+          retention-days: 14

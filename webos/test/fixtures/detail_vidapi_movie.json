@@ -1,0 +1,406 @@
+{
+"provider": "vidapi",
+"contentId": "1570488",
+"contentUrl": "https://www.themoviedb.org/movie/1570488",
+"title": "A Dog's Perfect Christmas",
+"description": "When a medical emergency pulls the Goss family apart, determined dog Winstead will do all he can to bring his humans back together before Christmas Eve.",
+"thumbnail": "https://image.tmdb.org/t/p/w500/zvsNAohDHRWcGvbPSD7r3WojpKb.jpg",
+"banner": "https://image.tmdb.org/t/p/original/hhQT0TySg3LXCE8BEPpfPJ5zJA2.jpg",
+"year": 2026,
+"duration": "102 min",
+"country": "United States of America",
+"director": "Cathryn Michon",
+"genres": [
+"Comedy",
+"Drama"
+],
+"cast": [
+{
+"id": "6065",
+"name": "Dennis Quaid",
+"image": "https://image.tmdb.org/t/p/w500/lMaDAJHzsKH7U3dln2B3kY3rOhE.jpg"
+},
+{
+"id": "16501",
+"name": "Milo Ventimiglia",
+"image": "https://image.tmdb.org/t/p/w500/9yFPsQCYi9sbPQ0xJGtoAF4Ar6v.jpg"
+},
+{
+"id": "4067297",
+"name": "Brooke Lena Johnson",
+"image": "https://image.tmdb.org/t/p/w500/gcidhYtCeH19FdpMjbVgjvBhbtA.jpg"
+},
+{
+"id": "149334",
+"name": "Kathleen Rose Perkins",
+"image": "https://image.tmdb.org/t/p/w500/A6bG3mffBZ7xsr6aszSF2RJ0zIC.jpg"
+},
+{
+"id": "7906",
+"name": "Jennifer Tilly",
+"image": "https://image.tmdb.org/t/p/w500/9vYoYF385cVq9oDO3pDpXihP4vz.jpg"
+},
+{
+"id": "19159",
+"name": "Thomas Haden Church",
+"image": "https://image.tmdb.org/t/p/w500/74NK9HCYvNafMggSp1PAK5Nwkpe.jpg"
+},
+{
+"id": "2453",
+"name": "Mary Steenburgen",
+"image": "https://image.tmdb.org/t/p/w500/yJhfuqS3yXW7kLSyvRU6n3b35mq.jpg"
+},
+{
+"id": "6217044",
+"name": "Ethan Loomis",
+"image": "https://image.tmdb.org/t/p/w500/zuZC4J2bZQ4b89eRjI7b70hhfWi.jpg"
+},
+{
+"id": "76742",
+"name": "Marissa Jaret Winokur",
+"image": "https://image.tmdb.org/t/p/w500/9a8Phgwhrjw4e2Fng1ItNDL7QS0.jpg"
+},
+{
+"id": "1382199",
+"name": "Cathryn Michon",
+"image": "https://image.tmdb.org/t/p/w500/r2U72Cl2JO1M2FAdN3yBS7wPH5b.jpg"
+},
+{
+"id": "117382",
+"name": "W. Bruce Cameron",
+"image": "https://ui-avatars.com/api/?name=W.%20Bruce%20Cameron&size=200&background=1e293b&color=94a3b8&bold=true"
+},
+{
+"id": "77440",
+"name": "Karen LeBlanc",
+"image": "https://image.tmdb.org/t/p/w500/dV2UjuWh8fu9ZARfd5uJRExVA8V.jpg"
+},
+{
+"id": "88168",
+"name": "Rebecca Staab",
+"image": "https://image.tmdb.org/t/p/w500/AavKqTvgAjqoJHFc4xOipmZJXiV.jpg"
+},
+{
+"id": "6599380",
+"name": "Abel Neudorf",
+"image": "https://ui-avatars.com/api/?name=Abel%20Neudorf&size=200&background=1e293b&color=94a3b8&bold=true"
+},
+{
+"id": "6599382",
+"name": "Oskar Neudorf",
+"image": "https://ui-avatars.com/api/?name=Oskar%20Neudorf&size=200&background=1e293b&color=94a3b8&bold=true"
+},
+{
+"id": "6599390",
+"name": "Austen Seddon",
+"image": "https://ui-avatars.com/api/?name=Austen%20Seddon&size=200&background=1e293b&color=94a3b8&bold=true"
+},
+{
+"id": "6599401",
+"name": "Carter Seddon",
+"image": "https://ui-avatars.com/api/?name=Carter%20Seddon&size=200&background=1e293b&color=94a3b8&bold=true"
+},
+{
+"id": "5686718",
+"name": "Lucia Morris",
+"image": "https://image.tmdb.org/t/p/w500/zfPzkGZJuC2CKvrSsL0dHO47tzM.jpg"
+},
+{
+"id": "1937042",
+"name": "Princess Davis",
+"image": "https://image.tmdb.org/t/p/w500/7xnPCaWsO4sOVVJaAQ4cfg4zWnH.jpg"
+},
+{
+"id": "1687444",
+"name": "Theresa Wong",
+"image": "https://image.tmdb.org/t/p/w500/lImHLicoIhZYAiOwQIdgp2GDtfK.jpg"
+}
+],
+"likes": 0,
+"dislikes": 0,
+"isSerial": false,
+"screenshots": [
+{
+"full": "https://image.tmdb.org/t/p/original/hhQT0TySg3LXCE8BEPpfPJ5zJA2.jpg",
+"thumb": "https://image.tmdb.org/t/p/w500/hhQT0TySg3LXCE8BEPpfPJ5zJA2.jpg"
+},
+{
+"full": "https://image.tmdb.org/t/p/original/53ryl4Cyds4DE91oVPKsunH7J0m.jpg",
+"thumb": "https://image.tmdb.org/t/p/w500/53ryl4Cyds4DE91oVPKsunH7J0m.jpg"
+},
+{
+"full": "https://image.tmdb.org/t/p/original/jfLE82CCfSCkkmutPXHpydSKY6w.jpg",
+"thumb": "https://image.tmdb.org/t/p/w500/jfLE82CCfSCkkmutPXHpydSKY6w.jpg"
+},
+{
+"full": "https://image.tmdb.org/t/p/original/3GxIXiZLatFY6qd0PVM7RyuKaD.jpg",
+"thumb": "https://image.tmdb.org/t/p/w500/3GxIXiZLatFY6qd0PVM7RyuKaD.jpg"
+},
+{
+"full": "https://image.tmdb.org/t/p/original/kVDLmRsBmiaI0MGAl1nemFPv0rb.jpg",
+"thumb": "https://image.tmdb.org/t/p/w500/kVDLmRsBmiaI0MGAl1nemFPv0rb.jpg"
+},
+{
+"full": "https://image.tmdb.org/t/p/original/kpxTrmlrQaM1I68gGshiAVX9lwa.jpg",
+"thumb": "https://image.tmdb.org/t/p/w500/kpxTrmlrQaM1I68gGshiAVX9lwa.jpg"
+},
+{
+"full": "https://image.tmdb.org/t/p/original/6OOiqbY4Di0I6dNw0fyOBIxzK5k.jpg",
+"thumb": "https://image.tmdb.org/t/p/w500/6OOiqbY4Di0I6dNw0fyOBIxzK5k.jpg"
+}
+],
+"related": [
+{
+"provider": "vidapi",
+"externalId": "11232",
+"title": "Kate & Leopold",
+"altTitles": [],
+"slug": "11232",
+"contentUrl": "https://www.themoviedb.org/movie/11232",
+"thumbnail": "https://image.tmdb.org/t/p/w500/fbWYmlGvQXmmZEr4bMeJFjWfFXZ.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/2nKFPGQDMMMW13zyLTmO2M7rMI3.jpg",
+"year": 2001,
+"rating": 6.4,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Romance",
+"Comedy",
+"Science Fiction"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "11234",
+"title": "The Omega Man",
+"altTitles": [],
+"slug": "11234",
+"contentUrl": "https://www.themoviedb.org/movie/11234",
+"thumbnail": "https://image.tmdb.org/t/p/w500/qlt65C43HeoDm5K5gYBtT20OeA1.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/zE7DPxbY0u6vRLftpoYAG4QYXzY.jpg",
+"year": 1971,
+"rating": 6.2,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Science Fiction",
+"Action",
+"Drama",
+"Thriller"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "11236",
+"title": "The Secret Garden",
+"altTitles": [],
+"slug": "11236",
+"contentUrl": "https://www.themoviedb.org/movie/11236",
+"thumbnail": "https://image.tmdb.org/t/p/w500/zf6h5dJ7wVG7LqMO9dhHGHVejzj.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/gSIfujGhazIvswp4R9G6tslAqW7.jpg",
+"year": 1993,
+"rating": 7.4,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Drama",
+"Family",
+"Fantasy"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1433842",
+"title": "Relationship Goals",
+"altTitles": [],
+"slug": "1433842",
+"contentUrl": "https://www.themoviedb.org/movie/1433842",
+"thumbnail": "https://image.tmdb.org/t/p/w500/o7dVxvZIKnAB7k1eeeWp2k14Es7.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/dFdFQaffaBNBNM5hzinc6Q0oWDZ.jpg",
+"year": 2026,
+"rating": 6.4,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Romance",
+"Comedy"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "11219",
+"title": "The Trouble with Harry",
+"altTitles": [],
+"slug": "11219",
+"contentUrl": "https://www.themoviedb.org/movie/11219",
+"thumbnail": "https://image.tmdb.org/t/p/w500/uUXLq7fEG3hI46ZFMZzgHj11S6S.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/i5MaRm0FsJIpXVLAvrMsMt5YQ5p.jpg",
+"year": 1955,
+"rating": 7,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Comedy",
+"Mystery"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "11222",
+"title": "The American Friend",
+"altTitles": [
+"Der amerikanische Freund"
+],
+"slug": "11222",
+"contentUrl": "https://www.themoviedb.org/movie/11222",
+"thumbnail": "https://image.tmdb.org/t/p/w500/pBi7QjQJbyEKK7Y5B1vHaEaO3BS.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/h59F8NcFSlucTK7fUcndD9TB9jg.jpg",
+"year": 1977,
+"rating": 7.1,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Drama",
+"Thriller",
+"Crime"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "11224",
+"title": "Cinderella",
+"altTitles": [],
+"slug": "11224",
+"contentUrl": "https://www.themoviedb.org/movie/11224",
+"thumbnail": "https://image.tmdb.org/t/p/w500/4nssBcQUBadCTBjrAkX46mVEKts.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/puJKgNcWaGgMk5VHanSSomUTpmw.jpg",
+"year": 1950,
+"rating": 7.1,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Family",
+"Fantasy",
+"Animation",
+"Romance"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1236035",
+"title": "Dutch II: Angel's Revenge",
+"altTitles": [],
+"slug": "1236035",
+"contentUrl": "https://www.themoviedb.org/movie/1236035",
+"thumbnail": "https://image.tmdb.org/t/p/w500/yedPfHtkOh769CyybiaLrF8rOBc.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/ApZ3UW1G03l6f3Selo28vyqM65S.jpg",
+"year": 2024,
+"rating": 0,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Crime",
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "11307",
+"title": "The World According to Garp",
+"altTitles": [],
+"slug": "11307",
+"contentUrl": "https://www.themoviedb.org/movie/11307",
+"thumbnail": "https://image.tmdb.org/t/p/w500/9ItRFdSCb7Sz3AC9LRxAzbH73kG.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/danXDS9yif7sG1giWcsgOEgTehX.jpg",
+"year": 1982,
+"rating": 6.7,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Drama",
+"Comedy"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "11308",
+"title": "The Hotel New Hampshire",
+"altTitles": [],
+"slug": "11308",
+"contentUrl": "https://www.themoviedb.org/movie/11308",
+"thumbnail": "https://image.tmdb.org/t/p/w500/9XGGGniMtBqhox7JAV5JujlUqFz.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/6ja3HVez4A4XPNSMHhuOiu2UTXm.jpg",
+"year": 1984,
+"rating": 5.7,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Comedy",
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "11329",
+"title": "Runaway Jury",
+"altTitles": [],
+"slug": "11329",
+"contentUrl": "https://www.themoviedb.org/movie/11329",
+"thumbnail": "https://image.tmdb.org/t/p/w500/hpBot7sqaskTdZS264c7hOhGiQ0.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/zIckqbwhqxiMQKcpfdPuOCXfp5c.jpg",
+"year": 2003,
+"rating": 7,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Drama",
+"Thriller"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "11387",
+"title": "Lord Jim",
+"altTitles": [],
+"slug": "11387",
+"contentUrl": "https://www.themoviedb.org/movie/11387",
+"thumbnail": "https://image.tmdb.org/t/p/w500/hgoxcPLJYYqDIlFDl7pnndcm9MT.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/ePEMEklx5d5ItZ1Cp5CDqJiP3Ms.jpg",
+"year": 1965,
+"rating": 6.8,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Adventure",
+"Drama"
+]
+}
+],
+"extra": {
+"tmdbId": 1570488,
+"imdbId": "tt38515310",
+"trailer": {
+"youtubeId": "L18ih13Bf-U",
+"name": "Official Trailer",
+"type": "Trailer",
+"official": true,
+"language": "en-US"
+},
+"tagline": "Sit. Stay. Love.",
+"voteAverage": 8.3,
+"voteCount": 6,
+"status": "Released",
+"about": {
+"studio": "Fezziwig Studios",
+"network": null,
+"budget": null,
+"revenue": null,
+"collection": null,
+"seasons": null,
+"episodes": null,
+"nextEpisode": null,
+"originalLanguage": "en"
+},
+"seasons": null
+}
+}
