@@ -34,6 +34,7 @@ holds exactly the shipped files, byte for byte.
 `hls.min.js`, so the ES5 checks would no longer describe what ships.
 
 The `webOS CI` workflow also builds the ipk and keeps it as the `sozo-webos-ipk` artifact for 14 days.
+The `webOS release` workflow, run by hand, publishes it as a `webos-v<version>` GitHub pre-release. The version comes from `appinfo.json`.
 
 ## Install with Developer Mode
 

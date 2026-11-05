@@ -5,9 +5,9 @@ name: webOS CI
 on:
   push:
     branches: [master]
-    paths: ['webos/**', '.github/workflows/webos.yml']
+    paths: ['webos/**', '.github/workflows/webos*.yml']
   pull_request:
-    paths: ['webos/**', '.github/workflows/webos.yml']
+    paths: ['webos/**', '.github/workflows/webos*.yml']
 
 concurrency:
   group: webos-ci-${{ github.workflow }}-${{ github.ref }}

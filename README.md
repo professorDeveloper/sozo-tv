@@ -64,6 +64,7 @@ Installing on a TV is described in [`webos/README.md`](webos/README.md).
 | `tvos-ci.yml` | PRs, pushes to `master`, manual | Apple TV build and simulator tests |
 | `tvos-release.yml` | Manual | Signs an Apple TV archive and optionally uploads it to TestFlight |
 | `webos.yml` | PRs and pushes to `master` that touch `webos/` | webOS unit and ES5 checks, builds the ipk and keeps it as an artifact |
+| `webos-release.yml` | By hand | Tests, builds the ipk and publishes it as a `webos-v<version>` pre-release |
 
 The required secrets are listed at the top of each workflow and in `apple-tv/README.md`.
 
