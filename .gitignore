@@ -1,12 +1,6 @@
 *.iml
 .gradle
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
 .DS_Store
 /build
 /captures
@@ -25,3 +19,25 @@ key.properties
 # Internal docs — audits, plans, notes. This repository is public; these stay
 # on the developer's machine and are never published.
 /docs/
+
+# Native Apple TV generated project, build artifacts and distribution secrets.
+/apple-tv/build/
+/apple-tv/SozoTV.xcodeproj/
+*.xcarchive
+*.xcresult
+*.ipa
+*.p12
+*.mobileprovision
+AuthKey_*.p8
+
+# Build output, IDE state and stray working files. The release APK is built by
+# CI (release.yml); nothing under app/release/ belongs in the repository.
+/app/release/
+*.apk
+*.aab
+!**/src/test/resources/**/*.apk
+# The shared code style stays tracked; the rest of .idea is per-machine.
+/.idea/*
+!/.idea/codeStyles/
+.idea_backup/
+/*.srt

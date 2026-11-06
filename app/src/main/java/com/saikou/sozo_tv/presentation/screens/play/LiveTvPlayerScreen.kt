@@ -218,6 +218,7 @@ class LiveTvPlayerScreen : Fragment() {
     override fun onResume() {
         super.onResume()
         if (::player.isInitialized) {
+            if (player.playbackState == Player.STATE_IDLE) player.prepare()
             player.play()
         }
     }

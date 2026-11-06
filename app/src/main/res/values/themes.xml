@@ -4,6 +4,12 @@
          (dialogs, buttons, cards) stay dark even if the TV is set to Light mode. -->
     <style name="Theme.Tv" parent="@style/Theme.MaterialComponents.NoActionBar">
         <item name="android:textColor">@color/lb_tv_white</item>
+        <item name="android:windowBackground">@color/netflix_black</item>
+        <item name="android:navigationBarColor">@color/netflix_black</item>
+        <item name="android:colorAccent">@color/red</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="windowActionModeOverlay">true</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
     </style>
 

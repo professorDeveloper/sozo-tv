@@ -14,6 +14,7 @@ import com.saikou.sozo_tv.domain.repository.WatchHistoryRepository
 import com.saikou.sozo_tv.parser.models.EpisodeData
 import com.saikou.sozo_tv.parser.models.ShowResponse
 import com.saikou.sozo_tv.parser.models.VideoOption
+import com.saikou.sozo_tv.parser.sources.ExtensionParser
 import com.saikou.sozo_tv.parser.sources.AnimeSources
 import com.saikou.sozo_tv.parser.sources.SourceManager
 import com.saikou.sozo_tv.utils.Resource
@@ -33,6 +34,24 @@ class PlayAnimeViewModel(
         private const val TAG = "PlayAnimeViewModel"
     }
 
+    private val torrentEngine by lazy {
+        com.saikou.sozo_tv.engine.torrent.TorrentEngine(com.saikou.sozo_tv.app.MyApp.context)
+    }
+    private var torrentHash: String? = null
+    private var requestedEpisodeNumber: Int? = null
+    override fun onCleared() {
+        torrentHash?.let { hash ->
+            kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch { torrentEngine.drop(hash) }
+        }
+        super.onCleared()
+    }
+
+    var contentIsSeries: Boolean? = null
+    var contentIsAnime: Boolean? = null
+    private val playbackPreferences by lazy {
+        com.saikou.sozo_tv.app.MyApp.context.getSharedPreferences("playback_quality", android.content.Context.MODE_PRIVATE)
+    }
+
     val timeStamps = MutableLiveData<List<AniSkip.Stamp>?>()
     private val timeStampsMap: MutableMap<Int, List<AniSkip.Stamp>?> = mutableMapOf()
 
@@ -40,6 +59,9 @@ class PlayAnimeViewModel(
     private var qualityJob: Job? = null
     private var stampsJob: Job? = null
     var currentEpIndex: Int = -1
+    /** The 100-episode part on screen, and how many there are. -1 until the player sets it. */
+    var currentPart: Int = -1
+    var lastPart: Int = 1
     var currentSubEpIndex: Int = 0
 
     val videoOptionsData = MutableLiveData<List<VideoOption>>()
@@ -84,6 +106,10 @@ class PlayAnimeViewModel(
                 parser.loadEpisodes(id = mediaId, page = page, showResponse)
             }.onSuccess { data ->
                 if (data != null) {
+                    (parser as? ExtensionParser)?.contentKind(mediaId)?.let {
+                        contentIsSeries = it.isSeries
+                        contentIsAnime = it.isAnime
+                    }
                     allEpisodeData.postValue(Resource.Success(data))
                 } else {
                     allEpisodeData.postValue(Resource.Error(IllegalStateException("No episodes returned")))
@@ -169,13 +195,14 @@ class PlayAnimeViewModel(
      * made clearing look like it had failed. The server push still runs in the background.
      */
     suspend fun clearAllHistory() {
-        withContext(Dispatchers.IO) {
+        // On viewModelScope so a caller torn down mid-clear cannot leave the tombstone without its sync.
+        viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 historySync.rememberClearedAll()
                 watchHistoryRepository.clearAllHistory()
             }
-        }
-        viewModelScope.launch(Dispatchers.IO) { runCatching { historySync.sync() } }
+            viewModelScope.launch(Dispatchers.IO) { runCatching { historySync.sync() } }
+        }.join()
     }
 
     fun syncHistory() {
@@ -185,7 +212,7 @@ class PlayAnimeViewModel(
     suspend fun syncHistoryNow(): Boolean =
         runCatching { historySync.sync() }.getOrDefault(false)
 
-    fun updateQualityByIndex() {
+    fun updateQualityByIndex(rememberChoice: Boolean = true) {
         if (videoOptions.isEmpty()) return
 
         qualityJob?.cancel()
@@ -194,7 +221,9 @@ class PlayAnimeViewModel(
             runCatching {
                 val sourceKey = activeAnimeSourceKey ?: SourceManager().getCurrentSourceKey()
                 val idx = currentSelectedVideoOptionIndex.coerceIn(0, videoOptions.lastIndex)
-                buildVodFromOption(videoOptions[idx], sourceKey)
+                if (rememberChoice) playbackPreferences.edit().putString(sourceKey,
+                    com.saikou.sozo_tv.domain.player.SourceSelection.label(videoOptions[idx])).apply()
+                buildVodWithFallback(videoOptions, sourceKey)
             }.onSuccess { vod ->
                 ensureActive()
                 seriesResponse = vod
@@ -212,6 +241,7 @@ class PlayAnimeViewModel(
         isHistory: Boolean = false,
         episodeNum: Int?
     ) {
+        requestedEpisodeNumber = episodeNum
         episodeJob?.cancel()
         qualityJob?.cancel()
         episodeJob = viewModelScope.launch(Dispatchers.IO) {
@@ -241,14 +271,20 @@ class PlayAnimeViewModel(
                 )
                 if (options.isEmpty()) throw IllegalStateException("No video options found")
 
+                (parser as? ExtensionParser)?.contentKind(mediaId)?.let {
+                    contentIsSeries = it.isSeries
+                    contentIsAnime = it.isAnime
+                }
                 videoOptionsData.postValue(options)
                 videoOptions.clear()
                 videoOptions.addAll(options)
 
                 currentSelectedVideoOptionIndex =
-                    currentSelectedVideoOptionIndex.coerceIn(0, options.lastIndex)
+                    com.saikou.sozo_tv.domain.player.SourceSelection.initial(options,
+                        playbackPreferences.getString(sourceKey, null), currentSelectedVideoOptionIndex,
+                        playbackPreferences.getString("preferred_resolution", "auto").let { if (it == "lowest") -1 else it?.toIntOrNull() })
 
-                buildVodFromOption(options[currentSelectedVideoOptionIndex], sourceKey)
+                buildVodWithFallback(options, sourceKey)
             }.onSuccess { vod ->
                 ensureActive()
                 seriesResponse = vod
@@ -256,6 +292,21 @@ class PlayAnimeViewModel(
             }.onFailure { e ->
                 ensureActive()
                 currentEpisodeData.postValue(Resource.Error(asException(e)))
+            }
+        }
+    }
+
+    private suspend fun buildVodWithFallback(options: List<VideoOption>, sourceKey: String): VodMovieResponse {
+        val failed = mutableSetOf<String>()
+        while (true) {
+            val option = options[currentSelectedVideoOptionIndex]
+            try { return buildVodFromOption(option, sourceKey) }
+            catch (error: Exception) {
+                kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                failed.add(option.videoUrl)
+                val next = com.saikou.sozo_tv.domain.player.SourceSelection.next(options,
+                    currentSelectedVideoOptionIndex, failed, false) ?: throw error
+                currentSelectedVideoOptionIndex = next
             }
         }
     }
@@ -270,13 +321,30 @@ class PlayAnimeViewModel(
     private suspend fun buildVodFromOption(
         option: VideoOption, sourceKey: String
     ): VodMovieResponse {
+        torrentHash?.let { torrentEngine.drop(it) }
+        torrentHash = null
         var url = option.videoUrl
+        var torrentSource = false
+        if (option.streamType == "torrent" || url.startsWith("magnet:")) {
+            val torrent = torrentEngine.resolve(url, requestedEpisodeNumber)
+            torrentHash = torrent.hash
+            url = torrent.url
+            torrentSource = true
+        }
         var headers = option.headers
-        var mime = option.mimeTypes.ifEmpty { MimeTypes.APPLICATION_M3U8 }
+        // Signed by the player on every start, so a retry after the token expires gets a new one.
+        var signer = option.signer
+        var mime = if (torrentSource) MimeTypes.VIDEO_MP4 else option.mimeTypes.ifEmpty { MimeTypes.APPLICATION_M3U8 }
 
         if (option.useWebViewSniff ||
             com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.needsExtraction(url)
         ) {
+            if (signer != null) {
+                url = withContext(Dispatchers.IO) {
+                    com.saikou.sozo_tv.engine.player.UrlSigner.signedOrSelf(signer, url, headers)
+                }
+                signer = null
+            }
             val directive = parseSniff(option.sniff)
             val sniffed = com.saikou.sozo_tv.engine.player.WebViewStreamExtractor.extract(
                 context = com.saikou.sozo_tv.app.MyApp.context,
@@ -286,26 +354,33 @@ class PlayAnimeViewModel(
                 patterns = directive.patterns,
                 blockHosts = directive.blockHosts,
             )
-            if (sniffed != null) {
+            if (sniffed == null) throw IllegalStateException("No playable stream was found in the embedded player")
+            run {
                 url = sniffed.url
-                headers = option.headers + sniffed.headers
+                headers = sniffed.headers
                 url = applyRewrite(directive.rewrite, url, headers)
-                mime = if (sniffed.playType == "hls") MimeTypes.APPLICATION_M3U8
-                else MimeTypes.VIDEO_MP4
+                mime = when (sniffed.playType) {
+                    "hls" -> MimeTypes.APPLICATION_M3U8
+                    "dash" -> MimeTypes.APPLICATION_MPD
+                    else -> MimeTypes.VIDEO_MP4
+                }
             }
         }
 
         return VodMovieResponse(
             authInfo = "",
-            subtitleList = option.tracks.map { SubTitle(it.file, it.label ?: "", headers = it.headers) },
+            subtitleList = option.tracks.map { SubTitle(it.file, it.label ?: "", headers = it.headers, cipher = it.cipher) },
             urlobj = url,
             header = headers,
             type = mime,
             thumbnail = option.thumbnail ?: "",
-            useLocalProxy = option.useLocalProxy,
+            useLocalProxy = option.useLocalProxy || com.saikou.sozo_tv.engine.player.StreamRequestRules.needsManifestProxy(url),
             localProxyJson = option.localProxy,
             requestTransformJson = option.requestTransform,
+            dropSegments = option.dropSegments,
+            signerJson = signer,
             audioTracks = option.audioTracks,
+            drm = option.drm,
         )
     }
 

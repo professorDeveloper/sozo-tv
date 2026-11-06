@@ -30,10 +30,14 @@ data class VideoOption(
     var useLocalProxy: Boolean = false,
     var localProxy: String? = null,
     var requestTransform: String? = null,
+    var dropSegments: String? = null,
+    var signer: String? = null,
     var useWebViewSniff: Boolean = false,
     var sniff: String? = null,
     /** Separate audio renditions merged into playback alongside [videoUrl]. */
     var audioTracks: List<AudioTrackRef> = emptyList(),
+    val drm: String? = null,
+    val streamType: String? = null,
 )
 
 

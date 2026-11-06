@@ -1,0 +1,1154 @@
+{
+"provider": "vidapi",
+"banner": [
+{
+"provider": "vidapi",
+"externalId": "1570488",
+"title": "A Dog's Perfect Christmas",
+"altTitles": [],
+"slug": "1570488",
+"contentUrl": "https://www.themoviedb.org/movie/1570488",
+"thumbnail": "https://image.tmdb.org/t/p/w500/wCBlcfbVPiK0mc13mgJDEoxRBHB.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/hhQT0TySg3LXCE8BEPpfPJ5zJA2.jpg",
+"year": 2026,
+"rating": 8.3,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Comedy",
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1294189",
+"title": "The Mongoose",
+"altTitles": [],
+"slug": "1294189",
+"contentUrl": "https://www.themoviedb.org/movie/1294189",
+"thumbnail": "https://image.tmdb.org/t/p/w500/eSS5mvSG84UUuvtbHel5Yu3Wik4.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/fEpP7Kib3LeUz0ckTsNJ52cl1k0.jpg",
+"year": 2026,
+"rating": 6.6,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Action",
+"Thriller"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1792170",
+"title": "Model Citizen",
+"altTitles": [],
+"slug": "1792170",
+"contentUrl": "https://www.themoviedb.org/movie/1792170",
+"thumbnail": "https://image.tmdb.org/t/p/w500/7SE0LBwgqiqZzkm9gKVbBAbcNQL.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/5MBdRdiGv3AKzZDGbni88xc6JFi.jpg",
+"year": 2026,
+"rating": 6.6,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Crime",
+"Science Fiction",
+"Thriller"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1423191",
+"title": "Resident Evil",
+"altTitles": [],
+"slug": "1423191",
+"contentUrl": "https://www.themoviedb.org/movie/1423191",
+"thumbnail": "https://image.tmdb.org/t/p/w500/gAgWJhUSQWCgtKR8170nMkYlBda.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/3icyRAqgakNcQn6aDVz9libFmBA.jpg",
+"year": 2026,
+"rating": 7.5,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Horror",
+"Science Fiction",
+"Adventure"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "258989",
+"title": "The Greatest",
+"altTitles": [],
+"slug": "258989",
+"contentUrl": "https://www.themoviedb.org/tv/258989",
+"thumbnail": "https://image.tmdb.org/t/p/w500/hu4jco5AOs8NSIctuc9KsRyuSg8.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/b57tPAE2rpUoNpa63o7U2sFvIZs.jpg",
+"year": 2026,
+"rating": 5.3,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "213375",
+"title": "VisionQuest",
+"altTitles": [],
+"slug": "213375",
+"contentUrl": "https://www.themoviedb.org/tv/213375",
+"thumbnail": "https://image.tmdb.org/t/p/w500/WGyAyBPncfuu8MZhLY9RtfZPM0.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/31o1Ufd7bStD5dGEcpzapOjwaqx.jpg",
+"year": 2026,
+"rating": 8.7,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1381071",
+"title": "Godzilla Minus Zero",
+"altTitles": [
+"ゴジラ-0.0"
+],
+"slug": "1381071",
+"contentUrl": "https://www.themoviedb.org/movie/1381071",
+"thumbnail": "https://image.tmdb.org/t/p/w500/hSmIJluOJmTWvJs4d7kHRxjc8s8.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/oqrYIDH4tvfEzPe1yqT4jzmAWHQ.jpg",
+"year": 2026,
+"rating": 8.1,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Science Fiction",
+"Horror",
+"Action"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1375441",
+"title": "Primetime",
+"altTitles": [],
+"slug": "1375441",
+"contentUrl": "https://www.themoviedb.org/movie/1375441",
+"thumbnail": "https://image.tmdb.org/t/p/w500/lmrulvLbmaejTix1YaMxo1oGhH1.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/sEsMwSDUWGIx9EfNxzM6KzVSsSQ.jpg",
+"year": 2026,
+"rating": 6.8,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Thriller",
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "248830",
+"title": "Stick",
+"altTitles": [],
+"slug": "248830",
+"contentUrl": "https://www.themoviedb.org/tv/248830",
+"thumbnail": "https://image.tmdb.org/t/p/w500/y8EWrf5Ry1WmYksWT7MOPWexvr5.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/2Bt2uXrIOQASBAsni2AGGqCCF14.jpg",
+"year": 2025,
+"rating": 7.3,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Comedy",
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "279246",
+"title": "The Remarried Empress",
+"altTitles": [
+"재혼 황후"
+],
+"slug": "279246",
+"contentUrl": "https://www.themoviedb.org/tv/279246",
+"thumbnail": "https://image.tmdb.org/t/p/w500/zn3IXZzGavH3qle3o3g1r32eXDy.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/1ptukf8gx19U1HcBv3aRzzlXuyJ.jpg",
+"year": 2026,
+"rating": 8,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "791523",
+"title": "Wildwood",
+"altTitles": [],
+"slug": "791523",
+"contentUrl": "https://www.themoviedb.org/movie/791523",
+"thumbnail": "https://image.tmdb.org/t/p/w500/snFM00mpNAfUzUtkdEW0uDEvXA0.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/sl5NJ1vtyhP9Vr88bB4blULsJYp.jpg",
+"year": 2026,
+"rating": 8.5,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Animation",
+"Adventure",
+"Fantasy"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1117898",
+"title": "The Cat in the Hat",
+"altTitles": [],
+"slug": "1117898",
+"contentUrl": "https://www.themoviedb.org/movie/1117898",
+"thumbnail": "https://image.tmdb.org/t/p/w500/tYH4rQZlHtuFSeDS0bsV17khvJC.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/9y9o686DsQg0KzPtERzcW7Cf8IE.jpg",
+"year": 2026,
+"rating": 7.4,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Animation",
+"Fantasy",
+"Comedy"
+]
+}
+],
+"sections": [
+{
+"key": "popular",
+"label": "Popular Movies",
+"viewAll": {
+"type": "category",
+"slug": "popular"
+},
+"items": [
+{
+"provider": "vidapi",
+"externalId": "155",
+"title": "The Dark Knight",
+"altTitles": [],
+"slug": "155",
+"contentUrl": "https://www.themoviedb.org/movie/155",
+"thumbnail": "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/cfT29Im5VDvjE0RpyKOSdCKZal7.jpg",
+"year": 2008,
+"rating": 8.5,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Action",
+"Thriller",
+"Crime"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "791523",
+"title": "Wildwood",
+"altTitles": [],
+"slug": "791523",
+"contentUrl": "https://www.themoviedb.org/movie/791523",
+"thumbnail": "https://image.tmdb.org/t/p/w500/8g7q6o54WfKWRmUQ0Ye8OskevUY.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/sl5NJ1vtyhP9Vr88bB4blULsJYp.jpg",
+"year": 2026,
+"rating": 8.5,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Animation",
+"Adventure",
+"Fantasy"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1058424",
+"title": "Hope",
+"altTitles": [
+"호프"
+],
+"slug": "1058424",
+"contentUrl": "https://www.themoviedb.org/movie/1058424",
+"thumbnail": "https://image.tmdb.org/t/p/w500/6VY1ZKgpsc8CfGsQcCGiYEgHdH0.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/j96rurZqmBjyY37Fncl3IB0qJNe.jpg",
+"year": 2026,
+"rating": 6.8,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Science Fiction",
+"Mystery",
+"Action"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1507696",
+"title": "Apocalypse Z: New World",
+"altTitles": [
+"Apocalipsis Z: Nuevo mundo"
+],
+"slug": "1507696",
+"contentUrl": "https://www.themoviedb.org/movie/1507696",
+"thumbnail": "https://image.tmdb.org/t/p/w500/wXln4DUrwcyjcFPwgQxFPYTlG1Z.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/o3XwuDUj0n8qnK91p6q8LKfr6rj.jpg",
+"year": 2026,
+"rating": 6.1,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Action",
+"Thriller",
+"Horror"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "969681",
+"title": "Spider-Man: Brand New Day",
+"altTitles": [],
+"slug": "969681",
+"contentUrl": "https://www.themoviedb.org/movie/969681",
+"thumbnail": "https://image.tmdb.org/t/p/w500/bjiS5ipwxb9JFy3XRRN4OAilSeX.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/dzeCorl61ZdxbzfnciUkrc8JSZj.jpg",
+"year": 2026,
+"rating": 8.5,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Science Fiction",
+"Action",
+"Adventure"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1423191",
+"title": "Resident Evil",
+"altTitles": [],
+"slug": "1423191",
+"contentUrl": "https://www.themoviedb.org/movie/1423191",
+"thumbnail": "https://image.tmdb.org/t/p/w500/gAgWJhUSQWCgtKR8170nMkYlBda.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/3icyRAqgakNcQn6aDVz9libFmBA.jpg",
+"year": 2026,
+"rating": 7.5,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Horror",
+"Science Fiction",
+"Adventure"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1596275",
+"title": "Drive - The Pretenders",
+"altTitles": [
+"Drive – The Pretenders"
+],
+"slug": "1596275",
+"contentUrl": "https://www.themoviedb.org/movie/1596275",
+"thumbnail": "https://image.tmdb.org/t/p/w500/s9syckECnUYhKePQ1A0DC0mFVZ9.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/hbz4aeVsjnKb2HRoFbbr46Egh8y.jpg",
+"year": 2026,
+"rating": 7.8,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Romance",
+"Thriller"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "354912",
+"title": "Coco",
+"altTitles": [],
+"slug": "354912",
+"contentUrl": "https://www.themoviedb.org/movie/354912",
+"thumbnail": "https://image.tmdb.org/t/p/w500/6Ryitt95xrO8KXuqRGm1fUuNwqF.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/g7CHF8gTLGooTbP4GznIGwaqAGL.jpg",
+"year": 2017,
+"rating": 8.2,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Family",
+"Animation",
+"Music",
+"Adventure"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1657630",
+"title": "The Awakening",
+"altTitles": [
+"El despertar"
+],
+"slug": "1657630",
+"contentUrl": "https://www.themoviedb.org/movie/1657630",
+"thumbnail": "https://image.tmdb.org/t/p/w500/7pUGiRg9Gq1JqmmNSJLLSonOKum.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/4pYKqctQvvdyhuGjiK4szH9jEv9.jpg",
+"year": 2026,
+"rating": 6.4,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Horror",
+"Action",
+"War",
+"Fantasy",
+"Thriller"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1283515",
+"title": "Verity",
+"altTitles": [],
+"slug": "1283515",
+"contentUrl": "https://www.themoviedb.org/movie/1283515",
+"thumbnail": "https://image.tmdb.org/t/p/w500/rmaNMA1seHqpjtnYKzyynFAr1g8.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/cKetrF2dAnQ0AMV5i4BMOs41I5P.jpg",
+"year": 2026,
+"rating": 7,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Mystery",
+"Thriller"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1101412",
+"title": "Fall 2: Deadpoint",
+"altTitles": [],
+"slug": "1101412",
+"contentUrl": "https://www.themoviedb.org/movie/1101412",
+"thumbnail": "https://image.tmdb.org/t/p/w500/fgSm5ylwiXbIHn8UbUXDjk9RRu4.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/nGau0KBOaRILSK5MqFcuTfv7GMl.jpg",
+"year": 2026,
+"rating": 7.3,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Thriller"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1368337",
+"title": "The Odyssey",
+"altTitles": [],
+"slug": "1368337",
+"contentUrl": "https://www.themoviedb.org/movie/1368337",
+"thumbnail": "https://image.tmdb.org/t/p/w500/5rhTDKUhPYvpdQIijFIs5VoWsON.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/nVBzWBqHTB3XD0iqWiJLfKLo5fq.jpg",
+"year": 2026,
+"rating": 8,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Adventure",
+"Action",
+"Fantasy"
+]
+}
+]
+},
+{
+"key": "top-rated",
+"label": "Top Rated Movies",
+"viewAll": {
+"type": "category",
+"slug": "top-rated"
+},
+"items": [
+{
+"provider": "vidapi",
+"externalId": "1560520",
+"title": "Batman: Knightfall Part 1: Knightfall",
+"altTitles": [],
+"slug": "1560520",
+"contentUrl": "https://www.themoviedb.org/movie/1560520",
+"thumbnail": "https://image.tmdb.org/t/p/w500/360qdtu2hLnqMu8SVHMywn420w1.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/caBIySpwuFi2i7ynvHIlnxJLOdN.jpg",
+"year": 2026,
+"rating": 9.1,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Animation",
+"Action",
+"Adventure",
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "980431",
+"title": "Avatar Aang: The Last Airbender",
+"altTitles": [],
+"slug": "980431",
+"contentUrl": "https://www.themoviedb.org/movie/980431",
+"thumbnail": "https://image.tmdb.org/t/p/w500/3sgnSfNT27Bx5O5ukr7B26mhEQq.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/ezbrL1dMymKQZw7mDEWa2ZTzN7d.jpg",
+"year": 2026,
+"rating": 9,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Animation",
+"Adventure",
+"Fantasy",
+"Action"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1007757",
+"title": "Swapped",
+"altTitles": [],
+"slug": "1007757",
+"contentUrl": "https://www.themoviedb.org/movie/1007757",
+"thumbnail": "https://image.tmdb.org/t/p/w500/tHhxWxge06goXU6ZQH1hj7vK8Hd.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/zMwhWailP1WY7sb6AoE6b8ugoy.jpg",
+"year": 2026,
+"rating": 8.8,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Adventure",
+"Animation",
+"Family",
+"Fantasy"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1632181",
+"title": "Accidental Partners",
+"altTitles": [
+"Socias por accidente"
+],
+"slug": "1632181",
+"contentUrl": "https://www.themoviedb.org/movie/1632181",
+"thumbnail": "https://image.tmdb.org/t/p/w500/j0CIVzeR7hRAPBPGR54qDZoOQpp.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/iCML6fBe3X0y06P33bM7dyYXPKZ.jpg",
+"year": 2026,
+"rating": 8.8,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Comedy",
+"Romance"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1311031",
+"title": "Demon Slayer: Kimetsu no Yaiba Infinity Castle",
+"altTitles": [
+"劇場版「鬼滅の刃」無限城編 第一章 猗窩座再来"
+],
+"slug": "1311031",
+"contentUrl": "https://www.themoviedb.org/movie/1311031",
+"thumbnail": "https://image.tmdb.org/t/p/w500/fWVSwgjpT2D78VUh6X8UBd2rorW.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/1RgPyOhN4DRs225BGTlHJqCudII.jpg",
+"year": 2025,
+"rating": 8.8,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Animation",
+"Action",
+"Fantasy"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1621552",
+"title": "Facing El Chapo",
+"altTitles": [
+"La captura"
+],
+"slug": "1621552",
+"contentUrl": "https://www.themoviedb.org/movie/1621552",
+"thumbnail": "https://image.tmdb.org/t/p/w500/alpf5v4UqSFawPmG9RX03Or4BDk.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/c4U96GrPRfnNrS01mBtqnocvlLJ.jpg",
+"year": 2026,
+"rating": 8.8,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Crime",
+"Action",
+"Thriller"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "278",
+"title": "The Shawshank Redemption",
+"altTitles": [],
+"slug": "278",
+"contentUrl": "https://www.themoviedb.org/movie/278",
+"thumbnail": "https://image.tmdb.org/t/p/w500/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/pNjh59JSxChQktamG3LMp9ZoQzp.jpg",
+"year": 1994,
+"rating": 8.7,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Drama",
+"Crime"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "238",
+"title": "The Godfather",
+"altTitles": [],
+"slug": "238",
+"contentUrl": "https://www.themoviedb.org/movie/238",
+"thumbnail": "https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/ejdD20cdHNFAYAN2DlqPToXKyzx.jpg",
+"year": 1972,
+"rating": 8.7,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Drama",
+"Crime"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "687163",
+"title": "Project Hail Mary",
+"altTitles": [],
+"slug": "687163",
+"contentUrl": "https://www.themoviedb.org/movie/687163",
+"thumbnail": "https://image.tmdb.org/t/p/w500/iOb2fjXLbpJgyQXe46n1WtGCnaa.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/8Tfys3mDZVp4tNoH2ktm06a0Tau.jpg",
+"year": 2026,
+"rating": 8.6,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Science Fiction",
+"Adventure"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1232449",
+"title": "Young Hearts",
+"altTitles": [],
+"slug": "1232449",
+"contentUrl": "https://www.themoviedb.org/movie/1232449",
+"thumbnail": "https://image.tmdb.org/t/p/w500/iGCtYxfuvXfy0BD5m6p7vKuPOxS.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/3HaqAPZ0C8n6Hd5T86U53yJlBAN.jpg",
+"year": 2024,
+"rating": 8.6,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Drama",
+"Romance"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "936075",
+"title": "Michael",
+"altTitles": [],
+"slug": "936075",
+"contentUrl": "https://www.themoviedb.org/movie/936075",
+"thumbnail": "https://image.tmdb.org/t/p/w500/dueFqKLvjftnELZaGYwY7xinfaI.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/ufSwlnECLoUbBjPrFqEQcWBzHwc.jpg",
+"year": 2026,
+"rating": 8.6,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Music",
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "389",
+"title": "12 Angry Men",
+"altTitles": [],
+"slug": "389",
+"contentUrl": "https://www.themoviedb.org/movie/389",
+"thumbnail": "https://image.tmdb.org/t/p/w500/zhG3vKWyDRaZYoaww1UVAi29T9h.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/qqHQsStV6exghCM7zbObuYBiYxw.jpg",
+"year": 1957,
+"rating": 8.6,
+"qualities": [],
+"category": "movie",
+"genres": [
+"Drama"
+]
+}
+]
+},
+{
+"key": "popular-tv",
+"label": "Popular TV",
+"viewAll": {
+"type": "category",
+"slug": "popular-tv"
+},
+"items": [
+{
+"provider": "vidapi",
+"externalId": "5920",
+"title": "The Mentalist",
+"altTitles": [],
+"slug": "5920",
+"contentUrl": "https://www.themoviedb.org/tv/5920",
+"thumbnail": "https://image.tmdb.org/t/p/w500/acYXu4KaDj1NIkMgObnhe4C4a0T.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/rJFqKcmMSttdNP58l0dVzY2NcTA.jpg",
+"year": 2008,
+"rating": 8.4,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Crime",
+"Drama",
+"Mystery"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "2316",
+"title": "The Office",
+"altTitles": [],
+"slug": "2316",
+"contentUrl": "https://www.themoviedb.org/tv/2316",
+"thumbnail": "https://image.tmdb.org/t/p/w500/7DJKHzAi83BmQrWLrYYOqcoKfhR.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/9vMzIrMIncPmtalcxh1MOrgcE6C.jpg",
+"year": 2005,
+"rating": 8.6,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Comedy"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1100",
+"title": "How I Met Your Mother",
+"altTitles": [],
+"slug": "1100",
+"contentUrl": "https://www.themoviedb.org/tv/1100",
+"thumbnail": "https://image.tmdb.org/t/p/w500/b34jPzmB0wZy7EjUZoleXOl2RRI.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/3f8aW6vcYRP6mTZdgXm83BiuB9t.jpg",
+"year": 2005,
+"rating": 8.1,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Comedy"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "60735",
+"title": "The Flash",
+"altTitles": [],
+"slug": "60735",
+"contentUrl": "https://www.themoviedb.org/tv/60735",
+"thumbnail": "https://image.tmdb.org/t/p/w500/yZevl2vHQgmosfwUdVNzviIfaWS.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/gFkHcIh7iE5G0oVOgpmY8ONQjhl.jpg",
+"year": 2014,
+"rating": 7.7,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "18165",
+"title": "The Vampire Diaries",
+"altTitles": [],
+"slug": "18165",
+"contentUrl": "https://www.themoviedb.org/tv/18165",
+"thumbnail": "https://image.tmdb.org/t/p/w500/aBkVgChtyyJaHyZh1gfd8DbzQon.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/cJYLon9ejKJV7ua03ab8Tj9u067.jpg",
+"year": 2009,
+"rating": 8.3,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1421",
+"title": "Modern Family",
+"altTitles": [],
+"slug": "1421",
+"contentUrl": "https://www.themoviedb.org/tv/1421",
+"thumbnail": "https://image.tmdb.org/t/p/w500/k5Qg5rgPoKdh3yTJJrLtyoyYGwC.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/nO7EzksrBzlNpAg5rgv8HzaBIkx.jpg",
+"year": 2009,
+"rating": 7.9,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Comedy"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1408",
+"title": "House",
+"altTitles": [],
+"slug": "1408",
+"contentUrl": "https://www.themoviedb.org/tv/1408",
+"thumbnail": "https://image.tmdb.org/t/p/w500/3Cz7ySOQJmqiuTdrc6CY0r65yDI.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/r0Q6eeN9L1ORL9QsV0Sg8ZV3vnv.jpg",
+"year": 2004,
+"rating": 8.6,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1400",
+"title": "Seinfeld",
+"altTitles": [],
+"slug": "1400",
+"contentUrl": "https://www.themoviedb.org/tv/1400",
+"thumbnail": "https://image.tmdb.org/t/p/w500/aCw8ONfyz3AhngVQa1E2Ss4KSUQ.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/tMRdEsMg9MyXAkcufK9YJEeIaNW.jpg",
+"year": 1989,
+"rating": 8.2,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Comedy"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "48866",
+"title": "The 100",
+"altTitles": [],
+"slug": "48866",
+"contentUrl": "https://www.themoviedb.org/tv/48866",
+"thumbnail": "https://image.tmdb.org/t/p/w500/wHIMMLFsk32wIzDmawWkYVbxFCS.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/8ZerYKvIaNUJZvAHXYTQu4qTwFw.jpg",
+"year": 2014,
+"rating": 7.9,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Drama",
+"Crime"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "2734",
+"title": "Law & Order: Special Victims Unit",
+"altTitles": [],
+"slug": "2734",
+"contentUrl": "https://www.themoviedb.org/tv/2734",
+"thumbnail": "https://image.tmdb.org/t/p/w500/pHNhUwSXuDQ9jPZOCb8SgJaQZsc.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/xhK9YCxNwnE0OB1SWvCY39heHQI.jpg",
+"year": 1999,
+"rating": 8,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Crime",
+"Drama",
+"Mystery"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1695",
+"title": "Monk",
+"altTitles": [],
+"slug": "1695",
+"contentUrl": "https://www.themoviedb.org/tv/1695",
+"thumbnail": "https://image.tmdb.org/t/p/w500/3axGMbUecXXOPSeG47v2i9wK5y5.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/dMY7XUfEAK0Rl8hsgc8ufEOaiZ2.jpg",
+"year": 2002,
+"rating": 7.9,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Drama",
+"Comedy",
+"Crime",
+"Mystery"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "44217",
+"title": "Vikings",
+"altTitles": [],
+"slug": "44217",
+"contentUrl": "https://www.themoviedb.org/tv/44217",
+"thumbnail": "https://image.tmdb.org/t/p/w500/bQLrHIRNEkE3PdIWQrZHynQZazu.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/13kblIK8DnxMurcRDkeyy2sGR7v.jpg",
+"year": 2013,
+"rating": 8.1,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Drama"
+]
+}
+]
+},
+{
+"key": "on-air-tv",
+"label": "On Air TV",
+"viewAll": {
+"type": "category",
+"slug": "on-air-tv"
+},
+"items": [
+{
+"provider": "vidapi",
+"externalId": "2734",
+"title": "Law & Order: Special Victims Unit",
+"altTitles": [],
+"slug": "2734",
+"contentUrl": "https://www.themoviedb.org/tv/2734",
+"thumbnail": "https://image.tmdb.org/t/p/w500/pHNhUwSXuDQ9jPZOCb8SgJaQZsc.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/xhK9YCxNwnE0OB1SWvCY39heHQI.jpg",
+"year": 1999,
+"rating": 8,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Crime",
+"Drama",
+"Mystery"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "456",
+"title": "The Simpsons",
+"altTitles": [],
+"slug": "456",
+"contentUrl": "https://www.themoviedb.org/tv/456",
+"thumbnail": "https://image.tmdb.org/t/p/w500/tf0CUEynk6GfmrlHIQKQ5mfFP5P.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/jIArNHIekrCSVgdMbKPAXpPY03Y.jpg",
+"year": 1989,
+"rating": 8,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Animation",
+"Comedy"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "31991",
+"title": "WWE NXT",
+"altTitles": [],
+"slug": "31991",
+"contentUrl": "https://www.themoviedb.org/tv/31991",
+"thumbnail": "https://image.tmdb.org/t/p/w500/9nLBX5Bf7PW4FAaWJLXpFFdeTlV.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/2ugy3IP3yvdRdEepHDOml82TKFT.jpg",
+"year": 2010,
+"rating": 6.6,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "1416",
+"title": "Grey's Anatomy",
+"altTitles": [],
+"slug": "1416",
+"contentUrl": "https://www.themoviedb.org/tv/1416",
+"thumbnail": "https://image.tmdb.org/t/p/w500/gO8Fo47KV1opiutRDdBS5jclTQB.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/A4NwkQXTXElE5iAsne5RpvS8R2Z.jpg",
+"year": 2005,
+"rating": 8.2,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "231962",
+"title": "Deep Waters",
+"altTitles": [
+"Diepe Waters"
+],
+"slug": "231962",
+"contentUrl": "https://www.themoviedb.org/tv/231962",
+"thumbnail": "https://image.tmdb.org/t/p/w500/1nmKI8MWPC5Q0yOryKTpF89dikP.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/nPexsB86g0YUXxBpa7OYd8sqCPP.jpg",
+"year": 2022,
+"rating": 8.2,
+"qualities": [],
+"category": "tv",
+"genres": []
+},
+{
+"provider": "vidapi",
+"externalId": "22980",
+"title": "Watch What Happens Live with Andy Cohen",
+"altTitles": [],
+"slug": "22980",
+"contentUrl": "https://www.themoviedb.org/tv/22980",
+"thumbnail": "https://image.tmdb.org/t/p/w500/onSD9UXfJwrMXWhq7UY7hGF2S1h.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/hINekSpbcBxjnjGqmIm6I4bz2ab.jpg",
+"year": 2009,
+"rating": 4.9,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Comedy"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "4656",
+"title": "Raw",
+"altTitles": [],
+"slug": "4656",
+"contentUrl": "https://www.themoviedb.org/tv/4656",
+"thumbnail": "https://image.tmdb.org/t/p/w500/fstEe6RsyNyPUnMwNcL20iNl0nE.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/ykWWT8FAChBffNxcDzoJMCK9LBb.jpg",
+"year": 1993,
+"rating": 6.8,
+"qualities": [],
+"category": "tv",
+"genres": []
+},
+{
+"provider": "vidapi",
+"externalId": "33238",
+"title": "Running Man",
+"altTitles": [
+"런닝맨"
+],
+"slug": "33238",
+"contentUrl": "https://www.themoviedb.org/tv/33238",
+"thumbnail": "https://image.tmdb.org/t/p/w500/2Wmmu1MkqxJ48J7aySET9EKEjXz.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/wsHj4oHQJoe7DMYaqNFwVoyLiAh.jpg",
+"year": 2010,
+"rating": 8.2,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Comedy"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "59941",
+"title": "The Tonight Show Starring Jimmy Fallon",
+"altTitles": [],
+"slug": "59941",
+"contentUrl": "https://www.themoviedb.org/tv/59941",
+"thumbnail": "https://image.tmdb.org/t/p/w500/1N4o5PmmqhlVDrcdJ2RlCFWbLGX.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/i4OYRb5V13BrOnTPJGdyXWg4r0J.jpg",
+"year": 2014,
+"rating": 5.8,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Comedy"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "247718",
+"title": "MobLand",
+"altTitles": [],
+"slug": "247718",
+"contentUrl": "https://www.themoviedb.org/tv/247718",
+"thumbnail": "https://image.tmdb.org/t/p/w500/5Xc7WpWsgflfgEMoBlf9TmWhfbH.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/h0OC7ouop8YLwbAVfS3UUE2Lw4T.jpg",
+"year": 2025,
+"rating": 8.6,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Crime",
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "4614",
+"title": "NCIS",
+"altTitles": [],
+"slug": "4614",
+"contentUrl": "https://www.themoviedb.org/tv/4614",
+"thumbnail": "https://image.tmdb.org/t/p/w500/y4fGncqELtnvRQuwSpuH8LncZqU.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/c1aBrG5s5xFa6Tbnihu2Hhj4t2q.jpg",
+"year": 2003,
+"rating": 7.6,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Crime",
+"Drama"
+]
+},
+{
+"provider": "vidapi",
+"externalId": "2224",
+"title": "The Daily Show",
+"altTitles": [],
+"slug": "2224",
+"contentUrl": "https://www.themoviedb.org/tv/2224",
+"thumbnail": "https://image.tmdb.org/t/p/w500/ixcfyK7it6FjRM36Te4OdblAq4X.jpg",
+"banner": "https://image.tmdb.org/t/p/w780/qLMfcvdCcCGD2BNLH8b6ZCBuO7D.jpg",
+"year": 1996,
+"rating": 6.4,
+"qualities": [],
+"category": "tv",
+"genres": [
+"Comedy"
+]
+}
+]
+}
+]
+}

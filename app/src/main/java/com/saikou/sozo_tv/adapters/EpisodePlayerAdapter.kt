@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.AsyncListDiffer
+import androidx.recyclerview.widget.DiffUtil
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.databinding.EpisodeItemLittleBinding
 import com.saikou.sozo_tv.parser.models.Data
@@ -17,7 +19,13 @@ class EpisodePlayerAdapter(
     var defaultImg: String,
 ) : RecyclerView.Adapter<EpisodePlayerAdapter.EpisodePlayerViewHolder>() {
 
-    private val list = ArrayList<Data>()
+    private val differ = AsyncListDiffer(this, object : DiffUtil.ItemCallback<Data>() {
+        override fun areItemsTheSame(oldItem: Data, newItem: Data) =
+            oldItem.session == newItem.session && oldItem.episode == newItem.episode &&
+                oldItem.season == newItem.season && oldItem.serverId == newItem.serverId
+        override fun areContentsTheSame(oldItem: Data, newItem: Data) = oldItem == newItem
+    })
+    private val list get() = differ.currentList
     private var progress: Map<String, Pair<Long, Long>> = emptyMap()
     private lateinit var onEpisodeClick: (position: Int, data: Data) -> Unit
     fun setOnEpisodeClick(listener: (position: Int, data: Data) -> Unit) {
@@ -29,52 +37,52 @@ class EpisodePlayerAdapter(
 
         @SuppressLint("SetTextI18n")
         fun onBind(data: Data, position: Int) {
+            bindState(data, position)
+            itemBinding.itemImg.loadImage(data.snapshot ?: defaultImg)
+            val number = data.episode?.takeIf { it > 0 } ?: (position + 1)
+            itemBinding.topContainer.text = itemBinding.root.context.getString(R.string.episode_n, number)
+            itemBinding.root.setOnClickListener {
+                val selected = bindingAdapterPosition
+                if (selected == RecyclerView.NO_POSITION) return@setOnClickListener
+                selectEpisode(selected)
+                onEpisodeClick(selected, list[selected])
+            }
+        }
+
+        fun bindState(data: Data, position: Int) {
             itemBinding.apply {
-                if (position == currentIndex) {
-                    itemBinding.nowPlayingBadge.visible()
-                } else {
-                    itemBinding.nowPlayingBadge.gone()
-                }
-
-                itemBinding.itemImg.loadImage(data.snapshot ?: defaultImg)
-
-                val number = data.episode?.takeIf { it > 0 } ?: (position + 1)
-                topContainer.text = root.context.getString(R.string.episode_n, number)
-
+                if (position == currentIndex) nowPlayingBadge.visible() else nowPlayingBadge.gone()
                 val watched = data.session?.let { progress[it] }
-                if (watched != null) {
-                    val percent = (watched.first * 100 / watched.second).toInt().coerceIn(1, 100)
+                val percent = episodeProgressPercent(watched)
+                if (percent != null) {
                     progressBar.progress = percent
                     progressBar.visible()
-                    timeStr.text =
-                        root.context.getString(R.string.episode_stopped_at, stamp(watched.first))
+                    timeStr.text = root.context.getString(R.string.episode_stopped_at, stamp(watched!!.first))
                     timeStr.visible()
                 } else {
                     progressBar.gone()
                     timeStr.gone()
-                }
-                root.setOnClickListener {
-                    val previousIndex = currentIndex
-                    currentIndex = position
-                    notifyItemChanged(previousIndex)
-                    notifyItemChanged(currentIndex)
-                    onEpisodeClick(position, data)
                 }
             }
         }
     }
 
     fun setProgress(next: Map<String, Pair<Long, Long>>) {
-        progress = next
-        notifyDataSetChanged()
+        val previous = progress
+        progress = next.toMap()
+        list.forEachIndexed { index, episode ->
+            if (previous[episode.session] != progress[episode.session]) {
+                notifyItemChanged(index, STATE_PAYLOAD)
+            }
+        }
     }
 
     fun selectEpisode(index: Int) {
         if (index == currentIndex) return
         val previous = currentIndex
         currentIndex = index
-        if (previous in list.indices) notifyItemChanged(previous)
-        if (index in list.indices) notifyItemChanged(index)
+        if (previous in list.indices) notifyItemChanged(previous, STATE_PAYLOAD)
+        if (index in list.indices) notifyItemChanged(index, STATE_PAYLOAD)
     }
 
     private fun stamp(ms: Long): String {
@@ -87,9 +95,7 @@ class EpisodePlayerAdapter(
     }
 
     fun submitList(newList: List<Data>) {
-        list.clear()
-        list.addAll(newList)
-        notifyDataSetChanged()
+        differ.submitList(newList.toList())
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EpisodePlayerViewHolder {
@@ -101,6 +107,16 @@ class EpisodePlayerAdapter(
     }
 
     override fun getItemCount(): Int = list.size
+
+    override fun onBindViewHolder(holder: EpisodePlayerViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isNotEmpty() && payloads.all { it == STATE_PAYLOAD }) {
+            holder.bindState(list[position], position)
+        } else holder.onBind(list[position], position)
+    }
+
+    private companion object {
+        const val STATE_PAYLOAD = "episode-state"
+    }
 
     override fun onBindViewHolder(holder: EpisodePlayerViewHolder, position: Int) {
         holder.onBind(list[position], position)

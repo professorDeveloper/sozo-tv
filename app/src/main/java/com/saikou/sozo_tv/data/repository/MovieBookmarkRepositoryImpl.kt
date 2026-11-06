@@ -1,10 +1,12 @@
 package com.saikou.sozo_tv.data.repository
 
-import com.saikou.sozo_tv.data.local.dao.MovieDao
+import com.saikou.sozo_tv.data.local.database.ProfileDatabaseProvider
 import com.saikou.sozo_tv.data.local.entity.AnimeBookmark
 import com.saikou.sozo_tv.domain.repository.MovieBookmarkRepository
 
-class MovieBookmarkRepositoryImpl(private val dao: MovieDao) : MovieBookmarkRepository {
+class MovieBookmarkRepositoryImpl(private val databases: ProfileDatabaseProvider) : MovieBookmarkRepository {
+
+    private val dao get() = databases.movieDao()
 
     override suspend fun addBookmark(movie: AnimeBookmark) {
         dao.insertBookmark(movie)

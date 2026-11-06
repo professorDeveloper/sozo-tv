@@ -35,7 +35,7 @@ class HistoryPage : Fragment() {
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             renderHistory()
             if (model.syncHistoryNow()) renderHistory()
         }
@@ -111,7 +111,7 @@ class HistoryPage : Fragment() {
     }
 
     private fun clearHistory() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             model.clearAllHistory()
             renderHistory()
         }

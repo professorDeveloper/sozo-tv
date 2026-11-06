@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.saikou.sozo_tv.BuildConfig
 import com.saikou.sozo_tv.data.local.pref.DeviceSessionStore
+import com.saikou.sozo_tv.data.local.pref.ActiveProfileStore
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.data.remote.anilist.AnilistGraphQlClient
 import com.saikou.sozo_tv.data.remote.anilist.AnilistLinkClient
@@ -29,6 +30,8 @@ import com.saikou.sozo_tv.data.remote.remote.RemoteControlClient
 import com.saikou.sozo_tv.data.repository.RemoteControlManager
 import com.saikou.sozo_tv.data.repository.UserListsRepository
 import com.saikou.sozo_tv.data.repository.WatchHistorySyncRepository
+import com.saikou.sozo_tv.data.remote.profiles.ProfilesClient
+import com.saikou.sozo_tv.data.repository.HouseholdProfileRepository
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -43,6 +46,7 @@ val NetworkModule = module {
     single { ExtensionEngine.shared }
 
     single<Gson> { GsonBuilder().create() }
+    single { ActiveProfileStore(androidContext(), get()) }
 
     // Device sign-in. Deliberately on its OWN client — see createAuthOkHttpClient().
     single { DeviceSessionStore(androidContext()) }
@@ -58,6 +62,16 @@ val NetworkModule = module {
             },
         )
     }
+    // Account APIs see the household member selected on this TV. Device-auth
+    // endpoints intentionally keep using authOkHttp without this header.
+    single(named("profileOkHttp")) {
+        createAuthOkHttpClient(
+            authenticator = DeviceTokenAuthenticator(
+                apiHost = BuildConfig.SOZO_API_BASE_URL.toHttpUrlOrNull()?.host,
+            ) { get<DeviceAuthRepository>().refreshNow() },
+            profileIdProvider = { get<ActiveProfileStore>().profileId() },
+        )
+    }
     // Third-party APIs that carry their own tokens (AniList, MyAnimeList). Same platform TLS as
     // the auth client, but no Sozo authenticator: their 401s are not ours to answer.
     single(named("trackerOkHttp")) { createAuthOkHttpClient() }
@@ -69,6 +83,19 @@ val NetworkModule = module {
         )
     }
     single { DeviceAuthRepository(client = get(), store = get()) }
+    single {
+        ProfilesClient(
+            client = get(named("profileOkHttp")),
+            gson = get(),
+            baseUrl = BuildConfig.SOZO_API_BASE_URL,
+            tokenProvider = { get<DeviceAuthRepository>().accessToken() },
+        )
+    }
+    single {
+        HouseholdProfileRepository(
+            context = androidContext(), client = get(), activeStore = get(), gson = get(), databases = get(),
+        )
+    }
 
     // Curated lists (Watch Later / Watched) — the first authenticated API the TV
     // calls. Shares the auth client (platform TLS, no body logging) because it
@@ -76,19 +103,19 @@ val NetworkModule = module {
     // DeviceAuthRepository so refreshes are picked up mid-session.
     single {
         UserListsClient(
-            okHttpClient = get(named("authOkHttp")),
+            okHttpClient = get(named("profileOkHttp")),
             gson = get(),
             baseUrl = BuildConfig.SOZO_API_BASE_URL,
             tokenProvider = { get<DeviceAuthRepository>().accessToken() },
         )
     }
-    single { UserListsRepository(context = androidContext(), client = get()) }
+    single { UserListsRepository(context = androidContext(), client = get(), profileStore = get()) }
 
     // The phone's remote. Same auth client and per-request token as the other
     // authenticated APIs, so a mid-session refresh is picked up on reconnect.
     single {
         RemoteControlClient(
-            okHttpClient = get(named("authOkHttp")),
+            okHttpClient = get(named("profileOkHttp")),
             gson = get(),
             baseUrl = BuildConfig.SOZO_API_BASE_URL,
             tokenProvider = { get<DeviceAuthRepository>().accessToken() },
@@ -98,7 +125,7 @@ val NetworkModule = module {
 
     single {
         WatchHistorySyncClient(
-            okHttpClient = get(named("authOkHttp")),
+            okHttpClient = get(named("profileOkHttp")),
             gson = get(),
             baseUrl = BuildConfig.SOZO_API_BASE_URL,
             tokenProvider = { get<DeviceAuthRepository>().accessToken() },
@@ -109,12 +136,13 @@ val NetworkModule = module {
             context = androidContext(),
             client = get(),
             local = get(),
+            profileStore = get(),
         )
     }
 
     single {
         AnilistLinkClient(
-            okHttpClient = get(named("authOkHttp")),
+            okHttpClient = get(named("profileOkHttp")),
             gson = get(),
             baseUrl = BuildConfig.SOZO_API_BASE_URL,
             tokenProvider = { get<DeviceAuthRepository>().accessToken() },
@@ -135,7 +163,7 @@ val NetworkModule = module {
     // twice, which is also matched wrong twice.
     single {
         MalLinkClient(
-            okHttpClient = get(named("authOkHttp")),
+            okHttpClient = get(named("profileOkHttp")),
             gson = get(),
             baseUrl = BuildConfig.SOZO_API_BASE_URL,
             tokenProvider = { get<DeviceAuthRepository>().accessToken() },
@@ -171,7 +199,7 @@ val NetworkModule = module {
     }
     single {
         SubtitleTranslationClient(
-            okHttpClient = get(named("authOkHttp")),
+            okHttpClient = get(named("profileOkHttp")),
             gson = get(),
             baseUrl = BuildConfig.SOZO_API_BASE_URL,
             tokenProvider = { get<DeviceAuthRepository>().accessToken() },
@@ -188,7 +216,10 @@ val NetworkModule = module {
  * Read timeout sits above the server's own 15s request timeout so a 504 arrives as a real
  * response (retryable) rather than as a client-side abort.
  */
-fun createAuthOkHttpClient(authenticator: Authenticator? = null): OkHttpClient {
+fun createAuthOkHttpClient(
+    authenticator: Authenticator? = null,
+    profileIdProvider: (() -> String?)? = null,
+): OkHttpClient {
     val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC
         else HttpLoggingInterceptor.Level.NONE
@@ -200,8 +231,12 @@ fun createAuthOkHttpClient(authenticator: Authenticator? = null): OkHttpClient {
         .writeTimeout(20, TimeUnit.SECONDS)
         .callTimeout(25, TimeUnit.SECONDS)
         .addInterceptor(loggingInterceptor)
+        .apply {
+            if (profileIdProvider != null) addInterceptor(
+                com.saikou.sozo_tv.data.remote.profiles.ProfileHeaderInterceptor(profileIdProvider)
+            )
+        }
         .retryOnConnectionFailure(true)
         .apply { if (authenticator != null) authenticator(authenticator) }
         .build()
 }
-

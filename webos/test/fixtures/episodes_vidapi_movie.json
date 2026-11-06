@@ -1,0 +1,307 @@
+{
+"provider": "vidapi",
+"contentUrl": "https://www.themoviedb.org/movie/1570488",
+"isSerial": false,
+"videoSources": [
+{
+"quality": "Server 1",
+"videoUrl": "https://claritybusinessacademy.site/rHB4U1AQA/pl/H4sIAAAAAAAAAw3KXXuCIBgA0L8kqC12WQPNEifwinIH2h57oHLN2cev3871.eqRW63fCEExWROcup44gl0coaO1Nk7fJRsvAKYylMXDh4msTnUNojMnspen.RNgopry55ChopTz1ZxDNfgo0apZlVn5EK.xqvLCG7VbDEZsj1Mt0EDBl68SbYTDBW1Yswc6UUf9S2YmqbHIygaWnk5npR8bSRnw6P.hOnXtqAdqsiE3d6nYc4D5W0T9ovDMAYmEg9jV58ekPMRlyw5adQsPYyvCKCWMeec5sy3c7KXBNRR5F3dYh_FXqMLKEFiPaXKI.I1n7GlCsQUmfmqdAvhr1Mu5cqi7Wxq2R89nUBH5A9hlk6hBAQAA/master.m3u8",
+"isDefault": true,
+"accessible": true,
+"host": "Server 1",
+"type": "hls",
+"headers": {
+"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+"Referer": "https://nextgencloudfabric.com/",
+"Origin": "https://nextgencloudfabric.com"
+}
+},
+{
+"quality": "Server 2",
+"videoUrl": "https://claritybusinessacademy.site/rHB4U1AQA/pl/H4sIAAAAAAAAAwXB0XJEMBQA0F9KZNnqozYYi51EEuQNsZM2l1VMrX59zwkvlwe6Gh9h74q6twcOg6Afhw75hnSPAL_XdKEj3T_HWE.FiluFXlwTeWgM9xxHaUfcOkhYpGKnUQuvHT7YzJ89qK928vFd2B_RAFOTdmq2uaJxXDQLuiG9laCsbMpDTL5kGG4tzrYOy1UlByoorpmAoHDq2X3suYhtwsAdHEdFPWncN.bO53ipHF97amdJMtDCyqoGVoFKTaoK5sw3x_FZJQWREP31CtbRmbxHho0JzwoAj7mdVGLwymmPWLX9DoTi8tzWsg7zKrWyJfRsvQyZlCJDX2BSsKXTlqfRRQoU_gN8pxJUQQEAAA--/master.m3u8",
+"isDefault": false,
+"accessible": true,
+"host": "Server 2",
+"type": "hls",
+"headers": {
+"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+"Referer": "https://nextgencloudfabric.com/",
+"Origin": "https://nextgencloudfabric.com"
+}
+},
+{
+"quality": "Server 3",
+"videoUrl": "https://claritybusinessacademy.site/rHB4U1AQA/pl/H4sIAAAAAAAAAw3OUXeCIBiA4b8EmqW7NKGNTCcTSO6QL.cRdJ1ms_z16_4953mN6Uwch9vWRlFsuza5IBttzK6z3c7EdvNmApxr9xOKgBdAHlg_5712M9UTVYDd8ySa24nC_YgkzsPvh5QamZCftWJ_tU_nmvbpEcEhRxES5_7LBtgpKk1NyKtj.9OqBQjAilxzTulSEswrB2lJgF1IRCqE700IopRsq2g6W8y.YOwjMci8GvptO.J769PP4vxyhVv4Km8q628m4x6UP5aZLConHR98WamolmvzUIOsi5Etckq9pZzCVHgb.F9AFeZD8a4z_mxGpgDxD3NI6OtpqQY6qgkYr_trI3XWuETpFSX_k80nwEEBAAA-/master.m3u8",
+"isDefault": false,
+"accessible": true,
+"host": "Server 3",
+"type": "hls",
+"headers": {
+"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+"Referer": "https://nextgencloudfabric.com/",
+"Origin": "https://nextgencloudfabric.com"
+}
+}
+],
+"playerSrc": "https://claritybusinessacademy.site/rHB4U1AQA/pl/H4sIAAAAAAAAAw3KXXuCIBgA0L8kqC12WQPNEifwinIH2h57oHLN2cev3871.eqRW63fCEExWROcup44gl0coaO1Nk7fJRsvAKYylMXDh4msTnUNojMnspen.RNgopry55ChopTz1ZxDNfgo0apZlVn5EK.xqvLCG7VbDEZsj1Mt0EDBl68SbYTDBW1Yswc6UUf9S2YmqbHIygaWnk5npR8bSRnw6P.hOnXtqAdqsiE3d6nYc4D5W0T9ovDMAYmEg9jV58ekPMRlyw5adQsPYyvCKCWMeec5sy3c7KXBNRR5F3dYh_FXqMLKEFiPaXKI.I1n7GlCsQUmfmqdAvhr1Mu5cqi7Wxq2R89nUBH5A9hlk6hBAQAA/master.m3u8",
+"type": "hls",
+"headers": {
+"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+"Referer": "https://nextgencloudfabric.com/",
+"Origin": "https://nextgencloudfabric.com"
+},
+"subtitles": [
+{
+"label": "English",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962726972",
+"kind": "captions",
+"default": true,
+"language": "eng"
+},
+{
+"label": "pob",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962727000",
+"kind": "captions",
+"default": false,
+"language": "pob"
+},
+{
+"label": "fre",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962727002",
+"kind": "captions",
+"default": false,
+"language": "fre"
+},
+{
+"label": "Finnish",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962726968",
+"kind": "captions",
+"default": false,
+"language": "fin"
+},
+{
+"label": "Arabic",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962726971",
+"kind": "captions",
+"default": false,
+"language": "ara"
+},
+{
+"label": "Swedish",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962727241",
+"kind": "captions",
+"default": false,
+"language": "swe"
+},
+{
+"label": "Turkish",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962726999",
+"kind": "captions",
+"default": false,
+"language": "tur"
+},
+{
+"label": "Russian",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962726970",
+"kind": "captions",
+"default": false,
+"language": "rus"
+},
+{
+"label": "Indonesian",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962726973",
+"kind": "captions",
+"default": false,
+"language": "ind"
+},
+{
+"label": "Polish",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962727023",
+"kind": "captions",
+"default": false,
+"language": "pol"
+},
+{
+"label": "Danish",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962727242",
+"kind": "captions",
+"default": false,
+"language": "dan"
+},
+{
+"label": "Norwegian",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962727243",
+"kind": "captions",
+"default": false,
+"language": "nor"
+},
+{
+"label": "Portuguese",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728011",
+"kind": "captions",
+"default": false,
+"language": "por"
+},
+{
+"label": "Croatian",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962727157",
+"kind": "captions",
+"default": false,
+"language": "hrv"
+},
+{
+"label": "Romanian",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962727487",
+"kind": "captions",
+"default": false,
+"language": "ron"
+},
+{
+"label": "Greek",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962727252",
+"kind": "captions",
+"default": false,
+"language": "ell"
+},
+{
+"label": "Spanish",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962727679",
+"kind": "captions",
+"default": false,
+"language": "spa"
+},
+{
+"label": "Bulgarian",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728055",
+"kind": "captions",
+"default": false,
+"language": "bul"
+},
+{
+"label": "Chinese",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728056",
+"kind": "captions",
+"default": false,
+"language": "zho"
+},
+{
+"label": "zht",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728057",
+"kind": "captions",
+"default": false,
+"language": "zht"
+},
+{
+"label": "cze",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728058",
+"kind": "captions",
+"default": false,
+"language": "cze"
+},
+{
+"label": "Filipino",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728059",
+"kind": "captions",
+"default": false,
+"language": "tgl"
+},
+{
+"label": "Hebrew",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728060",
+"kind": "captions",
+"default": false,
+"language": "heb"
+},
+{
+"label": "Hungarian",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728061",
+"kind": "captions",
+"default": false,
+"language": "hun"
+},
+{
+"label": "Italian",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728062",
+"kind": "captions",
+"default": false,
+"language": "ita"
+},
+{
+"label": "Japanese",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728063",
+"kind": "captions",
+"default": false,
+"language": "jpn"
+},
+{
+"label": "Korean",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728064",
+"kind": "captions",
+"default": false,
+"language": "kor"
+},
+{
+"label": "may",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728065",
+"kind": "captions",
+"default": false,
+"language": "may"
+},
+{
+"label": "spl",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728066",
+"kind": "captions",
+"default": false,
+"language": "spl"
+},
+{
+"label": "Thai",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728067",
+"kind": "captions",
+"default": false,
+"language": "tha"
+},
+{
+"label": "Ukrainian",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728068",
+"kind": "captions",
+"default": false,
+"language": "ukr"
+},
+{
+"label": "Vietnamese",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962728069",
+"kind": "captions",
+"default": false,
+"language": "vie"
+},
+{
+"label": "Dutch",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962727574",
+"kind": "captions",
+"default": false,
+"language": "nld"
+},
+{
+"label": "ger",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962727511",
+"kind": "captions",
+"default": false,
+"language": "ger"
+},
+{
+"label": "mne",
+"file": "https://subs5.strem.io/en/download/subencoding-stremio-utf8/src-api/file/1962727687",
+"kind": "captions",
+"default": false,
+"language": "mne"
+}
+],
+"episodes": [
+{
+"episode": 1,
+"label": "Play",
+"mediaRef": "vidapi:movie:tt38515310:1570488"
+}
+]
+}

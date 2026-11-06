@@ -796,6 +796,83 @@
             </com.saikou.sozo_tv.components.TvDropdownSectionView>
 
             <com.saikou.sozo_tv.components.TvDropdownSectionView
+                android:id="@+id/libraryToolsDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:expanded="true"
+                app:sectionTitle="@string/tv_library_tools">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:padding="8dp" android:clipChildren="false">
+                    <com.saikou.sozo_tv.components.TvOptionChipView android:id="@+id/openDownloads"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginEnd="12dp" android:text="@string/tv_downloads_title" />
+                    <com.saikou.sozo_tv.components.TvOptionChipView android:id="@+id/openWatchParty"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/tv_watch_party_title" />
+                </LinearLayout>
+            </com.saikou.sozo_tv.components.TvDropdownSectionView>
+
+            <com.saikou.sozo_tv.components.TvDropdownSectionView
+                android:id="@+id/playerEngineDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:expanded="false"
+                app:sectionTitle="@string/tv_player_title"
+                app:sectionSubtitle="@string/tv_player_hint">
+                <LinearLayout android:id="@+id/playerEngineChips"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:padding="8dp" android:clipChildren="false" />
+            </com.saikou.sozo_tv.components.TvDropdownSectionView>
+
+            <com.saikou.sozo_tv.components.TvDropdownSectionView
+                android:id="@+id/streamingQualityDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:expanded="false"
+                app:sectionTitle="@string/tv_stream_quality_title"
+                app:sectionSubtitle="@string/tv_stream_quality_hint">
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:padding="8dp"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/streamingQualityChips"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clipChildren="false"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+            </com.saikou.sozo_tv.components.TvDropdownSectionView>
+
+            <com.saikou.sozo_tv.components.TvDropdownSectionView
+                android:id="@+id/networkDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:expanded="false"
+                app:sectionTitle="@string/tv_dns_title"
+                app:sectionSubtitle="@string/tv_dns_hint">
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:padding="8dp"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/networkChips"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clipChildren="false"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+            </com.saikou.sozo_tv.components.TvDropdownSectionView>
+
+            <com.saikou.sozo_tv.components.TvDropdownSectionView
                 android:id="@+id/languageDropdown"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

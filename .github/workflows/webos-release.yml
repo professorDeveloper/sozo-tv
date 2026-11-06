@@ -1,0 +1,60 @@
+name: webOS release
+
+# Run by hand from the Actions tab. The version comes from webos/appinfo.json,
+# so raise it there first. CI artifacts expire; a release keeps the ipk.
+on:
+  workflow_dispatch:
+    inputs:
+      prerelease:
+        description: 'Mark as a pre-release (keep on until it has run on a real TV)'
+        type: boolean
+        default: true
+
+concurrency:
+  group: webos-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Test, package and publish the ipk
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: webos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: webos/package-lock.json
+      - name: Install
+        run: npm ci --ignore-scripts
+      - name: Unit and ES5 checks
+        run: npm test
+      - name: Build the ipk
+        run: npm run package
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          set -euo pipefail
+          version=$(node -p "require('./appinfo.json').version")
+          tag="webos-v$version"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "::error::$tag already exists. Raise the version in webos/appinfo.json."
+            exit 1
+          fi
+          cd dist/ipk
+          ipk=$(ls ./*.ipk)
+          sha256sum "$ipk" > "$ipk.sha256"
+          flag=()
+          if [ "$PRERELEASE" = true ]; then flag=(--prerelease); fi
+          gh release create "$tag" "$ipk" "$ipk.sha256" \
+            --target "$GITHUB_SHA" --title "Sozo for LG webOS $version" \
+            --notes "Install steps: webos/README.md." --latest=false "${flag[@]}"

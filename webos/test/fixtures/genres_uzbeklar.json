@@ -1,0 +1,116 @@
+{
+"items": [
+{
+"provider": "uzbeklar",
+"slug": "boevik",
+"label": "Action",
+"url": "https://uzbeklar.biz/movies/boevik/",
+"image": "https://image.tmdb.org/t/p/w300/lOMGc8bnSwQhS4XyE1S99uH8NXf.jpg"
+},
+{
+"provider": "uzbeklar",
+"slug": "biografiya",
+"label": "Biography",
+"url": "https://uzbeklar.biz/movies/biografiya/",
+"image": "https://image.tmdb.org/t/p/w300/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg"
+},
+{
+"provider": "uzbeklar",
+"slug": "detektiv",
+"label": "Detective",
+"url": "https://uzbeklar.biz/movies/detektiv/",
+"image": "https://image.tmdb.org/t/p/w300/pThyQovXQrw2m0s9x82twj48Jq4.jpg"
+},
+{
+"provider": "uzbeklar",
+"slug": "drama",
+"label": "Drama",
+"url": "https://uzbeklar.biz/movies/drama/",
+"image": "https://image.tmdb.org/t/p/w300/Cw4hIUIAmSYfK9QfaUW5igp9La.jpg"
+},
+{
+"provider": "uzbeklar",
+"slug": "komedija",
+"label": "Comedy",
+"url": "https://uzbeklar.biz/movies/komedija/",
+"image": "https://image.tmdb.org/t/p/w300/7Q3efxd3AF1vQjlSxnlerSA7RzN.jpg"
+},
+{
+"provider": "uzbeklar",
+"slug": "kriminal",
+"label": "Crime",
+"url": "https://uzbeklar.biz/movies/kriminal/",
+"image": "https://image.tmdb.org/t/p/w300/3bhkrj58Vtu7enYsRolD1fZdja1.jpg"
+},
+{
+"provider": "uzbeklar",
+"slug": "melodrama",
+"label": "Romance",
+"url": "https://uzbeklar.biz/movies/melodrama/",
+"image": "https://image.tmdb.org/t/p/w300/egEROVWFVUupRhK03Bj5IVGAEGu.jpg"
+},
+{
+"provider": "uzbeklar",
+"slug": "family",
+"label": "Family",
+"url": "https://uzbeklar.biz/movies/family/",
+"image": "https://image.tmdb.org/t/p/w300/6Ryitt95xrO8KXuqRGm1fUuNwqF.jpg"
+},
+{
+"provider": "uzbeklar",
+"slug": "prikljuchenija",
+"label": "Adventure",
+"url": "https://uzbeklar.biz/movies/prikljuchenija/",
+"image": "https://image.tmdb.org/t/p/w300/ceG9VzoRAVGwivFU403Wc3AHRys.jpg"
+},
+{
+"provider": "uzbeklar",
+"slug": "tarixiy",
+"label": "Historical",
+"url": "https://uzbeklar.biz/movies/tarixiy/",
+"image": "https://image.tmdb.org/t/p/w300/wN2xWp1eIwCKOD0BHTcErTBv1Uq.jpg"
+},
+{
+"provider": "uzbeklar",
+"slug": "triller",
+"label": "Thriller",
+"url": "https://uzbeklar.biz/movies/triller/",
+"image": "https://image.tmdb.org/t/p/w300/191nKfP0ehp3uIvWqgPbFmI4lv9.jpg"
+},
+{
+"provider": "uzbeklar",
+"slug": "fantastic",
+"label": "Sci-Fi",
+"url": "https://uzbeklar.biz/movies/fantastic/",
+"image": "https://image.tmdb.org/t/p/w300/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg"
+},
+{
+"provider": "uzbeklar",
+"slug": "fjentezi",
+"label": "Fantasy",
+"url": "https://uzbeklar.biz/movies/fjentezi/",
+"image": "https://image.tmdb.org/t/p/w300/wuMc08IPKEatf9rnMNXvIDxqP4W.jpg"
+},
+{
+"provider": "uzbeklar",
+"slug": "ujas",
+"label": "Horror",
+"url": "https://uzbeklar.biz/movies/ujas/",
+"image": "https://image.tmdb.org/t/p/w300/t7NU8IcmcNBrlunCxiycX9JV7Rp.jpg"
+},
+{
+"provider": "uzbeklar",
+"slug": "urush",
+"label": "War",
+"url": "https://uzbeklar.biz/movies/urush/",
+"image": "https://image.tmdb.org/t/p/w300/uqx37cS8cpHg8U35f9U5IBlrCV3.jpg"
+},
+{
+"provider": "uzbeklar",
+"slug": "vestern",
+"label": "Western",
+"url": "https://uzbeklar.biz/movies/vestern/",
+"image": "https://image.tmdb.org/t/p/w300/7oWY8VDWW7thTzWh3OKYRkWUlD5.jpg"
+}
+]
+}

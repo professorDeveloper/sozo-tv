@@ -1,5 +1,4 @@
-
-# Sozo Tv  
+# Sozo TV
 <img width="2542" height="1154" alt="image" src="https://github.com/user-attachments/assets/57f0e94b-fcde-4394-9f32-0014e5e60528" />
 <br> </br>
 <p align="center">
@@ -8,17 +7,66 @@
    <a href="https://t.me/sozoapp"><img src="https://img.shields.io/badge/Download-Latest%20Release-brightgreen?style=for-the-badge&logo=download&logoColor=white"></a>
 </p>
 
-Sozo is crafted with a perfect blend of simplicity and state-of-the-art elegance. It is designed as an Anilist only client, offering users the ability to stream and download their favorite Anime & Manga.
+Sozo TV is the big-screen companion to the Sozo phone app: browse the catalogue, pick a
+source and watch on a television with a remote. This repository holds three apps that talk to
+the same Sozo backend (`apisozo`):
 
-The name Sozo (meaning "creation" or "imagination" in Japanese) represents innovation and artistry in the anime world. While we think this is the best open-source anime app for Android, we encourage you to try it out yourself and decide!
+| App | Path | Stack |
+| --- | --- | --- |
+| Android TV | `app/` | Kotlin, Leanback launcher, Media3 ExoPlayer, min SDK 24. Also runs CloudStream (`.cs3`) and Aniyomi (`.apk`) extensions and an embedded torrent server. |
+| Apple TV | `apple-tv/` | Native SwiftUI + AVKit, generated with XcodeGen. Uses only server-provided sources; see [`apple-tv/README.md`](apple-tv/README.md) for what it leaves out on purpose. |
+| LG webOS TV | `webos/` | Plain ES5 web app with no build step, for webOS TV 4.x and newer. **Not yet run on a real TV**; see [`webos/README.md`](webos/README.md). |
 
-## Note
-Due to **DMCA restrictions**, we cannot host the APK file directly in this repository. Instead, you can download the latest release from our **official Telegram channel**:
-<p align="center">
-    <a href="https://github.com/Sozo-app/sozo-tv/releases"><img src="https://img.shields.io/badge/GitHub-All%20Releases-333?style=for-the-badge&logo=github&logoColor=white"></a>
-</p>
+The Android TV and Apple TV apps have household profiles, continue watching, search and localized UI.
+The webOS app has no login or profiles, and keeps continue watching on the TV.
 
-Stay updated with the newest versions, announcements, and fixes by following our channel. 🚀
+## Download
+
+Release APKs are not kept in this repository. Get the latest Android TV build from the
+**official Telegram channel** ([t.me/sozoapp](https://t.me/sozoapp)).
+
+## Building
+
+**Android TV** needs JDK 17 and the Android SDK:
+
+```sh
+./gradlew :app:assembleDebug          # debug APK in app/build/outputs/apk/debug/
+./gradlew :app:testDebugUnitTest      # unit tests
+python3 tools/check_strings.py        # translated strings vs. English
+```
+
+Release signing reads `key.properties` and a keystore, which are never committed. The two
+vendored AARs in `app/libs/` are described in [`app/libs/README.md`](app/libs/README.md).
+
+**Apple TV** needs Xcode and `xcodegen`:
+
+```sh
+cd apple-tv && xcodegen generate && open SozoTV.xcodeproj
+```
+
+Full verification, including simulator UI tests, is `apple-tv/scripts/ci.sh`; details are in
+[`apple-tv/README.md`](apple-tv/README.md).
+
+**LG webOS TV** needs Node.js 20 or newer:
+
+```sh
+cd webos && npm ci --ignore-scripts && npm test && npm run package   # ipk in dist/ipk/
+```
+
+Installing on a TV is described in [`webos/README.md`](webos/README.md).
+
+## CI and releases
+
+| Workflow | Runs on | Does |
+| --- | --- | --- |
+| `ci.yml` | PRs, pushes to `master` | String check, unit tests, debug build of the Android TV app |
+| `release.yml` | Manual, or a `v*` tag | Bumps the version, builds and verifies the signed APK, sends it to Telegram |
+| `tvos-ci.yml` | PRs, pushes to `master`, manual | Apple TV build and simulator tests |
+| `tvos-release.yml` | Manual | Signs an Apple TV archive and optionally uploads it to TestFlight |
+| `webos.yml` | PRs and pushes to `master` that touch `webos/` | webOS unit and ES5 checks, builds the ipk and keeps it as an artifact |
+| `webos-release.yml` | By hand | Tests, builds the ipk and publishes it as a `webos-v<version>` pre-release |
+
+The required secrets are listed at the top of each workflow and in `apple-tv/README.md`.
 
 ### Official Discord Server
  
@@ -48,4 +96,3 @@ Stay updated with the newest versions, announcements, and fixes by following our
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
-

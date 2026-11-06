@@ -44,7 +44,7 @@ class DeviceLoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         _binding = ActivityDeviceLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         // A TV screensaver kicking in mid-pairing would strand the user on a dead code.
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 

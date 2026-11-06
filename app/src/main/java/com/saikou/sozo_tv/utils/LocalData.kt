@@ -53,25 +53,6 @@ object LocalData {
     )
     val preferenceManager = PreferenceManager()
     var isAnimeEnabled = preferenceManager.isModeAnimeEnabled()
-    val channelsd = arrayListOf(
-        Channel(
-            "0",
-            "Hd Romen",
-            arrayListOf("https://live-hls-viasat-secure-flus.cdnvideo.ru/viasat/Romantika_HD.smil/tracks-v1a1/mono.ts.m3u8?filter.tracks=v1v2v3a1&md5=rdVBBlP29FodZn8yAdHzGg&e=1759654086&hls_proxy_host=e2c000defa6aa845b219ba5ca0db8ad5"),
-            arrayListOf(),
-            "cdn",
-            "cdn",
-            true
-        ), Channel(
-            "0",
-            "lubimoe-kino",
-            arrayListOf("http://api.peers.tv/timeshift/favmovie/16/playlist.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhY2Nlc3MiLCJleHAiOjE3NTkyMDU3ODAsImlhdCI6MTc1OTExOTM4MCwiY2lkIjo2LCJ1aWQiOjk0ODcxNzUzOCwicmVnIjpmYWxzZSwiaXAiOjE1NTE3MDQzNTYsImFkdWx0IjpmYWxzZX0.aXpZsmnvRME-UQwL1Sf_KYgJNTk8_DfR3tU--mZb9JI&offset=3"),
-            arrayListOf(),
-            "lubimoe-kino",
-            "lubimoe-kino",
-            true
-        )
-    )
     val channelsByCategory: Map<String, List<Channel>> = mapOf(
         "NASA" to listOf(
             Channel(

@@ -20,6 +20,7 @@ class NetworkHelper(context: Context) {
     val cookieJar = AndroidCookieJar()
 
     val client: OkHttpClient = OkHttpClient.Builder()
+        .dns(com.saikou.sozo_tv.engine.network.ExtensionDns.dns)
         .cookieJar(cookieJar)
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)

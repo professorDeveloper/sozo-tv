@@ -34,16 +34,7 @@ class PlayerTvView @JvmOverloads constructor(
     var onNextEpisode: (() -> Unit)? = null
     var onPreviousEpisode: (() -> Unit)? = null
 
-    private var seekRunDirection = 0
-    private var seekRunCount = 0
-    private var seekRunLastAt = 0L
-
-    private companion object {
-        const val SEEK_STEP_MS = 10_000L
-
-        val SEEK_LADDER_MS = longArrayOf(10_000L, 30_000L, 60_000L, 120_000L)
-        const val SEEK_RUN_GAP_MS = 700L
-    }
+    private val seekSteps = RemoteSeekSteps()
 
     @OptIn(UnstableApi::class)
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
@@ -113,7 +104,7 @@ class PlayerTvView @JvmOverloads constructor(
         return when (event.keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT,
             KeyEvent.KEYCODE_MEDIA_REWIND -> {
-                seekByAndReveal(-stepFor(-1))
+                seekByAndReveal(stepFor(-1))
                 true
             }
 
@@ -177,15 +168,7 @@ class PlayerTvView @JvmOverloads constructor(
     }
 
     private fun stepFor(direction: Int): Long {
-        val now = android.os.SystemClock.uptimeMillis()
-        if (direction != seekRunDirection || now - seekRunLastAt > SEEK_RUN_GAP_MS) {
-            seekRunDirection = direction
-            seekRunCount = 0
-        }
-        seekRunLastAt = now
-        val step = SEEK_LADDER_MS[seekRunCount.coerceAtMost(SEEK_LADDER_MS.lastIndex)]
-        seekRunCount++
-        return step * direction
+        return seekSteps.next(direction, android.os.SystemClock.uptimeMillis())
     }
 
     private fun seekByAndReveal(deltaMs: Long) {

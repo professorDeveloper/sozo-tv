@@ -45,7 +45,7 @@ class LiveTvActivity : AppCompatActivity() {
         binding = ActivityLiveTvBinding.inflate(layoutInflater)
         enableEdgeToEdge()
         setContentView(binding.root)
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val title = intent.getStringExtra("title") ?: ""
         val data = intent.getSerializableExtra("data") as Channel

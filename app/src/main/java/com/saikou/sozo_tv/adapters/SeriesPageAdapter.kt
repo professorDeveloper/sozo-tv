@@ -3,7 +3,7 @@ package com.saikou.sozo_tv.adapters
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.view.animation.AnimationUtils
+import com.saikou.sozo_tv.utils.applyTvFocusScale
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.saikou.sozo_tv.R
@@ -96,19 +96,7 @@ class SeriesPageAdapter(
                 } else {
                     topContainer.text = data.title
                 }
-                binding.root.setOnFocusChangeListener { _, hasFocus ->
-                    val animation = when {
-                        hasFocus -> AnimationUtils.loadAnimation(
-                            binding.root.context, R.anim.zoom_in
-                        )
-
-                        else -> AnimationUtils.loadAnimation(
-                            binding.root.context, R.anim.zoom_out
-                        )
-                    }
-                    binding.root.startAnimation(animation)
-                    animation.fillAfter = true
-                }
+                root.applyTvFocusScale()
 
                 itemImg.loadImage(data.snapshot ?: LocalData.anime404)
             }

@@ -25,6 +25,7 @@ class NativeFetch(context: Context) {
     private val cookieJar = AndroidCookieJar()
 
     private val client = OkHttpClient.Builder()
+        .dns(com.saikou.sozo_tv.engine.network.ExtensionDns.dns)
         .followRedirects(true)
         .followSslRedirects(true)
         .connectTimeout(20, TimeUnit.SECONDS)

@@ -26,6 +26,10 @@ import dalvik.system.PathClassLoader
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import kotlinx.coroutines.launch
+import com.lagradost.cloudstream3.LiveStreamLoadResponse
+import com.lagradost.cloudstream3.TorrentLoadResponse
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * CloudStream plugin host (Android-only).
@@ -49,26 +53,33 @@ class PluginHost(private val appContext: Context) {
 
     companion object {
         private const val TAG = "CloudStreamHost"
+        private const val UNKNOWN_QUALITY = 400
+        private const val LINK_CACHE_MS = 20 * 60 * 1000L
+        private const val LINK_CACHE_ENTRIES = 40
+        private const val GOOD_LINK_GRACE_MS = 2500L
+        private const val ANY_LINK_GRACE_MS = 6000L
+        private const val WAIT_CAP_MS = 90_000L
+        private const val COLLECT_CAP_MS = 120_000L
     }
 
     init {
         // Lenient TLS for CloudStream's own client, as the CloudStream app does: plugins scrape
         // arbitrary hosts with broken chains, and this client never carries a Sozo token.
         runCatching {
-            app.baseClient = app.baseClient.newBuilder().ignoreAllSSLErrors().build()
+            app.baseClient = app.baseClient.newBuilder().dns(com.saikou.sozo_tv.engine.network.ExtensionDns.dns).ignoreAllSSLErrors().build()
         }
     }
 
-    private val loaded = HashMap<String, BasePlugin>()
+    private val loaded = java.util.concurrent.ConcurrentHashMap<String, BasePlugin>()
     // Plugins that threw during load(). Remember them: without this, every apiByName() retries
     // the DexClassLoader and reprints the stack trace.
-    private val failed = HashSet<String>()
+    private val failed = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
     // internalName -> why it failed, in one line the Sources screen can show. See loadCs3.
-    private val lastErrors = LinkedHashMap<String, String>()
+    private val lastErrors = java.util.concurrent.ConcurrentHashMap<String, String>()
     // internalName -> the MainAPI provider names it registered (for unload + dedup).
-    private val pluginProviders = HashMap<String, List<String>>()
+    private val pluginProviders = java.util.concurrent.ConcurrentHashMap<String, List<String>>()
     // MainAPI.name -> plugin iconUrl (from plugins.json) for nicer provider icons.
-    private val providerIcons = HashMap<String, String>()
+    private val providerIcons = java.util.concurrent.ConcurrentHashMap<String, String>()
 
     // Lazy-load registry: providerName -> where to load it from. Populated cheaply
     // on startup (no DexClassLoader) so the provider list is instant; the actual
@@ -76,15 +87,16 @@ class PluginHost(private val appContext: Context) {
     data class Meta(
         val provider: String, val icon: String?, val internalName: String,
         val cs3Path: String, val repo: String? = null,
+        val lang: String? = null, val nsfw: Boolean = false,
     )
-    private val metas = LinkedHashMap<String, Meta>()
+    private val metas = java.util.Collections.synchronizedMap(LinkedHashMap<String, Meta>())
 
     /** Register provider metadata WITHOUT loading the plugin (startup path). */
     fun registerMeta(
         provider: String, icon: String?, internalName: String,
-        cs3Path: String, repo: String? = null,
+        cs3Path: String, repo: String? = null, lang: String? = null, nsfw: Boolean = false,
     ) {
-        metas[provider] = Meta(provider, icon, internalName, cs3Path, repo)
+        metas[provider] = Meta(provider, icon, internalName, cs3Path, repo, lang, nsfw)
         if (!icon.isNullOrEmpty()) providerIcons[provider] = icon
     }
 
@@ -93,7 +105,7 @@ class PluginHost(private val appContext: Context) {
         val m = metas[provider] ?: return
         if (loaded.containsKey(m.internalName)) return
         val f = File(m.cs3Path)
-        if (f.exists()) loadCs3(f, m.internalName, m.icon)
+        if (f.exists()) loadCs3(f, m.internalName, m.icon, m.repo, m.lang, m.nsfw)
     }
 
     private data class Manifest(
@@ -140,7 +152,7 @@ class PluginHost(private val appContext: Context) {
      * Plugin loading is a handful of seconds once per process, so a lock costs
      * nothing that matters and is the only way that diff can be correct.
      */
-    fun loadCs3(file: File, internalName: String, iconUrl: String? = null, repo: String? = null): List<String> {
+    fun loadCs3(file: File, internalName: String, iconUrl: String? = null, repo: String? = null, lang: String? = null, nsfw: Boolean = false): List<String> {
         // Already loaded this process → don't register twice (avoids duplicates).
         loaded[internalName]?.let { return pluginProviders[internalName] ?: emptyList() }
         if (internalName in failed) return emptyList()
@@ -187,7 +199,10 @@ class PluginHost(private val appContext: Context) {
                 APIHolder.allProviders.map { it.name }
             }.filter { it !in before }
             pluginProviders[internalName] = added
-            added.forEach { metas[it] = Meta(it, iconUrl, internalName, file.absolutePath, repo) }
+            added.forEach { name ->
+                val api = synchronized(APIHolder.allProviders) { APIHolder.allProviders.first { it.name == name } }
+                metas[name] = Meta(name, iconUrl, internalName, file.absolutePath, repo, lang?.takeIf { it.isNotBlank() } ?: api.lang, nsfw || api.supportedTypes.any { it.name.equals("NSFW", true) })
+            }
             if (!iconUrl.isNullOrEmpty()) added.forEach { providerIcons[it] = iconUrl }
             Log.i(TAG, "loaded ${file.name}: providers=$added")
             added
@@ -216,7 +231,7 @@ class PluginHost(private val appContext: Context) {
      * plugin's providers are taken out of the registry first so the new load registers — and
      * reports — them again.
      */
-    fun reloadCs3(file: File, internalName: String, iconUrl: String? = null, repo: String? = null): List<String> {
+    fun reloadCs3(file: File, internalName: String, iconUrl: String? = null, repo: String? = null, lang: String? = null, nsfw: Boolean = false): List<String> {
         synchronized(loadLock) {
             val old = pluginProviders[internalName].orEmpty().toSet()
             if (old.isNotEmpty()) {
@@ -226,13 +241,18 @@ class PluginHost(private val appContext: Context) {
                     }
                 }
             }
+            synchronized(linkCollections) {
+                linkCollections.keys.filter { key -> old.any { key.startsWith("$it\u0000") } }.forEach {
+                    linkCollections.remove(it)?.job?.cancel()
+                }
+            }
             loaded.remove(internalName)
             pluginProviders.remove(internalName)
             failed.remove(internalName)
             lastErrors.remove(internalName)
             CsPluginManager.forget(internalName)
         }
-        return loadCs3(file, internalName, iconUrl, repo)
+        return loadCs3(file, internalName, iconUrl, repo, lang, nsfw)
     }
 
     /** Every plugin that failed to load this session: internalName -> one-line reason. */
@@ -294,16 +314,22 @@ class PluginHost(private val appContext: Context) {
     /** Provider list for Flutter — from lazy metadata (no plugins loaded yet). */
     fun providersJson(): String {
         val arr = JSONArray()
-        for (m in metas.values) {
+        for (m in synchronized(metas) { metas.values.toList() }) {
             arr.put(JSONObject().apply {
                 put("id", "cs:${m.provider}")
                 put("name", m.provider)
+                put("lang", m.lang)
+                put("nsfw", m.nsfw)
                 m.icon?.let { put("icon", it) }
                 m.repo?.let { if (it.isNotEmpty()) put("repo", it) }
             })
         }
         return arr.toString()
     }
+
+    fun providerMetadata(name: String): JSONObject = metas[name]?.let {
+        JSONObject().put("lang", it.lang).put("nsfw", it.nsfw)
+    } ?: JSONObject()
 
     /**
      * "Genres" for the home chip row = the provider's MainPageData categories.
@@ -375,6 +401,8 @@ class PluginHost(private val appContext: Context) {
                         put("items", items)
                     })
                 }
+            } catch (c: kotlinx.coroutines.CancellationException) {
+                throw c
             } catch (t: Throwable) {
                 // Log (don't swallow) — most empty-home failures are a plugin
                 // referencing an app-module class our embedded `library` lacks
@@ -400,7 +428,11 @@ class PluginHost(private val appContext: Context) {
                 if (resp != null) {
                     for (list in resp.items) for (sr in list.list) items.put(cardJson(sr, api.name))
                 }
-            } catch (_: Throwable) { }
+            } catch (c: kotlinx.coroutines.CancellationException) {
+                throw c
+            } catch (t: Throwable) {
+                throw IllegalStateException("${api.name}: could not load this section", t)
+            }
         }
         return JSONObject().apply {
             put("provider", providerName)
@@ -442,12 +474,8 @@ class PluginHost(private val appContext: Context) {
     }
 
     suspend fun loadJson(providerName: String, url: String): String {
-        val api = apiByName(providerName) ?: run {
-            Log.e(TAG, "load: provider '$providerName' not found"); return "{}"
-        }
-        val resp = try { api.load(url) } catch (t: Throwable) {
-            Log.e(TAG, "load ${api.name}: ${t.javaClass.simpleName}: ${t.message}"); null
-        } ?: return "{}"
+        val api = apiByName(providerName) ?: error("CloudStream provider '$providerName' is unavailable")
+        val resp = api.load(url) ?: error("${api.name}: the provider returned no details")
         val episodes = JSONArray()
         var isSerial = false
         when (resp) {
@@ -457,13 +485,26 @@ class PluginHost(private val appContext: Context) {
             }
             is AnimeLoadResponse -> {
                 isSerial = true
-                val list = resp.episodes.values.firstOrNull() ?: emptyList()
+                val list = resp.episodes.values.maxByOrNull { it.size } ?: emptyList()
                 list.forEachIndexed { i, e -> episodes.put(episodeJson(e, i)) }
             }
             is MovieLoadResponse -> {
                 // dataUrl is what loadLinks() expects; fall back to the page url
                 // if a provider leaves it empty.
                 val ref = resp.dataUrl.ifEmpty { resp.url }
+                episodes.put(JSONObject().apply {
+                    put("episode", 1); put("label", "Play"); put("mediaRef", ref)
+                })
+            }
+            is LiveStreamLoadResponse -> {
+                episodes.put(JSONObject().apply {
+                    put("episode", 1); put("label", "Watch live")
+                    put("mediaRef", resp.dataUrl.ifEmpty { resp.url })
+                })
+            }
+            is TorrentLoadResponse -> {
+                val ref = resp.magnet ?: resp.torrent
+                require(!ref.isNullOrBlank()) { "This torrent entry has no magnet or torrent link" }
                 episodes.put(JSONObject().apply {
                     put("episode", 1); put("label", "Play"); put("mediaRef", ref)
                 })
@@ -523,113 +564,334 @@ class PluginHost(private val appContext: Context) {
         }.toString()
     }
 
+    /** The library's shared client, the one plugins' own requests go through. */
+    private fun libraryClient(): okhttp3.OkHttpClient? = try {
+        val requests = Class.forName("com.lagradost.cloudstream3.MainActivityKt")
+            .getDeclaredMethod("getApp").invoke(null)
+        requests?.javaClass?.methods
+            ?.firstOrNull { it.name == "getBaseClient" && it.parameterTypes.isEmpty() }
+            ?.invoke(requests) as? okhttp3.OkHttpClient
+    } catch (_: Throwable) {
+        null
+    }
+
+    /**
+     * One episode's links, gathered as the plugin produces them.
+     *
+     * Extractors call back as they finish, and a plugin that tries a WebView
+     * sniff last can take a minute to return. Waiting for the whole call is
+     * what made CloudStream episodes sit on a spinner long after a playable
+     * link had arrived — CloudStream's own player starts on the first good link
+     * and keeps collecting. So the collection runs on its own, and the call
+     * that asked for it returns as soon as there is something worth playing.
+     */
+    private class LinkCollection(val startedAt: Long) {
+        var job: kotlinx.coroutines.Job? = null
+        val sources = ArrayList<Pair<Int, JSONObject>>()
+        val subs = ArrayList<com.lagradost.cloudstream3.SubtitleFile>()
+        val seenUrls = HashSet<String>()
+        val seenSubs = HashSet<String>()
+        var firstLinkAt = 0L
+        var bestRank = -1
+        var interceptorToken: String? = null
+        @Volatile var done = false
+        @Volatile var error: String? = null
+    }
+
+    private val linkScope = kotlinx.coroutines.CoroutineScope(
+        kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO,
+    )
+    private val linkCollections = LinkedHashMap<String, LinkCollection>()
+
     // AudioFile is @Prerelease in the CloudStream library; the annotation is an
     // IDE hint with BINARY retention, so reading the list a plugin may have filled
     // costs nothing at runtime and is empty for every plugin that sets none.
     @OptIn(com.lagradost.cloudstream3.Prerelease::class)
     suspend fun loadLinksJson(providerName: String, data: String): String {
-        val api = apiByName(providerName)
-        // (quality, source) pairs so the list can be ordered before it is emitted.
-        val collected = ArrayList<Pair<Int, JSONObject>>()
-        val subs = JSONArray()
-        val seenUrls = HashSet<String>()
-        val seenSubs = HashSet<String>()
-        // Extractors run in parallel and call back from their own threads, so every write to the
-        // collections above goes through this one lock.
-        val lock = Any()
-        if (api != null) {
-            try {
-                api.loadLinks(
-                    data = data,
-                    isCasting = false,
-                    subtitleCallback = { sf: com.lagradost.cloudstream3.SubtitleFile -> synchronized(lock) {
-                        if (sf.url.isNotEmpty() && seenSubs.add(sf.url)) {
-                            subs.put(JSONObject().apply {
-                                put("label", sf.lang); put("file", sf.url); put("default", false)
-                                // A subtitle is fetched on its own, so it inherits none of
-                                // the stream's headers. Plenty of CloudStream sources hand
-                                // out tracks that 403 without the Referer the extractor
-                                // set, and SubtitleFile has carried those headers since
-                                // v4.7 — dropping them is why a provider could return
-                                // subtitles and the player still show none.
-                                sf.headers?.takeIf { it.isNotEmpty() }?.let {
-                                    put("headers", JSONObject(it as Map<*, *>))
-                                }
-                            })
-                        }
-                    } },
-                    callback = { link: ExtractorLink -> synchronized(lock) {
-                        // Torrents and magnets are not streams. Passed through as an
-                        // ordinary source they reached the player as a bare "Source
-                        // error"; the honest thing is to not offer them. Relative urls
-                        // ("dl.php?id=…") go for the same reason — ExoPlayer resolves
-                        // those as a local file path.
-                        val streamable = link.type != ExtractorLinkType.TORRENT &&
-                                link.type != ExtractorLinkType.MAGNET
-                        if (streamable && link.url.startsWith("http", ignoreCase = true) &&
-                            seenUrls.add(link.url)
-                        ) {
-                            // getAllHeaders() folds in the referer exactly the way
-                            // CloudStream's own player does, instead of us overwriting a
-                            // Referer an extractor had deliberately set.
-                            val headers = JSONObject(link.getAllHeaders() as Map<*, *>)
-                            // quality is a resolution int (e.g. 1080) or a Qualities
-                            // sentinel; build a readable, distinct "<host> · <res>p".
-                            val q = link.quality
-                            val res = if (q in 144..4320) "${q}p" else null
-                            val nm = link.name.ifBlank { "Source" }
-                            val label = if (res != null) "$nm · $res" else nm
-                            collected.add((if (q in 144..4320) q else 0) to JSONObject().apply {
-                                put("quality", label)
-                                put("videoUrl", link.url)
-                                // DASH used to fall into the `else` branch and be handed
-                                // over as a plain progressive file, so every .mpd source
-                                // failed to open.
-                                put("type", when (link.type) {
-                                    ExtractorLinkType.M3U8 -> "hls"
-                                    ExtractorLinkType.DASH -> "dash"
-                                    else -> "http"
-                                })
-                                put("host", link.name)
-                                put("accessible", true)
-                                put("headers", headers)
-                                // Separate audio renditions the extractor says belong with
-                                // this video. A dual-audio release puts its dub here rather
-                                // than in the manifest, so discarding them left the player
-                                // with one track and nothing to switch to.
-                                if (link.audioTracks.isNotEmpty()) {
-                                    put("audioTracks", JSONArray().apply {
-                                        link.audioTracks.forEach { a ->
-                                            put(JSONObject().apply {
-                                                put("url", a.url)
-                                                a.headers?.takeIf { it.isNotEmpty() }?.let {
-                                                    put("headers", JSONObject(it as Map<*, *>))
-                                                }
-                                            })
-                                        }
-                                    })
-                                }
-                            })
-                        }
-                    } }
-                )
-            } catch (t: Throwable) {
-                Log.e(TAG, "loadLinks ${api.name}: ${t.javaClass.simpleName}: ${t.message}")
-            }
-            Log.i(TAG, "loadLinks ${api.name}: ${collected.size} source(s), ${subs.length()} sub(s)")
+        if (data.startsWith("magnet:", true) || data.substringBefore('?').endsWith(".torrent", true)) {
+            return JSONObject().put("videoSources", JSONArray().put(JSONObject()
+                .put("videoUrl", data).put("type", "torrent").put("quality", "Torrent")
+                .put("isDefault", true))).put("subtitles", JSONArray()).toString()
         }
-        // Best first. Extractors call back in whatever order they finish, so the
-        // default source used to be a race: a 360p mirror that resolved quickly
-        // won over a 1080p one that took a moment longer. CloudStream's own
-        // player orders by quality for the same reason. The sort is stable, so
-        // sources of equal quality keep the order the provider produced them in.
-        synchronized(lock) { collected.sortByDescending { it.first } }
+        val api = apiByName(providerName)
+            ?: return JSONObject().apply {
+                put("videoSources", JSONArray())
+                put("subtitles", JSONArray())
+                put("error", "$providerName: " +
+                    (metas[providerName.removePrefix("cs:")]?.internalName?.let { lastErrors[it] } ?: "provider not loaded: $providerName"))
+            }.toString()
+
+        // Reopening an episode, a retry, the next visit within twenty minutes:
+        // the links are already known, as CloudStream's own player keeps them.
+        val key = "${api.name}\u0000$data"
+        val now = System.currentTimeMillis()
+        val collection = synchronized(linkCollections) {
+            linkCollections[key]?.takeIf {
+                now - it.startedAt < LINK_CACHE_MS && synchronized(it) { !it.done || it.sources.isNotEmpty() }
+            } ?: LinkCollection(now).also {
+                linkCollections[key] = it
+                while (linkCollections.size > LINK_CACHE_ENTRIES) {
+                    linkCollections.remove(linkCollections.keys.first())?.job?.cancel()
+                }
+                startCollecting(api, data, it)
+            }
+        }
+
+        // Wait for the first good link rather than for the last extractor:
+        // once a high or adaptive link is in, a short grace lets a better one
+        // that is about to land win; a lesser one gets a little longer; and the
+        // whole wait is bounded, because a plugin that never returns used to
+        // leave the player on a spinner for good.
+        while (true) {
+            val (done, count, firstAt, best) = synchronized(collection) {
+                listOf(
+                    if (collection.done) 1L else 0L,
+                    collection.sources.size.toLong(),
+                    collection.firstLinkAt,
+                    collection.bestRank.toLong(),
+                )
+            }
+            if (done == 1L) break
+            val t = System.currentTimeMillis()
+            if (count > 0) {
+                val since = t - firstAt
+                if (best >= 1000 && since >= GOOD_LINK_GRACE_MS) break
+                if (since >= ANY_LINK_GRACE_MS) break
+            }
+            if (t - collection.startedAt >= WAIT_CAP_MS) break
+            kotlinx.coroutines.delay(150)
+        }
+        return buildLinksJson(api, collection)
+    }
+
+    @OptIn(com.lagradost.cloudstream3.Prerelease::class)
+    private fun startCollecting(api: MainAPI, data: String, c: LinkCollection) {
+        c.job = linkScope.launch {
+            try {
+                kotlinx.coroutines.withTimeoutOrNull(COLLECT_CAP_MS) {
+                    api.loadLinks(
+                        data = data,
+                        isCasting = false,
+                        subtitleCallback = { sf ->
+                            synchronized(c) {
+                                if (sf.url.isNotEmpty() && c.seenSubs.add(sf.url)) c.subs.add(sf)
+                            }
+                        },
+                        callback = { link -> collectLink(api, link, c) },
+                    )
+                } ?: run { c.error = "timed out after ${COLLECT_CAP_MS / 1000}s" }
+            } catch (t: Throwable) {
+                c.error = "${t.javaClass.simpleName}: ${t.message ?: "failed"}"
+                Log.e(TAG, "loadLinks ${api.name}", t)
+            } finally {
+                c.done = true
+                // With the elapsed time, because the two ways of getting zero
+                // look identical in a log and nothing like each other in cause:
+                // a fast empty answer is a title with no mirrors, and a
+                // sixty-second one is WebViewResolver polling out its timeout.
+                Log.i(
+                    TAG,
+                    "loadLinks ${api.name}: ${c.sources.size} source(s), " +
+                        "${c.subs.size} sub(s) in ${System.currentTimeMillis() - c.startedAt}ms",
+                )
+            }
+        }
+    }
+
+    @OptIn(com.lagradost.cloudstream3.Prerelease::class)
+    private fun collectLink(api: MainAPI, link: ExtractorLink, c: LinkCollection) {
+        // Torrents and magnets are passed through tagged as "torrent": the app
+        // embeds a torrent server and the player turns such a link into a local
+        // HTTP stream (see core/torrent/ and player_page.media.dart).
+        //
+        // Relative urls ("dl.php?id=…") are still dropped — ExoPlayer resolves
+        // those as a local file path. So is a multi-part ExtractorLinkPlayList,
+        // whose url is empty: its parts are separate files the player cannot
+        // join, and offering only the first part would stop mid-film.
+        val isTorrent = link.type == ExtractorLinkType.TORRENT ||
+            link.type == ExtractorLinkType.MAGNET
+        val addressable = link.url.startsWith("http", ignoreCase = true) ||
+            (isTorrent && link.url.startsWith("magnet:", ignoreCase = true))
+        if (!addressable) return
+        synchronized(c) { if (!c.seenUrls.add(link.url)) return }
+
+        // getAllHeaders() folds in the referer exactly the way CloudStream's
+        // own player does. The User-Agent it falls back to is the library's,
+        // not ours: the extractor fetched the page, and often a signed URL,
+        // under that agent, and a CDN that binds its token to the agent 403s
+        // the stream when the player presents a different one.
+        val headers = LinkedHashMap(link.getAllHeaders())
+        if (headers.keys.none { it.equals("User-Agent", ignoreCase = true) }) {
+            headers["User-Agent"] = com.lagradost.cloudstream3.USER_AGENT
+        }
+
+        // A plugin that needs to touch every request — cookies on segments,
+        // decrypting subtitles — says so through getVideoInterceptor, and the
+        // stream then plays through [CsStreamProxy], which applies it.
+        var videoUrl = link.url
+        var proxied = false
+        var streamToken: String? = null
+        if (!isTorrent) {
+            val interceptor = try { api.getVideoInterceptor(link) } catch (_: Throwable) { null }
+            val base = if (interceptor != null) libraryClient() else null
+            if (interceptor != null && base != null) {
+                val token = CsStreamProxy.register(base, interceptor, headers)
+                val url = token?.let { CsStreamProxy.urlFor(it, link.url) }
+                if (token != null && url != null) {
+                    videoUrl = url
+                    streamToken = token
+                    proxied = true
+                    synchronized(c) { if (c.interceptorToken == null) c.interceptorToken = token }
+                }
+            }
+        }
+
+        // quality is a resolution int (e.g. 1080) or a Qualities sentinel.
+        // Qualities.Unknown is 400, and it is what every link built without a
+        // quality carries — most HLS masters. Read as a resolution it labelled
+        // them "400p" and sorted an adaptive stream below a 480p file.
+        val q = link.quality
+        val known = CloudStreamLinkQuality.isKnown(q)
+        val res = when {
+            !known -> null
+            q >= 2160 -> "4K"
+            else -> "${q}p"
+        }
+        val nm = link.name.ifBlank { "Source" }
+        val label = if (res != null) "$nm · $res" else nm
+        val path = link.url.substringBefore('?').lowercase()
+        val type = when {
+            link.type == ExtractorLinkType.M3U8 -> "hls"
+            link.type == ExtractorLinkType.DASH -> "dash"
+            isTorrent -> "torrent"
+            // An old-style link built without a type still says what it is.
+            path.endsWith(".m3u8") -> "hls"
+            path.endsWith(".mpd") -> "dash"
+            else -> "http"
+        }
+        // An adaptive master of unknown height usually tops out at 1080p:
+        // ahead of a fixed 720p file, behind a stated 1080p.
+        val rank = CloudStreamLinkQuality.rank(q, type)
+
+        val json = JSONObject().apply {
+            put("quality", label)
+            put("videoUrl", videoUrl)
+            put("type", type)
+            put("host", link.name)
+            put("accessible", true)
+            // The proxy sends the plugin's headers itself.
+            put("headers", if (proxied) JSONObject() else JSONObject(headers as Map<*, *>))
+            if (proxied) put("useLocalProxy", false)
+            drmJson(link, headers)?.let { put("drm", it) }
+            // Separate audio renditions the extractor says belong with this
+            // video; a dual-audio release puts its dub here rather than in the
+            // manifest.
+            if (link.audioTracks.isNotEmpty()) {
+                put("audioTracks", JSONArray().apply {
+                    link.audioTracks.forEach { a ->
+                        put(JSONObject().apply {
+                            put("url", streamToken?.let { CsStreamProxy.urlFor(it, a.url, a.headers.orEmpty()) } ?: a.url)
+                            a.headers?.takeIf { it.isNotEmpty() }?.let {
+                                put("headers", JSONObject(it as Map<*, *>))
+                            }
+                        })
+                    }
+                })
+            }
+        }
+        synchronized(c) {
+            c.sources.add(rank to json)
+            if (c.firstLinkAt == 0L) c.firstLinkAt = System.currentTimeMillis()
+            if (rank > c.bestRank) c.bestRank = rank
+        }
+    }
+
+    /**
+     * A DrmExtractorLink in the shape the player's DrmConfig reads.
+     *
+     * The player already plays ClearKey and Widevine channels; CloudStream
+     * links that carried their keys were handed over as plain streams and
+     * decoded to a black screen. ClearKey material arrives as base64url, the
+     * EME form, and the player takes hex, which is how keys are published.
+     */
+    @OptIn(ExperimentalUuidApi::class)
+    private fun drmJson(link: ExtractorLink, headers: Map<String, String>): JSONObject? {
+        val drm = link as? com.lagradost.cloudstream3.utils.DrmExtractorLink ?: return null
+        val scheme = when (drm.uuid.toString().lowercase()) {
+            "e2719d58-a985-b3c9-781a-b030af78d30e", "1077efec-c0b2-4d02-ace3-3c1e52e2fb4b" -> "clearkey"
+            "edef8ba9-79d6-4ace-a3c8-27dcd51d21ed" -> "widevine"
+            "9a04f079-9840-4286-ab92-e65be0885f95" -> "playready"
+            else -> return null
+        }
+        return JSONObject().apply {
+            put("scheme", scheme)
+            put("licenseUrl", drm.licenseUrl ?: "")
+            put("licenseHeaders", JSONObject(headers as Map<*, *>))
+            if (scheme == "clearkey") {
+                val kid = drm.kid?.let(::b64UrlToHex)
+                val k = drm.key?.let(::b64UrlToHex)
+                if (kid != null && k != null) put("clearKeys", JSONObject().apply { put(kid, k) })
+            }
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun htmlText(s: String): String =
+        if (android.os.Build.VERSION.SDK_INT >= 24) {
+            android.text.Html.fromHtml(s, android.text.Html.FROM_HTML_MODE_LEGACY).toString()
+        } else {
+            android.text.Html.fromHtml(s).toString()
+        }
+
+    private fun b64UrlToHex(value: String): String? {
+        val v = value.trim()
+        if (v.matches(Regex("^[0-9a-fA-F]{32}$"))) return v.lowercase()
+        return try {
+            android.util.Base64.decode(
+                v, android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING or android.util.Base64.NO_WRAP,
+            ).joinToString("") { "%02x".format(it) }
+        } catch (_: Throwable) {
+            null
+        }
+    }
+
+    private fun buildLinksJson(api: MainAPI, c: LinkCollection): String {
+        val (sources, subsSnapshot, token, done, error) = synchronized(c) {
+            listOf(ArrayList(c.sources), ArrayList(c.subs), c.interceptorToken, c.done, c.error)
+        }
+        @Suppress("UNCHECKED_CAST")
+        val collected = sources as ArrayList<Pair<Int, JSONObject>>
+        @Suppress("UNCHECKED_CAST")
+        val subFiles = subsSnapshot as ArrayList<com.lagradost.cloudstream3.SubtitleFile>
+        collected.sortByDescending { it.first }
         val videoSources = JSONArray()
         collected.forEachIndexed { i, entry ->
-            entry.second.put("isDefault", i == 0)
-            videoSources.put(entry.second)
+            val o = JSONObject(entry.second.toString())
+            o.put("isDefault", i == 0)
+            videoSources.put(o)
         }
-        // Shape matches MediaResolveModel.fromJson (videoUrl/type/headers + videoSources + subtitles).
+
+        val subs = JSONArray()
+        val nameCounts = HashMap<String, Int>()
+        for (sf in subFiles) {
+            val base = htmlText(sf.lang).trim().ifEmpty { "Subtitle" }
+            val n = (nameCounts[base] ?: 0) + 1
+            nameCounts[base] = n
+            val subHeaders = LinkedHashMap(sf.headers ?: emptyMap())
+            if (subHeaders.isNotEmpty() && subHeaders.keys.none { it.equals("User-Agent", true) }) {
+                subHeaders["User-Agent"] = com.lagradost.cloudstream3.USER_AGENT
+            }
+            val proxiedUrl = (token as String?)?.let { CsStreamProxy.urlFor(it, sf.url, subHeaders) }
+            subs.put(JSONObject().apply {
+                put("label", if (n == 1) base else "$base $n")
+                put("file", proxiedUrl ?: sf.url)
+                put("default", false)
+                if (proxiedUrl == null && subHeaders.isNotEmpty()) {
+                    put("headers", JSONObject(subHeaders as Map<*, *>))
+                }
+            })
+        }
+
         val first = if (videoSources.length() > 0) videoSources.getJSONObject(0) else null
         return JSONObject().apply {
             put("videoUrl", first?.optString("videoUrl"))
@@ -637,6 +899,11 @@ class PluginHost(private val appContext: Context) {
             put("headers", first?.optJSONObject("headers") ?: JSONObject())
             put("videoSources", videoSources)
             put("subtitles", subs)
+            if (done != true) put("partial", true)
+            if (videoSources.length() == 0) {
+                put("error", "${api.name}: " +
+                    ((error as String?) ?: "the provider returned no mirrors for this episode"))
+            }
         }.toString()
     }
 }
