@@ -9,7 +9,7 @@
     { id: 'idub', kind: 'vod', search: true, viewAll: true, related: true,
       hosts: /^v\.mover\.uz$/, ignoreHeaders: [], hlsjs: false },
     { id: 'vidapi', kind: 'vod', search: false, viewAll: false, related: false,
-      hosts: null, ignoreHeaders: ['referer', 'origin', 'user-agent'], hlsjs: true },
+      hosts: null, ignoreHeaders: ['referer', 'origin', 'user-agent'], hlsjs: true, relabel: true },
     { id: 'anilibria', kind: 'vod', search: true, viewAll: true, related: true,
       hosts: /^cache\.libria\.fun$/, ignoreHeaders: ['user-agent'], hlsjs: true },
     { id: 'animevost', kind: 'vod', search: true, viewAll: true, related: true,

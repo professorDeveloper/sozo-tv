@@ -717,6 +717,42 @@ test('webOS user agent: a provider without hls.js moves on, and hls.js is never 
   await context.close();
 });
 
+test('webOS: a relabel provider plays natively through the loopback relay, and others stay direct', async () => {
+  const init = () => {
+    window.__sources = [];
+    window.PalmServiceBridge = function () {
+      const self = this;
+      self.call = function (uri) {
+        window.__bridgeUri = uri;
+        setTimeout(() => self.onservicecallback(JSON.stringify({ returnValue: true, port: 4321, token: 'ab12' })), 0);
+      };
+    };
+    new MutationObserver((list) => list.forEach((m) => m.addedNodes.forEach((n) => {
+      if (n.tagName === 'SOURCE') window.__sources.push(n.src);
+    }))).observe(document, { childList: true, subtree: true });
+  };
+  const hls = 'https://seg.example/x/master';
+  const libria = 'https://cache.libria.fun/y/master.m3u8';
+  const { page, context } = await openApp({
+    userAgent: 'Mozilla/5.0 (Web0S; Linux/SmartTV) Chrome/120.0 WebAppManager',
+    init,
+    routes: { media: (q) => ({ body: { videoSources: [{ quality: 'x', videoUrl: q.get('provider') === 'anilibria' ? libria : hls, type: 'hls' }] } }) },
+    media: () => null
+  });
+  await waitFocus(page, /Title 5000/);
+  await page.waitForFunction(() => window.Sozo.App.relabel.ready());
+  assert.equal(await page.evaluate(() => window.__bridgeUri), 'luna://com.soplay.sozo.webos.service/relay');
+  await page.evaluate(() => window.Sozo.Player.play({ provider: 'vidapi', contentUrl: 'x', title: 'A', isSerial: true, episode: { mediaRef: 'r', episode: 1, season: 1 }, episodes: [], startPosition: 0 }));
+  await page.waitForFunction(() => window.__sources.length > 0);
+  assert.equal(await page.evaluate(() => window.__sources[0]), 'http://127.0.0.1:4321/ab12/p?u=' + encodeURIComponent(hls));
+  await back(page);
+  await page.evaluate(() => { window.__sources = []; });
+  await page.evaluate(() => window.Sozo.Player.play({ provider: 'anilibria', contentUrl: 'y', title: 'B', isSerial: true, episode: { mediaRef: 'r', episode: 1, season: 1 }, episodes: [], startPosition: 0 }));
+  await page.waitForFunction(() => window.__sources.length > 0);
+  assert.equal(await page.evaluate(() => window.__sources[0]), libria, 'only providers that ask for it go through the relay');
+  await context.close();
+});
+
 test('18+: an adult envelope title never reaches the video, and an adult request is refused', async () => {
   const routes = filmRoutes({ title: 'Bad XXX film', videoSources: [SRC('a')] });
   const { page, log, context } = await openApp({ routes, media: () => 'clip' });
