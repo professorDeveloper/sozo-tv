@@ -31,16 +31,25 @@ function sniff(head, upstreamType) {
   return t;
 }
 
-// Every URI in a playlist is made absolute and sent back through the relay.
+// url.resolve throws on some URLs (e.g. http://[bad/x); null lets the caller drop or refuse it.
+function resolve(base, ref) {
+  try { return url.resolve(base, ref); } catch (e) { return null; }
+}
+
+// Every URI in a playlist is made absolute and sent back through the relay; a line with an unparsable URI is dropped.
 function rewritePlaylist(text, base, wrap) {
   return String(text).split(/\r?\n/).map(function (line) {
     var s = line.trim();
     if (!s) return line;
-    if (s.charAt(0) !== '#') return wrap(url.resolve(base, s));
-    return line.replace(/URI="([^"]*)"/g, function (m, uri) {
-      return 'URI="' + wrap(url.resolve(base, uri)) + '"';
+    if (s.charAt(0) !== '#') { var u = resolve(base, s); return u === null ? null : wrap(u); }
+    var bad = false;
+    var out = line.replace(/URI="([^"]*)"/g, function (m, uri) {
+      var r = resolve(base, uri);
+      if (r === null) { bad = true; return m; }
+      return 'URI="' + wrap(r) + '"';
     });
-  }).join('\n');
+    return bad ? null : out;
+  }).filter(function (line) { return line !== null; }).join('\n');
 }
 
 function wrapper(port, token) {
@@ -125,7 +134,8 @@ function publicLookup(isPublic) {
 // Follows redirects; hold.req is always the live request, so the caller can abort whichever hop is open.
 function fetchUpstream(target, range, hops, policy, hold, cb) {
   var lib = /^https:/i.test(target) ? https : http;
-  var opts = url.parse(target);
+  var opts;
+  try { opts = url.parse(target); } catch (e) { cb(e); return; }
   if (policy.publicOnly) {
     var literal = String(opts.hostname || '').replace(/^\[|\]$/g, '');
     if (net.isIP(literal) && !policy.isPublic(literal)) { cb(new Error('refused address ' + literal)); return; }
@@ -150,8 +160,8 @@ function fetchUpstream(target, range, hops, policy, hold, cb) {
       res.resume();
       req.abort();
       done = true;
-      var next = url.resolve(target, loc);
-      if (hops >= MAX_REDIRECTS || !isUpstream(next)) { cb(new Error('bad redirect')); return; }
+      var next = resolve(target, loc);
+      if (next === null || hops >= MAX_REDIRECTS || !isUpstream(next)) { cb(new Error('bad redirect')); return; }
       if (hold.aborted) return;
       fetchUpstream(next, range, hops + 1, policy, hold, cb);
       return;

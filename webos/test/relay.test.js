@@ -256,3 +256,35 @@ test('relay: non-Latin playlist and segment paths are percent-encoded and play t
     up.close();
   }
 });
+
+test('rewritePlaylist drops a line whose URI cannot be parsed and keeps the rest', () => {
+  const wrap = (u) => 'R(' + u + ')';
+  const text = '#EXTM3U\n#EXT-X-KEY:METHOD=AES-128,URI="http://[bad/key"\n#EXTINF:6,\nhttp://[bad/x.ts\n#EXTINF:6,\nseg1.ts';
+  const out = proxy.rewritePlaylist(text, 'https://a.test/pl/index.m3u8', wrap).split('\n');
+  assert.deepEqual(out, ['#EXTM3U', '#EXTINF:6,', '#EXTINF:6,', 'R(https://a.test/pl/seg1.ts)']);
+});
+
+test('relay: an unparsable target, redirect or playlist line answers 502 or is dropped, and the service keeps running', async () => {
+  const up = http.createServer((req, res) => {
+    if (req.url === '/redir') { res.writeHead(302, { Location: 'http://[bad/x' }); res.end(); return; }
+    if (req.url === '/pl') { res.writeHead(200, { 'Content-Type': 'text/html' }); res.end('#EXTM3U\n#EXTINF:6,\nhttp://[bad/x.ts\n#EXTINF:6,\nok.ts\n'); return; }
+    res.writeHead(200, { 'Content-Type': 'text/html' }); res.end('#EXTM3U\n');
+  });
+  const upPort = await listen(up);
+  const relay = await startRelay({ allowPrivate: true });
+  try {
+    const wrap = proxy.wrapper(relay.port, relay.token);
+    assert.equal((await fetch(wrap('http://[bad/x'))).status, 502, 'target');
+    assert.equal((await fetch(wrap('http://127.0.0.1:' + upPort + '/redir'))).status, 502, 'redirect');
+    const pl = await fetch(wrap('http://127.0.0.1:' + upPort + '/pl'));
+    assert.equal(pl.status, 200);
+    const lines = (await pl.text()).split('\n').filter((l) => l.startsWith('http'));
+    assert.equal(lines.length, 1);
+    assert.ok(lines[0].includes(encodeURIComponent('http://127.0.0.1:' + upPort + '/ok.ts')));
+    const ok = await fetch(wrap('http://127.0.0.1:' + upPort + '/ok'));
+    assert.equal(ok.headers.get('content-type'), proxy.PLAYLIST, 'still serving');
+  } finally {
+    relay.server.close();
+    up.close();
+  }
+});
