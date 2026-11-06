@@ -105,7 +105,9 @@ A TV takes a different path for HLS: it tries the platform's native player first
 uses hls.js only as a fallback where the source allows it. vidapi's segments are named `.html` and sent as
 `text/html`. On an LG webOS 10.3 TV the native player rejects them at once (`MEDIA_ELEMENT_ERROR: Format
 error`), while hls.js plays the same stream at 1080p; its segment host now sends `Access-Control-Allow-Origin: *`.
-So on webOS vidapi goes through the relay below, with hls.js as the fallback. sportstv is still untried on a TV.
+So on webOS vidapi goes through the relay below, with hls.js as the fallback. sportstv plays natively on the
+same TV at 1080p without the relay or hls.js (Setanta Sports 1 Eurasia via `stream.mcquack.net` and Futbol via
+`185.121.1.163:8083`, both plain HTTP).
 
 ### Native HLS relay (webOS only)
 
@@ -176,6 +178,6 @@ on Chromium 53. Nothing here has run on Chromium 53.
 
 - Install on the oldest TV available and check Home, Search, Detail and the exit dialog.
 - Play one mp4 source and one HLS source, then seek, change source and resume.
-- Try vidapi and sportstv with native HLS.
+- Try vidapi and sportstv with native HLS on webOS older than 10.3.
 - Use the Magic Remote pointer, the arrows, OK and Back, including held keys.
 - Check that the screensaver stays off during playback and how `ended` behaves.
