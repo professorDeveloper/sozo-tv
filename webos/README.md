@@ -100,9 +100,10 @@ Results are from one live run in desktop Chrome, with one title per source:
 | sportstv | Live | Many | **Did not play**, cause not checked. The chooser appears. It also has a plain-HTTP host and one HEVC channel. |
 
 A TV takes a different path for HLS: it tries the platform's native player first, which needs no CORS, and
-uses hls.js only as a fallback where the source allows it. vidapi has no fallback. Its segments are named
-`.html` and sent as `text/html`, so it depends entirely on the native player accepting that. vidapi and
-sportstv are the first things to try on a real TV.
+uses hls.js only as a fallback where the source allows it. vidapi's segments are named `.html` and sent as
+`text/html`. On an LG webOS 10.3 TV the native player rejects them at once (`MEDIA_ELEMENT_ERROR: Format
+error`), while hls.js plays the same stream at 1080p; its segment host now sends `Access-Control-Allow-Origin: *`.
+So vidapi falls back to hls.js. sportstv is still untried on a TV.
 
 ### Why the other 33 are left out
 
