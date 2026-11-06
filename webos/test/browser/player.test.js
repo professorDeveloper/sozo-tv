@@ -645,8 +645,8 @@ test('webOS user agent: native HLS first through <source>, then hls.js where the
 
 test('webOS user agent: a provider without hls.js moves on, and hls.js is never loaded', async () => {
   const body = { videoSources: [
-    { quality: 'x', videoUrl: 'https://rotating.site/x/master', type: 'hls', headers: { Referer: 'r' } },
-    { quality: 'y', videoUrl: 'https://cdn.test/y.mp4', type: 'mp4' }
+    { quality: 'x', videoUrl: 'https://v.mover.uz/x/master', type: 'hls' },
+    { quality: 'y', videoUrl: 'https://v.mover.uz/y.mp4', type: 'mp4' }
   ] };
   const { page, log, context } = await openApp({
     userAgent: 'Mozilla/5.0 (Web0S; Linux/SmartTV) Chrome/53.0 WebAppManager',
@@ -654,7 +654,7 @@ test('webOS user agent: a provider without hls.js moves on, and hls.js is never 
     media: (u) => (u.includes('y.mp4') ? 'clip' : null)
   });
   await waitFocus(page, /Title 5000/);
-  await page.evaluate(() => window.Sozo.Player.play({ provider: 'vidapi', contentUrl: 'x', title: 'A', isSerial: true, episode: { mediaRef: 'r', episode: 1, season: 1 }, episodes: [], startPosition: 0 }));
+  await page.evaluate(() => window.Sozo.Player.play({ provider: 'idub', contentUrl: 'x', title: 'A', isSerial: true, episode: { mediaRef: 'r', episode: 1, season: 1 }, episodes: [], startPosition: 0 }));
   await waitPlaying(page);
   assert.equal(await page.evaluate(() => !!window.Hls), false);
   noErrors(log);
