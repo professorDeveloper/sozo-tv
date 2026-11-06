@@ -105,6 +105,7 @@
     var cues = null;
     var subtitleTracks = [];
     var subtitleOn = null;
+    var subOffset = 0;
     var cueText = '';
 
     var startAt = 0;
@@ -233,7 +234,7 @@
     }
 
     function renderCue(t) {
-      var next = cues ? Subtitles.textAt(cues, t) : '';
+      var next = cues ? Subtitles.textAt(cues, t - subOffset) : '';
       if (next === cueText) return;
       cueText = next;
       Dom.clear(subsEl);
@@ -360,6 +361,7 @@
       var track = h('div', 'pl-panel-track');
       var focusables = [];
       var first = null;
+      var focusRow = null;
       items.forEach(function (it) {
         if (it.group) { track.appendChild(h('div', 'pl-group', it.group)); return; }
         var row = h('div', 'pl-item fc' + (it.selected ? ' is-selected' : ''), it.label);
@@ -367,7 +369,9 @@
         track.appendChild(row);
         focusables.push(row);
         if (it.selected && !first) first = row;
+        if (it.focus) focusRow = row;
       });
+      if (focusRow) first = focusRow;
       var clip = h('div', 'pl-panel-clip', track);
       var head = h('div', 'pl-panel-head', [
         h('div', 'pl-panel-title', title),
@@ -447,7 +451,29 @@
       openPanel(View.t('player.quality'), '', items.concat(sourceItems(false)));
     }
 
-    function openSubtitlePanel() {
+    function offsetLabel(v) {
+      var r = Math.round(v * 10) / 10;
+      return (r > 0 ? '+' : r < 0 ? '\u2212' : '') + Math.abs(r) + ' s';
+    }
+
+    // A positive offset shows each line later. It lasts while this track is on.
+    function shiftSubtitles(delta, focusId) {
+      subOffset = delta === null ? 0 : Math.max(-60, Math.min(60, subOffset + delta));
+      cueText = null;
+      renderCue(position);
+      openSubtitlePanel(focusId);
+    }
+
+    function timingItems(focusId) {
+      return [
+        { group: View.t('player.subTiming') },
+        { label: View.t('player.subLater', { s: offsetLabel(0.5) }), focus: focusId === 'later', onOk: function () { shiftSubtitles(0.5, 'later'); } },
+        { label: View.t('player.subEarlier', { s: offsetLabel(-0.5) }), focus: focusId === 'earlier', onOk: function () { shiftSubtitles(-0.5, 'earlier'); } },
+        { label: View.t('player.subReset'), focus: focusId === 'reset', onOk: function () { shiftSubtitles(null, 'reset'); } }
+      ];
+    }
+
+    function openSubtitlePanel(focusId) {
       var items = [{
         label: View.t('player.subOff'), selected: !subtitleOn,
         onOk: function () {
@@ -466,7 +492,8 @@
           }
         });
       });
-      openPanel(View.t('player.subtitles'), '', items);
+      if (subtitleOn) items = items.concat(timingItems(typeof focusId === 'string' ? focusId : null));
+      openPanel(View.t('player.subtitles'), subtitleOn ? View.t('player.subOffset', { s: offsetLabel(subOffset) }) : '', items);
     }
 
     function openAudioPanel() {
@@ -633,6 +660,7 @@
 
     function setSubtitle(track) {
       dropSubtitleRequest();
+      if (track !== subtitleOn) subOffset = 0;
       subtitleOn = track;
       cues = null;
       renderCue(0);

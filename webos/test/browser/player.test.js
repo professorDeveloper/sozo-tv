@@ -469,6 +469,53 @@ test('subtitles: choose a track by remote, cues render as text, the choice is ke
   await context.close();
 });
 
+test('subtitles: timing moves lines later in half-second steps, shows the offset, and Reset restores it', async () => {
+  const env = { videoSources: [SRC('a')], subtitles: [{ label: 'eng', file: 'https://subs.test/en' }] };
+  const { page, log, context } = await openApp({
+    routes: filmRoutes(env),
+    media: (u) => (u.includes('subs.test') ? { text: '1\n00:00:00,000 --> 00:00:30,000\nFirst line\n' } : 'clip')
+  });
+  await openTitle(page);
+  await waitPlaying(page);
+  await pressCode(page, KEY.up);
+  await pressCode(page, KEY.down);
+  await waitFocus(page, /Pause/);
+  await pressCode(page, KEY.right);
+  await waitFocus(page, /Subtitles/);
+  await pressCode(page, KEY.ok);
+  await waitFocus(page, /Off/);
+  assert.equal(await appText(page, 'Show later'), false, 'no timing rows while subtitles are off');
+  await pressCode(page, KEY.down);
+  await waitFocus(page, /English/);
+  await pressCode(page, KEY.ok);
+  await page.waitForSelector('.pl-subs-text');
+  await page.evaluate(() => document.querySelector('video').pause());
+  await waitFocus(page, /Subtitles/);
+  await pressCode(page, KEY.ok);
+  await waitFocus(page, /English/);
+  await pressCode(page, KEY.down);
+  await waitFocus(page, /Show later \(\+0\.5 s\)/);
+  let presses = 0;
+  while (presses < 40 && await visible(page, '.pl-subs-text')) {
+    await pressCode(page, KEY.ok);
+    await waitFocus(page, /Show later/);
+    presses++;
+  }
+  assert.equal(await visible(page, '.pl-subs-text'), false, 'a line that started at 0 s is not due yet once shifted past the playhead');
+  const t = await page.evaluate(() => document.querySelector('video').currentTime);
+  assert.ok(presses * 0.5 > t && (presses - 1) * 0.5 <= t + 0.5, 'half-second steps');
+  assert.equal(await appText(page, 'Timing: +' + presses * 0.5 + ' s'), true);
+  await pressCode(page, KEY.down);
+  await pressCode(page, KEY.down);
+  await waitFocus(page, /Reset timing/);
+  await pressCode(page, KEY.ok);
+  await waitFocus(page, /Reset timing/);
+  await page.waitForSelector('.pl-subs-text');
+  assert.equal(await appText(page, 'Timing: 0 s'), true);
+  noErrors(log);
+  await context.close();
+});
+
 test('subtitles: an HTML or failing body shows a short notice, and the film keeps playing', async () => {
   const env = { videoSources: [SRC('a')], subtitles: [{ label: 'English', file: 'https://subs.test/en', default: true }] };
   const { page, log, context } = await openApp({
