@@ -302,6 +302,7 @@ test('hls.js gets limits sized for a TV, which the build would otherwise leave a
   assert.equal(c.maxBufferSize, 30000000);
   assert.equal(c.maxMaxBufferLength, 60);
   assert.equal(c.enableWorker, false);
+  assert.equal(c.abrEwmaDefaultEstimate, 5000000);
   assert.equal(c.startPosition, -1);
   assert.equal(Playback.hlsConfig(12).startPosition, 12);
 });

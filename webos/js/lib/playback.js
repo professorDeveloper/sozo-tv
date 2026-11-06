@@ -145,10 +145,12 @@
 
   // hls.js ships desktop buffer limits: unbounded back buffer, 60 MB ahead and up to 10 minutes.
   // These are sized for a TV by reasoning, not measured on one.
+  // A 5 Mbps first guess starts a wired TV near 1080p instead of on the lowest level.
   function hlsConfig(startPosition) {
     return {
       enableWorker: false, lowLatencyMode: false, progressive: false, startPosition: startPosition,
-      backBufferLength: 30, maxBufferSize: 30000000, maxMaxBufferLength: 60
+      backBufferLength: 30, maxBufferSize: 30000000, maxMaxBufferLength: 60,
+      abrEwmaDefaultEstimate: 5000000
     };
   }
 
