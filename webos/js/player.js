@@ -105,6 +105,7 @@
     var cues = null;
     var subtitleTracks = [];
     var subtitleOn = null;
+    var subOffset = 0;
     var cueText = '';
 
     var startAt = 0;
@@ -233,7 +234,7 @@
     }
 
     function renderCue(t) {
-      var next = cues ? Subtitles.textAt(cues, t) : '';
+      var next = cues ? Subtitles.textAt(cues, t - subOffset) : '';
       if (next === cueText) return;
       cueText = next;
       Dom.clear(subsEl);
@@ -354,8 +355,8 @@
       touch();
     }
 
-    // items: {group} or {label, selected, onOk}
-    function openPanel(title, message, items, wide) {
+    // items: {group} or {label, selected, onOk}; extra: a node placed under the title
+    function openPanel(title, message, items, wide, extra) {
       closePanel();
       var track = h('div', 'pl-panel-track');
       var focusables = [];
@@ -371,7 +372,8 @@
       var clip = h('div', 'pl-panel-clip', track);
       var head = h('div', 'pl-panel-head', [
         h('div', 'pl-panel-title', title),
-        message ? h('div', 'pl-panel-message', message) : null
+        message ? h('div', 'pl-panel-message', message) : null,
+        extra || null
       ]);
       var p = h('div', 'pl-panel' + (wide ? ' is-wide' : ''), [head, clip]);
       var last = null;
@@ -447,6 +449,41 @@
       openPanel(View.t('player.quality'), '', items.concat(sourceItems(false)));
     }
 
+    function offsetLabel(v) {
+      var r = Math.round(v * 10) / 10;
+      return (r > 0 ? '+' : r < 0 ? '\u2212' : '') + Math.abs(r) + ' s';
+    }
+
+    // A positive offset shows each line later. It lasts while this track is on.
+    function timingRow() {
+      var label = h('div', 'pl-timing-label', View.t('player.subOffset', { s: offsetLabel(subOffset) }));
+      function chip(text, delta) {
+        var c = h('div', 'pl-chip fc', text);
+        c._onOk = function () {
+          subOffset = delta === null ? 0 : Math.max(-60, Math.min(60, subOffset + delta));
+          label.textContent = View.t('player.subOffset', { s: offsetLabel(subOffset) });
+          cueText = null;
+          renderCue(position);
+        };
+        return c;
+      }
+      var chips = [chip(offsetLabel(-0.5), -0.5), chip(offsetLabel(0.5), 0.5), chip(View.t('player.subReset'), null)];
+      var row = h('div', 'pl-timing', [chips[0], label, chips[1], chips[2]]);
+      var last = null;
+      // Entering the row lands on +0.5, or on the chip used last.
+      row._group = {
+        move: function (dir, cur) {
+          var i = chips.indexOf(cur);
+          if (dir === 'left') return chips[i - 1] || null;
+          if (dir === 'right') return chips[i + 1] || null;
+          return null;
+        },
+        restore: function () { return last || chips[1]; },
+        onFocus: function (cur) { last = cur; }
+      };
+      return row;
+    }
+
     function openSubtitlePanel() {
       var items = [{
         label: View.t('player.subOff'), selected: !subtitleOn,
@@ -466,7 +503,7 @@
           }
         });
       });
-      openPanel(View.t('player.subtitles'), '', items);
+      openPanel(View.t('player.subtitles'), '', items, false, subtitleOn ? timingRow() : null);
     }
 
     function openAudioPanel() {
@@ -633,6 +670,7 @@
 
     function setSubtitle(track) {
       dropSubtitleRequest();
+      if (track !== subtitleOn) subOffset = 0;
       subtitleOn = track;
       cues = null;
       renderCue(0);
