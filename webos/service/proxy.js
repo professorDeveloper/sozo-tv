@@ -4,6 +4,8 @@ var http = require('http');
 var https = require('https');
 var url = require('url');
 var crypto = require('crypto');
+var dns = require('dns');
+var net = require('net');
 
 var PLAYLIST = 'application/vnd.apple.mpegurl';
 var MAX_PLAYLIST = 4 * 1024 * 1024;
@@ -47,9 +49,58 @@ function wrapper(port, token) {
   };
 }
 
-function fetchUpstream(target, range, hops, cb) {
+// Public internet only: loopback, private, link-local, CGNAT, multicast and reserved ranges are refused.
+function isPublicAddress(ip) {
+  var v = String(ip || '').toLowerCase();
+  var mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(v);
+  if (mapped) v = mapped[1];
+  if (net.isIPv4(v)) {
+    var o = v.split('.').map(Number);
+    if (o[0] === 0 || o[0] === 10 || o[0] === 127 || o[0] >= 224) return false;
+    if (o[0] === 100 && o[1] >= 64 && o[1] <= 127) return false;
+    if (o[0] === 169 && o[1] === 254) return false;
+    if (o[0] === 172 && o[1] >= 16 && o[1] <= 31) return false;
+    if (o[0] === 192 && (o[1] === 168 || (o[1] === 0 && (o[2] === 0 || o[2] === 2)))) return false;
+    if (o[0] === 198 && (o[1] === 18 || o[1] === 19 || (o[1] === 51 && o[2] === 100))) return false;
+    if (o[0] === 203 && o[1] === 0 && o[2] === 113) return false;
+    return true;
+  }
+  if (net.isIPv6(v)) {
+    if (v === '::' || v === '::1') return false;
+    if (/^f[cd]/.test(v) || /^fe[89ab]/.test(v) || /^ff/.test(v)) return false;
+    if (/^2001:0?db8:/.test(v) || /^64:ff9b:/.test(v) || /^::/.test(v)) return false;
+    return true;
+  }
+  return false;
+}
+
+// dns.lookup that fails for any non-public answer; checked at connect time, so DNS rebinding cannot slip past.
+function publicLookup(isPublic) {
+  return function (hostname, options, cb) {
+  if (typeof options === 'function') { cb = options; options = {}; }
+  var o = typeof options === 'number' ? { family: options } : (options || {});
+  dns.lookup(hostname, { family: o.family || 0, hints: o.hints || 0, all: true }, function (err, list, fam) {
+    if (err) { cb(err); return; }
+    if (typeof list === 'string') list = [{ address: list, family: fam }];
+    for (var i = 0; i < list.length; i++) {
+      if (!isPublic(list[i].address)) { cb(new Error('refused address ' + list[i].address)); return; }
+    }
+    if (!list.length) { cb(new Error('no address')); return; }
+    if (o.all) cb(null, list);
+    else cb(null, list[0].address, list[0].family);
+  });
+  };
+}
+
+// Follows redirects; hold.req is always the live request, so the caller can abort whichever hop is open.
+function fetchUpstream(target, range, hops, policy, hold, cb) {
   var lib = /^https:/i.test(target) ? https : http;
   var opts = url.parse(target);
+  if (policy.publicOnly) {
+    var literal = String(opts.hostname || '').replace(/^\[|\]$/g, '');
+    if (net.isIP(literal) && !policy.isPublic(literal)) { cb(new Error('refused address ' + literal)); return; }
+    opts.lookup = publicLookup(policy.isPublic);
+  }
   opts.headers = { 'User-Agent': UA, 'Accept': '*/*' };
   if (range) opts.headers.Range = range;
   var done = false;
@@ -57,72 +108,100 @@ function fetchUpstream(target, range, hops, cb) {
     var loc = res.headers.location;
     if (res.statusCode >= 300 && res.statusCode < 400 && loc) {
       res.resume();
-      if (hops >= MAX_REDIRECTS) { done = true; cb(new Error('too many redirects')); return; }
+      req.abort();
       done = true;
-      fetchUpstream(url.resolve(target, loc), range, hops + 1, cb);
+      var next = url.resolve(target, loc);
+      if (hops >= MAX_REDIRECTS || !isUpstream(next)) { cb(new Error('bad redirect')); return; }
+      if (hold.aborted) return;
+      fetchUpstream(next, range, hops + 1, policy, hold, cb);
       return;
     }
     done = true;
     cb(null, res, target);
   });
+  hold.req = req;
   req.setTimeout(TIMEOUT, function () { req.abort(); });
   req.on('error', function (e) { if (!done) { done = true; cb(e); } });
-  return req;
 }
 
-function handle(req, res, token, wrap) {
+function sendPlaylist(up, res, finalUrl, wrap, first) {
+  var chunks = [first];
+  var size = first.length;
+  var dead = false;
+  up.on('data', function (chunk) {
+    if (dead) return;
+    size += chunk.length;
+    if (size > MAX_PLAYLIST) { dead = true; up.destroy(); res.writeHead(502); res.end(); return; }
+    chunks.push(chunk);
+  });
+  up.on('end', function () {
+    if (dead) return;
+    var body = rewritePlaylist(Buffer.concat(chunks).toString('utf8'), finalUrl, wrap);
+    res.writeHead(200, { 'Content-Type': PLAYLIST, 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-cache' });
+    res.end(body);
+  });
+  up.resume();
+}
+
+// Media is piped, so a slow player throttles the upstream instead of filling memory.
+function sendMedia(up, res, type, first) {
+  var h = { 'Content-Type': type, 'Access-Control-Allow-Origin': '*' };
+  ['content-length', 'content-range', 'accept-ranges'].forEach(function (k) { if (up.headers[k]) h[k] = up.headers[k]; });
+  res.writeHead(up.statusCode, h);
+  if (res.write(first) === false) {
+    res.once('drain', function () { up.pipe(res); });
+  } else {
+    up.pipe(res);
+  }
+}
+
+function handle(req, res, token, wrap, policy) {
   var parsed = url.parse(req.url, true);
   if (parsed.pathname !== '/' + token + '/p') { res.writeHead(404); res.end(); return; }
   var target = String(parsed.query.u || '');
   if (!isUpstream(target)) { res.writeHead(400); res.end(); return; }
-  var upstream = fetchUpstream(target, req.headers.range, 0, function (err, up, finalUrl) {
-    if (err) { if (!res.headersSent) res.writeHead(502); res.end(); return; }
-    if (up.statusCode >= 400) { up.resume(); res.writeHead(up.statusCode); res.end(); return; }
-    var first = true;
-    var dead = false;
-    var playlist = false;
-    var chunks = [];
-    var size = 0;
-    up.on('data', function (chunk) {
-      if (dead) return;
-      if (first) {
-        first = false;
-        var type = sniff(chunk, up.headers['content-type']);
-        playlist = type === PLAYLIST;
-        if (!playlist) {
-          var h = { 'Content-Type': type, 'Access-Control-Allow-Origin': '*' };
-          ['content-length', 'content-range', 'accept-ranges'].forEach(function (k) { if (up.headers[k]) h[k] = up.headers[k]; });
-          res.writeHead(up.statusCode, h);
-        }
-      }
-      if (playlist) {
-        size += chunk.length;
-        if (size > MAX_PLAYLIST) { dead = true; up.destroy(); res.writeHead(502); res.end(); return; }
-        chunks.push(chunk);
-      } else {
-        res.write(chunk);
-      }
-    });
-    up.on('end', function () {
-      if (dead) return;
-      if (first) { res.writeHead(up.statusCode, { 'Content-Length': '0' }); res.end(); return; }
-      if (!playlist) { res.end(); return; }
-      var body = rewritePlaylist(Buffer.concat(chunks).toString('utf8'), finalUrl, wrap);
-      res.writeHead(200, { 'Content-Type': PLAYLIST, 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-cache' });
-      res.end(body);
-    });
-    up.on('error', function () { if (dead) return; dead = true; if (!res.headersSent) res.writeHead(502); res.end(); });
+  var hold = { req: null, aborted: false };
+  res.on('close', function () {
+    hold.aborted = true;
+    if (hold.req) hold.req.abort();
   });
-  req.on('close', function () { if (upstream) upstream.abort(); });
+  fetchUpstream(target, req.headers.range, 0, policy, hold, function (err, up, finalUrl) {
+    if (err) {
+      if (!res.headersSent) res.writeHead(/^refused/.test(err.message) ? 403 : 502);
+      res.end();
+      return;
+    }
+    if (up.statusCode >= 400) { up.resume(); res.writeHead(up.statusCode); res.end(); return; }
+    up.on('error', function () { if (!res.headersSent) res.writeHead(502); res.end(); });
+    var got = false;
+    up.once('data', function (first) {
+      got = true;
+      up.pause();
+      var type = sniff(first, up.headers['content-type']);
+      if (type === PLAYLIST) sendPlaylist(up, res, finalUrl, wrap, first);
+      else sendMedia(up, res, type, first);
+    });
+    up.once('end', function () {
+      if (!got) { res.writeHead(up.statusCode, { 'Content-Length': '0' }); res.end(); }
+    });
+  });
+}
+
+// webos-service puts the calling app's id (WAM's pid already split off) or service name in message.sender.
+function callerAllowed(sender, appId) {
+  return typeof sender === 'string' && sender === appId;
 }
 
 // Listens on loopback only, on a free port; every path carries a per-run token.
-function start(cb) {
+// options.allowPrivate and options.isPublic are for tests against a local upstream; the service sets neither.
+function start(cb, options) {
+  var o = options || {};
+  var policy = { publicOnly: !o.allowPrivate, isPublic: o.isPublic || isPublicAddress };
   var token = crypto.randomBytes(12).toString('hex');
   var wrap = null;
   var server = http.createServer(function (req, res) {
     if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405); res.end(); return; }
-    handle(req, res, token, wrap);
+    handle(req, res, token, wrap, policy);
   });
   server.on('error', function (e) { cb(e); });
   server.listen(0, '127.0.0.1', function () {
@@ -132,4 +211,4 @@ function start(cb) {
   });
 }
 
-module.exports = { sniff: sniff, rewritePlaylist: rewritePlaylist, wrapper: wrapper, isUpstream: isUpstream, start: start, PLAYLIST: PLAYLIST };
+module.exports = { sniff: sniff, rewritePlaylist: rewritePlaylist, wrapper: wrapper, isUpstream: isUpstream, isPublicAddress: isPublicAddress, callerAllowed: callerAllowed, start: start, PLAYLIST: PLAYLIST };

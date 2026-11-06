@@ -40,6 +40,10 @@ test('isUpstream takes only http(s) URLs with a host', () => {
   assert.equal(proxy.isUpstream(''), false);
 });
 
+function startRelay(options) {
+  return new Promise((resolve, reject) => proxy.start((err, r) => (err ? reject(err) : resolve(r)), options));
+}
+
 function listen(server) {
   return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve(server.address().port)));
 }
@@ -56,7 +60,7 @@ test('relay: a host that labels everything text/html comes out as a playlist and
     res.writeHead(404); res.end();
   });
   const upPort = await listen(upstream);
-  const relay = await new Promise((resolve, reject) => proxy.start((err, r) => (err ? reject(err) : resolve(r))));
+  const relay = await startRelay({ allowPrivate: true });
   try {
     assert.equal(relay.server.address().address, '127.0.0.1');
     const wrap = proxy.wrapper(relay.port, relay.token);
@@ -119,4 +123,87 @@ test('the relay service is ES5 for the oldest webOS Node, and its id matches the
   assert.equal(svc.services[0].name, svc.id);
   assert.equal(JSON.parse(fs.readFileSync(path.join(ROOT, 'service', 'package.json'), 'utf8')).name, svc.id);
   assert.equal(Relabel.SERVICE, 'luna://' + svc.id + '/relay');
+});
+
+test('isPublicAddress refuses loopback, private, link-local, CGNAT, reserved and multicast, v4 and v6', () => {
+  for (const ip of ['127.0.0.1', '10.1.2.3', '172.16.0.1', '172.31.255.255', '192.168.1.120', '169.254.1.1', '100.64.0.1', '0.0.0.0',
+    '224.0.0.1', '255.255.255.255', '203.0.113.250', '::1', '::', 'fe80::1', 'fd00::1', 'ff02::1', '2001:db8:1000::fa', '::ffff:192.168.1.1', 'not-an-ip']) {
+    assert.equal(proxy.isPublicAddress(ip), false, ip);
+  }
+  for (const ip of ['188.114.96.0', '104.17.88.107', '172.32.0.1', '2a06:98c1:3120::', '::ffff:8.8.8.8']) {
+    assert.equal(proxy.isPublicAddress(ip), true, ip);
+  }
+});
+
+test('relay: by default a LAN or loopback upstream is refused, by literal address and by name', async () => {
+  let hits = 0;
+  const lan = http.createServer((req, res) => { hits++; res.end('#EXTM3U\n'); });
+  const port = await listen(lan);
+  const relay = await startRelay();
+  try {
+    const wrap = proxy.wrapper(relay.port, relay.token);
+    for (const host of ['127.0.0.1', 'localhost', '[::1]', '192.168.1.1', '10.0.0.1']) {
+      assert.equal((await fetch(wrap('http://' + host + ':' + port + '/x'))).status, 403, host);
+    }
+    assert.equal(hits, 0, 'nothing reached the LAN server');
+  } finally {
+    relay.server.close();
+    lan.close();
+  }
+});
+
+test('relay: a redirect to a refused address is refused at that hop', async () => {
+  let hits = 0;
+  const inner = http.createServer((req, res) => { hits++; res.end('secret'); });
+  const innerPort = await new Promise((r) => inner.listen(0, '127.0.0.2', () => r(inner.address().port)));
+  const hop = http.createServer((req, res) => { res.writeHead(302, { Location: 'http://127.0.0.2:' + innerPort + '/secret' }); res.end(); });
+  const hopPort = await listen(hop);
+  // Only 127.0.0.1 counts as public here, so the first hop passes and the redirect target does not.
+  const relay = await startRelay({ isPublic: (ip) => ip === '127.0.0.1' });
+  try {
+    assert.equal((await fetch(proxy.wrapper(relay.port, relay.token)('http://127.0.0.1:' + hopPort + '/'))).status, 403);
+    assert.equal(hits, 0);
+  } finally {
+    relay.server.close();
+    hop.close();
+    inner.close();
+  }
+});
+
+test('relay: leaving mid-redirect aborts the next hop, and a large segment is piped intact', async () => {
+  let secondClosed = null;
+  const big = Buffer.alloc(6 * 1024 * 1024, 0x47);
+  const up = http.createServer((req, res) => {
+    if (req.url === '/hop') { res.writeHead(302, { Location: '/hang' }); res.end(); return; }
+    if (req.url === '/hang') { secondClosed = new Promise((r) => req.on('close', r)); return; }
+    if (req.url === '/big.ts') { res.writeHead(200, { 'Content-Type': 'text/html', 'Content-Length': String(big.length) }); res.end(big); return; }
+    res.writeHead(404); res.end();
+  });
+  const upPort = await listen(up);
+  const relay = await startRelay({ allowPrivate: true });
+  try {
+    const wrap = proxy.wrapper(relay.port, relay.token);
+    const ctrl = new AbortController();
+    const pending = fetch(wrap('http://127.0.0.1:' + upPort + '/hop'), { signal: ctrl.signal }).catch(() => null);
+    while (!secondClosed) await new Promise((r) => setTimeout(r, 10));
+    ctrl.abort();
+    await pending;
+    await secondClosed;
+    const seg = await fetch(wrap('http://127.0.0.1:' + upPort + '/big.ts'));
+    assert.equal(seg.headers.get('content-type'), 'video/mp2t');
+    const body = Buffer.from(await seg.arrayBuffer());
+    assert.equal(body.length, big.length);
+    assert.ok(body.equals(big));
+  } finally {
+    relay.server.close();
+    up.close();
+  }
+});
+
+test('callerAllowed only lets the app itself have the token', () => {
+  assert.equal(proxy.callerAllowed('com.soplay.sozo.webos', 'com.soplay.sozo.webos'), true);
+  assert.equal(proxy.callerAllowed('com.other.app', 'com.soplay.sozo.webos'), false);
+  assert.equal(proxy.callerAllowed('com.soplay.sozo.webos.evil', 'com.soplay.sozo.webos'), false);
+  assert.equal(proxy.callerAllowed(undefined, 'com.soplay.sozo.webos'), false);
+  assert.equal(proxy.callerAllowed('', 'com.soplay.sozo.webos'), false);
 });
