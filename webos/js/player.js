@@ -355,13 +355,12 @@
       touch();
     }
 
-    // items: {group} or {label, selected, onOk}
-    function openPanel(title, message, items, wide) {
+    // items: {group} or {label, selected, onOk}; extra: a node placed under the title
+    function openPanel(title, message, items, wide, extra) {
       closePanel();
       var track = h('div', 'pl-panel-track');
       var focusables = [];
       var first = null;
-      var focusRow = null;
       items.forEach(function (it) {
         if (it.group) { track.appendChild(h('div', 'pl-group', it.group)); return; }
         var row = h('div', 'pl-item fc' + (it.selected ? ' is-selected' : ''), it.label);
@@ -369,13 +368,12 @@
         track.appendChild(row);
         focusables.push(row);
         if (it.selected && !first) first = row;
-        if (it.focus) focusRow = row;
       });
-      if (focusRow) first = focusRow;
       var clip = h('div', 'pl-panel-clip', track);
       var head = h('div', 'pl-panel-head', [
         h('div', 'pl-panel-title', title),
-        message ? h('div', 'pl-panel-message', message) : null
+        message ? h('div', 'pl-panel-message', message) : null,
+        extra || null
       ]);
       var p = h('div', 'pl-panel' + (wide ? ' is-wide' : ''), [head, clip]);
       var last = null;
@@ -457,23 +455,36 @@
     }
 
     // A positive offset shows each line later. It lasts while this track is on.
-    function shiftSubtitles(delta, focusId) {
-      subOffset = delta === null ? 0 : Math.max(-60, Math.min(60, subOffset + delta));
-      cueText = null;
-      renderCue(position);
-      openSubtitlePanel(focusId);
+    function timingRow() {
+      var label = h('div', 'pl-timing-label', View.t('player.subOffset', { s: offsetLabel(subOffset) }));
+      function chip(text, delta) {
+        var c = h('div', 'pl-chip fc', text);
+        c._onOk = function () {
+          subOffset = delta === null ? 0 : Math.max(-60, Math.min(60, subOffset + delta));
+          label.textContent = View.t('player.subOffset', { s: offsetLabel(subOffset) });
+          cueText = null;
+          renderCue(position);
+        };
+        return c;
+      }
+      var chips = [chip(offsetLabel(-0.5), -0.5), chip(offsetLabel(0.5), 0.5), chip(View.t('player.subReset'), null)];
+      var row = h('div', 'pl-timing', [chips[0], label, chips[1], chips[2]]);
+      var last = null;
+      // Entering the row lands on +0.5, or on the chip used last.
+      row._group = {
+        move: function (dir, cur) {
+          var i = chips.indexOf(cur);
+          if (dir === 'left') return chips[i - 1] || null;
+          if (dir === 'right') return chips[i + 1] || null;
+          return null;
+        },
+        restore: function () { return last || chips[1]; },
+        onFocus: function (cur) { last = cur; }
+      };
+      return row;
     }
 
-    function timingItems(focusId) {
-      return [
-        { group: View.t('player.subTiming') },
-        { label: View.t('player.subLater', { s: offsetLabel(0.5) }), focus: focusId === 'later', onOk: function () { shiftSubtitles(0.5, 'later'); } },
-        { label: View.t('player.subEarlier', { s: offsetLabel(-0.5) }), focus: focusId === 'earlier', onOk: function () { shiftSubtitles(-0.5, 'earlier'); } },
-        { label: View.t('player.subReset'), focus: focusId === 'reset', onOk: function () { shiftSubtitles(null, 'reset'); } }
-      ];
-    }
-
-    function openSubtitlePanel(focusId) {
+    function openSubtitlePanel() {
       var items = [{
         label: View.t('player.subOff'), selected: !subtitleOn,
         onOk: function () {
@@ -492,8 +503,7 @@
           }
         });
       });
-      if (subtitleOn) items = items.concat(timingItems(typeof focusId === 'string' ? focusId : null));
-      openPanel(View.t('player.subtitles'), subtitleOn ? View.t('player.subOffset', { s: offsetLabel(subOffset) }) : '', items);
+      openPanel(View.t('player.subtitles'), '', items, false, subtitleOn ? timingRow() : null);
     }
 
     function openAudioPanel() {

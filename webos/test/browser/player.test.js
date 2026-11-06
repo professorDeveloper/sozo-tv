@@ -469,7 +469,7 @@ test('subtitles: choose a track by remote, cues render as text, the choice is ke
   await context.close();
 });
 
-test('subtitles: timing moves lines later in half-second steps, shows the offset, and Reset restores it', async () => {
+test('subtitles: timing chips sit by the offset, one press up from the tracks, and move lines in half-second steps', async () => {
   const env = { videoSources: [SRC('a')], subtitles: [{ label: 'eng', file: 'https://subs.test/en' }] };
   const { page, log, context } = await openApp({
     routes: filmRoutes(env),
@@ -484,7 +484,7 @@ test('subtitles: timing moves lines later in half-second steps, shows the offset
   await waitFocus(page, /Subtitles/);
   await pressCode(page, KEY.ok);
   await waitFocus(page, /Off/);
-  assert.equal(await appText(page, 'Show later'), false, 'no timing rows while subtitles are off');
+  assert.equal(await visible(page, '.pl-chip'), false, 'no timing chips while subtitles are off');
   await pressCode(page, KEY.down);
   await waitFocus(page, /English/);
   await pressCode(page, KEY.ok);
@@ -493,25 +493,34 @@ test('subtitles: timing moves lines later in half-second steps, shows the offset
   await waitFocus(page, /Subtitles/);
   await pressCode(page, KEY.ok);
   await waitFocus(page, /English/);
-  await pressCode(page, KEY.down);
-  await waitFocus(page, /Show later \(\+0\.5 s\)/);
+  assert.equal(await appText(page, 'Timing: 0 s'), true);
+  await pressCode(page, KEY.up);
+  await waitFocus(page, /Off/);
+  await pressCode(page, KEY.up);
+  await waitFocus(page, /^\+0\.5 s$/);
+  await shot(page, 'p7-subtitle-timing');
   let presses = 0;
   while (presses < 40 && await visible(page, '.pl-subs-text')) {
     await pressCode(page, KEY.ok);
-    await waitFocus(page, /Show later/);
     presses++;
+    await page.waitForFunction((n) => document.querySelector('.pl-timing-label').textContent === 'Timing: +' + n * 0.5 + ' s', presses);
   }
   assert.equal(await visible(page, '.pl-subs-text'), false, 'a line that started at 0 s is not due yet once shifted past the playhead');
   const t = await page.evaluate(() => document.querySelector('video').currentTime);
   assert.ok(presses * 0.5 > t && (presses - 1) * 0.5 <= t + 0.5, 'half-second steps');
-  assert.equal(await appText(page, 'Timing: +' + presses * 0.5 + ' s'), true);
-  await pressCode(page, KEY.down);
-  await pressCode(page, KEY.down);
-  await waitFocus(page, /Reset timing/);
+  await waitFocus(page, /^\+0\.5 s$/, 'the menu stays open on the same chip');
+  await pressCode(page, KEY.left);
+  await waitFocus(page, /^\u22120\.5 s$/);
   await pressCode(page, KEY.ok);
-  await waitFocus(page, /Reset timing/);
+  await page.waitForFunction((n) => document.querySelector('.pl-timing-label').textContent === 'Timing: +' + (n - 1) * 0.5 + ' s' || (n === 1 && document.querySelector('.pl-timing-label').textContent === 'Timing: 0 s'), presses);
+  await pressCode(page, KEY.right);
+  await pressCode(page, KEY.right);
+  await waitFocus(page, /^Reset$/);
+  await pressCode(page, KEY.ok);
+  await page.waitForFunction(() => document.querySelector('.pl-timing-label').textContent === 'Timing: 0 s');
   await page.waitForSelector('.pl-subs-text');
-  assert.equal(await appText(page, 'Timing: 0 s'), true);
+  await pressCode(page, KEY.down);
+  await waitFocus(page, /Off|English/);
   noErrors(log);
   await context.close();
 });
