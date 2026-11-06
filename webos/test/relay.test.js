@@ -127,10 +127,12 @@ test('the relay service is ES5 for the oldest webOS Node, and its id matches the
 
 test('isPublicAddress refuses loopback, private, link-local, CGNAT, reserved and multicast, v4 and v6', () => {
   for (const ip of ['127.0.0.1', '10.1.2.3', '172.16.0.1', '172.31.255.255', '192.168.1.120', '169.254.1.1', '100.64.0.1', '0.0.0.0',
-    '224.0.0.1', '255.255.255.255', '203.0.113.250', '::1', '::', 'fe80::1', 'fd00::1', 'ff02::1', '2001:db8:1000::fa', '::ffff:192.168.1.1', 'not-an-ip']) {
+    '224.0.0.1', '255.255.255.255', '203.0.113.250', '::1', '::', 'fe80::1', 'fd00::1', 'ff02::1', '2001:db8:1000::fa', '::ffff:192.168.1.1', 'not-an-ip',
+    '0:0:0:0:0:0:0:1', '0:0:0:0:0:ffff:7f00:1', '0000:0000:0000:0000:0000:0000:0000:0000', '0:0:0:0:0:ffff:c0a8:178', '::ffff:127.0.0.1',
+    'FE80::1%eth0', '2002:c0a8:0101::1', '2001:0:4136:e378::1', '64:ff9b::a00:1']) {
     assert.equal(proxy.isPublicAddress(ip), false, ip);
   }
-  for (const ip of ['188.114.96.0', '104.17.88.107', '172.32.0.1', '2a06:98c1:3120::', '::ffff:8.8.8.8']) {
+  for (const ip of ['188.114.96.0', '104.17.88.107', '172.32.0.1', '2a06:98c1:3120::', '::ffff:8.8.8.8', '2606:4700:4700:0:0:0:0:1111', '0:0:0:0:0:ffff:808:808', '2002:0808:0808::1']) {
     assert.equal(proxy.isPublicAddress(ip), true, ip);
   }
 });
@@ -223,6 +225,32 @@ test('relay: a redirect to a non-http scheme or a hostless URL answers 502 and t
     }
     const ok = await fetch(wrap('http://127.0.0.1:' + upPort + '/ok'));
     assert.equal(ok.headers.get('content-type'), proxy.PLAYLIST, 'still serving after the bad redirects');
+  } finally {
+    relay.server.close();
+    up.close();
+  }
+});
+
+test('relay: non-Latin playlist and segment paths are percent-encoded and play through', async () => {
+  const seen = [];
+  const up = http.createServer((req, res) => {
+    const path = decodeURIComponent(req.url);
+    seen.push(req.url);
+    if (path === '/видео/плейлист.m3u8') { res.writeHead(200, { 'Content-Type': 'text/html' }); res.end('#EXTM3U\n#EXTINF:6,\nсегмент 0.ts\n'); return; }
+    if (path === '/видео/сегмент 0.ts') { res.writeHead(200, { 'Content-Type': 'text/html' }); res.end(TS); return; }
+    res.writeHead(404); res.end();
+  });
+  const upPort = await listen(up);
+  const relay = await startRelay({ allowPrivate: true });
+  try {
+    const wrap = proxy.wrapper(relay.port, relay.token);
+    const pl = await fetch(wrap('http://127.0.0.1:' + upPort + '/видео/плейлист.m3u8'));
+    assert.equal(pl.status, 200);
+    const segUrl = (await pl.text()).split('\n').find((l) => l.startsWith('http'));
+    const seg = await fetch(segUrl);
+    assert.equal(seg.headers.get('content-type'), 'video/mp2t');
+    assert.deepEqual(Buffer.from(await seg.arrayBuffer()), TS);
+    assert.ok(seen.every((u) => /^[\x21-\x7e]+$/.test(u)), 'upstream only ever saw escaped paths');
   } finally {
     relay.server.close();
     up.close();

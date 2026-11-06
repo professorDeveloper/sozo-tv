@@ -49,29 +49,59 @@ function wrapper(port, token) {
   };
 }
 
+// Eight 16-bit groups from any IPv6 spelling (zero runs, leading zeros, a dotted IPv4 tail, a zone id), or null.
+function ipv6Groups(ip) {
+  var v = String(ip).split('%')[0];
+  var tail = /(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(v);
+  if (tail) {
+    var q = tail.slice(1).map(Number);
+    v = v.slice(0, tail.index) + ((q[0] << 8) | q[1]).toString(16) + ':' + ((q[2] << 8) | q[3]).toString(16);
+  }
+  var halves = v.split('::');
+  if (halves.length > 2) return null;
+  var head = halves[0] ? halves[0].split(':') : [];
+  var rest = halves.length === 2 && halves[1] ? halves[1].split(':') : [];
+  var fill = halves.length === 2 ? 8 - head.length - rest.length : 0;
+  if (fill < 0 || (halves.length === 1 && head.length !== 8)) return null;
+  var parts = head.concat(new Array(fill + 1).join('0').split(''), rest);
+  if (parts.length !== 8) return null;
+  var out = [];
+  for (var i = 0; i < 8; i++) {
+    if (!/^[0-9a-f]{1,4}$/i.test(parts[i])) return null;
+    out.push(parseInt(parts[i], 16));
+  }
+  return out;
+}
+
+function isPublicV4(o) {
+  if (o[0] === 0 || o[0] === 10 || o[0] === 127 || o[0] >= 224) return false;
+  if (o[0] === 100 && o[1] >= 64 && o[1] <= 127) return false;
+  if (o[0] === 169 && o[1] === 254) return false;
+  if (o[0] === 172 && o[1] >= 16 && o[1] <= 31) return false;
+  if (o[0] === 192 && (o[1] === 168 || (o[1] === 0 && (o[2] === 0 || o[2] === 2)))) return false;
+  if (o[0] === 198 && (o[1] === 18 || o[1] === 19 || (o[1] === 51 && o[2] === 100))) return false;
+  if (o[0] === 203 && o[1] === 0 && o[2] === 113) return false;
+  return true;
+}
+
+function v4From(hi, lo) {
+  return [hi >> 8, hi & 255, lo >> 8, lo & 255];
+}
+
 // Public internet only: loopback, private, link-local, CGNAT, multicast and reserved ranges are refused.
+// IPv6 is normalised first, so expanded or IPv4-embedding spellings cannot slip past.
 function isPublicAddress(ip) {
   var v = String(ip || '').toLowerCase();
-  var mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(v);
-  if (mapped) v = mapped[1];
-  if (net.isIPv4(v)) {
-    var o = v.split('.').map(Number);
-    if (o[0] === 0 || o[0] === 10 || o[0] === 127 || o[0] >= 224) return false;
-    if (o[0] === 100 && o[1] >= 64 && o[1] <= 127) return false;
-    if (o[0] === 169 && o[1] === 254) return false;
-    if (o[0] === 172 && o[1] >= 16 && o[1] <= 31) return false;
-    if (o[0] === 192 && (o[1] === 168 || (o[1] === 0 && (o[2] === 0 || o[2] === 2)))) return false;
-    if (o[0] === 198 && (o[1] === 18 || o[1] === 19 || (o[1] === 51 && o[2] === 100))) return false;
-    if (o[0] === 203 && o[1] === 0 && o[2] === 113) return false;
-    return true;
-  }
-  if (net.isIPv6(v)) {
-    if (v === '::' || v === '::1') return false;
-    if (/^f[cd]/.test(v) || /^fe[89ab]/.test(v) || /^ff/.test(v)) return false;
-    if (/^2001:0?db8:/.test(v) || /^64:ff9b:/.test(v) || /^::/.test(v)) return false;
-    return true;
-  }
-  return false;
+  if (net.isIPv4(v)) return isPublicV4(v.split('.').map(Number));
+  if (!net.isIPv6(v.split('%')[0])) return false;
+  var h = ipv6Groups(v);
+  if (!h) return false;
+  if (!h[0] && !h[1] && !h[2] && !h[3] && !h[4]) return h[5] === 0xffff ? isPublicV4(v4From(h[6], h[7])) : false;
+  if ((h[0] & 0xfe00) === 0xfc00 || (h[0] & 0xffc0) === 0xfe80 || (h[0] & 0xff00) === 0xff00) return false;
+  if (h[0] === 0x2001 && (h[1] === 0x0db8 || h[1] === 0)) return false;
+  if (h[0] === 0x64 && h[1] === 0xff9b) return false;
+  if (h[0] === 0x2002) return isPublicV4(v4From(h[1], h[2]));
+  return true;
 }
 
 // dns.lookup that fails for any non-public answer; checked at connect time, so DNS rebinding cannot slip past.
@@ -101,6 +131,8 @@ function fetchUpstream(target, range, hops, policy, hold, cb) {
     if (net.isIP(literal) && !policy.isPublic(literal)) { cb(new Error('refused address ' + literal)); return; }
     opts.lookup = publicLookup(policy.isPublic);
   }
+  // http.get refuses unescaped non-ASCII, so a path like /файл.ts is percent-encoded; existing escapes stay.
+  opts.path = String(opts.path || '/').replace(/[\ud800-\udbff][\udc00-\udfff]|[^\x21-\x7e]/g, function (c) { return encodeURIComponent(c); });
   opts.headers = { 'User-Agent': UA, 'Accept': '*/*' };
   if (range) opts.headers.Range = range;
   var done = false;
