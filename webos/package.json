@@ -1,0 +1,19 @@
+{
+  "name": "sozo-webos-dev",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dev-only tooling for the Sozo webOS app. Nothing here ships in the ipk.",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "test:browser": "node --test test/browser/*.test.js",
+    "test:e2e": "node --test test/e2e/*.test.js",
+    "test:e2e:live": "SOZO_LIVE=1 node --test test/e2e/live.test.js test/e2e/sources.test.js",
+    "stage": "node tools/stage.js",
+    "package": "node tools/package.js"
+  },
+  "devDependencies": {
+    "@webos-tools/cli": "3.2.6",
+    "acorn": "8.14.0",
+    "playwright-core": "1.64.1"
+  }
+}

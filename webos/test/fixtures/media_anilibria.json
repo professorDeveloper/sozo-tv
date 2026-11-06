@@ -1,0 +1,54 @@
+{
+"provider": "anilibria",
+"videoUrl": "https://cache.libria.fun/videos/media/ts/10312/1/1080/80a6f7567986b5c283bb536e81d1393f.m3u8?countryIso=MA&isAuthorized=0&isWithVideoAds=1&isWithVideoAdsAlways=1",
+"type": "hls",
+"headers": {
+"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+},
+"videoSources": [
+{
+"quality": "1080p",
+"videoUrl": "https://cache.libria.fun/videos/media/ts/10312/1/1080/80a6f7567986b5c283bb536e81d1393f.m3u8?countryIso=MA&isAuthorized=0&isWithVideoAds=1&isWithVideoAdsAlways=1",
+"isDefault": true,
+"accessible": true,
+"type": "hls",
+"headers": {
+"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+}
+},
+{
+"quality": "720p",
+"videoUrl": "https://cache.libria.fun/videos/media/ts/10312/1/720/d5ba6cd89631ae12a12248ece9ebc0ed.m3u8?countryIso=MA&isAuthorized=0&isWithVideoAds=1&isWithVideoAdsAlways=1",
+"isDefault": false,
+"accessible": true,
+"type": "hls",
+"headers": {
+"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+}
+},
+{
+"quality": "480p",
+"videoUrl": "https://cache.libria.fun/videos/media/ts/10312/1/480/4f68d0ee2adee4ee832088022f791496.m3u8?countryIso=MA&isAuthorized=0&isWithVideoAds=1&isWithVideoAdsAlways=1",
+"isDefault": false,
+"accessible": true,
+"type": "hls",
+"headers": {
+"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+}
+}
+],
+"subtitles": [],
+"poster": "https://anilibria.top/storage/releases/episodes/previews/10312/1/sFpyVs1bJptbLyRs__86d9af8c1aea0ff1aa5fbd519bf26bd7.webp",
+"duration": 1476,
+"title": "Эпизод 1 · Стартовая черта",
+"skip": {
+"intro": {
+"start": 86,
+"end": 174
+},
+"outro": {
+"start": 1405,
+"end": 1429
+}
+}
+}

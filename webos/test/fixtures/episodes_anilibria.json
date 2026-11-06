@@ -1,0 +1,47 @@
+{
+"provider": "anilibria",
+"contentUrl": "https://anilibria.top/anime/releases/release/aoashi-season-2/episodes",
+"isSerial": true,
+"episodes": [
+{
+"episode": 1,
+"label": "Эпизод 1 · Стартовая черта",
+"mediaRef": "anilibria:10312:a2e99618-37e4-45e2-8955-50cdc7efeac5",
+"image": "https://anilibria.top/storage/releases/episodes/previews/10312/1/sFpyVs1bJptbLyRs__99b2bf26a4bc736179c1c582f2057bec.webp",
+"runtime": "25 мин"
+},
+{
+"episode": 2,
+"label": "Эпизод 2 · Человек - ум на ножках",
+"mediaRef": "anilibria:10312:a2f9664c-5cd7-4cb5-9ed7-e3944ddc2500",
+"image": "https://anilibria.top/storage/releases/episodes/previews/10312/2/c2pBaW2xvBny8ryY__7eeef54ce3cdca39ec3380f49762f41d.webp",
+"runtime": "25 мин"
+},
+{
+"episode": 3,
+"label": "Эпизод 3 · Премьер-лига U18, седьмой матч: старшая школа \"Кашива\"",
+"mediaRef": "anilibria:10312:a3095f7e-2e74-47f5-b212-1e7237e4c6f9",
+"image": "https://anilibria.top/storage/releases/episodes/previews/10312/3/szAfWNeGd0yl6Roc__74a3de7f3e48abee37522155e4333e09.webp",
+"runtime": "25 мин"
+},
+{
+"episode": 4,
+"label": "Эпизод 4 · Поворотный момент",
+"mediaRef": "anilibria:10312:a3195631-6052-4581-ab66-462e2a2f855e",
+"image": "https://anilibria.top/storage/releases/episodes/previews/10312/4/AIF6QvifWJZmZDNa__d3ae091ff9c4d010cb6a27e479145368.webp",
+"runtime": "25 мин"
+},
+{
+"episode": 5,
+"label": "Эпизод 5 · Не переставай думать",
+"mediaRef": "anilibria:10312:a325b6ff-eb1d-410c-b5ef-0b7b88d3115c",
+"image": "https://anilibria.top/storage/releases/episodes/previews/10312/5/KeHN1RsYmOXZzAIC__da6446bf72077a6bcf7c3512627736f2.webp",
+"runtime": "25 мин"
+}
+],
+"page": 1,
+"size": 100,
+"total": 5,
+"totalPages": 1,
+"sort": "asc"
+}

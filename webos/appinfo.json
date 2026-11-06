@@ -1,0 +1,16 @@
+{
+  "id": "com.soplay.sozo.webos",
+  "version": "1.0.0",
+  "vendor": "Sozo",
+  "type": "web",
+  "main": "index.html",
+  "title": "Sozo",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "bgImage": "assets/splash.png",
+  "splashBackground": "assets/splash.png",
+  "iconColor": "#141414",
+  "resolution": "1920x1080",
+  "disableBackHistoryAPI": true,
+  "requiredACG": []
+}

@@ -8,15 +8,17 @@
 </p>
 
 Sozo TV is the big-screen companion to the Sozo phone app: browse the catalogue, pick a
-source and watch on a television with a remote. This repository holds two apps that talk to
+source and watch on a television with a remote. This repository holds three apps that talk to
 the same Sozo backend (`apisozo`):
 
 | App | Path | Stack |
 | --- | --- | --- |
 | Android TV | `app/` | Kotlin, Leanback launcher, Media3 ExoPlayer, min SDK 24. Also runs CloudStream (`.cs3`) and Aniyomi (`.apk`) extensions and an embedded torrent server. |
 | Apple TV | `apple-tv/` | Native SwiftUI + AVKit, generated with XcodeGen. Uses only server-provided sources; see [`apple-tv/README.md`](apple-tv/README.md) for what it leaves out on purpose. |
+| LG webOS TV | `webos/` | Plain ES5 web app with no build step, for webOS TV 4.x and newer. **Not yet run on a real TV**; see [`webos/README.md`](webos/README.md). |
 
-Both have household profiles, continue watching, search and localized UI.
+The Android TV and Apple TV apps have household profiles, continue watching, search and localized UI.
+The webOS app has no login or profiles, and keeps continue watching on the TV.
 
 ## Download
 
@@ -45,6 +47,14 @@ cd apple-tv && xcodegen generate && open SozoTV.xcodeproj
 Full verification, including simulator UI tests, is `apple-tv/scripts/ci.sh`; details are in
 [`apple-tv/README.md`](apple-tv/README.md).
 
+**LG webOS TV** needs Node.js 20 or newer:
+
+```sh
+cd webos && npm ci --ignore-scripts && npm test && npm run package   # ipk in dist/ipk/
+```
+
+Installing on a TV is described in [`webos/README.md`](webos/README.md).
+
 ## CI and releases
 
 | Workflow | Runs on | Does |
@@ -53,6 +63,8 @@ Full verification, including simulator UI tests, is `apple-tv/scripts/ci.sh`; de
 | `release.yml` | Manual, or a `v*` tag | Bumps the version, builds and verifies the signed APK, sends it to Telegram |
 | `tvos-ci.yml` | PRs, pushes to `master`, manual | Apple TV build and simulator tests |
 | `tvos-release.yml` | Manual | Signs an Apple TV archive and optionally uploads it to TestFlight |
+| `webos.yml` | PRs and pushes to `master` that touch `webos/` | webOS unit and ES5 checks, builds the ipk and keeps it as an artifact |
+| `webos-release.yml` | By hand | Tests, builds the ipk and publishes it as a `webos-v<version>` pre-release |
 
 The required secrets are listed at the top of each workflow and in `apple-tv/README.md`.
 

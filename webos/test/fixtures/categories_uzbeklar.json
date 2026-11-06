@@ -1,0 +1,40 @@
+{
+"items": [
+{
+"provider": "uzbeklar",
+"slug": "tarjima",
+"label": "Dubbed Movies",
+"url": "https://uzbeklar.biz/tarjima/"
+},
+{
+"provider": "uzbeklar",
+"slug": "hind",
+"label": "Indian Movies",
+"url": "https://uzbeklar.biz/hind/"
+},
+{
+"provider": "uzbeklar",
+"slug": "serial",
+"label": "TV Series",
+"url": "https://uzbeklar.biz/serial/"
+},
+{
+"provider": "uzbeklar",
+"slug": "mult",
+"label": "Cartoons",
+"url": "https://uzbeklar.biz/mult/"
+},
+{
+"provider": "uzbeklar",
+"slug": "anime",
+"label": "Anime",
+"url": "https://uzbeklar.biz/anime/"
+},
+{
+"provider": "uzbeklar",
+"slug": "uzbek-kino",
+"label": "Uzbek Movies",
+"url": "https://uzbeklar.biz/uzbek-kino-2020/"
+}
+]
+}

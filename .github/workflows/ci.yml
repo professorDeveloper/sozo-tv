@@ -19,9 +19,9 @@ name: CI
 on:
   push:
     branches: [master]
-    paths-ignore: ['apple-tv/**']
+    paths-ignore: ['apple-tv/**', 'webos/**', '.github/workflows/webos*.yml']
   pull_request:
-    paths-ignore: ['apple-tv/**']
+    paths-ignore: ['apple-tv/**', 'webos/**', '.github/workflows/webos*.yml']
   # release.yml runs the same gates before it builds; it skips the debug
   # assemble because it builds a release APK right after.
   workflow_call:
