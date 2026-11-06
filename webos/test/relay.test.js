@@ -207,3 +207,24 @@ test('callerAllowed only lets the app itself have the token', () => {
   assert.equal(proxy.callerAllowed(undefined, 'com.soplay.sozo.webos'), false);
   assert.equal(proxy.callerAllowed('', 'com.soplay.sozo.webos'), false);
 });
+
+test('relay: a redirect to a non-http scheme or a hostless URL answers 502 and the service keeps running', async () => {
+  const up = http.createServer((req, res) => {
+    const to = { '/ftp': 'ftp://example.com/x.ts', '/js': 'javascript:alert(1)', '/file': 'file:///etc/passwd', '/nohost': 'http:///x' }[req.url];
+    if (to) { res.writeHead(302, { Location: to }); res.end(); return; }
+    res.writeHead(200, { 'Content-Type': 'text/html' }); res.end('#EXTM3U\n');
+  });
+  const upPort = await listen(up);
+  const relay = await startRelay({ allowPrivate: true });
+  try {
+    const wrap = proxy.wrapper(relay.port, relay.token);
+    for (const p of ['/ftp', '/js', '/file', '/nohost']) {
+      assert.equal((await fetch(wrap('http://127.0.0.1:' + upPort + p))).status, 502, p);
+    }
+    const ok = await fetch(wrap('http://127.0.0.1:' + upPort + '/ok'));
+    assert.equal(ok.headers.get('content-type'), proxy.PLAYLIST, 'still serving after the bad redirects');
+  } finally {
+    relay.server.close();
+    up.close();
+  }
+});

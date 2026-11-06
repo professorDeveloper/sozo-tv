@@ -104,7 +104,15 @@ function fetchUpstream(target, range, hops, policy, hold, cb) {
   opts.headers = { 'User-Agent': UA, 'Accept': '*/*' };
   if (range) opts.headers.Range = range;
   var done = false;
-  var req = lib.get(opts, function (res) {
+  var req;
+  // http.get throws on some URLs (an odd scheme or host); that must become a 502, not an uncaught exception.
+  try {
+    req = lib.get(opts, onResponse);
+  } catch (e) {
+    cb(e);
+    return;
+  }
+  function onResponse(res) {
     var loc = res.headers.location;
     if (res.statusCode >= 300 && res.statusCode < 400 && loc) {
       res.resume();
@@ -118,7 +126,7 @@ function fetchUpstream(target, range, hops, policy, hold, cb) {
     }
     done = true;
     cb(null, res, target);
-  });
+  }
   hold.req = req;
   req.setTimeout(TIMEOUT, function () { req.abort(); });
   req.on('error', function (e) { if (!done) { done = true; cb(e); } });
