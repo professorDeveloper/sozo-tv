@@ -36,6 +36,17 @@ test('verify rejects dev files, stray files, missing files and changed bytes', (
   for (const [files, want] of cases) assert.match(verify(files, ID, { 'a.js': hash }).join('\n'), want);
 });
 
+test('verify checks a packaged service byte for byte, and only the services it was told about', () => {
+  const SVC = 'usr/palm/services/' + ID + '.service/';
+  const svc = { [ID + '.service']: { 'service.js': hash } };
+  const base = { [PREFIX + 'a.js']: body };
+  assert.deepStrictEqual(verify({ ...base, [SVC + 'service.js']: body }, ID, { 'a.js': hash }, svc), []);
+  assert.match(verify(base, ID, { 'a.js': hash }, svc).join('\n'), /missing: com\.example\.app\.service\/service\.js/);
+  assert.match(verify({ ...base, [SVC + 'service.js']: Buffer.from('x') }, ID, { 'a.js': hash }, svc).join('\n'), /content changed: .*service\.js/);
+  assert.match(verify({ ...base, [SVC + 'service.js']: body, [SVC + 'extra.js']: body }, ID, { 'a.js': hash }, svc).join('\n'), /not a shipped service file: .*extra\.js/);
+  assert.match(verify({ ...base, [SVC + 'service.js']: body }, ID, { 'a.js': hash }).join('\n'), /unexpected path: usr\/palm\/services/);
+});
+
 test('readTar and readAr read names and bytes back', () => {
   const tar = Buffer.concat([tarEntry('./usr/a.js', body), tarEntry('./usr/b.txt', Buffer.alloc(513, 97)), Buffer.alloc(1024)]);
   const files = readTar(tar);

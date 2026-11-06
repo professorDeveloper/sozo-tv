@@ -26,9 +26,11 @@ npm ci --ignore-scripts
 npm run package
 ```
 
-This copies only the shipped files to `dist/app`, runs `ares-package --check`, and writes
-`dist/ipk/com.soplay.sozo.webos_1.0.0_all.ipk` (about 241 KB). It then opens the ipk and fails unless it
-holds exactly the shipped files, byte for byte.
+This copies only the shipped files to `dist/app` and the relay service (`service/`) to `dist/service`,
+runs `ares-package --check`, and writes `dist/ipk/com.soplay.sozo.webos_1.0.0_all.ipk` (about 246 KB). It
+then opens the ipk and fails unless it holds exactly the shipped app and service files, byte for byte.
+`ares-package` prints a generic Node.js version notice for any package with a service; that one notice is
+allowed, because `service/` is held to ES5 by the tests.
 
 `--no-minify` is deliberate. By default `ares-package` runs terser over every `.js`, including
 `hls.min.js`, so the ES5 checks would no longer describe what ships.
@@ -103,7 +105,20 @@ A TV takes a different path for HLS: it tries the platform's native player first
 uses hls.js only as a fallback where the source allows it. vidapi's segments are named `.html` and sent as
 `text/html`. On an LG webOS 10.3 TV the native player rejects them at once (`MEDIA_ELEMENT_ERROR: Format
 error`), while hls.js plays the same stream at 1080p; its segment host now sends `Access-Control-Allow-Origin: *`.
-So vidapi falls back to hls.js. sportstv is still untried on a TV.
+So on webOS vidapi goes through the relay below, with hls.js as the fallback. sportstv is still untried on a TV.
+
+### Native HLS relay (webOS only)
+
+The ipk carries a small JS service, `com.soplay.sozo.webos.service` (`service/`). At startup the app
+subscribes to it through `PalmServiceBridge`; the service listens on `127.0.0.1` on a free port and answers
+with that port and a random per-run token. For a provider marked `relabel: true` (vidapi), the native
+player is given `http://127.0.0.1:<port>/<token>/p?u=<stream URL>`. The service fetches the same bytes,
+names them by content (`#EXTM3U` as a playlist, `0x47` as MPEG-TS, and so on) instead of trusting
+`text/html`, and rewrites every playlist URI to come back through itself. Nothing is decoded or changed.
+
+On an LG webOS 10.3 TV a vidapi film started in 1.7 s at 1920x800 this way, and hls.js was never loaded;
+plain hls.js starts on the lowest level. If the service is missing or down, the URL is left as it is,
+the native player fails, and the ladder falls back to hls.js. Off webOS nothing calls the service.
 
 ### Why the other 33 are left out
 

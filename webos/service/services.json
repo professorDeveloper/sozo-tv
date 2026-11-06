@@ -1,0 +1,13 @@
+{
+  "id": "com.soplay.sozo.webos.service",
+  "description": "Loopback HLS relay so the native player gets correct content types",
+  "services": [
+    {
+      "name": "com.soplay.sozo.webos.service",
+      "description": "Loopback HLS relay so the native player gets correct content types",
+      "commands": [
+        { "name": "relay", "description": "Start the relay and report its port and token", "public": true }
+      ]
+    }
+  ]
+}

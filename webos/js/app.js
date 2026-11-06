@@ -261,6 +261,8 @@
     root.addEventListener('resize', fit, false);
     applyLanguage();
     app.api = Sozo.Api.create({ onStatus: function (ok) { setOffline(!ok); } });
+    app.relabel = Sozo.Relabel.create({ isWebOS: Sozo.Platform.isWebOS(root.navigator && root.navigator.userAgent) });
+    app.relabel.start();
     app.topbar = Sozo.Topbar.create(app);
     Nav.init(doc.getElementById('app'));
     Nav.onBack(function () { app.back(); });

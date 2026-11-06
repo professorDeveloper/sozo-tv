@@ -756,7 +756,7 @@
         // A failing <source> reports here, not on the video element.
         child.onerror = function () { if (id === token) fail({}); };
         child.type = 'application/x-mpegURL';
-        child.src = source.url;
+        child.src = relabelled(source.url);
         video.appendChild(child);
         video.load();
         doPlay();
@@ -765,6 +765,12 @@
       } else {
         root.setTimeout(function () { if (id === token) fail({}); }, 0);
       }
+    }
+
+    // Native HLS through the loopback relay where the provider's hosts mislabel segments.
+    function relabelled(u) {
+      var r = app && app.relabel;
+      return provider.relabel === true && r && r.ready() ? r.wrap(u) : u;
     }
 
     function fail(info) {
