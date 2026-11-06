@@ -214,3 +214,7 @@ body { color: #fff; font-family: "LG Smart UI", "Museo Sans", Roboto, "Helvetica
 .pl-item { min-height: 76px; line-height: 76px; padding: 0 24px; font-size: 34px; border-radius: 12px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #e6e6e6; }
 .pl-item.is-selected { color: #fe4545; font-weight: 700; }
 .pl-item.is-focus { background: #fff; color: #141414; }
+.pl-timing { display: flex; flex-wrap: wrap; align-items: center; margin: 18px 0 0; }
+.pl-timing-label { font-size: 28px; color: #c8c8c8; min-width: 180px; text-align: center; margin: 0 12px 10px 0; white-space: nowrap; }
+.pl-chip { height: 56px; line-height: 56px; padding: 0 20px; font-size: 28px; border-radius: 28px; background: rgba(255, 255, 255, 0.14); color: #e6e6e6; white-space: nowrap; margin: 0 12px 10px 0; }
+.pl-chip.is-focus { background: #fff; color: #141414; }
