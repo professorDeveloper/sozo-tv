@@ -12,6 +12,8 @@ var MAX_PLAYLIST = 4 * 1024 * 1024;
 var MAX_REDIRECTS = 5;
 var TIMEOUT = 20000;
 var UA = 'Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36';
+var RELAY_HEADERS = { 'user-agent': 'User-Agent', referer: 'Referer', origin: 'Origin', accept: 'Accept', 'accept-language': 'Accept-Language' };
+var MAX_HEADER = 1024;
 
 function isUpstream(u) {
   return /^https?:\/\/[^\/\s]+/i.test(u || '');
@@ -24,6 +26,7 @@ function sniff(head, upstreamType) {
   for (var i = 0; i < Math.min(b.length, 16); i++) text += String.fromCharCode(b[i]);
   if (/^\s*#EXTM3U/.test(text)) return PLAYLIST;
   if (b[0] === 0x47) return 'video/mp2t';
+  if (b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3) return 'video/x-matroska';
   if (text.slice(4, 8) === 'ftyp' || text.slice(4, 8) === 'styp' || text.slice(4, 8) === 'moof') return 'video/mp4';
   if (text.slice(0, 3) === 'ID3' || (b[0] === 0xff && (b[1] & 0xf6) === 0xf0)) return 'audio/aac';
   var t = String(upstreamType || '').split(';')[0].trim().toLowerCase();
@@ -52,10 +55,27 @@ function rewritePlaylist(text, base, wrap) {
   }).filter(function (line) { return line !== null; }).join('\n');
 }
 
+// h is the JSON header set from parseHeaders, carried on so every playlist entry is fetched with it.
 function wrapper(port, token) {
-  return function (u) {
-    return 'http://127.0.0.1:' + port + '/' + token + '/p?u=' + encodeURIComponent(u);
+  return function (u, h) {
+    return 'http://127.0.0.1:' + port + '/' + token + '/p?u=' + encodeURIComponent(u) + (h ? '&h=' + encodeURIComponent(h) : '');
   };
+}
+
+// Only allowlisted names with short printable values survive; Cookie, Host, Authorization and the rest are dropped.
+function parseHeaders(raw) {
+  var out = {};
+  var o = null;
+  if (typeof raw !== 'string' || !raw) return out;
+  try { o = JSON.parse(raw); } catch (e) { return out; }
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return out;
+  for (var k in o) {
+    if (!Object.prototype.hasOwnProperty.call(o, k)) continue;
+    var name = RELAY_HEADERS[String(k).toLowerCase()];
+    var v = o[k];
+    if (name && typeof v === 'string' && v.length <= MAX_HEADER && /^[\x20-\x7e]*$/.test(v)) out[name] = v;
+  }
+  return out;
 }
 
 // Eight 16-bit groups from any IPv6 spelling (zero runs, leading zeros, a dotted IPv4 tail, a zone id), or null.
@@ -132,7 +152,7 @@ function publicLookup(isPublic) {
 }
 
 // Follows redirects; hold.req is always the live request, so the caller can abort whichever hop is open.
-function fetchUpstream(target, range, hops, policy, hold, cb) {
+function fetchUpstream(target, send, hops, policy, hold, cb) {
   var lib = /^https:/i.test(target) ? https : http;
   var opts;
   try { opts = url.parse(target); } catch (e) { cb(e); return; }
@@ -144,7 +164,8 @@ function fetchUpstream(target, range, hops, policy, hold, cb) {
   // http.get refuses unescaped non-ASCII, so a path like /файл.ts is percent-encoded; existing escapes stay.
   opts.path = String(opts.path || '/').replace(/[\ud800-\udbff][\udc00-\udfff]|[^\x21-\x7e]/g, function (c) { return encodeURIComponent(c); });
   opts.headers = { 'User-Agent': UA, 'Accept': '*/*' };
-  if (range) opts.headers.Range = range;
+  for (var name in send.headers) if (Object.prototype.hasOwnProperty.call(send.headers, name)) opts.headers[name] = send.headers[name];
+  if (send.range) opts.headers.Range = send.range;
   var done = false;
   var req;
   // http.get throws on some URLs (an odd scheme or host); that must become a 502, not an uncaught exception.
@@ -163,7 +184,7 @@ function fetchUpstream(target, range, hops, policy, hold, cb) {
       var next = resolve(target, loc);
       if (next === null || hops >= MAX_REDIRECTS || !isUpstream(next)) { cb(new Error('bad redirect')); return; }
       if (hold.aborted) return;
-      fetchUpstream(next, range, hops + 1, policy, hold, cb);
+      fetchUpstream(next, send, hops + 1, policy, hold, cb);
       return;
     }
     done = true;
@@ -205,17 +226,168 @@ function sendMedia(up, res, type, first) {
   }
 }
 
+var HEAD_BYTES = 512 * 1024;
+var TRACKS_BYTES = 256 * 1024;
+var ID = { SEGMENT: 0x18538067, SEEKHEAD: 0x114D9B74, SEEK: 0x4DBB, SEEKID: 0x53AB, SEEKPOS: 0x53AC, TRACKS: 0x1654AE6B, ENTRY: 0xAE, CLUSTER: 0x1F43B675 };
+
+// EBML variable-length integer at pos: element IDs keep their length marker, sizes drop it; null past the end.
+function vint(buf, pos, isId) {
+  if (pos >= buf.length) return null;
+  var first = buf[pos];
+  var len = 1;
+  var mask = 0x80;
+  while (len <= 8 && !(first & mask)) { len++; mask >>= 1; }
+  if (len > 8 || pos + len > buf.length) return null;
+  var value = isId ? first : first & (mask - 1);
+  var ones = (first & (mask - 1)) === mask - 1;
+  for (var i = 1; i < len; i++) {
+    value = value * 256 + buf[pos + i];
+    if (buf[pos + i] !== 0xff) ones = false;
+  }
+  return { len: len, value: value, unknown: !isId && ones };
+}
+
+// Children of [start, end) as {id, data, size}; stops at the buffer's end or a damaged element.
+function children(buf, start, end) {
+  var out = [];
+  var pos = start;
+  while (pos < end) {
+    var id = vint(buf, pos, true);
+    if (!id) break;
+    var size = vint(buf, pos + id.len);
+    if (!size) break;
+    var data = pos + id.len + size.len;
+    out.push({ id: id.value, data: data, size: size.unknown ? -1 : size.value });
+    if (size.unknown) break;
+    pos = data + size.value;
+  }
+  return out;
+}
+
+function uintAt(buf, el) {
+  var v = 0;
+  for (var i = 0; i < el.size && i < 8; i++) v = v * 256 + buf[el.data + i];
+  return v;
+}
+
+function textAt(buf, el) {
+  return buf.slice(el.data, Math.min(el.data + el.size, buf.length)).toString('utf8').replace(/\0+$/, '');
+}
+
+// Audio and text subtitle tracks from a Matroska Tracks element; the TV numbers text subtitles only (no PGS/VobSub).
+function readTracks(buf, el) {
+  var out = { audio: [], subtitles: [] };
+  children(buf, el.data, Math.min(el.data + el.size, buf.length)).forEach(function (entry) {
+    if (entry.id !== ID.ENTRY) return;
+    var t = { type: 0, language: 'eng', name: '', codec: '', isDefault: true, forced: false };
+    children(buf, entry.data, Math.min(entry.data + entry.size, buf.length)).forEach(function (f) {
+      if (f.id === 0x83) t.type = uintAt(buf, f);
+      else if (f.id === 0x22B59C) t.language = textAt(buf, f);
+      else if (f.id === 0x22B59D) t.bcp47 = textAt(buf, f);
+      else if (f.id === 0x536E) t.name = textAt(buf, f);
+      else if (f.id === 0x86) t.codec = textAt(buf, f);
+      else if (f.id === 0x88) t.isDefault = uintAt(buf, f) === 1;
+      else if (f.id === 0x55AA) t.forced = uintAt(buf, f) === 1;
+    });
+    var item = { language: t.bcp47 || t.language, name: t.name, codec: t.codec, isDefault: t.isDefault, forced: t.forced };
+    if (t.type === 2) out.audio.push(item);
+    else if (t.type === 0x11 && /^S_TEXT\//.test(t.codec)) { item.index = out.subtitles.length; out.subtitles.push(item); }
+  });
+  return out;
+}
+
+// Finds Tracks in the file head: {tracks} when there, {at} when the SeekHead points past the head, or null.
+function scanHead(buf) {
+  var top = children(buf, 0, buf.length);
+  for (var i = 0; i < top.length; i++) {
+    if (top[i].id !== ID.SEGMENT) continue;
+    var seg = top[i];
+    var segEnd = seg.size < 0 ? buf.length : Math.min(seg.data + seg.size, buf.length);
+    var at = -1;
+    var kids = children(buf, seg.data, segEnd);
+    for (var k = 0; k < kids.length; k++) {
+      var el = kids[k];
+      if (el.id === ID.TRACKS && el.data + el.size <= buf.length) return { tracks: readTracks(buf, el) };
+      if (el.id === ID.CLUSTER) break;
+      if (el.id === ID.SEEKHEAD) at = seekTo(buf, el, seg.data);
+    }
+    return at >= 0 ? { at: at } : null;
+  }
+  return null;
+}
+
+function seekTo(buf, head, segData) {
+  var found = -1;
+  children(buf, head.data, Math.min(head.data + head.size, buf.length)).forEach(function (seek) {
+    if (seek.id !== ID.SEEK) return;
+    var sid = -1;
+    var spos = -1;
+    children(buf, seek.data, Math.min(seek.data + seek.size, buf.length)).forEach(function (f) {
+      if (f.id === ID.SEEKID) sid = uintAt(buf, f);
+      else if (f.id === ID.SEEKPOS) spos = uintAt(buf, f);
+    });
+    if (sid === ID.TRACKS && spos >= 0) found = segData + spos;
+  });
+  return found;
+}
+
+// Up to max bytes of a ranged GET, then the request is dropped.
+function fetchBytes(target, from, max, headers, policy, hold, cb) {
+  fetchUpstream(target, { range: 'bytes=' + from + '-' + (from + max - 1), headers: headers }, 0, policy, hold, function (err, up) {
+    if (err) { cb(err); return; }
+    if (up.statusCode >= 400) { up.resume(); cb(new Error('status ' + up.statusCode)); return; }
+    if (from > 0 && up.statusCode !== 206) { up.destroy(); cb(new Error('no range')); return; }
+    var chunks = [];
+    var size = 0;
+    var done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      up.destroy();
+      cb(null, Buffer.concat(chunks).slice(0, max));
+    }
+    up.on('data', function (c) { chunks.push(c); size += c.length; if (size >= max) finish(); });
+    up.on('end', finish);
+    up.on('error', function (e) { if (!done) { done = true; cb(e); } });
+  });
+}
+
+// GET /<token>/t?u=&h=: the file's audio and subtitle tracks as JSON, read from its Matroska header.
+function handleTracks(res, target, headers, policy, hold) {
+  function reply(status, body) {
+    if (res.headersSent) return;
+    res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-cache' });
+    res.end(JSON.stringify(body));
+  }
+  fetchBytes(target, 0, HEAD_BYTES, headers, policy, hold, function (err, head) {
+    if (err) { reply(502, { error: 'fetch' }); return; }
+    var found = scanHead(head);
+    if (!found) { reply(200, { audio: [], subtitles: [] }); return; }
+    if (found.tracks) { reply(200, found.tracks); return; }
+    fetchBytes(target, found.at, TRACKS_BYTES, headers, policy, hold, function (err2, part) {
+      if (err2) { reply(502, { error: 'fetch' }); return; }
+      var el = children(part, 0, part.length)[0];
+      reply(200, el && el.id === ID.TRACKS ? readTracks(part, el) : { audio: [], subtitles: [] });
+    });
+  });
+}
+
 function handle(req, res, token, wrap, policy) {
   var parsed = url.parse(req.url, true);
-  if (parsed.pathname !== '/' + token + '/p') { res.writeHead(404); res.end(); return; }
+  var kind = parsed.pathname === '/' + token + '/p' ? 'p' : parsed.pathname === '/' + token + '/t' ? 't' : '';
+  if (!kind) { res.writeHead(404); res.end(); return; }
   var target = String(parsed.query.u || '');
   if (!isUpstream(target)) { res.writeHead(400); res.end(); return; }
+  var headers = parseHeaders(parsed.query.h);
+  var carried = Object.keys(headers).length ? JSON.stringify(headers) : '';
+  var wrapOn = function (u) { return wrap(u, carried); };
   var hold = { req: null, aborted: false };
   res.on('close', function () {
     hold.aborted = true;
     if (hold.req) hold.req.abort();
   });
-  fetchUpstream(target, req.headers.range, 0, policy, hold, function (err, up, finalUrl) {
+  if (kind === 't') { handleTracks(res, target, headers, policy, hold); return; }
+  fetchUpstream(target, { range: req.headers.range, headers: headers }, 0, policy, hold, function (err, up, finalUrl) {
     if (err) {
       if (!res.headersSent) res.writeHead(/^refused/.test(err.message) ? 403 : 502);
       res.end();
@@ -228,7 +400,7 @@ function handle(req, res, token, wrap, policy) {
       got = true;
       up.pause();
       var type = sniff(first, up.headers['content-type']);
-      if (type === PLAYLIST) sendPlaylist(up, res, finalUrl, wrap, first);
+      if (type === PLAYLIST) sendPlaylist(up, res, finalUrl, wrapOn, first);
       else sendMedia(up, res, type, first);
     });
     up.once('end', function () {
@@ -261,4 +433,4 @@ function start(cb, options) {
   });
 }
 
-module.exports = { sniff: sniff, rewritePlaylist: rewritePlaylist, wrapper: wrapper, isUpstream: isUpstream, isPublicAddress: isPublicAddress, callerAllowed: callerAllowed, start: start, PLAYLIST: PLAYLIST };
+module.exports = { sniff: sniff, rewritePlaylist: rewritePlaylist, wrapper: wrapper, parseHeaders: parseHeaders, scanHead: scanHead, isUpstream: isUpstream, isPublicAddress: isPublicAddress, callerAllowed: callerAllowed, start: start, PLAYLIST: PLAYLIST };

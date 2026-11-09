@@ -15,6 +15,7 @@ test('sniff names media by its bytes, not by a text/html label', () => {
   assert.equal(proxy.sniff(Buffer.from('#EXTM3U\n'), 'text/html'), proxy.PLAYLIST);
   assert.equal(proxy.sniff(TS, 'text/html; charset=UTF-8'), 'video/mp2t');
   assert.equal(proxy.sniff(Buffer.from('\0\0\0\x18ftypisom'), 'text/html'), 'video/mp4');
+  assert.equal(proxy.sniff(Buffer.from([0x1a, 0x45, 0xdf, 0xa3, 0x01]), 'application/octet-stream'), 'video/x-matroska');
   assert.equal(proxy.sniff(Buffer.from('ID3\x04'), 'text/html'), 'audio/aac');
   assert.equal(proxy.sniff(Buffer.from('<html>'), 'text/html'), 'application/octet-stream');
   assert.equal(proxy.sniff(Buffer.from('WEBVTT'), 'text/vtt'), 'text/vtt');
@@ -105,6 +106,9 @@ test('Relabel: on webOS it subscribes once and wraps URLs after the service answ
   assert.equal(r.ready(), false);
   inst.onservicecallback(JSON.stringify({ returnValue: true, port: 4321, token: 'ab12' }));
   assert.equal(r.wrap('https://a.test/x?y=1'), 'http://127.0.0.1:4321/ab12/p?u=https%3A%2F%2Fa.test%2Fx%3Fy%3D1');
+  assert.equal(r.wrap('https://a.test/x', { Referer: 'https://r.test/' }), 'http://127.0.0.1:4321/ab12/p?u=https%3A%2F%2Fa.test%2Fx&h=' + encodeURIComponent('{"Referer":"https://r.test/"}'));
+  assert.equal(r.wrap('https://a.test/x', {}), 'http://127.0.0.1:4321/ab12/p?u=https%3A%2F%2Fa.test%2Fx', 'no headers, no h');
+  assert.equal(r.tracksUrl('https://a.test/x', { Referer: 'https://r.test/' }), 'http://127.0.0.1:4321/ab12/t?u=https%3A%2F%2Fa.test%2Fx&h=' + encodeURIComponent('{"Referer":"https://r.test/"}'));
   inst.onservicecallback(JSON.stringify({ returnValue: false, errorText: 'gone' }));
   assert.equal(r.ready(), false, 'a failure falls back to the plain URL');
   inst.onservicecallback('not json');
@@ -283,6 +287,125 @@ test('relay: an unparsable target, redirect or playlist line answers 502 or is d
     assert.ok(lines[0].includes(encodeURIComponent('http://127.0.0.1:' + upPort + '/ok.ts')));
     const ok = await fetch(wrap('http://127.0.0.1:' + upPort + '/ok'));
     assert.equal(ok.headers.get('content-type'), proxy.PLAYLIST, 'still serving');
+  } finally {
+    relay.server.close();
+    up.close();
+  }
+});
+
+test('parseHeaders keeps only allowlisted names with short printable values', () => {
+  const raw = JSON.stringify({ referer: 'https://r.test/', 'USER-AGENT': 'ua', Origin: 'https://r.test', Accept: '*/*', 'Accept-Language': 'es', Cookie: 'c=1', Host: 'evil.test', Authorization: 'x', Range: 'bytes=0-', 'X-Forwarded-For': '1.2.3.4' });
+  assert.deepEqual(proxy.parseHeaders(raw), { Referer: 'https://r.test/', 'User-Agent': 'ua', Origin: 'https://r.test', Accept: '*/*', 'Accept-Language': 'es' });
+  assert.deepEqual(proxy.parseHeaders(JSON.stringify({ Referer: 'a\r\nX-Evil: 1' })), {}, 'no CR/LF');
+  assert.deepEqual(proxy.parseHeaders(JSON.stringify({ Referer: 'x'.repeat(1025) })), {}, 'length cap');
+  assert.deepEqual(proxy.parseHeaders(JSON.stringify({ Referer: 1 })), {}, 'strings only');
+  for (const bad of [undefined, '', 'not json', '[1]', 'null', ['a', 'b']]) assert.deepEqual(proxy.parseHeaders(bad), {}, String(bad));
+});
+
+test('relay: declared headers reach the playlist, the variant and the segment; others never do', async () => {
+  const seen = [];
+  const up = http.createServer((req, res) => {
+    seen.push({ url: req.url, referer: req.headers.referer, origin: req.headers.origin, ua: req.headers['user-agent'], cookie: req.headers.cookie });
+    if (req.headers.referer !== 'https://site.test/' || req.headers.origin !== 'https://site.test') { res.writeHead(403); res.end('forbidden origin'); return; }
+    if (req.url === '/master') { res.writeHead(200); res.end('#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1\nv/index\n'); return; }
+    if (req.url === '/v/index') { res.writeHead(200); res.end('#EXTM3U\n#EXT-X-KEY:METHOD=AES-128,URI="k.bin"\n#EXTINF:6,\nseg0.ts\n#EXT-X-ENDLIST\n'); return; }
+    if (req.url === '/v/seg0.ts') { res.writeHead(200); res.end(TS); return; }
+    res.writeHead(404); res.end();
+  });
+  const upPort = await listen(up);
+  const relay = await startRelay({ allowPrivate: true });
+  try {
+    const wrap = proxy.wrapper(relay.port, relay.token);
+    const base = 'http://127.0.0.1:' + upPort;
+    const h = JSON.stringify({ Referer: 'https://site.test/', Origin: 'https://site.test', 'User-Agent': 'TestUA', Cookie: 'no' });
+    assert.equal((await fetch(wrap(base + '/master'))).status, 403, 'without headers the host refuses');
+    const master = await fetch(wrap(base + '/master', h));
+    assert.equal(master.status, 200);
+    const variantUrl = (await master.text()).split('\n').find((l) => l.startsWith('http'));
+    const carried = JSON.stringify({ Referer: 'https://site.test/', Origin: 'https://site.test', 'User-Agent': 'TestUA' });
+    assert.equal(variantUrl, wrap(base + '/v/index', carried), 'only the allowed set is carried on');
+    const variant = await (await fetch(variantUrl)).text();
+    assert.ok(variant.includes('URI="' + wrap(base + '/v/k.bin', carried) + '"'), 'key URI carries headers too');
+    const segUrl = variant.split('\n').find((l) => l.startsWith('http'));
+    const seg = await fetch(segUrl);
+    assert.equal(seg.status, 200);
+    assert.deepEqual(Buffer.from(await seg.arrayBuffer()), TS);
+    const ok = seen.filter((r) => r.referer);
+    assert.equal(ok.length, 3);
+    assert.ok(ok.every((r) => r.ua === 'TestUA' && r.cookie === undefined));
+  } finally {
+    relay.server.close();
+    up.close();
+  }
+});
+
+// EBML element: ID bytes, an 8-byte size (or unknown), then the payload.
+function ebml(id, payload, unknown) {
+  const idBuf = Buffer.from(id.toString(16).padStart(2, '0').replace(/^(.(..)*)$/, '0$1').match(/../g).map((h) => parseInt(h, 16)));
+  const size = Buffer.alloc(8);
+  if (unknown) size.fill(0xff, 1); else size.writeBigUInt64BE(BigInt(payload.length));
+  size[0] = 0x01;
+  return Buffer.concat([idBuf, size, unknown ? Buffer.alloc(0) : payload]);
+}
+const uint = (id, n) => ebml(id, Buffer.from([n]));
+const str = (id, v) => ebml(id, Buffer.from(v, 'utf8'));
+function entry(type, lang, codec, name, forced) {
+  const parts = [uint(0xD7, 1), uint(0x83, type), str(0x86, codec)];
+  if (lang) parts.push(str(0x22B59C, lang));
+  if (name) parts.push(str(0x536E, name));
+  if (forced) parts.push(uint(0x55AA, 1));
+  return ebml(0xAE, Buffer.concat(parts));
+}
+const TRACKS = ebml(0x1654AE6B, Buffer.concat([
+  entry(1, '', 'V_MPEGH/ISO/HEVC'), entry(2, 'hin', 'A_EAC3'), entry(2, 'eng', 'A_EAC3'),
+  entry(0x11, 'eng', 'S_TEXT/UTF8', 'SDH'), entry(0x11, 'eng', 'S_HDMV/PGS', 'PGS'), entry(0x11, 'hin', 'S_TEXT/UTF8', 'Forced', true), entry(0x11, null, 'S_TEXT/ASS')
+]));
+const HEADER = ebml(0x1A45DFA3, Buffer.from([0x42, 0x82, 0x84, 0x6d, 0x61, 0x74, 0x72]));
+const CLUSTER = ebml(0x1F43B675, Buffer.alloc(64));
+
+test('relay /t: lists text subtitles in the TV\'s numbering, from the head or through SeekHead', async () => {
+  const segPayloadA = Buffer.concat([ebml(0x1549A966, Buffer.alloc(8)), TRACKS, CLUSTER]);
+  const fileA = Buffer.concat([HEADER, ebml(0x18538067, Buffer.alloc(0), true), segPayloadA]);
+  const voidEl = ebml(0xEC, Buffer.alloc(600 * 1024));
+  const seekPos = 60 + voidEl.length;
+  const seekHead = (pos) => ebml(0x114D9B74, ebml(0x4DBB, Buffer.concat([ebml(0x53AB, Buffer.from([0x16, 0x54, 0xAE, 0x6B])), ebml(0x53AC, Buffer.from([(pos >> 16) & 255, (pos >> 8) & 255, pos & 255]))])));
+  const head = seekHead(seekPos);
+  const pad = ebml(0xEC, Buffer.alloc(60 - head.length - 9));
+  const segPayloadB = Buffer.concat([head, pad, voidEl, TRACKS, CLUSTER]);
+  const fileB = Buffer.concat([HEADER, ebml(0x18538067, segPayloadB)]);
+  const files = { '/a.mkv': fileA, '/b.mkv': fileB, '/junk': Buffer.from('<html>nope</html>') };
+  const seenRef = [];
+  const up = http.createServer((req, res) => {
+    seenRef.push(req.headers.referer);
+    const f = files[req.url];
+    if (!f) { res.writeHead(404); res.end(); return; }
+    const m = /bytes=(\d+)-(\d+)/.exec(req.headers.range || '');
+    if (!m) { res.writeHead(200); res.end(f); return; }
+    const a = +m[1];
+    const b = Math.min(+m[2], f.length - 1);
+    res.writeHead(206, { 'Content-Range': 'bytes ' + a + '-' + b + '/' + f.length });
+    res.end(f.subarray(a, b + 1));
+  });
+  const upPort = await listen(up);
+  const relay = await startRelay({ allowPrivate: true });
+  try {
+    const t = (p) => 'http://127.0.0.1:' + relay.port + '/' + relay.token + '/t?u=' + encodeURIComponent('http://127.0.0.1:' + upPort + p) + '&h=' + encodeURIComponent('{"Referer":"https://r.test/"}');
+    const want = [
+      { language: 'eng', name: 'SDH', codec: 'S_TEXT/UTF8', isDefault: true, forced: false, index: 0 },
+      { language: 'hin', name: 'Forced', codec: 'S_TEXT/UTF8', isDefault: true, forced: true, index: 1 },
+      { language: 'eng', name: '', codec: 'S_TEXT/ASS', isDefault: true, forced: false, index: 2 }
+    ];
+    for (const p of ['/a.mkv', '/b.mkv']) {
+      const r = await fetch(t(p));
+      assert.equal(r.status, 200, p);
+      assert.equal(r.headers.get('access-control-allow-origin'), '*');
+      const j = await r.json();
+      assert.deepEqual(j.subtitles, want, p);
+      assert.deepEqual(j.audio.map((a) => a.language), ['hin', 'eng'], p);
+    }
+    assert.deepEqual(await (await fetch(t('/junk'))).json(), { audio: [], subtitles: [] });
+    assert.equal((await fetch(t('/gone'))).status, 502);
+    assert.ok(seenRef.every((r) => r === 'https://r.test/'), 'headers reach every range request');
   } finally {
     relay.server.close();
     up.close();

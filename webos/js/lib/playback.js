@@ -19,6 +19,8 @@
   var MEDIA_EXT = { m3u8: 1, mp4: 1, m4v: 1, mov: 1 };
   var SOURCE_DIRECTIVES = ['useLocalProxy', 'localProxy', 'requestTransform', 'signer', 'useWebViewSniff', 'drm', 'audioTracks'];
   var ENVELOPE_DIRECTIVES = ['signer', 'useWebViewSniff', 'drm'];
+  // Headers the webOS relay can send for a provider marked relayHeaders; service/proxy.js enforces the same list.
+  var RELAY_HEADERS = { 'user-agent': 1, referer: 1, origin: 1, accept: 1, 'accept-language': 1 };
 
   function text(v) {
     if (typeof v === 'number' && isFinite(v)) return String(v);
@@ -62,23 +64,37 @@
     if (Sozo.Model.isPrivateHost(parsed.host)) return 'private-host';
     var type = (text(raw.type) || text(envelope.type)).toLowerCase();
     var ext = extension(parsed.path);
-    if (BAD_TYPES[type]) return 'type';
-    if (ext === 'mpd' || ext === 'html' || ext === 'htm' || ext === 'mkv') return 'path';
+    var mkvOk = provider.mkv === true;
+    if (BAD_TYPES[type] && !(mkvOk && type === 'mkv')) return 'type';
+    if (ext === 'mpd' || ext === 'html' || ext === 'htm' || (ext === 'mkv' && !mkvOk)) return 'path';
     if (parsed.path.indexOf('/embed/') >= 0 || parsed.path.indexOf('/e/') === 0) return 'path';
     if (hasDirective(raw, SOURCE_DIRECTIVES)) return 'directive';
     if (raw.accessible === false) return 'inaccessible';
     var declared = headerNames(envelope.headers, raw.headers);
     for (var i = 0; i < declared.length; i++) {
+      if (provider.relayHeaders === true && RELAY_HEADERS[declared[i]]) continue;
       if (provider.ignoreHeaders.indexOf(declared[i]) < 0) return 'header';
     }
     if (provider.hosts && !provider.hosts.test(parsed.host) && declared.length) return 'host';
-    if (!HLS_TYPES[type] && !FILE_TYPES[type] && !MEDIA_EXT[ext]) return 'not-media';
+    if (!HLS_TYPES[type] && !FILE_TYPES[type] && !MEDIA_EXT[ext] && !(mkvOk && (type === 'mkv' || ext === 'mkv'))) return 'not-media';
     return null;
   }
 
   function isHls(type, url) {
     var parsed = Sozo.Model.parseUrl(url);
     return !!HLS_TYPES[type] || (!!parsed && extension(parsed.path) === 'm3u8');
+  }
+
+  // Envelope headers, overridden per source; string values only.
+  function mergedHeaders(a, b) {
+    var out = {};
+    [a, b].forEach(function (headers) {
+      if (!headers || typeof headers !== 'object') return;
+      for (var k in headers) {
+        if (Object.prototype.hasOwnProperty.call(headers, k) && typeof headers[k] === 'string') out[k] = headers[k];
+      }
+    });
+    return out;
   }
 
   function candidates(envelope) {
@@ -120,10 +136,12 @@
       var key = label || '#';
       labels[key] = (labels[key] || 0) + 1;
       if (labels[key] > 1 && label) label += ' (' + labels[key] + ')';
-      result.sources.push({
+      var source = {
         url: url, type: type, isHls: isHls(type, url), quality: quality, label: label,
         key: key + '/' + labels[key], isDefault: raw.isDefault === true, order: result.sources.length + 1
-      });
+      };
+      if (provider.relayHeaders === true) source.headers = mergedHeaders(envelope.headers, raw.headers);
+      result.sources.push(source);
     }
     return result;
   }

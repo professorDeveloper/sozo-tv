@@ -37,7 +37,18 @@
     return {
       start: start,
       ready: function () { return base !== null; },
-      wrap: function (u) { return base === null ? u : base + encodeURIComponent(u); }
+      // URL of the relay's track list for a Matroska file, or null when the relay is not up.
+      tracksUrl: function (u, headers) {
+        if (base === null) return null;
+        var h = headers && typeof headers === 'object' && Object.keys(headers).length ? '&h=' + encodeURIComponent(JSON.stringify(headers)) : '';
+        return base.replace(/\/p\?u=$/, '/t?u=') + encodeURIComponent(u) + h;
+      },
+      // headers: optional {name: value} the relay sends upstream; it keeps only names it allows.
+      wrap: function (u, headers) {
+        if (base === null) return u;
+        var h = headers && typeof headers === 'object' && Object.keys(headers).length ? '&h=' + encodeURIComponent(JSON.stringify(headers)) : '';
+        return base + encodeURIComponent(u) + h;
+      }
     };
   }
 

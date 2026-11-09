@@ -84,7 +84,7 @@ This has not been tried with Sozo, and Sozo is not in the Homebrew Channel repos
 
 ## Sources
 
-The backend lists 42 ordinary sources. The app allows nine (`js/lib/providers.js`), and shows one only if
+The backend lists 42 ordinary sources. The app allows 16 (`js/lib/providers.js`), and shows one only if
 the live API still offers it. This is a snapshot from November 2026, and the catalogue changes often.
 
 Results are from one live run in desktop Chrome, with one title per source:
@@ -100,6 +100,34 @@ Results are from one live run in desktop Chrome, with one title per source:
 | livetvindia | Live | Hindi | Played, 1080p HLS through hls.js |
 | vidapi | Films and series | English | **Did not play.** Its segment host sends no CORS header, so hls.js cannot read it. The chooser appears. |
 | sportstv | Live | Many | **Did not play**, cause not checked. The chooser appears. It also has a plain-HTTP host and one HEVC channel. |
+
+Seven more play on webOS only, through the relay with the headers the API declares (see below). Most of
+their hosts answer 403 without them, and a browser `<video>` cannot send a Referer or Origin of its choice.
+All seven played, seeked and exited on an LG webOS 10.3 TV in November 2026:
+
+| Source | Type | Language | Through the relay |
+| --- | --- | --- | --- |
+| anikage | Anime | English | HLS: playlist, variant and segment. Needs Referer and Origin `anikage.cc`. |
+| rareanimes | Anime | Hindi | HLS: playlist, variant and segment. Needs the declared User-Agent. |
+| tioanime | Anime | Spanish | mp4 byte ranges. Needs the declared Referer. |
+| animeav1 | Anime | Spanish | mp4 byte ranges, needs the declared Referer. The mp4 is AV1, so older TVs fall to the next source. |
+| yummyanime | Anime | Russian | HLS: playlist and segment. 10 of 10 titles resolved in 1 to 2 s. |
+| uhdmovies | Films | Many | mkv byte ranges: h264 or HEVC with EAC3 audio. |
+| cinestream | Films | Many | mkv byte ranges, often labelled mp4: h264 or HEVC 10-bit with EAC3 audio. |
+
+uhdmovies and cinestream are marked `mkv: true`, so the app accepts Matroska from them and plays it as a
+file through the relay, which names it `video/x-matroska`. The TV's own media pipeline decodes it. Other
+providers still reject mkv.
+
+Many of these files carry several audio tracks, Hindi first. The player enables the viewer's last chosen
+language, then the UI language, then English, over the file's default, and the Audio panel saves a new choice.
+
+Their subtitles are inside the file. The TV does not expose them as `textTracks`, and its media service sends
+the track list only to the web engine. So the relay reads the Matroska header (`/t`, the first 512 KB, or
+the Tracks element its SeekHead points to) and lists the text subtitles. Picking one calls `selectTrack` and
+`setSubtitleEnable` on `com.webos.media`, both open to apps, and the TV draws the subtitles itself. Image
+subtitles (PGS, VobSub) are left out, as the TV does not number them either. Embedded subtitles start off,
+and a chosen language is remembered, with a full track preferred over a forced one.
 
 A TV takes a different path for HLS: it tries the platform's native player first, which needs no CORS, and
 uses hls.js only as a fallback where the source allows it. vidapi's segments are named `.html` and sent as
@@ -122,19 +150,26 @@ On an LG webOS 10.3 TV a vidapi film started in 1.7 s at 1920x800 this way, and 
 plain hls.js starts on the lowest level. If the service is missing or down, the URL is left as it is,
 the native player fails, and the ladder falls back to hls.js. Off webOS nothing calls the service.
 
-### Why the other 33 are left out
+For a provider also marked `relayHeaders: true`, the app adds `&h=<JSON>` with the headers the API declares
+for that source, and the relay sends them upstream. They are also carried on every playlist URI it rewrites.
+Only `User-Agent`, `Referer`, `Origin`, `Accept` and `Accept-Language` pass, each printable and at most 1024
+characters. Anything else, such as `Cookie` or `Authorization`, still rejects the source in the app and is
+dropped by the relay. mp4 sources from these providers go through the relay too. They never use hls.js,
+which cannot send those headers. Off webOS they fail and the chooser appears.
+
+### Why the other 26 are left out
 
 | Reason | Sources |
 | --- | --- |
 | 18+ titles in their results | thenkiri, internetarchive, peertube, wikimedia, musictv |
-| Need a Referer, User-Agent or header set a TV `<video>` cannot send | anikai, anikoto, hianimes, anikage, rareanimes, primesrc, tioanime, animeav1 |
+| Headers alone are not enough: anikai answers 400, anikoto's CDN has a broken TLS chain, hianimes is iframes with WebView sniffing, primesrc links answer 403 even with the headers | anikai, anikoto, hianimes, primesrc |
 | Need a signer, local proxy or device resolver | asilmedia, uzmovi, animeheaven, vsmov |
 | Iframes with WebView sniffing only | multimovies |
 | Run on the device, or blocked for the backend | kisskh, coflix, animehay, animedia, kkphim, phimnhua |
-| mkv only or mislabelled, often with EAC3 audio | hdhub4u, fourkhdhub, uhdmovies, cinestream |
+| mkv only or mislabelled, often with EAC3 audio | hdhub4u, fourkhdhub |
 | `magnet:` links | nyaa, torastream |
 | Video with no audio | filmzie |
-| Unreliable: timeouts or most titles failing | yummyanime, animexin |
+| Unreliable: timeouts or most titles failing | animexin |
 
 Adult providers are never listed or opened, and the `X-Sozo-Adult` header is never sent.
 
@@ -179,5 +214,6 @@ on Chromium 53. Nothing here has run on Chromium 53.
 - Install on the oldest TV available and check Home, Search, Detail and the exit dialog.
 - Play one mp4 source and one HLS source, then seek, change source and resume.
 - Try vidapi and sportstv with native HLS on webOS older than 10.3.
+- Play the seven relayed sources on webOS older than 10.3, mkv especially.
 - Use the Magic Remote pointer, the arrows, OK and Back, including held keys.
 - Check that the screensaver stays off during playback and how `ended` behaves.
