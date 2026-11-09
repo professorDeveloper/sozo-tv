@@ -21,7 +21,23 @@
     { id: 'livetvindia', kind: 'live', search: true, viewAll: false, related: false,
       hosts: null, ignoreHeaders: ['user-agent'], hlsjs: true },
     { id: 'sportstv', kind: 'live', search: true, viewAll: false, related: false,
-      hosts: null, ignoreHeaders: ['user-agent'], hlsjs: true }
+      hosts: null, ignoreHeaders: ['user-agent'], hlsjs: true },
+    // relayHeaders: their hosts refuse requests without the API's Referer/Origin/User-Agent, so webOS plays them via the relay.
+    { id: 'anikage', kind: 'vod', search: true, viewAll: true, related: true,
+      hosts: null, ignoreHeaders: [], hlsjs: false, relabel: true, relayHeaders: true },
+    { id: 'rareanimes', kind: 'vod', search: true, viewAll: true, related: true,
+      hosts: null, ignoreHeaders: [], hlsjs: false, relabel: true, relayHeaders: true },
+    { id: 'tioanime', kind: 'vod', search: true, viewAll: true, related: true,
+      hosts: null, ignoreHeaders: [], hlsjs: false, relabel: true, relayHeaders: true },
+    { id: 'animeav1', kind: 'vod', search: true, viewAll: true, related: true,
+      hosts: null, ignoreHeaders: [], hlsjs: false, relabel: true, relayHeaders: true },
+    { id: 'yummyanime', kind: 'vod', search: true, viewAll: true, related: true,
+      hosts: null, ignoreHeaders: [], hlsjs: false, relabel: true, relayHeaders: true },
+    // mkv: direct Matroska files (h264/HEVC + EAC3) that only the TV's own media pipeline can play.
+    { id: 'uhdmovies', kind: 'vod', search: true, viewAll: true, related: true,
+      hosts: null, ignoreHeaders: [], hlsjs: false, relabel: true, relayHeaders: true, mkv: true },
+    { id: 'cinestream', kind: 'vod', search: true, viewAll: true, related: true,
+      hosts: null, ignoreHeaders: [], hlsjs: false, relabel: true, relayHeaders: true, mkv: true }
   ];
 
   var DEFAULT_ID = 'uzbeklar';

@@ -64,6 +64,29 @@ test('headers: only names this provider is known not to enforce, envelope and so
   assert.equal(reason(mp4('a', { headers: ua }), {}, 'idub'), 'header');
 });
 
+test('mkv: only providers marked mkv accept it, by type or by path, as a file', () => {
+  const byType = { videoUrl: 'https://w.test/abc', type: 'mkv' };
+  const byPath = { videoUrl: 'https://r2.test/hub/Film.2026.1080p.mkv', type: 'mp4' };
+  for (const id of ['uhdmovies', 'cinestream']) {
+    const out = eligible({ videoSources: [byType, byPath] }, id).sources;
+    assert.equal(out.length, 2, id);
+    assert.ok(out.every((s) => !s.isHls), id);
+  }
+  assert.equal(reason(byType, {}, 'anikage'), 'type');
+  assert.equal(reason(byPath, {}, 'anikage'), 'path');
+  assert.equal(reason({ videoUrl: 'https://w.test/a.mpd', type: 'mkv' }, {}, 'uhdmovies'), 'path');
+  assert.equal(reason({ videoUrl: 'https://w.test/a', type: 'iframe' }, {}, 'uhdmovies'), 'type');
+});
+
+test('relayHeaders: relayable names pass and travel with the source, source overriding the envelope', () => {
+  const env = { headers: { 'User-Agent': 'env', Referer: 'https://env.test/' }, videoSources: [mp4('a', { headers: { Referer: 'https://src.test/', Origin: 'https://src.test', 'Accept-Language': '*' } })] };
+  const src = eligible(env, 'anikage').sources[0];
+  assert.deepEqual(src.headers, { 'User-Agent': 'env', Referer: 'https://src.test/', Origin: 'https://src.test', 'Accept-Language': '*' });
+  assert.equal(reason(mp4('a', { headers: { Cookie: 'x' } }), {}, 'anikage'), 'header');
+  assert.equal(reason(mp4('a', { headers: { Authorization: 'x' } }), {}, 'tioanime'), 'header');
+  assert.equal('headers' in eligible({ videoSources: [mp4('a', { headers: { 'User-Agent': 'x' } })] }, 'vidapi').sources[0], false, 'other providers are unchanged');
+});
+
 test('hosts: an unknown host that declares headers is rejected, as the evidence does not cover it', () => {
   const on = (u, h) => ({ videoUrl: u, type: 'mp4', headers: h });
   const referer = { Referer: 'x' };

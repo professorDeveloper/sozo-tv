@@ -3,8 +3,8 @@ const test = require('node:test');
 const assert = require('node:assert');
 const { Providers, Platform, fixture } = require('./helper.js');
 
-test('allowlist is exactly the nine approved ids', () => {
-  assert.deepEqual(Providers.list.map((p) => p.id).sort(), ['anilibria', 'animevost', 'idub', 'livetvindia', 'sportstv', 'supercartoons', 'uzbeklar', 'vidapi', 'worldlivetv']);
+test('allowlist is exactly the sixteen approved ids', () => {
+  assert.deepEqual(Providers.list.map((p) => p.id).sort(), ['anikage', 'anilibria', 'animeav1', 'animevost', 'cinestream', 'idub', 'livetvindia', 'rareanimes', 'sportstv', 'supercartoons', 'tioanime', 'uhdmovies', 'uzbeklar', 'vidapi', 'worldlivetv', 'yummyanime']);
 });
 
 test('excluded providers cannot appear even if the API returns them', () => {
@@ -26,7 +26,7 @@ test('nsfw, browseOnly, client mode and missing providers stay hidden', () => {
 test('health: down sorts last but stays, unchecked and missing read as unknown', () => {
   const items = fixture('providers').items;
   const v = Providers.visible(items, { sources: { uzbeklar: { ok: false }, idub: { ok: true, unchecked: 'device' }, vidapi: { ok: true } } });
-  assert.equal(v.length, 9);
+  assert.equal(v.length, 16);
   assert.equal(v[v.length - 1].id, 'uzbeklar');
   assert.equal(v[v.length - 1].health, 'down');
   assert.equal(v.find((p) => p.id === 'idub').health, 'unknown');
@@ -57,4 +57,15 @@ test('exit uses the first available route and never throws', () => {
   assert.equal(Platform.exit({ webOS: { platformBack: () => { throw new Error('x'); } }, close: () => {} }), 'close');
   assert.equal(Platform.isWebOS('Mozilla/5.0 (Web0S; Linux/SmartTV)'), true);
   assert.equal(Platform.isWebOS('Mozilla/5.0 Chrome/120'), false);
+});
+
+test('only relayHeaders providers go through the relay with headers, and never via hls.js', () => {
+  const relayed = Providers.list.filter((p) => p.relayHeaders === true).map((p) => p.id).sort();
+  assert.deepEqual(relayed, ['anikage', 'animeav1', 'cinestream', 'rareanimes', 'tioanime', 'uhdmovies', 'yummyanime']);
+  assert.deepEqual(Providers.list.filter((p) => p.mkv === true).map((p) => p.id).sort(), ['cinestream', 'uhdmovies']);
+  for (const id of relayed) {
+    const p = Providers.byId(id);
+    assert.equal(p.relabel, true, id);
+    assert.equal(p.hlsjs, false, id);
+  }
 });

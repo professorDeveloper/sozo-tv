@@ -349,7 +349,7 @@ test('source picker lists only allowed sources, marks health, remembers the choi
   await page.waitForSelector('.source-card');
   await waitFocus(page, /Uzbeklar/);
   const names = await page.evaluate(() => Array.from(document.querySelectorAll('.source-card .source-name')).map((n) => n.textContent));
-  assert.equal(names.length, 9);
+  assert.equal(names.length, 16);
   assert.equal(names.some((n) => /thenkiri|Peertube|Internet Archive|nyaa/i.test(n)), false);
   assert.ok(/AnimeVost/.test(names[names.length - 1]), 'a down source sorts last');
   assert.ok(await hasText(page, 'May be unavailable'));

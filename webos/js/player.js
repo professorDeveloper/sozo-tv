@@ -93,6 +93,7 @@
     video.setAttribute('preload', 'auto');
     video.setAttribute('playsinline', 'playsinline');
     var env = detectEnv(video);
+    var mediaTracks = Sozo.MediaTracks ? Sozo.MediaTracks.create({ isWebOS: env.isWebOS }) : null;
 
     var hls = null;
     var hasSource = false;
@@ -305,6 +306,7 @@
         label: Model.cleanText(tracks[i].label) || Model.cleanText(tracks[i].language) || View.t('player.audioN', { n: i + 1 }),
         selected: !!tracks[i].enabled,
         pick: function () {
+          store.setSetting('audioLang', tracks[i].language || '');
           for (var j = 0; j < tracks.length; j++) tracks[j].enabled = j === i;
         }
       };
@@ -503,7 +505,7 @@
           }
         });
       });
-      openPanel(View.t('player.subtitles'), '', items, false, subtitleOn ? timingRow() : null);
+      openPanel(View.t('player.subtitles'), '', items, false, subtitleOn && !subtitleOn.embedded ? timingRow() : null);
     }
 
     function openAudioPanel() {
@@ -656,6 +658,43 @@
       setSubtitle(Subtitles.pickDefault(subtitleTracks, Sozo.I18n.get(), store.getSetting('subtitle', null)));
     }
 
+    // webOS mkv: the relay lists the file's text subtitles, and the TV's media pipeline draws the chosen one.
+    function loadEmbedded() {
+      var r = app && app.relabel;
+      var source = ladder && ladder.current();
+      if (!mediaTracks || !env.isWebOS || provider.mkv !== true || !source || source.isHls || !r || !r.ready() || !video.mediaId) return;
+      var id = token;
+      mediaTracks.load(video.mediaId, r.tracksUrl(source.url, source.headers), function (list) {
+        if (id === token && list.length) setEmbedded(list);
+      });
+    }
+
+    function setEmbedded(list) {
+      subtitleTracks = subtitleTracks.filter(function (t) { return !t.embedded; }).concat(list);
+      if (!subtitleOn) {
+        var pick = Sozo.MediaTracks.pickSubtitle(list, store.getSetting('subtitle', null));
+        if (pick) setSubtitle(pick);
+      }
+      refreshButtons();
+    }
+
+    function dropEmbedded() {
+      if (mediaTracks) mediaTracks.stop();
+      if (subtitleOn && subtitleOn.embedded) subtitleOn = null;
+      subtitleTracks = subtitleTracks.filter(function (t) { return !t.embedded; });
+    }
+
+    // Native audio: the viewer's saved language, then the UI language, then English, over the file's default.
+    function preferAudio() {
+      var native = !hls && video.audioTracks;
+      if (!native || native.length < 2 || !Sozo.MediaTracks) return;
+      var langs = [];
+      for (var i = 0; i < native.length; i++) langs.push(native[i].language);
+      var pick = Sozo.MediaTracks.pickAudio(langs, store.getSetting('audioLang', null), Sozo.I18n.get());
+      if (pick < 0 || native[pick].enabled) return;
+      for (var j = 0; j < native.length; j++) native[j].enabled = j === pick;
+    }
+
     function dropSubtitleRequest() {
       if (subReq) {
         var x = subReq;
@@ -670,11 +709,13 @@
 
     function setSubtitle(track) {
       dropSubtitleRequest();
+      if (subtitleOn && subtitleOn.embedded && track !== subtitleOn && mediaTracks) mediaTracks.selectText(null);
       if (track !== subtitleOn) subOffset = 0;
       subtitleOn = track;
       cues = null;
       renderCue(0);
       if (!track) return;
+      if (track.embedded) { if (mediaTracks) mediaTracks.selectText(track.index); return; }
       var x = new root.XMLHttpRequest();
       subReq = x;
       function failed() {
@@ -714,6 +755,7 @@
       if (seekTimer !== null) root.clearTimeout(seekTimer);
       seekTimer = null;
       pendingTarget = null;
+      dropEmbedded();
       if (!hasSource) return;
       hasSource = false;
       try { video.pause(); } catch (e2) { hasSource = false; }
@@ -786,7 +828,7 @@
       var source = ladder.current();
       var eng = ladder.engine();
       if (eng === 'file') {
-        video.src = source.url;
+        video.src = provider.relayHeaders === true ? relabelled(source) : source.url;
         video.load();
         doPlay();
       } else if (eng === 'native') {
@@ -794,7 +836,7 @@
         // A failing <source> reports here, not on the video element.
         child.onerror = function () { if (id === token) fail({}); };
         child.type = 'application/x-mpegURL';
-        child.src = relabelled(source.url);
+        child.src = relabelled(source);
         video.appendChild(child);
         video.load();
         doPlay();
@@ -805,10 +847,11 @@
       }
     }
 
-    // Native HLS through the loopback relay where the provider's hosts mislabel segments.
-    function relabelled(u) {
+    // Through the loopback relay where hosts mislabel segments or need headers a <video> cannot send.
+    function relabelled(source) {
       var r = app && app.relabel;
-      return provider.relabel === true && r && r.ready() ? r.wrap(u) : u;
+      if (provider.relabel !== true || !r || !r.ready()) return source.url;
+      return r.wrap(source.url, provider.relayHeaders === true ? source.headers : null);
     }
 
     function fail(info) {
@@ -886,6 +929,8 @@
         try { video.currentTime = startAt; } catch (e) { startAt = 0; }
       }
       position = startAt;
+      preferAudio();
+      loadEmbedded();
       refreshButtons();
       renderBar();
     }
