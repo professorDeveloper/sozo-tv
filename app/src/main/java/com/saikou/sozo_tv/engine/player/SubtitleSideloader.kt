@@ -69,7 +69,8 @@ class SubtitleSideloader(
             ?: retryReferer?.let { fetch(chosen, referer = it) }
             ?: throw IOException("subtitle host refused the request")
 
-        val body = SubtitleBody.decode(bytes, chosen.label)
+        val decoded = SubtitleBody.decode(bytes, chosen.label)
+        val body = chosen.cipher?.decrypt(decoded) ?: decoded
         cached = chosen.file to body
         return body
     }

@@ -36,6 +36,7 @@ import com.saikou.sozo_tv.components.TvOptionChipView
 import androidx.core.os.LocaleListCompat
 import androidx.appcompat.app.AppCompatDelegate
 import android.widget.LinearLayout
+import com.saikou.sozo_tv.engine.network.ExtensionDns
 
 class MyAccountPage : Fragment() {
 
@@ -125,6 +126,16 @@ class MyAccountPage : Fragment() {
         settingsViewModel.loadStats()
 
         setupAppearanceSection()
+        setupNetworkSection()
+        setupStreamingQualitySection()
+        setupPlayerEngineSection()
+        binding.openDownloads.setOnClickListener {
+            startActivity(android.content.Intent(requireContext(), com.saikou.sozo_tv.presentation.activities.DownloadsActivity::class.java))
+        }
+        binding.openWatchParty.setOnClickListener {
+            startActivity(android.content.Intent(requireContext(), com.saikou.sozo_tv.presentation.activities.WatchPartyActivity::class.java))
+        }
+        wireChoiceFocus(binding.openDownloads.parent as ViewGroup, binding.libraryToolsDropdown)
         setupLanguageSection()
         setupContentControlsSection()
     }
@@ -229,6 +240,104 @@ class MyAccountPage : Fragment() {
      * `setApplicationLocales` recreates the activity itself; the AppCompat
      * backport carries that down to API 21, so nothing here is gated on 13.
      */
+    private fun setupStreamingQualitySection() {
+        val container = binding.streamingQualityChips
+        val preferences = requireContext().getSharedPreferences("playback_quality", android.content.Context.MODE_PRIVATE)
+        val choices = listOf(
+            "auto" to getString(R.string.tv_stream_quality_auto),
+            "2160" to "2160p",
+            "1080" to "1080p",
+            "720" to "720p",
+            "480" to "480p",
+            "360" to "360p",
+            "lowest" to getString(R.string.tv_stream_quality_data_saver),
+        )
+        container.removeAllViews()
+        choices.forEach { (id, label) ->
+            container.addView(TvOptionChipView(requireContext()).apply {
+                text = label
+                tag = id
+                isSelected = id == preferences.getString("preferred_resolution", "auto")
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply { marginEnd = (12 * resources.displayMetrics.density).toInt() }
+                setOnClickListener {
+                    preferences.edit().putString("preferred_resolution", id).apply()
+                    for (index in 0 until container.childCount) {
+                        val chip = container.getChildAt(index)
+                        chip.isSelected = chip.tag == id
+                    }
+                }
+            })
+        }
+        wireChoiceFocus(container, binding.streamingQualityDropdown)
+    }
+
+    private fun setupPlayerEngineSection() {
+        val container = binding.playerEngineChips
+        val preferences = requireContext().getSharedPreferences("playback_quality", android.content.Context.MODE_PRIVATE)
+        container.removeAllViews()
+        listOf("internal" to getString(R.string.tv_player_internal), "external" to getString(R.string.tv_player_external)).forEach { (id, label) ->
+            container.addView(TvOptionChipView(requireContext()).apply {
+                text = label; tag = id
+                isSelected = id == preferences.getString("player_engine", "internal")
+                layoutParams = LinearLayout.LayoutParams(-2, -2).apply {
+                    marginEnd = (12 * resources.displayMetrics.density).toInt()
+                }
+                setOnClickListener {
+                    preferences.edit().putString("player_engine", id).apply()
+                    for (index in 0 until container.childCount) {
+                        container.getChildAt(index).isSelected = container.getChildAt(index).tag == id
+                    }
+                }
+            })
+        }
+        wireChoiceFocus(container, binding.playerEngineDropdown)
+    }
+
+    private fun setupNetworkSection() {
+        val container = binding.networkChips
+        val choices = listOf(
+            "" to getString(R.string.tv_dns_system),
+            "cloudflare" to "Cloudflare",
+            "google" to "Google",
+        )
+        container.removeAllViews()
+        choices.forEach { (id, label) ->
+            container.addView(TvOptionChipView(requireContext()).apply {
+                text = label
+                tag = id
+                isSelected = id == ExtensionDns.current()
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply { marginEnd = (12 * resources.displayMetrics.density).toInt() }
+                setOnClickListener {
+                    val selected = ExtensionDns.set(requireContext(), id)
+                    for (index in 0 until container.childCount) {
+                        val chip = container.getChildAt(index)
+                        chip.isSelected = chip.tag == selected
+                    }
+                }
+            })
+        }
+        wireChoiceFocus(container, binding.networkDropdown)
+    }
+
+    /** Keep RIGHT on a row's last option from jumping to the Login button above the row. */
+    private fun wireChoiceFocus(container: ViewGroup, section: View) {
+        val choices = (0 until container.childCount).map { container.getChildAt(it) }
+        choices.forEach { if (it.id == View.NO_ID) it.id = View.generateViewId() }
+        choices.forEachIndexed { index, choice ->
+            choice.nextFocusLeftId = choices.getOrNull(index - 1)?.id ?: View.NO_ID
+            choice.nextFocusRightId = choices.getOrNull(index + 1)?.id ?: choice.id
+        }
+        choices.firstOrNull()?.let { first ->
+            section.findViewById<View>(R.id.dropdown_header)?.nextFocusDownId = first.id
+        }
+    }
+
     private fun setupLanguageSection() {
         val container = binding.languageChips
         container.removeAllViews()
@@ -254,6 +363,7 @@ class MyAccountPage : Fragment() {
             }
             container.addView(chip)
         }
+        wireChoiceFocus(container, binding.languageDropdown)
     }
 
     private fun setupContentControlsSection() {

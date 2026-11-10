@@ -44,7 +44,7 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityProfileBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         model.loadProfile()
 
         // Deliberately NOT `navProfile.isFocusedByDefault = true`. This screen is a
@@ -164,6 +164,9 @@ class ProfileActivity : AppCompatActivity(), MyAccountPage.AuthNavigator {
             recyclerView = viewBinding.profileRv,
             isSignedIn = isSignedIn
         ).also { viewBinding.profileRv.adapter = it }
+        profileAdapter.setOnAccountClickListener {
+            startActivity(Intent(this, ProfilePickerActivity::class.java))
+        }
 
         // One placement, not two. Each branch used to run this AND an inline
         // `profileRv.post { ... }` doing the same thing, and the inline copy read

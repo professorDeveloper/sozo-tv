@@ -1,11 +1,10 @@
 package com.saikou.sozo_tv.di
 
-import androidx.room.Room
 import com.google.firebase.database.FirebaseDatabase
 import com.saikou.sozo_tv.data.repository.AnilistRepository
 import com.saikou.sozo_tv.presentation.viewmodel.AnilistViewModel
-import com.saikou.sozo_tv.data.local.database.AppDatabase
-import com.saikou.sozo_tv.data.local.database.MIGRATION_1_2
+import com.saikou.sozo_tv.data.local.database.ProfileDatabaseProvider
+import com.saikou.sozo_tv.data.local.pref.ActiveProfileStore
 import com.saikou.sozo_tv.data.local.pref.PreferenceManager
 import com.saikou.sozo_tv.data.repository.CategoriesRepositoryImpl
 import com.saikou.sozo_tv.data.repository.CharacterBookmarkRepositoryImpl
@@ -52,16 +51,12 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val koinModule = module {
-    single {
-        Room.databaseBuilder(
-            androidApplication(), AppDatabase::class.java, "movie_database"
-        ).addMigrations(MIGRATION_1_2).build()
-    }
-    single { get<AppDatabase>().movieDao() }
-    single { get<AppDatabase>().tvDao() }
-    single { get<AppDatabase>().watchHistoryDao() }
-    single { get<AppDatabase>().characterDao() }
-    single { PreferenceManager() }
+    single { ProfileDatabaseProvider(androidApplication(), get()) }
+    factory { get<ProfileDatabaseProvider>().movieDao() }
+    factory { get<ProfileDatabaseProvider>().channelDao() }
+    factory { get<ProfileDatabaseProvider>().historyDao() }
+    factory { get<ProfileDatabaseProvider>().characterDao() }
+    single { PreferenceManager(profileStore = get<ActiveProfileStore>()) }
     single<HomeRepository> {
         HomeRepositoryImpl(engine = get())
     }
@@ -75,15 +70,15 @@ val koinModule = module {
         ImdbHomeRepositoryImpl(engine = get())
     }
     single<MovieBookmarkRepository> {
-        MovieBookmarkRepositoryImpl(dao = get())
+        MovieBookmarkRepositoryImpl(databases = get())
     }
 
     single<WatchHistoryRepository> {
-        WatchHistoryRepositoryImpl(watchHistoryDao = get())
+        WatchHistoryRepositoryImpl(databases = get())
     }
 
     single<CharacterBookmarkRepository> {
-        CharacterBookmarkRepositoryImpl(dao = get())
+        CharacterBookmarkRepositoryImpl(databases = get())
     }
     single<SearchRepository> {
         SearchRepositoryImpl(engine = get())
@@ -102,7 +97,7 @@ val koinModule = module {
     viewModel { UpdateViewModel() }
     viewModel { AnilistViewModel(repository = get()) }
     viewModel { ViewAllViewModel(get()) }
-    viewModel { SettingsViewModel(get(), profileRepo = get(), deviceAuth = get(), userLists = get(), historySync = get(), anilist = get(), mal = get(), history = get(), bookmarks = get()) }
+    viewModel { SettingsViewModel(get(), profileRepo = get(), deviceAuth = get(), userLists = get(), historySync = get(), anilist = get(), mal = get(), history = get(), bookmarks = get(), householdProfiles = get()) }
     viewModel { LiveTvViewModel(dao = get()) }
     viewModel { SplashViewModel(appVersionClient = get()) }
     viewModel { PlayAnimeViewModel(watchHistoryRepository = get(), historySync = get()) }

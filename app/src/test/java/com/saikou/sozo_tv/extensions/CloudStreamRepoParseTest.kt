@@ -15,6 +15,12 @@ import org.junit.Test
  */
 class CloudStreamRepoParseTest {
 
+    @Test fun `provider language and content classification are retained before lazy loading`() {
+        val plugin = RepoManager.parsePluginList("""[{"url":"https://example/plugin.cs3","internalName":"Test","language":"uz","tvTypes":["Movie","NSFW"]}]""").single()
+        assertEquals("uz", plugin.lang)
+        assertTrue(plugin.nsfw)
+    }
+
     private val repoUrl = "https://example.invalid/repo.json"
 
     // ---------- repo.json ----------

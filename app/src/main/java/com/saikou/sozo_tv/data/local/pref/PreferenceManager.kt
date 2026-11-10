@@ -11,7 +11,12 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
-class PreferenceManager(context: Context = MyApp.context) {
+class PreferenceManager(
+    context: Context = MyApp.context,
+    private val profileStore: ActiveProfileStore? = runCatching {
+        org.koin.core.context.GlobalContext.get().get<ActiveProfileStore>()
+    }.getOrNull(),
+) {
 
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -45,13 +50,17 @@ class PreferenceManager(context: Context = MyApp.context) {
         private const val KEY_DEMO_THEME_LEGACY = "demo_theme"
     }
 
-    fun isModeAnimeEnabled() = prefs.getBoolean(KEY_MODE_ANIME_ENABLED, true)
-    fun setModeAnime(enabled: Boolean) =
-        prefs.edit().putBoolean(KEY_MODE_ANIME_ENABLED, enabled).apply()
+    /** Viewer-facing preferences are isolated between household profiles. */
+    private fun scoped(key: String): String =
+        profileStore?.namespace()?.let { "profile_${it}__$key" } ?: key
 
-    fun isSkipIntroEnabled() = prefs.getBoolean(KEY_SKIP_INTRO_ENABLED, false)
+    fun isModeAnimeEnabled() = prefs.getBoolean(scoped(KEY_MODE_ANIME_ENABLED), true)
+    fun setModeAnime(enabled: Boolean) =
+        prefs.edit().putBoolean(scoped(KEY_MODE_ANIME_ENABLED), enabled).apply()
+
+    fun isSkipIntroEnabled() = prefs.getBoolean(scoped(KEY_SKIP_INTRO_ENABLED), false)
     fun setSkipIntroEnabled(enabled: Boolean) =
-        prefs.edit().putBoolean(KEY_SKIP_INTRO_ENABLED, enabled).apply()
+        prefs.edit().putBoolean(scoped(KEY_SKIP_INTRO_ENABLED), enabled).apply()
 
     /**
      * The audio language the viewer last chose, as an ISO code — null until they pick one.
@@ -59,37 +68,39 @@ class PreferenceManager(context: Context = MyApp.context) {
      * Persisted because the track objects cannot be: they belong to the stream that declared
      * them, so every new episode rebuilt them from scratch and the choice was silently lost.
      */
-    fun getAudioLanguage(): String? = prefs.getString(KEY_AUDIO_LANGUAGE, null)
+    fun getAudioLanguage(): String? = prefs.getString(scoped(KEY_AUDIO_LANGUAGE), null)
     fun setAudioLanguage(code: String?) = prefs.edit().apply {
-        if (code.isNullOrBlank()) remove(KEY_AUDIO_LANGUAGE) else putString(KEY_AUDIO_LANGUAGE, code)
+        val key = scoped(KEY_AUDIO_LANGUAGE)
+        if (code.isNullOrBlank()) remove(key) else putString(key, code)
     }.apply()
 
-    fun getPlaybackSpeed(): Float = prefs.getFloat(KEY_PLAYBACK_SPEED, 1f)
-    fun setPlaybackSpeed(speed: Float) = prefs.edit().putFloat(KEY_PLAYBACK_SPEED, speed).apply()
+    fun getPlaybackSpeed(): Float = prefs.getFloat(scoped(KEY_PLAYBACK_SPEED), 1f)
+    fun setPlaybackSpeed(speed: Float) = prefs.edit().putFloat(scoped(KEY_PLAYBACK_SPEED), speed).apply()
 
-    fun getResizeModeIndex(): Int = prefs.getInt(KEY_RESIZE_MODE, 0)
-    fun setResizeModeIndex(index: Int) = prefs.edit().putInt(KEY_RESIZE_MODE, index).apply()
+    fun getResizeModeIndex(): Int = prefs.getInt(scoped(KEY_RESIZE_MODE), 0)
+    fun setResizeModeIndex(index: Int) = prefs.edit().putInt(scoped(KEY_RESIZE_MODE), index).apply()
 
-    fun isSubtitlesEnabled(): Boolean = prefs.getBoolean(KEY_SUBTITLES_ENABLED, true)
+    fun isSubtitlesEnabled(): Boolean = prefs.getBoolean(scoped(KEY_SUBTITLES_ENABLED), true)
     fun setSubtitlesEnabled(enabled: Boolean) =
-        prefs.edit().putBoolean(KEY_SUBTITLES_ENABLED, enabled).apply()
+        prefs.edit().putBoolean(scoped(KEY_SUBTITLES_ENABLED), enabled).apply()
 
-    fun getSubtitleLabel(): String? = prefs.getString(KEY_SUBTITLE_LABEL, null)
+    fun getSubtitleLabel(): String? = prefs.getString(scoped(KEY_SUBTITLE_LABEL), null)
     fun setSubtitleLabel(label: String?) = prefs.edit().apply {
-        if (label.isNullOrBlank()) remove(KEY_SUBTITLE_LABEL) else putString(KEY_SUBTITLE_LABEL, label)
+        val key = scoped(KEY_SUBTITLE_LABEL)
+        if (label.isNullOrBlank()) remove(key) else putString(key, label)
     }.apply()
 
-    fun isNsfwEnabled() = prefs.getBoolean(KEY_NSFW_ENABLED, false)
+    fun isNsfwEnabled() = profileStore?.isKids() != true && prefs.getBoolean(scoped(KEY_NSFW_ENABLED), false)
     fun setNsfwEnabled(enabled: Boolean) =
-        prefs.edit().putBoolean(KEY_NSFW_ENABLED, enabled).apply()
+        prefs.edit().putBoolean(scoped(KEY_NSFW_ENABLED), enabled).apply()
 
-    fun isHistoryEnabled() = prefs.getBoolean("history_enabled", true)
+    fun isHistoryEnabled() = prefs.getBoolean(scoped("history_enabled"), true)
     fun setHistoryEnabled(enabled: Boolean) =
-        prefs.edit().putBoolean("history_enabled", enabled).apply()
+        prefs.edit().putBoolean(scoped("history_enabled"), enabled).apply()
 
-    fun isChannelEnabled() = prefs.getBoolean(KEY_CHANNEL_ENABLED, false)
+    fun isChannelEnabled() = prefs.getBoolean(scoped(KEY_CHANNEL_ENABLED), false)
     fun setChannelEnabled(enabled: Boolean) =
-        prefs.edit().putBoolean(KEY_CHANNEL_ENABLED, enabled).apply()
+        prefs.edit().putBoolean(scoped(KEY_CHANNEL_ENABLED), enabled).apply()
 
     // ===== Subtitle Style =====
     data class SubtitleStyle(
@@ -111,25 +122,27 @@ class PreferenceManager(context: Context = MyApp.context) {
 
     fun getSubtitleStyle(): SubtitleStyle {
         return SubtitleStyle(
-            font = Font.valueOf(prefs.getString(KEY_SUBTITLE_FONT, Font.DEFAULT.name)!!),
-            color = prefs.getInt(KEY_SUBTITLE_COLOR, Color.WHITE),
-            sizeSp = prefs.getInt(KEY_SUBTITLE_SIZE, 16),
-            background = prefs.getBoolean(KEY_SUBTITLE_BG, false),
-            outline = prefs.getBoolean(KEY_SUBTITLE_OUTLINE, true)
+            font = runCatching {
+                Font.valueOf(prefs.getString(scoped(KEY_SUBTITLE_FONT), Font.DEFAULT.name)!!)
+            }.getOrDefault(Font.DEFAULT),
+            color = prefs.getInt(scoped(KEY_SUBTITLE_COLOR), Color.WHITE),
+            sizeSp = prefs.getInt(scoped(KEY_SUBTITLE_SIZE), 16),
+            background = prefs.getBoolean(scoped(KEY_SUBTITLE_BG), false),
+            outline = prefs.getBoolean(scoped(KEY_SUBTITLE_OUTLINE), true)
         )
     }
 
     fun isSubtitleCustom(): Boolean =
-        prefs.getBoolean(KEY_SUBTITLE_CUSTOM, false)
+        prefs.getBoolean(scoped(KEY_SUBTITLE_CUSTOM), false)
 
     fun saveSubtitleStyle(style: SubtitleStyle) {
         prefs.edit()
-            .putBoolean(KEY_SUBTITLE_CUSTOM, !style.isDefault())
-            .putString(KEY_SUBTITLE_FONT, style.font.name)
-            .putInt(KEY_SUBTITLE_COLOR, style.color)
-            .putInt(KEY_SUBTITLE_SIZE, style.sizeSp)
-            .putBoolean(KEY_SUBTITLE_BG, style.background)
-            .putBoolean(KEY_SUBTITLE_OUTLINE, style.outline)
+            .putBoolean(scoped(KEY_SUBTITLE_CUSTOM), !style.isDefault())
+            .putString(scoped(KEY_SUBTITLE_FONT), style.font.name)
+            .putInt(scoped(KEY_SUBTITLE_COLOR), style.color)
+            .putInt(scoped(KEY_SUBTITLE_SIZE), style.sizeSp)
+            .putBoolean(scoped(KEY_SUBTITLE_BG), style.background)
+            .putBoolean(scoped(KEY_SUBTITLE_OUTLINE), style.outline)
             .apply()
     }
 
@@ -178,17 +191,17 @@ class PreferenceManager(context: Context = MyApp.context) {
     }.distinctUntilChanged()
 
     fun isAppearanceExpanded(): Boolean =
-        prefs.getBoolean(KEY_APPEARANCE_EXPANDED, true)
+        prefs.getBoolean(scoped(KEY_APPEARANCE_EXPANDED), true)
 
     fun setAppearanceExpanded(expanded: Boolean) {
-        prefs.edit().putBoolean(KEY_APPEARANCE_EXPANDED, expanded).apply()
+        prefs.edit().putBoolean(scoped(KEY_APPEARANCE_EXPANDED), expanded).apply()
     }
 
     fun isContentControlsExpanded(): Boolean =
-        prefs.getBoolean(KEY_CONTENT_CONTROLS_EXPANDED, false)
+        prefs.getBoolean(scoped(KEY_CONTENT_CONTROLS_EXPANDED), false)
 
     fun setContentControlsExpanded(expanded: Boolean) {
-        prefs.edit().putBoolean(KEY_CONTENT_CONTROLS_EXPANDED, expanded).apply()
+        prefs.edit().putBoolean(scoped(KEY_CONTENT_CONTROLS_EXPANDED), expanded).apply()
     }
 
     @Deprecated("Theme UI removed. Use getSeasonalTheme()/setSeasonalTheme() or observeSeasonalTheme().")
@@ -225,7 +238,7 @@ class PreferenceManager(context: Context = MyApp.context) {
 
     fun observeModeAnimeEnabled(): Flow<Boolean> = callbackFlow {
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == KEY_MODE_ANIME_ENABLED) trySend(isModeAnimeEnabled())
+            if (key == scoped(KEY_MODE_ANIME_ENABLED)) trySend(isModeAnimeEnabled())
         }
         trySend(isModeAnimeEnabled())
         prefs.registerOnSharedPreferenceChangeListener(listener)

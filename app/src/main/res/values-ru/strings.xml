@@ -407,4 +407,21 @@
     <string name="content_controls_summary">Каналы на главной: %1$s \u2022 Взрослое: %2$s</string>
     <string name="language_section_title">Язык</string>
     <string name="language_section_hint">Язык, на котором Sozo говорит на этом телевизоре</string>
+    <!-- Profiles -->
+    <string name="profile_who_is_watching">Кто смотрит?</string>
+    <string name="profile_picker_hint">Выберите профиль и продолжайте просмотр</string>
+    <string name="profile_add">+ Добавить профиль</string>
+    <string name="profile_manage">Управление профилями</string>
+    <string name="profile_done">Готово</string>
+    <string name="profile_kids">ДЕТИ</string>
+    <string name="profile_kids_mode">Детский профиль</string>
+    <string name="profile_choose_avatar">Выберите аватар</string>
+    <string name="profile_name_hint">Имя профиля</string>
+    <string name="profile_create_title">Новый профиль</string>
+    <string name="profile_edit_title">Редактировать профиль</string>
+    <string name="profile_save">Сохранить</string>
+    <string name="profile_delete">Удалить</string>
+    <string name="profile_load_failed">Не удалось загрузить профили</string>
+    <string name="profile_name_required">Введите имя профиля</string>
+    <string name="profile_delete_confirm">Удалить этот профиль и его историю просмотра на ТВ?</string>
 </resources>

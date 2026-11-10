@@ -54,13 +54,13 @@ class HomeScreen : Fragment() {
     override fun onDestroyView() {
         LocalData.releaseListeners(ownListeners)
         ownListeners = emptyList()
+        _binding?.vgvHome?.adapter = null
+        _binding = null
         super.onDestroyView()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // Reset per view: coming back from a detail screen recreates the view with
-        // nothing focused, and the grid has to claim focus again.
         initialFocusPlaced = false
         initializeHome()
         LocalData.currentCategory = ""
@@ -85,15 +85,14 @@ class HomeScreen : Fragment() {
         is UiState.Success -> {
             binding.isLoading.gIsLoadingRetry.isGone = true
             binding.isLoading.root.isGone = true
-            homeAdapter.submitList(state.data)
-            if (!initialFocusPlaced && state.data.isNotEmpty()) {
-                initialFocusPlaced = true
-                // Not the banner: it is the first row, so focus landed there by default, which
-                // parked a white focus ring over the whole hero and stopped the carousel from
-                // ever advancing. It stays one press of UP away.
-                val firstRow = state.data.indexOfFirst { it !is BannerModel }
-                if (firstRow > 0) binding.vgvHome.selectedPosition = firstRow
-                binding.vgvHome.requestInitialFocus()
+            val currentBinding = binding
+            homeAdapter.submitList(state.data) {
+                if (_binding === currentBinding && !initialFocusPlaced && state.data.isNotEmpty()) {
+                    initialFocusPlaced = true
+                    val firstRow = state.data.indexOfFirst { it !is BannerModel }
+                    if (firstRow > 0) binding.vgvHome.selectedPosition = firstRow
+                    binding.vgvHome.requestInitialFocus()
+                }
             }
             LocalData.setFocusedGenreClickListener {
                 (requireActivity() as MainActivity).navigateToCategory(it)

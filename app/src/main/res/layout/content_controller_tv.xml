@@ -30,6 +30,7 @@
 
     <FrameLayout
         android:id="@+id/frameBackButton"
+        android:contentDescription="@string/player_hint_back"
         style="@style/PlayerGlassButton"
         android:layout_width="48dp"
         android:layout_height="48dp"
@@ -192,6 +193,7 @@
 
                 <FrameLayout
                     android:id="@+id/exo_prev_ten_container"
+                    android:contentDescription="@string/player_hint_rewind"
                     style="@style/PlayerGlassButton"
                     android:nextFocusLeft="@id/exo_prev_ten_container"
                     android:nextFocusUp="@id/exo_progress">
@@ -204,6 +206,7 @@
 
                 <FrameLayout
                     android:id="@+id/exo_play_pause_container"
+                    android:contentDescription="@string/player_hint_play"
                     style="@style/PlayerGlassButton"
                     android:layout_width="56dp"
                     android:layout_height="56dp"
@@ -221,6 +224,7 @@
 
                 <FrameLayout
                     android:id="@+id/exo_next_ten_container"
+                    android:contentDescription="@string/player_hint_forward"
                     style="@style/PlayerGlassButton"
                     android:nextFocusRight="@id/exo_next_ten_container"
                     android:nextFocusUp="@id/exo_progress">
@@ -243,6 +247,7 @@
 
                 <FrameLayout
                     android:id="@id/exo_settings"
+                    android:contentDescription="@string/player_hint_settings"
                     style="@style/PlayerGlassButton"
                     android:nextFocusUp="@id/exo_progress"
                     android:visibility="gone">

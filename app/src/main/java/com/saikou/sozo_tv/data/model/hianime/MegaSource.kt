@@ -10,6 +10,7 @@ data class MegaTrack(
     val kind: String,
     /** Headers for fetching this track — see [com.saikou.sozo_tv.data.extensions.ExtSubtitle]. */
     val headers: Map<String, String> = emptyMap(),
+    val cipher: com.saikou.sozo_tv.domain.player.SubtitleCipher? = null,
 )
 data class MegaResponse(
     val sources: List<MegaSource>,

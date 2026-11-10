@@ -431,7 +431,7 @@ class MovieDetailsAdapter(
                 binding.root.visible()
                 binding.castRv.visible()
             }
-            castAdapter.submitCast(castREsponse)
+            castAdapter.submitList(ArrayList(castREsponse))
             // Reuse one adapter so async notifyItemChanged / row recycling doesn't reset the
             // cast row's horizontal scroll + focused cell.
             if (binding.castRv.adapter !== castAdapter) binding.castRv.adapter = castAdapter

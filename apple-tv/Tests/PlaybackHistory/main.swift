@@ -1,0 +1,17 @@
+import Foundation
+let movie = PlaybackHistoryContext(provider: "server", contentUrl: "https://catalogue.test/show", title: "Film", thumbnail: nil, isSerial: false, episodeIndex: nil, episodeNumber: nil)
+assert(movie.payload(positionSeconds: 0, durationSeconds: 100) == nil)
+assert(movie.payload(positionSeconds: .nan, durationSeconds: 100) == nil)
+assert(movie.payload(positionSeconds: 5, durationSeconds: .infinity) == nil)
+let body = movie.payload(positionSeconds: 25.5, durationSeconds: 100)!
+assert(body["positionMs"] as? Int64 == 25_500)
+assert(body["durationMs"] as? Int64 == 100_000)
+assert(body["contentId"] as? String == movie.contentUrl)
+assert(body["contentUrl"] as? String == movie.contentUrl)
+assert(body["episodeIndex"] == nil && body["watchTimeMs"] == nil)
+assert(movie.payload(positionSeconds: 200, durationSeconds: 100)!["positionMs"] as? Int64 == 100_000)
+let episode = PlaybackHistoryContext(provider: "server", contentUrl: "show", title: "Series", thumbnail: "poster", isSerial: true, episodeIndex: 0, episodeNumber: 1)
+assert(episode.payload(positionSeconds: 5, durationSeconds: 100)!["episodeNumber"] as? Int == 1)
+let ambiguous = PlaybackHistoryContext(provider: "server", contentUrl: "show", title: "Series", thumbnail: nil, isSerial: true, episodeIndex: nil, episodeNumber: nil)
+assert(ambiguous.payload(positionSeconds: 5, durationSeconds: 100) == nil)
+print("Playback payload: canonical identity, movie/episode indices, invalid/empty times, clamping and no invented watch time passed")

@@ -1,0 +1,8 @@
+<resources>
+    <string name="player_external">Open in another player</string>
+    <string name="player_external_unsupported">This stream requires the built-in player for DRM or its local proxy.</string>
+    <string name="player_external_unavailable">No compatible external video player is installed.</string>
+    <string name="player_watch_party">Watch together</string>
+    <string name="player_download">Download for offline viewing</string>
+    <string name="player_download_started">Download added. Open Downloads in your account to see progress.</string>
+</resources>

@@ -2,6 +2,9 @@ package com.saikou.sozo_tv.engine.server
 
 import android.content.Context
 import com.saikou.sozo_tv.engine.webjs.WebJsRuntime
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -21,6 +24,16 @@ class ServerHost(
     // Filled by providersJson() on one thread while catalogue calls read it on others; lookups
     // only, so a concurrent map is all the ordering this needs.
     private val meta = java.util.concurrent.ConcurrentHashMap<String, Meta>()
+
+    /**
+     * The audio languages each episode offers (`availableLangs` from the episodes response),
+     * keyed by its mediaRef. loadLinks gets only the mediaRef, which a watch party also sends
+     * between devices, so the languages travel beside it rather than inside it.
+     */
+    private val episodeLangs = object : LinkedHashMap<String, List<String>>(64, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, List<String>>?) =
+            size > MAX_REMEMBERED_EPISODES
+    }
 
     fun ensureLoaded() {
         if (meta.isEmpty()) runCatching { providersJson() }
@@ -231,18 +244,46 @@ class ServerHost(
         ensureMeta()
         val m = meta[b]
         android.util.Log.i("ServerHost", "loadLinks $b via ${if (usesJsResolve(m)) "JS(${m?.extractorName})" else "REST"}")
-        val soplay = if (usesJsResolve(m)) {
+        val langs = synchronized(episodeLangs) { episodeLangs[data] }.orEmpty()
+        if (langs.size < 2) return translateMedia(resolve(b, m, data, langs.firstOrNull() ?: "sub"))
+
+        // A dub, or another voice, used to be unreachable: every episode was asked for "sub".
+        // Each language is resolved and offered as its own server, so the server picker is
+        // where the audio language is changed, and the pick is remembered like any server.
+        val picked = langs.take(MAX_LANGS)
+        val results = coroutineScope {
+            picked.mapIndexed { i, lang ->
+                async {
+                    runCatching {
+                        // The first language plays first; a slow extra one is dropped instead
+                        // of holding the episode back.
+                        if (i == 0) resolve(b, m, data, lang)
+                        else withTimeoutOrNull(EXTRA_LANG_TIMEOUT_MS) { resolve(b, m, data, lang) }
+                    }
+                }
+            }.map { it.await() }
+        }
+        val resolved = picked.indices.mapNotNull { i ->
+            results[i].getOrNull()?.let { MediaLanguages.label(picked[i]) to translateMedia(it) }
+        }
+        if (resolved.isEmpty()) {
+            results.firstNotNullOfOrNull { it.exceptionOrNull() }?.let { throw it }
+            return translateMedia(null)
+        }
+        return MediaLanguages.merge(resolved)
+    }
+
+    private suspend fun resolve(b: String, m: Meta?, data: String, lang: String): String? =
+        if (usesJsResolve(m)) {
             webjs.callProvider(
                 m!!.extractorName!!,
                 m.extractorVersion,
                 "resolveMedia",
-                JSONArray().put(data).put(JSONObject().put("lang", "sub")),
+                JSONArray().put(data).put(JSONObject().put("lang", lang)),
             )
         } else {
-            client.get("/contents/media", mapOf("provider" to b, "ref" to data, "lang" to "sub"))
+            client.get("/contents/media", mapOf("provider" to b, "ref" to data, "lang" to lang))
         }
-        return translateMedia(soplay)
-    }
 
     private fun usesJsCatalog(m: Meta?) = m?.scope == "all" && !m.extractorName.isNullOrEmpty()
 
@@ -271,13 +312,11 @@ class ServerHost(
             val s = sectionsIn.optJSONObject(i) ?: continue
             val items = cards(s.optJSONArray("items"), bareProvider)
             if (items.length() == 0) continue
-            val va = s.optJSONObject("viewAll")
-            val type = va?.optString("type").orEmpty()
-            val slug = va?.optString("slug").orEmpty()
+            val viewAll = viewAllSlug(s.optJSONObject("viewAll"))
             sectionsOut.put(JSONObject().apply {
                 put("key", s.optString("key"))
                 put("label", s.optString("label"))
-                put("viewAll", JSONObject().put("slug", "$type::$slug"))
+                if (viewAll != null) put("viewAll", JSONObject().put("slug", viewAll))
                 put("items", items)
             })
         }
@@ -310,10 +349,20 @@ class ServerHost(
         val epsOut = JSONArray()
         for (i in 0 until epsIn.length()) {
             val e = epsIn.optJSONObject(i) ?: continue
+            val ref = str(e, "mediaRef")
+            val langs = MediaLanguages.of(e)
+            // A movie in more than one language is resolved per language from its own ref:
+            // the streams already in the response are only the first language's.
+            val direct = movieSources?.takeUnless { langs.size > 1 && ref.isNotEmpty() }
+            if (direct == null && ref.isNotEmpty()) {
+                synchronized(episodeLangs) {
+                    if (langs.isNotEmpty()) episodeLangs[ref] = langs else episodeLangs.remove(ref)
+                }
+            }
             epsOut.put(JSONObject().apply {
                 put("episode", e.optInt("episode", i + 1))
                 put("label", str(e, "label"))
-                put("mediaRef", movieSources ?: str(e, "mediaRef"))
+                put("mediaRef", direct ?: ref)
                 put("image", str(e, "image"))
                 put("overview", str(e, "overview"))
                 put("airdate", str(e, "airdate"))
@@ -362,7 +411,7 @@ class ServerHost(
         }.toString()
     }
 
-    private fun translateMedia(soplay: String?): String {
+    internal fun translateMedia(soplay: String?): String {
         val o = parseObject(soplay ?: return "{}")
         val srcIn = o.optJSONArray("videoSources") ?: JSONArray()
         val srcOut = JSONArray()
@@ -380,6 +429,8 @@ class ServerHost(
                 if (s.optBoolean("useLocalProxy", false)) put("useLocalProxy", true)
                 s.optJSONObject("localProxy")?.let { put("localProxy", it) }
                 s.optJSONObject("requestTransform")?.let { put("requestTransform", it) }
+                (s.opt("dropSegments") as? String)?.takeIf { it.isNotEmpty() }?.let { put("dropSegments", it) }
+                s.optJSONObject("signer")?.let { put("signer", it) }
                 // Headless-WebView sniff directive (embed pages whose manifest is
                 // only produced by the page's own JS) — forward raw, per source
                 // or inherited from the media level.
@@ -398,6 +449,8 @@ class ServerHost(
                 put("label", firstNonEmpty(s, "label", "lang", "language") ?: "Subtitle")
                 put("file", file)
                 put("default", s.optBoolean("default", s.optBoolean("isDefault", false)))
+                s.optJSONObject("headers")?.let { put("headers", it) }
+                s.optJSONObject("cipher")?.let { put("cipher", it) }
             })
         }
         return JSONObject().apply {
@@ -478,5 +531,17 @@ class ServerHost(
     private companion object {
         const val EPISODE_PAGE_SIZE = 100
         const val MAX_EPISODE_PAGES = 30
+        const val MAX_REMEMBERED_EPISODES = 2000
+        /** Some providers list a dozen voices; more than this would hold the episode up. */
+        const val MAX_LANGS = 6
+        const val EXTRA_LANG_TIMEOUT_MS = 20_000L
     }
+}
+
+/** A section without a viewAll target would page "/contents/" or getCategory(""), so it gets none. */
+internal fun viewAllSlug(viewAll: JSONObject?): String? {
+    if (viewAll == null) return null
+    val type = if (viewAll.isNull("type")) "" else viewAll.optString("type")
+    val slug = if (viewAll.isNull("slug")) "" else viewAll.optString("slug")
+    return if (type.isEmpty() && slug.isEmpty()) null else "$type::$slug"
 }

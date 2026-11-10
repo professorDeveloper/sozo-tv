@@ -59,6 +59,7 @@ class SearchScreen : Fragment() {
 
     private var speechRecognizer: SpeechRecognizer? = null
     private var isListening = false
+    private var voiceOverlayHideJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -69,6 +70,9 @@ class SearchScreen : Fragment() {
     }
 
     private fun showVoiceOverlay(show: Boolean) {
+        voiceOverlayHideJob?.cancel()
+        voiceOverlayHideJob = null
+        val binding = _binding ?: return
         val overlay = binding.voiceListeningOverlay.root
         overlay.visibility = if (show) View.VISIBLE else View.GONE
         cancelVoiceCallback.isEnabled = show
@@ -76,6 +80,15 @@ class SearchScreen : Fragment() {
             overlay.requestFocus()
         } else if (overlay.hasFocus() || !binding.root.hasFocus()) {
             binding.micBtn.requestFocus()
+        }
+    }
+
+    private fun hideVoiceOverlayAfter(delayMs: Long) {
+        voiceOverlayHideJob?.cancel()
+        val expectedBinding = _binding ?: return
+        voiceOverlayHideJob = viewLifecycleOwner.lifecycleScope.launch {
+            delay(delayMs)
+            if (_binding === expectedBinding) showVoiceOverlay(false)
         }
     }
 
@@ -247,9 +260,7 @@ class SearchScreen : Fragment() {
                             binding.voiceListeningOverlay.listeningTxt.text =
                                 "Microphone not available"
                             showVoiceOverlay(true)
-                            binding.voiceListeningOverlay.root.postDelayed({
-                                showVoiceOverlay(false)
-                            }, 2000)
+                            hideVoiceOverlayAfter(2000)
                         } else {
                             startAlternativeVoiceSearch()
                         }
@@ -258,9 +269,7 @@ class SearchScreen : Fragment() {
                     ) {
                         binding.voiceListeningOverlay.listeningTxt.text = voiceErrorText(error)
                         showVoiceOverlay(true)
-                        binding.voiceListeningOverlay.root.postDelayed({
-                            showVoiceOverlay(false)
-                        }, 2000)
+                        hideVoiceOverlayAfter(2000)
                     } else {
                         showVoiceOverlay(false)
                     }
@@ -286,15 +295,11 @@ class SearchScreen : Fragment() {
                         binding.voiceListeningOverlay.listeningTxt.text =
                             "Searching for: $spokenText"
                         showVoiceOverlay(true)
-                        binding.voiceListeningOverlay.root.postDelayed({
-                            showVoiceOverlay(false)
-                        }, 1500)
+                        hideVoiceOverlayAfter(1500)
                     } else {
                         binding.voiceListeningOverlay.listeningTxt.text = getString(R.string.voice_no_speech)
                         showVoiceOverlay(true)
-                        binding.voiceListeningOverlay.root.postDelayed({
-                            showVoiceOverlay(false)
-                        }, 1000)
+                        hideVoiceOverlayAfter(1000)
                     }
                 }
             }
@@ -330,6 +335,7 @@ class SearchScreen : Fragment() {
 
     private val micPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (_binding == null || !isAdded) return@registerForActivityResult
             if (granted) {
                 startVoiceRecognition()
             } else {
@@ -398,17 +404,13 @@ class SearchScreen : Fragment() {
                 Log.e("SearchScreen", "No speech recognition activity found")
                 binding.voiceListeningOverlay.listeningTxt.text = getString(R.string.voice_unavailable)
                 showVoiceOverlay(true)
-                binding.voiceListeningOverlay.root.postDelayed({
-                    showVoiceOverlay(false)
-                }, 2000)
+                hideVoiceOverlayAfter(2000)
             }
         } catch (e: Exception) {
             Log.e("SearchScreen", "Alternative voice search error: ${e.message}")
             binding.voiceListeningOverlay.listeningTxt.text = getString(R.string.voice_error)
             showVoiceOverlay(true)
-            binding.voiceListeningOverlay.root.postDelayed({
-                showVoiceOverlay(false)
-            }, 2000)
+            hideVoiceOverlayAfter(2000)
         }
     }
 
@@ -423,6 +425,7 @@ class SearchScreen : Fragment() {
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (_binding == null) return
 
         if (requestCode == VOICE_REQUEST_CODE) {
             showVoiceOverlay(false)
@@ -437,18 +440,14 @@ class SearchScreen : Fragment() {
                     performSearchImmediate(spokenText)
                     binding.voiceListeningOverlay.listeningTxt.text = getString(R.string.voice_searching_for, spokenText)
                     showVoiceOverlay(true)
-                    binding.voiceListeningOverlay.root.postDelayed({
-                        showVoiceOverlay(false)
-                    }, 1500)
+                    hideVoiceOverlayAfter(1500)
                 }
             } else {
                 binding.micBtn.setImageResource(R.drawable.ic_mic)
                 if (resultCode == Activity.RESULT_CANCELED) {
                     binding.voiceListeningOverlay.listeningTxt.text = getString(R.string.voice_cancelled)
                     showVoiceOverlay(true)
-                    binding.voiceListeningOverlay.root.postDelayed({
-                        showVoiceOverlay(false)
-                    }, 1500)
+                    hideVoiceOverlayAfter(1500)
                 }
             }
         }
@@ -754,6 +753,8 @@ class SearchScreen : Fragment() {
     }
 
     override fun onDestroyView() {
+        voiceOverlayHideJob?.cancel()
+        voiceOverlayHideJob = null
         super.onDestroyView()
         stopVoiceRecognition()
         speechRecognizer?.destroy()

@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.data.model
 
 import androidx.media3.common.MimeTypes
+import com.saikou.sozo_tv.domain.player.SubtitleCipher
 import java.io.Serializable
 
 data class VodMovieResponse(
@@ -15,8 +16,12 @@ data class VodMovieResponse(
     val useLocalProxy: Boolean = false,
     val localProxyJson: String? = null,
     val requestTransformJson: String? = null,
+    val dropSegments: String? = null,
+    /** [urlobj] is the unsigned file; this signs it each time it is opened. See UrlSigner. */
+    val signerJson: String? = null,
     /** Separate audio renditions the player merges in alongside [urlobj]. */
     val audioTracks: List<AudioTrackRef> = emptyList(),
+    val drm: String? = null,
 ) : Serializable
 
 data class AudioTrackRef(
@@ -31,4 +36,5 @@ data class SubTitle(
     val flag: String = "",
     /** Headers for the subtitle request itself; empty for sources that need none. */
     val headers: Map<String, String> = emptyMap(),
+    val cipher: SubtitleCipher? = null,
 )

@@ -26,9 +26,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.saikou.sozo_tv.R
 import com.saikou.sozo_tv.data.extensions.ExtensionEngine
 import com.saikou.sozo_tv.data.repository.DeviceAuthRepository
+import com.saikou.sozo_tv.data.repository.HouseholdProfileRepository
 import com.saikou.sozo_tv.databinding.SplashScreenBinding
 import com.saikou.sozo_tv.domain.model.AppUpdate
 import com.saikou.sozo_tv.presentation.activities.MainActivity
+import com.saikou.sozo_tv.presentation.activities.ProfilePickerActivity
 import com.saikou.sozo_tv.presentation.activities.UpdateActivity
 import com.saikou.sozo_tv.presentation.viewmodel.SplashViewModel
 import com.saikou.sozo_tv.utils.DialogUtils
@@ -54,6 +56,7 @@ class SplashScreen : Fragment() {
     private val viewModel: SplashViewModel by viewModel()
     private val engine: ExtensionEngine by inject()
     private val deviceAuth: DeviceAuthRepository by inject()
+    private val profiles: HouseholdProfileRepository by inject()
 
     // The splash must never become a dead end, and each of the three ways out of the intro
     // (video ended, video failed, watchdog fired) can race the others. Both hand-offs are
@@ -250,10 +253,17 @@ class SplashScreen : Fragment() {
                 withContext(Dispatchers.IO) { deviceAuth.bootstrapAsync() }.join()
             }
             if (!isAdded) return@launch
+            if (deviceAuth.isSignedIn()) {
+                withTimeoutOrNull(PROFILE_WAIT_MS) { profiles.refresh() }
+            }
             val options = ActivityOptions.makeCustomAnimation(
                 requireContext(), R.anim.fade_in, R.anim.fade_out
             )
-            startActivity(Intent(requireContext(), MainActivity::class.java), options.toBundle())
+            val destination = if (deviceAuth.isSignedIn() && profiles.state.value.profiles.size > 1) {
+                Intent(requireContext(), ProfilePickerActivity::class.java)
+                    .putExtra(ProfilePickerActivity.EXTRA_STARTUP, true)
+            } else Intent(requireContext(), MainActivity::class.java)
+            startActivity(destination, options.toBundle())
             requireActivity().finishDeferred()
         }
     }
@@ -283,6 +293,7 @@ class SplashScreen : Fragment() {
 
         /** Cap on the token-refresh hop; the app works anonymously, so this is best-effort. */
         const val BOOTSTRAP_WAIT_MS = 2_000L
+        const val PROFILE_WAIT_MS = 3_000L
         const val SETUP_POLL_MS = 250L
     }
 }

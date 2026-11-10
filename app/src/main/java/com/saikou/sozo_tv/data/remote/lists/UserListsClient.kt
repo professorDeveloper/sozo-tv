@@ -1,5 +1,6 @@
 package com.saikou.sozo_tv.data.remote.lists
 
+import com.saikou.sozo_tv.data.remote.profiles.ProfileRequestScope
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.saikou.sozo_tv.data.remote.device.ApiResult
@@ -55,22 +56,22 @@ class UserListsClient(
     private val tokenProvider: suspend () -> String?,
 ) {
 
-    suspend fun get(kind: UserListKind): ApiResult<List<UserListItem>> =
-        request(kind, "GET", null, UserListResponse::class.java)
+    suspend fun get(kind: UserListKind, profile: ProfileRequestScope? = null): ApiResult<List<UserListItem>> =
+        request(kind, "GET", null, UserListResponse::class.java, profile)
             .map { it.items.orEmpty().filter { i -> !i.contentUrl.isNullOrBlank() } }
 
-    suspend fun add(kind: UserListKind, item: UserListItem): ApiResult<Unit> {
+    suspend fun add(kind: UserListKind, item: UserListItem, profile: ProfileRequestScope? = null): ApiResult<Unit> {
         val provider = item.provider ?: return ApiResult.Http(400, "provider required", null)
         val contentUrl = item.contentUrl ?: return ApiResult.Http(400, "contentUrl required", null)
         return request(
             kind, "POST",
             AddRequest(provider, contentUrl, item.title, item.thumbnail),
-            ApiMessage::class.java,
+            ApiMessage::class.java, profile,
         ).map { }
     }
 
-    suspend fun remove(kind: UserListKind, contentUrl: String): ApiResult<Unit> =
-        request(kind, "DELETE", RemoveRequest(contentUrl), ApiMessage::class.java).map { }
+    suspend fun remove(kind: UserListKind, contentUrl: String, profile: ProfileRequestScope? = null): ApiResult<Unit> =
+        request(kind, "DELETE", RemoveRequest(contentUrl), ApiMessage::class.java, profile).map { }
 
     private inline fun <T, R> ApiResult<T>.map(transform: (T) -> R): ApiResult<R> = when (this) {
         is ApiResult.Ok -> ApiResult.Ok(transform(body))
@@ -83,6 +84,7 @@ class UserListsClient(
         method: String,
         body: Any?,
         type: Class<T>,
+        profile: ProfileRequestScope?,
     ): ApiResult<T> = withContext(Dispatchers.IO) {
         // No token => not signed in. Reported as 401 so callers branch on the
         // code, never on message text (the server's errors are bare strings).
@@ -93,6 +95,7 @@ class UserListsClient(
             val payload = body?.let { gson.toJson(it).toRequestBody(JSON) }
             val builder = Request.Builder()
                 .url("${baseUrl.trimEnd('/')}$PATH/${kind.slug}")
+                .tag(ProfileRequestScope::class.java, profile)
                 .addHeader("Authorization", "Bearer $token")
                 .addHeader("Accept", "application/json")
             when (method) {

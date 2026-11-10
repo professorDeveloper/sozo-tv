@@ -1,6 +1,7 @@
 package com.saikou.sozo_tv.data.extensions
 
 import android.util.Log
+import com.saikou.sozo_tv.domain.player.SubtitleCipher
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -135,6 +136,10 @@ data class ExtVideoSource(
     val sniff: String? = null,             // raw JSON: patterns/timeoutMs/headers/blockHosts
     /** Separate audio renditions that belong with this video (CloudStream `audioTracks`). */
     val audioTracks: List<ExtAudioTrack> = emptyList(),
+    val drm: String? = null,
+    /** Regex for ad segments the local proxy takes out of the playlist. */
+    val dropSegments: String? = null,
+    val signer: String? = null,            // raw JSON, see UrlSigner
 )
 
 data class ExtAudioTrack(
@@ -153,6 +158,7 @@ data class ExtSubtitle(
     val file: String,
     val default: Boolean,
     val headers: Map<String, String> = emptyMap(),
+    val cipher: SubtitleCipher? = null,
 )
 
 data class ExtMedia(
@@ -347,11 +353,15 @@ internal object ExtParser {
     fun media(json: String): ExtMedia {
         val o = runCatching { JSONObject(json) }.getOrNull() ?: JSONObject()
         val srcArr = o.optJSONArray("videoSources")
+        if ((srcArr == null || srcArr.length() == 0) && !o.strOrNull("error").isNullOrBlank()) {
+            error(o.optString("error"))
+        }
         val sources = if (srcArr == null) emptyList() else (0 until srcArr.length()).mapNotNull { i ->
             val s = srcArr.optJSONObject(i) ?: return@mapNotNull null
             val url = s.optString("videoUrl").ifEmpty { return@mapNotNull null }
             ExtVideoSource(
                 quality = s.optString("quality").ifEmpty { "Source" },
+                drm = (s.optJSONObject("drm") ?: o.optJSONObject("drm"))?.toString(),
                 videoUrl = url,
                 type = s.optString("type").ifEmpty { "hls" },
                 host = s.strOrNull("host"),
@@ -364,6 +374,8 @@ internal object ExtParser {
                 sniff = (s.optJSONObject("sniff") ?: o.optJSONObject("sniff"))?.toString(),
                 localProxy = s.optJSONObject("localProxy")?.toString(),
                 requestTransform = s.optJSONObject("requestTransform")?.toString(),
+                dropSegments = s.strOrNull("dropSegments"),
+                signer = s.optJSONObject("signer")?.toString(),
                 // PluginHost emits these for dual-audio releases; dropping them here left the
                 // player with one track and nothing to switch to.
                 audioTracks = s.optJSONArray("audioTracks")?.let { arr ->
@@ -384,6 +396,7 @@ internal object ExtParser {
                 file,
                 s.optBoolean("default", false),
                 s.headersMap("headers"),
+                SubtitleCipher.from(s.optJSONObject("cipher")),
             )
         }
         // Seek-preview thumbnails: soplay emits a bare VTT url String or a {url,type,template,...}

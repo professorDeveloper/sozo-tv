@@ -28,6 +28,7 @@ class RepoManager(private val context: Context, private val host: PluginHost) {
     /** One `plugins.json` entry, reduced to what installing it needs. */
     internal data class PluginRef(
         val url: String, val internalName: String, val version: Int, val iconUrl: String?,
+        val lang: String = "", val nsfw: Boolean = false,
     )
 
     /** A `repo.json`, reduced to a display name and the plugin lists it points at. */
@@ -94,6 +95,10 @@ class RepoManager(private val context: Context, private val host: PluginHost) {
                         internalName = internalName,
                         version = p.optInt("version", 0),
                         iconUrl = p.optString("iconUrl").ifEmpty { null },
+                        lang = p.optString("language"),
+                        nsfw = p.optJSONArray("tvTypes")?.let { types ->
+                            (0 until types.length()).any { types.optString(it).equals("NSFW", true) }
+                        } ?: false,
                     )
                 )
             }
@@ -172,7 +177,7 @@ class RepoManager(private val context: Context, private val host: PluginHost) {
                     e.optString("icon").ifEmpty { null },
                     e.optString("internalName"),
                     e.optString("cs3Path"),
-                    repoName,
+                    repoName, e.optString("lang").ifBlank { null }, e.optBoolean("nsfw", false),
                 )
             }
         }
@@ -390,10 +395,13 @@ class RepoManager(private val context: Context, private val host: PluginHost) {
                 pluginCount++
                 // Load now to discover provider names (one-time on add); persist
                 // metadata so future launches can lazy-load without this cost.
-                host.loadCs3(file, ref.internalName, ref.iconUrl, repoName).forEach { name ->
+                host.loadCs3(file, ref.internalName, ref.iconUrl, repoName, ref.lang, ref.nsfw).forEach { name ->
                     providers.put(name)
                     metaEntries.put(JSONObject().apply {
                         put("provider", name)
+                        val properties = host.providerMetadata(name)
+                        put("lang", properties.optString("lang"))
+                        put("nsfw", properties.optBoolean("nsfw"))
                         if (ref.iconUrl != null) put("icon", ref.iconUrl)
                         put("internalName", ref.internalName)
                         put("cs3Path", file.absolutePath)
@@ -452,6 +460,8 @@ class RepoManager(private val context: Context, private val host: PluginHost) {
                 val ref = latest[internalName] ?: continue
                 val installedVer = e.optString("cs3Path")
                     .substringAfterLast('@', "").substringBefore(".cs3").toIntOrNull() ?: 0
+                e.put("lang", ref.lang).put("nsfw", ref.nsfw)
+                host.registerMeta(e.optString("provider"), ref.iconUrl, internalName, e.optString("cs3Path"), repoName, ref.lang, ref.nsfw)
                 if (ref.version <= installedVer) continue
                 val file = if (downloaded.add(internalName)) {
                     downloadCs3(ref.internalName, ref.version, ref.url)
@@ -460,7 +470,7 @@ class RepoManager(private val context: Context, private val host: PluginHost) {
                 }
                 if (file != null) {
                     e.put("cs3Path", file.absolutePath)
-                    host.reloadCs3(file, ref.internalName, ref.iconUrl, repoName)
+                    host.reloadCs3(file, ref.internalName, ref.iconUrl, repoName, ref.lang, ref.nsfw)
                     updated.put(e.optString("provider"))
                 }
             }
@@ -470,9 +480,12 @@ class RepoManager(private val context: Context, private val host: PluginHost) {
             for (ref in latest.values) {
                 if (ref.internalName in installed) continue
                 val file = downloadCs3(ref.internalName, ref.version, ref.url) ?: continue
-                host.loadCs3(file, ref.internalName, ref.iconUrl, repoName).forEach { name ->
+                host.loadCs3(file, ref.internalName, ref.iconUrl, repoName, ref.lang, ref.nsfw).forEach { name ->
                     entries.put(JSONObject().apply {
                         put("provider", name)
+                        val properties = host.providerMetadata(name)
+                        put("lang", properties.optString("lang"))
+                        put("nsfw", properties.optBoolean("nsfw"))
                         if (ref.iconUrl != null) put("icon", ref.iconUrl)
                         put("internalName", ref.internalName)
                         put("cs3Path", file.absolutePath)

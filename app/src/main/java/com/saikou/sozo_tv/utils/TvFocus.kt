@@ -41,10 +41,13 @@ fun View.applyTvFocusScale(
     onFocusChanged: ((view: View, hasFocus: Boolean) -> Unit)? = null,
 ) {
     // Reset any stale transform (important because RecyclerView reuses views).
-    scaleX = 1f
-    scaleY = 1f
-    translationZ = 0f
+    animate().cancel()
+    clearAnimation()
+    scaleX = if (hasFocus()) scale else 1f
+    scaleY = if (hasFocus()) scale else 1f
+    translationZ = if (hasFocus()) focusedZ else 0f
     setOnFocusChangeListener { v, hasFocus ->
+        v.animate().cancel()
         v.animate()
             .scaleX(if (hasFocus) scale else 1f)
             .scaleY(if (hasFocus) scale else 1f)

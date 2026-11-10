@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -48,8 +49,13 @@ class BookmarkScreen : Fragment() {
     private var channelCount = 0
     private val channelsAdapter by lazy {
         ChannelsAdapter {
+            val url = it.iptvUrls.firstOrNull()
+            if (url == null) {
+                Toast.makeText(requireContext(), getString(R.string.no_stream_available), Toast.LENGTH_SHORT).show()
+                return@ChannelsAdapter
+            }
             val intent = Intent(requireContext(), LiveTvActivity::class.java)
-            intent.putExtra("url", it.iptvUrls[0])
+            intent.putExtra("url", url)
             intent.putExtra("title", it.name)
             intent.putExtra("data", it)
             requireActivity().startActivity(intent)
