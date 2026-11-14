@@ -59,6 +59,9 @@ jobs:
       # only, on the screen that uses it. Nothing else in the build sees it.
       - name: Check the string resources
         run: python3 tools/check_strings.py
+      # The release page, banner and Telegram caption the release builds.
+      - name: Release page tools
+        run: python3 tools/release/release_page_test.py
 
   # The gate the phone app has and this repo did not. Its own job, not a step
   # inside the assemble, so that the check list on a pull request names "test"

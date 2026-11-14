@@ -12,13 +12,22 @@ run-name: >-
 # Secrets:
 #   ANDROID_TV_KEYSTORE_B64   base64 of the release keystore (.jks)
 #   ANDROID_TV_KEY_PROPERTIES key.properties: storeFile, storePassword, keyAlias, keyPassword
-#   RELEASE_PAT               fine-grained PAT, Contents: read and write; the default
-#                             branch blocks direct pushes from GITHUB_TOKEN
 #   SOZO_RELEASE_TOKEN        backend release token (X-Release-Token); without it the
 #                             CDN upload and updater are skipped with a warning
 #   TELEGRAM_BOT_TOKEN        bot token from @BotFather
 #   TELEGRAM_CHAT_IDS         comma-separated numeric chat ids
 # Optional variable: SOZO_API_BASE_URL overrides the API address baked into the app.
+#
+# Cloudflare answers GitHub's runners with a challenge page, so the API calls
+# below (version guard, CDN, updater) often cannot get through. None of them
+# fails the release for that: the backend takes the published GitHub Release
+# itself (sozo-backend src/services/appReleaseSync.service.js), using the
+# sozo-tv-<version>-release.json attached to it.
+#
+# The release page is release/notes/v<version>.md when somebody wrote one, or
+# a page built from what was merged since the last tag, with the banner from
+# tools/release/release_banner.py on top (committed with the bump under
+# release/banners/). Telegram gets the banner, a caption and the APK.
 #
 # The signing key was replaced on 22 Aug 2026 because the original was lost, and
 # the version line restarted at 1.0.0 with it. Builds signed by any other key are
@@ -186,6 +195,10 @@ jobs:
           HTTP="$(curl -sS --max-time 20 --retry 3 --retry-all-errors \
                     -A 'sozo-tv-release' -o version.json -w '%{http_code}' \
                     "${API}/app-version?platform=androidtv")" || HTTP=000
+          if [ "${HTTP}" = 403 ] && grep -qiE 'just a moment|cf-chl|challenge-platform' version.json 2>/dev/null; then
+            echo "::warning title=Version guard skipped::Cloudflare challenged this runner. The backend never moves the updater to a lower versionCode, so a stale build is refused there."
+            exit 0
+          fi
           PUBLISHED=""
           if [ "${HTTP}" = 200 ]; then
             PUBLISHED="$(jq -er '.version // 0' version.json 2>/dev/null)" || PUBLISHED=""
@@ -336,7 +349,9 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
-          token: ${{ secrets.RELEASE_PAT || github.token }}
+          # GITHUB_TOKEN (contents: write above); master has no rule against it.
+          # The RELEASE_PAT secret is refused by GitHub (403) since November.
+          token: ${{ github.token }}
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
@@ -366,7 +381,17 @@ jobs:
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           if [ "${BUMPED}" = yes ]; then
             python3 tools/release/stamp_version.py "${NAME}" "${CODE}"
-            git commit -m "chore: ${NAME} (${CODE})" -- app/build.gradle.kts
+            # The banner goes in with the bump, so the release page can show it
+            # from this exact commit. One already there is kept.
+            BANNER="release/banners/v${NAME}.svg"
+            PREV="$(git describe --tags --abbrev=0 HEAD 2>/dev/null || true)"
+            git log ${PREV:+"${PREV}..HEAD"} --first-parent --format=%s > "${RUNNER_TEMP}/changes.txt"
+            python3 tools/release/release_banner.py --version "${NAME}" --out "${BANNER}" \
+              --log "${RUNNER_TEMP}/changes.txt" --keep \
+              || echo "::warning title=No banner::the release page will have none"
+            [ -f "${BANNER}" ] && git add "${BANNER}"
+            git add app/build.gradle.kts
+            git commit -m "chore: ${NAME} (${CODE})"
           fi
           git tag "${TAG}"
           SHA="$(git rev-parse HEAD)"
@@ -395,6 +420,7 @@ jobs:
           TAG: ${{ needs.version.outputs.tag }}
           SHA: ${{ steps.tag.outputs.sha }}
           NOTES: ${{ inputs.notes }}
+          UPDATER: ${{ inputs.updater }}
         run: |
           set -euo pipefail
           if [ "${MODE}" = skip ]; then
@@ -402,11 +428,27 @@ jobs:
             exit 0
           fi
 
-          FILES=(dist/*.apk dist/SHA256SUMS)
+          # What the backend reads when it takes this release from GitHub: the
+          # versionCode no file name states plainly, the APK, and whether to
+          # offer it to installed TVs.
+          APK_NAME="$(basename "$(find dist -name '*.apk' | head -1)")"
+          jq -n --arg version "${NAME}" --argjson build "${CODE}" --arg sha "${SHA}" \
+                --arg notes "${NOTES}" --arg apk "${APK_NAME}" --arg updater "${UPDATER}" \
+            '{version: $version, build: $build, sha: $sha, notes: $notes,
+              updater: ($updater == "publish"), files: [{name: $apk, arch: "universal"}]}' \
+            > "dist/sozo-tv-${NAME}-release.json"
+
+          FILES=(dist/*.apk dist/SHA256SUMS "dist/sozo-tv-${NAME}-release.json")
           if gh release view "${TAG}" >/dev/null 2>&1; then
             gh release upload "${TAG}" "${FILES[@]}" --clobber
           else
-            ARGS=(--target "${SHA}" --title "Sozo TV ${NAME}" --notes "${NOTES:-Sozo TV ${NAME} (versionCode ${CODE})}")
+            PREV="$(git describe --tags --abbrev=0 "${SHA}^" 2>/dev/null || true)"
+            git log ${PREV:+"${PREV}..${SHA}"} --first-parent --format=%s > changes.txt
+            python3 tools/release/release_page.py --version "${NAME}" --sha "${SHA}" \
+              --repo "${GH_REPO}" --tag "${TAG}" --assets dist --previous "${PREV}" \
+              --log changes.txt --intro "${NOTES}" --auto --out RELEASE_NOTES.md
+            echo "── notes ──"; cat RELEASE_NOTES.md
+            ARGS=(--target "${SHA}" --title "Sozo TV ${NAME}" --notes-file RELEASE_NOTES.md)
             if [ "${MODE}" = draft ]; then
               ARGS+=(--draft)
             fi
@@ -441,9 +483,8 @@ jobs:
           name: sozo-tv-apk
           path: dist
 
-      # Not idempotent: re-running this job after the download row was created
-      # uploads again and adds a second active androidtv row; switch the extra
-      # one off in the admin panel.
+      # replacePrevious updates the TV's download row in place, so its download
+      # count carries on and a re-run does not add a second row.
       - name: Upload to the CDN
         id: cdn
         env:
@@ -461,6 +502,17 @@ jobs:
           API="$(python3 tools/release/api_base.py)"
           echo "::add-mask::${API}"
 
+          # Cloudflare answers GitHub's runners with a challenge page. The
+          # backend takes the published GitHub Release itself, so step aside.
+          challenged() {
+            [ "$1" = 403 ] && grep -qiE 'just a moment|cf-chl|challenge-platform' "$2" 2>/dev/null
+          }
+          defer() {
+            echo "status=deferred" >> "$GITHUB_OUTPUT"
+            echo "::warning title=CDN deferred to the backend::Cloudflare challenged ${1}. The backend uploads the APK (and updates the updater when asked) within 10 minutes of the GitHub Release being published."
+            exit 0
+          }
+
           APK="$(find dist -name '*.apk' | head -1)"
           SIZE="$(stat -c%s "${APK}")"
 
@@ -471,6 +523,7 @@ jobs:
           HTTP="$(curl -sS --max-time 30 -X POST "${API}/admin/downloads/upload-url" \
                     -H "X-Release-Token: ${SOZO_RELEASE_TOKEN}" -H 'Content-Type: application/json' \
                     --data @presign-req.json -o presign.json -w '%{http_code}')" || HTTP=000
+          if challenged "${HTTP}" presign.json; then defer "POST /admin/downloads/upload-url"; fi
           if [ "${HTTP}" != 200 ]; then
             echo "::error title=CDN upload URL::POST /admin/downloads/upload-url returned HTTP ${HTTP}: $(head -c 300 presign.json 2>/dev/null)"
             exit 1
@@ -493,10 +546,11 @@ jobs:
                 --argjson size "${SIZE}" --arg notes "${NOTES}" \
                 '{platform: "androidtv", version: $version, arch: "universal", format: "apk",
                   fileUrl: $url, fileKey: $key, fileSize: $size, releaseNotes: $notes,
-                  isBeta: false, active: true}' > download-req.json
+                  active: true, replacePrevious: true}' > download-req.json
           HTTP="$(curl -sS --max-time 30 -X POST "${API}/admin/downloads" \
                     -H "X-Release-Token: ${SOZO_RELEASE_TOKEN}" -H 'Content-Type: application/json' \
                     --data @download-req.json -o download.json -w '%{http_code}')" || HTTP=000
+          if challenged "${HTTP}" download.json; then defer "POST /admin/downloads"; fi
           if [ "${HTTP}" != 201 ]; then
             echo "::error title=Download row::POST /admin/downloads returned HTTP ${HTTP}: $(head -c 300 download.json 2>/dev/null). The file is on the CDN at ${PUBLIC_URL} but not listed."
             exit 1
@@ -527,6 +581,10 @@ jobs:
             echo "status=skipped" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          if [ "${CDN}" = deferred ]; then
+            echo "status=deferred" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           if [ "${CDN}" != uploaded ]; then
             echo "status=skipped (no CDN upload)" >> "$GITHUB_OUTPUT"
             echo "::warning title=Updater skipped::updater=publish needs the CDN upload, which did not happen (SOZO_RELEASE_TOKEN missing)."
@@ -538,6 +596,11 @@ jobs:
           HTTP="$(curl -sS --max-time 30 "${API}/admin/app-versions/androidtv" \
                     -H "X-Release-Token: ${SOZO_RELEASE_TOKEN}" \
                     -o current.json -w '%{http_code}')" || HTTP=000
+          if [ "${HTTP}" = 403 ] && grep -qiE 'just a moment|cf-chl|challenge-platform' current.json; then
+            echo "status=deferred" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Updater deferred to the backend::Cloudflare challenged the runner; the backend offers this build once the GitHub Release is published."
+            exit 0
+          fi
           case "${HTTP}" in
             200) ;;
             404) echo '{"minVersion": 1, "forceUpdate": false, "active": true}' > current.json ;;
@@ -562,6 +625,11 @@ jobs:
           HTTP="$(curl -sS --max-time 30 -X PUT "${API}/admin/app-versions/androidtv" \
                     -H "X-Release-Token: ${SOZO_RELEASE_TOKEN}" -H 'Content-Type: application/json' \
                     --data @updater-req.json -o updated.json -w '%{http_code}')" || HTTP=000
+          if [ "${HTTP}" = 403 ] && grep -qiE 'just a moment|cf-chl|challenge-platform' updated.json; then
+            echo "status=deferred" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Updater deferred to the backend::Cloudflare challenged the runner; the backend offers this build once the GitHub Release is published."
+            exit 0
+          fi
           if [ "${HTTP}" != 200 ]; then
             echo "::error title=Updater write::PUT /admin/app-versions/androidtv returned HTTP ${HTTP}: $(head -c 300 updated.json 2>/dev/null)"
             exit 1
@@ -577,6 +645,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ needs.git.outputs.sha || github.sha }}
+
       # Not fatal: when the build failed there is no artifact, and the message
       # saying so is what this job is for.
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
@@ -585,13 +659,44 @@ jobs:
           name: sozo-tv-apk
           path: dist
 
+      # The banner as a picture (Telegram cannot show SVG) and the caption.
+      # Neither is fatal: without them the announcement goes out as text.
+      - name: Banner and caption for Telegram
+        continue-on-error: true
+        env:
+          NAME: ${{ needs.version.outputs.name }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          set -uo pipefail
+          [ -n "${NAME}" ] || exit 0
+          PREV="$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || true)"
+          git log ${PREV:+"${PREV}..HEAD"} --first-parent --format=%s > changes.txt
+          python3 tools/release/release_page.py --version "${NAME}" --log changes.txt \
+            --intro "${NOTES}" --telegram caption.html
+          python3 tools/release/release_banner.py --version "${NAME}" --still --log changes.txt --out banner.svg
+          timeout 120 sudo apt-get install -y -qq fonts-inter >/dev/null 2>&1 || true
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -n "${CHROME}" ]; then
+            "${CHROME}" --headless=new --no-sandbox --disable-gpu --hide-scrollbars \
+              --window-size=1280,640 --force-device-scale-factor=2 \
+              --screenshot="${PWD}/banner.png" "file://${PWD}/banner.svg" >/dev/null 2>&1 || true
+          fi
+          if [ ! -s banner.png ]; then
+            timeout 120 sudo apt-get install -y -qq librsvg2-bin >/dev/null 2>&1 \
+              && rsvg-convert -w 2560 -h 1280 banner.svg -o banner.png || true
+          fi
+          ls -l banner.png caption.html || true
+          echo "── caption ──"; cat caption.html || true
+
       - name: Send to Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
           VERSION_NAME: ${{ needs.version.outputs.name }}
           VERSION_CODE: ${{ needs.version.outputs.code }}
+          TAG: ${{ needs.version.outputs.tag }}
           RELEASE_NOTES: ${{ inputs.notes }}
+          UPDATER_MODE: ${{ inputs.updater }}
           GIT_RESULT: ${{ needs.git.result }}
           PUBLISH_RESULT: ${{ needs.publish.result }}
           CDN_STATUS: ${{ needs.publish.outputs.cdn }}
@@ -609,6 +714,7 @@ jobs:
           API="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}"
           MAX=$((49 * 1024 * 1024))   # Bot API sendDocument limit is 50 MB
           RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          REL_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${TAG}"
           IFS=',' read -ra CHATS <<< "${TELEGRAM_CHAT_IDS}"
 
           if ! ls dist/*.apk >/dev/null 2>&1; then
@@ -626,66 +732,84 @@ jobs:
             exit 0
           fi
 
-          if [ "${PUBLISH_RESULT}" = success ]; then
-            case "${CDN_STATUS}" in
-              uploaded) CDN_LINE="⬇️ CDN: ${CDN_URL}" ;;
-              *)        CDN_LINE="⬇️ CDN: o'tkazib yuborildi (SOZO_RELEASE_TOKEN yo'q)" ;;
-            esac
-            case "${UPDATER_STATUS}" in
-              published) UPD_LINE="🔄 Updater: versionCode ${VERSION_CODE} e'lon qilindi" ;;
-              *)         UPD_LINE="🔄 Updater: e'lon qilinmadi (${UPDATER_STATUS:-skipped})" ;;
-            esac
-          else
-            CDN_LINE="⚠️ CDN/updater: bajarilmadi (${PUBLISH_RESULT})"
-            UPD_LINE=""
-          fi
-          if [ "${GIT_RESULT}" = success ]; then
-            GH_LINE="🏷 GitHub Release: ${RELEASE_STATUS:-skipped}"
-          else
-            GH_LINE="⚠️ Tag/GitHub Release: bajarilmadi (${GIT_RESULT})"
-          fi
+          # 1. The announcement: banner, caption, buttons. A draft's page is
+          #    not public, so only a published release gets its button.
+          BUTTONS="$(jq -cn --arg cdn "${CDN_URL}" --arg rel "${REL_URL}" \
+            --arg cdnok "${CDN_STATUS}" --arg rs "${RELEASE_STATUS}" '
+            [ (if $cdnok == "uploaded" and $cdn != "" then [{text: "⬇️ APK yuklab olish", url: $cdn}] else empty end),
+              (if $rs == "published" then [{text: "📦 Release sahifasi", url: $rel}] else empty end),
+              [{text: "📣 Kanal", url: "https://t.me/sozoapp"}, {text: "💬 Discord", url: "https://discord.gg/n22URhYvMR"}] ]
+            | {inline_keyboard: .}')"
+          PLAIN="$(printf '📺 Sozo TV %s (versionCode %s)' "${VERSION_NAME}" "${VERSION_CODE}")"
+          if [ -n "${RELEASE_NOTES}" ]; then PLAIN="$(printf '%s\n\n📝 %s' "${PLAIN}" "${RELEASE_NOTES}")"; fi
 
-          HEAD="$(printf '📺 Sozo TV %s (versionCode %s)' "${VERSION_NAME}" "${VERSION_CODE}")"
-          if [ -n "${RELEASE_NOTES}" ]; then
-            HEAD="$(printf '%s\n\n📝 %s' "${HEAD}" "${RELEASE_NOTES}")"
+          # 2. Under the APK: how it gets to TVs, and what happened.
+          FOOT="$(printf '📺 <b>Sozo TV %s</b> · versionCode %s' "${VERSION_NAME}" "${VERSION_CODE}")"
+          if [ "${PUBLISH_RESULT}" != success ]; then
+            FOOT="${FOOT}$(printf '\n❌ CDN/updater yiqildi: %s' "${RUN_URL}")"
+          else
+            case "${CDN_STATUS}:${UPDATER_STATUS}" in
+              deferred:*|uploaded:deferred)
+                if [ "${UPDATER_MODE}" = publish ]; then
+                  FOOT="${FOOT}$(printf '\n🔄 Yuklab olish sahifasi va TV ichidagi yangilanish: release Publish qilingach server o‘zi yangilaydi (10 daqiqa ichida).')"
+                else
+                  FOOT="${FOOT}$(printf '\n🔄 Yuklab olish sahifasi: release Publish qilingach server o‘zi yangilaydi. TV ichidagi yangilanish taklif qilinmaydi.')"
+                fi ;;
+              uploaded:published) FOOT="${FOOT}$(printf '\n🔄 Yuklab olish sahifasi va TV ichidagi yangilanish yangilandi.')" ;;
+              uploaded:*)         FOOT="${FOOT}$(printf '\n⬇️ Yuklab olish sahifasi yangilandi; TV ichidagi yangilanish taklif qilinmadi.')" ;;
+              skipped:*)          FOOT="${FOOT}$(printf '\n⚠️ CDN o‘tkazib yuborildi (SOZO_RELEASE_TOKEN yo‘q).')" ;;
+            esac
           fi
-          HEAD="$(printf '%s\n\n%s' "${HEAD}" "${CDN_LINE}")"
-          if [ -n "${UPD_LINE}" ]; then
-            HEAD="$(printf '%s\n%s' "${HEAD}" "${UPD_LINE}")"
+          if [ "${GIT_RESULT}" != success ]; then
+            FOOT="${FOOT}$(printf '\n⚠️ Teg/GitHub Release bajarilmadi: %s' "${RUN_URL}")"
+          elif [ "${RELEASE_STATUS}" = draft ]; then
+            FOOT="${FOOT}$(printf '\n🏷 GitHub Release: draft — Publish qilinmaguncha server uni ko‘rmaydi.')"
           fi
-          HEAD="$(printf '%s\n%s\n\n🧰 Run: %s' "${HEAD}" "${GH_LINE}" "${RUN_URL}")"
+          FOOT="${FOOT}$(printf '\n\n💡 O‘rnatish: TV’da <b>Downloader</b> ilovasi orqali APK havolasini oching yoki USB orqali.')"
+
+          announce() {
+            local chat="$1"
+            if [ -s banner.png ] && [ -s caption.html ]; then
+              curl -sS --fail-with-body -X POST "${API}/sendPhoto" \
+                -F "chat_id=${chat}" -F "photo=@banner.png" -F "caption=<caption.html" \
+                -F "parse_mode=HTML" -F "reply_markup=${BUTTONS}" -o /tmp/tg_msg.json && return 0
+              echo "::warning::sendPhoto ${chat}: $(cat /tmp/tg_msg.json) — sending text instead"
+            fi
+            local text="${PLAIN}"
+            local mode=()
+            if [ -s caption.html ]; then text="$(cat caption.html)"; mode=(--data "parse_mode=HTML"); fi
+            curl -sS --fail-with-body -X POST "${API}/sendMessage" \
+              --data-urlencode "chat_id=${chat}" --data-urlencode "text=${text}" \
+              --data-urlencode "reply_markup=${BUTTONS}" ${mode[@]+"${mode[@]}"} \
+              --data "disable_web_page_preview=true" -o /tmp/tg_msg.json && return 0
+            curl -sS --fail-with-body -X POST "${API}/sendMessage" \
+              --data-urlencode "chat_id=${chat}" --data-urlencode "text=${PLAIN}"$'\n\n'"${RUN_URL}" \
+              -o /tmp/tg_msg.json
+          }
+
+          send_apk() {
+            local chat="$1" f size
+            for f in dist/*.apk; do
+              [ -f "${f}" ] || continue
+              size="$(stat -c%s "${f}")"
+              if [ "${size}" -gt "${MAX}" ]; then
+                curl -sS --fail-with-body -X POST "${API}/sendMessage" --data-urlencode "chat_id=${chat}" \
+                  --data-urlencode "text=${FOOT}"$'\n\n'"⬇️ $(basename "${f}") ($((size/1024/1024)) MB) Telegram limitidan katta: ${REL_URL}" \
+                  --data "parse_mode=HTML" -o /tmp/tg_doc.json || return 1
+                continue
+              fi
+              curl -sS --fail-with-body -X POST "${API}/sendDocument" -F "chat_id=${chat}" \
+                -F "document=@${f}" -F "caption=${FOOT}" -F "parse_mode=HTML" -o /tmp/tg_doc.json || return 1
+              echo "    ✓ $(basename "${f}")"
+            done
+          }
 
           fail=0
           for raw in "${CHATS[@]}"; do
             chat="$(echo "${raw}" | xargs)"
             [ -z "${chat}" ] && continue
             echo "──▶ ${chat}"
-
-            curl -sS --fail-with-body -X POST "${API}/sendMessage" \
-              --data-urlencode "chat_id=${chat}" \
-              --data-urlencode "text=${HEAD}" \
-              --data "disable_web_page_preview=true" -o /tmp/tg_msg.json \
-              || { echo "::error::sendMessage ${chat}: $(cat /tmp/tg_msg.json)"; fail=1; }
-
-            for f in dist/*.apk; do
-              [ -f "${f}" ] || continue
-              name="$(basename "${f}")"
-              size="$(stat -c%s "${f}")"
-              if [ "${size}" -gt "${MAX}" ]; then
-                echo "::warning title=Too big for Telegram::${name} is $((size/1024/1024)) MB. Grab it from ${RUN_URL}"
-                curl -sS -X POST "${API}/sendMessage" \
-                  --data-urlencode "chat_id=${chat}" \
-                  --data-urlencode "text=⬇️ ${name} ($((size/1024/1024)) MB) Telegram limitidan katta — run artifacts dan oling: ${RUN_URL}" \
-                  -o /dev/null
-                continue
-              fi
-              if curl -sS --fail-with-body -X POST "${API}/sendDocument" \
-                   -F "chat_id=${chat}" -F "document=@${f}" -o /tmp/tg_doc.json; then
-                echo "    ✓ ${name} ($((size/1024/1024)) MB)"
-              else
-                echo "::error::sendDocument ${chat}/${name}: $(cat /tmp/tg_doc.json)"
-                fail=1
-              fi
-            done
+            announce "${chat}" || { echo "::error::announcement ${chat}: $(cat /tmp/tg_msg.json)"; fail=1; }
+            send_apk "${chat}" || { echo "::error::APK ${chat}: $(cat /tmp/tg_doc.json)"; fail=1; }
           done
           exit "${fail}"
