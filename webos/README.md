@@ -36,7 +36,10 @@ allowed, because `service/` is held to ES5 by the tests.
 `hls.min.js`, so the ES5 checks would no longer describe what ships.
 
 The `webOS CI` workflow also builds the ipk and keeps it as the `sozo-webos-ipk` artifact for 14 days.
-The `webOS release` workflow, run by hand, publishes it as a `webos-v<version>` GitHub pre-release. The version comes from `appinfo.json`.
+The TV release workflow (`.github/workflows/release.yml`, Actions → Release → Telegram) builds this ipk
+together with the Android TV APK and the Apple TV IPA, gives all three the same version (it writes it into
+`appinfo.json` and `js/app.js`), and attaches the ipk to the same GitHub Release as
+`sozo-tv-<version>-webos.ipk`.
 
 ## Install with Developer Mode
 

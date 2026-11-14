@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draws the Android TV release banner for one version.
+"""Draws the Sozo TV release banner for one version.
 
 The artwork and its animation are the phone app's v3.2.0 banner
 (banner-template.svg, copied from the sozo repository's tool/release_banner.py
@@ -15,9 +15,10 @@ The words come from a comment in release/notes/v<version>.md:
     chips: Server switching | Corner player | 16 languages
     -->
 
-Every key is optional. Without the comment, the eyebrow says ANDROID TV and
-the month, the tagline is a generic one, and the chips name the areas of the
-merged changes (see banner_text).
+Every key is optional. Without the comment, the eyebrow says ANDROID TV (or
+SMART TV when Apple TV or webOS ship too) and the month, the tagline is a
+generic one, and the chips name the TVs released, then the areas of the merged
+changes (see banner_text).
 
 --still writes a copy without animation, the frame a viewer with reduced motion
 sees. It is the one rendered to PNG for Telegram, which cannot show SVG.
@@ -75,11 +76,15 @@ def kind_of(version):
     return "PATCH RELEASE" if parts[2] not in ("", "0") else "NEW RELEASE"
 
 
-def banner_text(version, notes_text="", areas=(), today=None):
+PLATFORMS = {"androidtv": "Android TV", "appletv": "Apple TV", "webos": "LG webOS"}
+
+
+def banner_text(version, notes_text="", areas=(), today=None, platforms=("androidtv",)):
     today = today or dt.date.today()
     block = parse_block(notes_text)
     patch = kind_of(version) == "PATCH RELEASE"
-    eyebrow = block.get("eyebrow") or "ANDROID TV"
+    several = len(platforms) > 1
+    eyebrow = block.get("eyebrow") or ("SMART TV" if several else "ANDROID TV")
     if "·" not in eyebrow:
         eyebrow = f"{eyebrow} · {today.strftime('%B %Y')}"
     line1 = block.get("line1") or ("Fixes for what you reported," if patch
@@ -88,7 +93,8 @@ def banner_text(version, notes_text="", areas=(), today=None):
     if block.get("chips"):
         chips = [c.strip() for c in block["chips"].split("|") if c.strip()]
     else:
-        chips = list(dict.fromkeys(a for a in areas if a))
+        tvs = [PLATFORMS[p] for p in platforms if p in PLATFORMS] if several else []
+        chips = list(dict.fromkeys(tvs + [a for a in areas if a]))
     if not chips:
         chips = ["Android TV", "Google TV · Shield"]
     return {"eyebrow": eyebrow.upper(), "version": f"v{version}", "line1": line1,
@@ -148,6 +154,10 @@ def still(svg):
     return svg.replace("@media (prefers-reduced-motion: reduce){", "@media all{", 1)
 
 
+def platform_list(text):
+    return [p for p in (x.strip() for x in text.split(",")) if p in PLATFORMS] or ["androidtv"]
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--version", required=True)
@@ -156,6 +166,7 @@ def main():
     p.add_argument("--root", default=".")
     p.add_argument("--log", default="", help="`git log --format=%%s` since the last tag; its areas are the chips when the notes name none")
     p.add_argument("--keep", action="store_true", help="leave an existing banner alone")
+    p.add_argument("--platforms", default="androidtv", help="comma-separated: androidtv,appletv,webos")
     a = p.parse_args()
     root = Path(a.root)
     out = Path(a.out)
@@ -173,7 +184,7 @@ def main():
     else:
         from release_page import areas, changes
         log = Path(a.log).read_text(encoding="utf-8").splitlines() if a.log else []
-        t = banner_text(a.version, notes_text, areas(changes(log)))
+        t = banner_text(a.version, notes_text, areas(changes(log)), platforms=platform_list(a.platforms))
         svg = render((root / TEMPLATE).read_text(encoding="utf-8"), t, a.still)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(svg, encoding="utf-8")

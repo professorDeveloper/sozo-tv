@@ -96,7 +96,8 @@ test('css stays inside the Chromium 53 baseline', () => {
 test('appinfo.json holds the agreed manifest', () => {
   const a = JSON.parse(read('appinfo.json'));
   assert.equal(a.id, 'com.soplay.sozo.webos');
-  assert.equal(a.version, '1.0.0');
+  assert.match(a.version, /^\d+\.\d+\.\d+$/);
+  assert.match(read('js/app.js'), new RegExp("var VERSION = '" + a.version.replace(/\./g, '\\.') + "'"));
   assert.equal(a.type, 'web');
   assert.equal(a.main, 'index.html');
   assert.equal(a.resolution, '1920x1080');

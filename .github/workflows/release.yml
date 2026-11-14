@@ -2,12 +2,20 @@ name: Release → Telegram
 run-name: >-
   Release ${{ inputs.version != '' && inputs.version || inputs.bump }}
 
-# Builds a signed Android TV APK, then records it in git, uploads it to the
-# CDN, optionally offers it to the in-app updater, and sends it to Telegram.
+# One release for every TV app, under one version: a signed Android TV APK, an
+# unsigned Apple TV IPA (macOS runner) and an LG webOS IPK. It records them in
+# git, attaches all three to one GitHub Release, puts the APK on the CDN,
+# optionally offers it to the in-app updater, and sends everything to Telegram.
 # Runs only from Actions → this workflow → Run workflow, on the default branch.
 #
-# Order: version + guard → tests → APK → bump commit, tag, GitHub Release →
-# CDN + updater → Telegram. Nothing is pushed or published until the APK built.
+# Order: version + guard → tests → APK, IPA, IPK → bump commit, tag, GitHub
+# Release → CDN + updater → Telegram. Nothing is pushed or published until
+# every requested build succeeded.
+#
+# Apple TV: there is no Apple distribution certificate here, so the IPA is not
+# signed and people sideload it (Sideloadly, Xcode), which signs it with their
+# own Apple ID. TestFlight stays in tvos-release.yml, for when the apple-tv
+# environment has its secrets.
 #
 # Secrets:
 #   ANDROID_TV_KEYSTORE_B64   base64 of the release keystore (.jks)
@@ -68,6 +76,14 @@ on:
         description: 'Proceed if the published version cannot be read (a readable one is always enforced)'
         type: boolean
         default: false
+      apple_tv:
+        description: 'Also build the Apple TV IPA (unsigned, for sideloading)'
+        type: boolean
+        default: true
+      webos:
+        description: 'Also build the LG webOS IPK'
+        type: boolean
+        default: true
 
 concurrency:
   group: release-${{ github.ref }}
@@ -88,6 +104,7 @@ jobs:
       code: ${{ steps.resolve.outputs.code }}
       tag: ${{ steps.resolve.outputs.tag }}
       bumped: ${{ steps.resolve.outputs.bumped }}
+      platforms: ${{ steps.resolve.outputs.platforms }}
     steps:
       - name: Refuse anything but the default branch
         env:
@@ -107,6 +124,8 @@ jobs:
         env:
           BUMP: ${{ inputs.bump }}
           EXPLICIT: ${{ inputs.version }}
+          APPLE_TV: ${{ inputs.apple_tv }}
+          WEBOS: ${{ inputs.webos }}
         run: |
           set -euo pipefail
           GRADLE=app/build.gradle.kts
@@ -155,11 +174,20 @@ jobs:
             exit 1
           fi
 
+          if [ "${WEBOS}" = true ] && ! [[ "${NEW_NAME}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error title=Bad version for webOS::webOS takes only x.y.z, not '${NEW_NAME}'. Pick another version or untick webos."
+            exit 1
+          fi
+          PLATFORMS=androidtv
+          if [ "${APPLE_TV}" = true ]; then PLATFORMS="${PLATFORMS},appletv"; fi
+          if [ "${WEBOS}" = true ]; then PLATFORMS="${PLATFORMS},webos"; fi
+
           {
             echo "name=${NEW_NAME}"
             echo "code=${NEW_CODE}"
             echo "tag=${TAG}"
             echo "bumped=${BUMPED}"
+            echo "platforms=${PLATFORMS}"
           } >> "$GITHUB_OUTPUT"
           {
             echo "### Release version"
@@ -335,9 +363,130 @@ jobs:
             dist/SHA256SUMS
           if-no-files-found: error
 
+  appletv:
+    name: Apple TV IPA
+    needs: version
+    if: inputs.apple_tv
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: '1'
+      HOMEBREW_NO_INSTALL_CLEANUP: '1'
+      HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Stamp the resolved version into the build
+        env:
+          NAME: ${{ needs.version.outputs.name }}
+          CODE: ${{ needs.version.outputs.code }}
+        run: python3 tools/release/stamp_version.py "${NAME}" "${CODE}"
+
+      - name: Select Xcode
+        run: apple-tv/scripts/select-xcode.sh 26
+
+      - name: Install project generator
+        run: brew install xcodegen
+
+      # No signing identity exists on this runner, and none is wanted: the
+      # sideloading tool signs the app with the installer's own Apple ID.
+      - name: Archive for Apple TV, unsigned
+        working-directory: apple-tv
+        run: |
+          set -euo pipefail
+          xcodegen generate
+          xcodebuild archive -project SozoTV.xcodeproj -scheme SozoTV -configuration Release \
+            -destination 'generic/platform=tvOS' -archivePath build/release/SozoTV.xcarchive \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= -quiet
+
+      - name: Package the IPA and check its version
+        env:
+          NAME: ${{ needs.version.outputs.name }}
+          CODE: ${{ needs.version.outputs.code }}
+        run: |
+          set -euo pipefail
+          APP=apple-tv/build/release/SozoTV.xcarchive/Products/Applications/SozoTV.app
+          PLIST="${APP}/Info.plist"
+          GOT_NAME="$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "${PLIST}")"
+          GOT_CODE="$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' "${PLIST}")"
+          if [ "${GOT_NAME}" != "${NAME}" ] || [ "${GOT_CODE}" != "${CODE}" ]; then
+            echo "::error title=Version mismatch::IPA carries ${GOT_NAME} (${GOT_CODE}), the release is ${NAME} (${CODE})."
+            exit 1
+          fi
+          lipo -info "${APP}/SozoTV"
+          mkdir -p ipa/Payload dist
+          cp -R "${APP}" ipa/Payload/
+          (cd ipa && zip -qry "../dist/sozo-tv-${NAME}-appletv.ipa" Payload)
+          ls -lh dist
+          echo "- Apple TV IPA **${NAME} (${CODE})**, unsigned" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sozo-tv-appletv
+          path: dist/*.ipa
+          if-no-files-found: error
+
+  webos:
+    name: LG webOS IPK
+    needs: version
+    if: inputs.webos
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Stamp the resolved version into the build
+        env:
+          NAME: ${{ needs.version.outputs.name }}
+          CODE: ${{ needs.version.outputs.code }}
+        run: python3 tools/release/stamp_version.py "${NAME}" "${CODE}"
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: webos/package-lock.json
+
+      - name: Test and package
+        working-directory: webos
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          npm test
+          npm run package
+
+      - name: Name the IPK after the release
+        env:
+          NAME: ${{ needs.version.outputs.name }}
+        run: |
+          set -euo pipefail
+          IPK="webos/dist/ipk/com.soplay.sozo.webos_${NAME}_all.ipk"
+          if [ ! -f "${IPK}" ]; then
+            echo "::error title=No IPK::expected ${IPK}; found: $(ls webos/dist/ipk)"
+            exit 1
+          fi
+          mkdir -p dist
+          cp "${IPK}" "dist/sozo-tv-${NAME}-webos.ipk"
+          ls -lh dist
+          echo "- LG webOS IPK **${NAME}**" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sozo-tv-webos
+          path: dist/*.ipk
+          if-no-files-found: error
+
   git:
     name: Commit, tag and GitHub Release
-    needs: [version, apk]
+    needs: [version, apk, appletv, webos]
+    # Apple TV and webOS may be switched off (skipped); a failed one stops it.
+    if: >-
+      ${{ !cancelled() && needs.apk.result == 'success'
+          && needs.appletv.result != 'failure' && needs.webos.result != 'failure' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -355,8 +504,17 @@ jobs:
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: sozo-tv-apk
+          pattern: sozo-tv-*
           path: dist
+          merge-multiple: true
+
+      - name: One checksum file for every app
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          (cd dist && sha256sum -- *.apk *.ipa *.ipk > SHA256SUMS)
+          cat dist/SHA256SUMS
+          ls -lh dist
 
       - name: Commit the bump and push the tag
         id: tag
@@ -365,6 +523,7 @@ jobs:
           CODE: ${{ needs.version.outputs.code }}
           TAG: ${{ needs.version.outputs.tag }}
           BUMPED: ${{ needs.version.outputs.bumped }}
+          PLATFORMS: ${{ needs.version.outputs.platforms }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
@@ -387,10 +546,10 @@ jobs:
             PREV="$(git describe --tags --abbrev=0 HEAD 2>/dev/null || true)"
             git log ${PREV:+"${PREV}..HEAD"} --first-parent --format=%s > "${RUNNER_TEMP}/changes.txt"
             python3 tools/release/release_banner.py --version "${NAME}" --out "${BANNER}" \
-              --log "${RUNNER_TEMP}/changes.txt" --keep \
+              --log "${RUNNER_TEMP}/changes.txt" --platforms "${PLATFORMS}" --keep \
               || echo "::warning title=No banner::the release page will have none"
             [ -f "${BANNER}" ] && git add "${BANNER}"
-            git add app/build.gradle.kts
+            git add app/build.gradle.kts apple-tv/project.yml webos/appinfo.json webos/js/app.js
             git commit -m "chore: ${NAME} (${CODE})"
           fi
           git tag "${TAG}"
@@ -421,6 +580,7 @@ jobs:
           SHA: ${{ steps.tag.outputs.sha }}
           NOTES: ${{ inputs.notes }}
           UPDATER: ${{ inputs.updater }}
+          PLATFORMS: ${{ needs.version.outputs.platforms }}
         run: |
           set -euo pipefail
           if [ "${MODE}" = skip ]; then
@@ -430,7 +590,9 @@ jobs:
 
           # What the backend reads when it takes this release from GitHub: the
           # versionCode no file name states plainly, the APK, and whether to
-          # offer it to installed TVs.
+          # offer it to installed TVs. Only the APK: the backend has no Apple
+          # TV or webOS download rows, and would file anything listed here
+          # under Android TV.
           APK_NAME="$(basename "$(find dist -name '*.apk' | head -1)")"
           jq -n --arg version "${NAME}" --argjson build "${CODE}" --arg sha "${SHA}" \
                 --arg notes "${NOTES}" --arg apk "${APK_NAME}" --arg updater "${UPDATER}" \
@@ -439,6 +601,7 @@ jobs:
             > "dist/sozo-tv-${NAME}-release.json"
 
           FILES=(dist/*.apk dist/SHA256SUMS "dist/sozo-tv-${NAME}-release.json")
+          for f in dist/*.ipa dist/*.ipk; do [ -f "${f}" ] && FILES+=("${f}"); done
           if gh release view "${TAG}" >/dev/null 2>&1; then
             gh release upload "${TAG}" "${FILES[@]}" --clobber
           else
@@ -446,7 +609,7 @@ jobs:
             git log ${PREV:+"${PREV}..${SHA}"} --first-parent --format=%s > changes.txt
             python3 tools/release/release_page.py --version "${NAME}" --sha "${SHA}" \
               --repo "${GH_REPO}" --tag "${TAG}" --assets dist --previous "${PREV}" \
-              --log changes.txt --intro "${NOTES}" --auto --out RELEASE_NOTES.md
+              --log changes.txt --intro "${NOTES}" --platforms "${PLATFORMS}" --auto --out RELEASE_NOTES.md
             echo "── notes ──"; cat RELEASE_NOTES.md
             ARGS=(--target "${SHA}" --title "Sozo TV ${NAME}" --notes-file RELEASE_NOTES.md)
             if [ "${MODE}" = draft ]; then
@@ -463,6 +626,7 @@ jobs:
   publish:
     name: CDN and in-app updater
     needs: [version, apk, git]
+    if: ${{ !cancelled() && needs.git.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
@@ -638,7 +802,7 @@ jobs:
           echo "::notice title=Updater::androidtv now offers versionCode ${CODE}"
 
   deliver:
-    needs: [version, apk, git, publish]
+    needs: [version, apk, appletv, webos, git, publish]
     # Always, even when something failed: a release that goes quiet is
     # indistinguishable from one nobody started.
     if: ${{ always() && !cancelled() }}
@@ -656,8 +820,9 @@ jobs:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         continue-on-error: true
         with:
-          name: sozo-tv-apk
+          pattern: sozo-tv-*
           path: dist
+          merge-multiple: true
 
       # The banner as a picture (Telegram cannot show SVG) and the caption.
       # Neither is fatal: without them the announcement goes out as text.
@@ -666,14 +831,16 @@ jobs:
         env:
           NAME: ${{ needs.version.outputs.name }}
           NOTES: ${{ inputs.notes }}
+          PLATFORMS: ${{ needs.version.outputs.platforms }}
         run: |
           set -uo pipefail
           [ -n "${NAME}" ] || exit 0
           PREV="$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || true)"
           git log ${PREV:+"${PREV}..HEAD"} --first-parent --format=%s > changes.txt
           python3 tools/release/release_page.py --version "${NAME}" --log changes.txt \
-            --intro "${NOTES}" --telegram caption.html
-          python3 tools/release/release_banner.py --version "${NAME}" --still --log changes.txt --out banner.svg
+            --intro "${NOTES}" --platforms "${PLATFORMS}" --telegram caption.html
+          python3 tools/release/release_banner.py --version "${NAME}" --still --log changes.txt \
+            --platforms "${PLATFORMS}" --out banner.svg
           timeout 120 sudo apt-get install -y -qq fonts-inter >/dev/null 2>&1 || true
           CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
           if [ -n "${CHROME}" ]; then
@@ -703,6 +870,8 @@ jobs:
           CDN_URL: ${{ needs.publish.outputs.cdn_url }}
           UPDATER_STATUS: ${{ needs.publish.outputs.updater }}
           RELEASE_STATUS: ${{ needs.git.outputs.release }}
+          APPLE_TV_RESULT: ${{ needs.appletv.result }}
+          WEBOS_RESULT: ${{ needs.webos.result }}
         run: |
           set -uo pipefail
 
@@ -729,6 +898,21 @@ jobs:
                 --data "disable_web_page_preview=true" -o /dev/null || true
             done
             echo "::warning title=Nothing to deliver::The build produced no APK; a failure notice was sent instead."
+            exit 0
+          fi
+
+          if [ "${APPLE_TV_RESULT}" = failure ] || [ "${WEBOS_RESULT}" = failure ]; then
+            MSG="$(printf '⚠️ Sozo TV %s — release YIQILDI (Apple TV: %s, webOS: %s). Hech narsa chiqarilmadi.\n\n🔎 %s' \
+                   "${VERSION_NAME:-?}" "${APPLE_TV_RESULT}" "${WEBOS_RESULT}" "${RUN_URL}")"
+            for raw in "${CHATS[@]}"; do
+              chat="$(echo "${raw}" | xargs)"
+              [ -z "${chat}" ] && continue
+              curl -sS -X POST "${API}/sendMessage" \
+                --data-urlencode "chat_id=${chat}" \
+                --data-urlencode "text=${MSG}" \
+                --data "disable_web_page_preview=true" -o /dev/null || true
+            done
+            echo "::warning title=Nothing delivered::A TV build failed, so nothing was released; a failure notice was sent instead."
             exit 0
           fi
 
@@ -767,6 +951,15 @@ jobs:
           fi
           FOOT="${FOOT}$(printf '\n\n💡 O‘rnatish: TV’da <b>Downloader</b> ilovasi orqali APK havolasini oching yoki USB orqali.')"
 
+          # Under the other two files: what they are and how they get onto a TV.
+          caption_for() {
+            case "$1" in
+              *.apk) printf '%s' "${FOOT}" ;;
+              *.ipa) printf '🍎 <b>Sozo TV %s · Apple TV</b> (tvOS 17+)\n\nImzosiz IPA: <b>Sideloadly</b> yoki Xcode orqali o‘z Apple ID’ingiz bilan o‘rnating. Bepul Apple ID’da 7 kunda qayta o‘rnatish kerak bo‘ladi.\n📖 Yo‘riqnoma: %s' "${VERSION_NAME}" "${REL_URL}" ;;
+              *.ipk) printf '🟣 <b>Sozo TV %s · LG webOS</b> (webOS 4+)\n\nTV’da <b>Developer Mode</b> ilovasini yoqing, so‘ng kompyuterdan <code>ares-install</code> bilan o‘rnating.\n📖 Yo‘riqnoma: %s' "${VERSION_NAME}" "${REL_URL}" ;;
+            esac
+          }
+
           announce() {
             local chat="$1"
             if [ -s banner.png ] && [ -s caption.html ]; then
@@ -788,18 +981,19 @@ jobs:
           }
 
           send_apk() {
-            local chat="$1" f size
-            for f in dist/*.apk; do
+            local chat="$1" f size cap
+            for f in dist/*.apk dist/*.ipa dist/*.ipk; do
               [ -f "${f}" ] || continue
               size="$(stat -c%s "${f}")"
+              cap="$(caption_for "${f}")"
               if [ "${size}" -gt "${MAX}" ]; then
                 curl -sS --fail-with-body -X POST "${API}/sendMessage" --data-urlencode "chat_id=${chat}" \
-                  --data-urlencode "text=${FOOT}"$'\n\n'"⬇️ $(basename "${f}") ($((size/1024/1024)) MB) Telegram limitidan katta: ${REL_URL}" \
+                  --data-urlencode "text=${cap}"$'\n\n'"⬇️ $(basename "${f}") ($((size/1024/1024)) MB) Telegram limitidan katta: ${REL_URL}" \
                   --data "parse_mode=HTML" -o /tmp/tg_doc.json || return 1
                 continue
               fi
               curl -sS --fail-with-body -X POST "${API}/sendDocument" -F "chat_id=${chat}" \
-                -F "document=@${f}" -F "caption=${FOOT}" -F "parse_mode=HTML" -o /tmp/tg_doc.json || return 1
+                -F "document=@${f}" -F "caption=${cap}" -F "parse_mode=HTML" -o /tmp/tg_doc.json || return 1
               echo "    ✓ $(basename "${f}")"
             done
           }

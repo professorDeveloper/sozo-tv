@@ -50,10 +50,25 @@ class PageTest(unittest.TestCase):
         out = generate("1.0.4", SHA, REPO, "v1.0.4", "1.0.2", self.assets, self.root, LOG, "Hotfix.")
         for part in ("Sozo TV v1.0.4 is a patch release", "Hotfix.", "### ▶️ Player",
                      "[#40](https://github.com/o/r/pull/40)", "sozo-tv-1.0.4-4.apk",
-                     "How to install it on a TV", "compare/1.0.2...v1.0.4", "sozo-tv?style"):
+                     "How to install it on an Android TV", "compare/1.0.2...v1.0.4", "sozo-tv?style"):
             self.assertIn(part, out)
         self.assertNotIn("macOS", out)
+        self.assertNotIn("Apple TV", out)
         self.assertNotIn("a banner and a Telegram post", out)
+
+    def test_all_three_tvs(self):
+        for name in ("sozo-tv-1.0.4-webos.ipk", "sozo-tv-1.0.4-appletv.ipa"):
+            (self.assets / name).write_bytes(b"x")
+        out = generate("1.0.4", SHA, REPO, "v1.0.4", "", self.assets, self.root, LOG)
+        apk, ipa, ipk = (out.index(f"sozo-tv-1.0.4-{n}") for n in ("4.apk", "appletv.ipa", "webos.ipk"))
+        self.assertLess(apk, ipa)
+        self.assertLess(ipa, ipk)
+        for part in ("install it on an Android TV", "install it on an Apple TV",
+                     "install it on an LG TV", "ares-install --device tv sozo-tv-1.0.4-webos.ipk"):
+            self.assertIn(part, out)
+        cap = telegram_caption("1.0.4", "", LOG, platforms=["androidtv", "appletv", "webos"])
+        self.assertIn("🖥 Android TV · Apple TV · LG webOS", cap)
+        self.assertIn("⬇️ Fayllar shu xabar ostida", cap)
 
     def test_caption(self):
         out = telegram_caption("1.0.4", "", LOG, "Bugun")
@@ -75,6 +90,9 @@ class BannerTest(unittest.TestCase):
         self.assertEqual(t["line2"], "on the big screen.")
         self.assertEqual(t["chips"], ["Android TV", "Google TV · Shield"])
         self.assertEqual(banner_text("2.0.0", "", ["Player"])["line1"], "Everything new in Sozo TV 2.0.0,")
+        all3 = banner_text("1.0.4", "", ["Player"], dt.date(2026, 11, 14), ["androidtv", "appletv", "webos"])
+        self.assertEqual(all3["eyebrow"], "SMART TV · NOVEMBER 2026")
+        self.assertEqual(all3["chips"], ["Android TV", "Apple TV", "LG webOS", "Player"])
 
     def test_render(self):
         template = TEMPLATE.read_text(encoding="utf-8")
