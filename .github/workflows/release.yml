@@ -491,6 +491,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write
+      actions: write   # starts mirror-release.yml
     outputs:
       sha: ${{ steps.tag.outputs.sha }}
       release: ${{ steps.release.outputs.status }}
@@ -617,10 +618,15 @@ jobs:
             fi
             gh release create "${TAG}" "${FILES[@]}" "${ARGS[@]}"
           fi
-          if [ "${MODE}" = draft ]; then
+          if [ "$(gh release view "${TAG}" --json isDraft --jq .isDraft)" = true ]; then
             echo "status=draft" >> "$GITHUB_OUTPUT"
           else
             echo "status=published" >> "$GITHUB_OUTPUT"
+            # What GITHUB_TOKEN publishes starts no workflow, so the copy for
+            # the Sozo-app organization is started by hand. A draft is copied
+            # when somebody presses Publish.
+            gh workflow run mirror-release.yml --ref "${GITHUB_REF_NAME}" -f tag="${TAG}" \
+              || echo "::warning title=Not mirrored::Run 'Mirror release → Sozo-app' for ${TAG} by hand."
           fi
 
   publish:
