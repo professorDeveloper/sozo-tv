@@ -7,7 +7,7 @@
   var View = Sozo.View;
   var I18n = Sozo.I18n;
 
-  var VERSION = '1.0.0';
+  var VERSION = '1.0.4';
   var TOPBAR_H = 124;
   var BOOT_TRIES = 2;
   var BOOT_DELAY = 3000;
