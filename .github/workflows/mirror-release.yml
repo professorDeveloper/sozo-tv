@@ -1,0 +1,126 @@
+name: Mirror release → Sozo-app
+run-name: Mirror ${{ inputs.tag || github.event.release.tag_name }} to Sozo-app
+
+# Copies a published release of this repository to the Sozo-app organization's
+# copy of it (Sozo-app/<same name>): the tag at the same commit, the title,
+# the notes and every file.
+#
+# Runs when a release is published here, and by hand (Actions → this workflow)
+# for a release that changed afterwards, e.g. files added by a later run.
+# release.yml starts it too when it publishes or adds files itself, because
+# what GITHUB_TOKEN does starts no workflow.
+#
+# The organization's repositories are forks whose branches went their own way,
+# so no branch is touched. The tag is made through the API: forks see the
+# commits of this repository, so nothing has to be pushed. The copy is built as
+# a draft and published once its files are attached, which also keeps the
+# fork's own `push: tags` release workflow from building anything (its gate
+# skips a tag that already has a release).
+#
+# Secret: SOZO_APP_TOKEN, a token that can write the organization's repository
+# (fine-grained: resource owner Sozo-app, Contents read and write).
+# Optional variable: MIRROR_REPO, owner/name of the copy if it is not
+# Sozo-app/<this repository's name>.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag of a published release in this repository, e.g. v3.2.1'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mirror-release-${{ inputs.tag || github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    # The organization's fork carries this file too; it must not copy itself.
+    if: github.repository_owner == 'professorDeveloper'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Copy the release
+        env:
+          TAG: ${{ inputs.tag || github.event.release.tag_name }}
+          SRC: ${{ github.repository }}
+          DEST: ${{ vars.MIRROR_REPO || format('Sozo-app/{0}', github.event.repository.name) }}
+          SRC_TOKEN: ${{ github.token }}
+          DEST_TOKEN: ${{ secrets.SOZO_APP_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DEST_TOKEN}" ]; then
+            echo "::error title=No SOZO_APP_TOKEN::Add a token that can write ${DEST} as the SOZO_APP_TOKEN secret of ${SRC}."
+            exit 1
+          fi
+          src() { GH_TOKEN="${SRC_TOKEN}" gh "$@"; }
+          dest() { GH_TOKEN="${DEST_TOKEN}" gh "$@"; }
+
+          # /releases/tags/ answers only for a published release.
+          if ! src api "repos/${SRC}/releases/tags/${TAG}" > rel.json; then
+            echo "::error title=No published release::${SRC} has no published release ${TAG}."
+            exit 1
+          fi
+          SHA="$(src api "repos/${SRC}/commits/${TAG}" --jq .sha)"
+          LATEST="$(src api "repos/${SRC}/releases/latest" --jq .tag_name 2>/dev/null || true)"
+          MAKE_LATEST=false
+          if [ "${LATEST}" = "${TAG}" ]; then MAKE_LATEST=true; fi
+          echo "${SRC} ${TAG} at ${SHA} → ${DEST} (latest: ${MAKE_LATEST})"
+
+          # The tag the copy already has must be this commit; an existing one
+          # that is not is somebody else's, and is left for a person to sort out.
+          if dest api "repos/${DEST}/git/ref/tags/${TAG}" > ref.json 2>/dev/null; then
+            HAVE="$(jq -r .object.sha ref.json)"
+            if [ "$(jq -r .object.type ref.json)" = tag ]; then
+              HAVE="$(dest api "repos/${DEST}/git/tags/${HAVE}" --jq .object.sha)"
+            fi
+            if [ "${HAVE}" != "${SHA}" ]; then
+              echo "::error title=Tag differs::${DEST} already has ${TAG} at ${HAVE}, not ${SHA}. Delete it there and run this again."
+              exit 1
+            fi
+          fi
+
+          # Links to this release's files point at the copy's files instead.
+          jq --arg src "github.com/${SRC}/releases/download/" \
+             --arg dest "github.com/${DEST}/releases/download/" \
+             --arg sha "${SHA}" '{
+               tag_name: .tag_name, target_commitish: $sha, name: .name,
+               body: ((.body // "") | split($src) | join($dest)),
+               prerelease: .prerelease }' rel.json > fields.json
+
+          # Includes drafts, which /releases/tags/ does not see.
+          ID="$(dest api --paginate "repos/${DEST}/releases" \
+                 --jq ".[] | select(.tag_name == \"${TAG}\") | .id" | head -1)"
+          if [ -n "${ID}" ]; then
+            dest api -X PATCH "repos/${DEST}/releases/${ID}" --input fields.json > /dev/null
+            echo "Updating the existing release ${ID}"
+          else
+            jq '. + {draft: true}' fields.json > create.json
+            ID="$(dest api -X POST "repos/${DEST}/releases" --input create.json --jq .id)"
+            echo "Created draft ${ID}"
+          fi
+
+          mkdir -p assets
+          src release download "${TAG}" -R "${SRC}" -D assets
+          shopt -s nullglob
+          FILES=(assets/*)
+          if [ "${#FILES[@]}" -gt 0 ]; then
+            ls -lh assets
+            dest release upload "${TAG}" -R "${DEST}" "${FILES[@]}" --clobber
+          fi
+
+          dest api -X PATCH "repos/${DEST}/releases/${ID}" -F draft=false \
+            -f make_latest="${MAKE_LATEST}" --jq .html_url > url.txt
+          echo "::notice title=Mirrored::$(cat url.txt)"
+          {
+            echo "### ${TAG} → ${DEST}"
+            echo ""
+            echo "- $(cat url.txt)"
+            echo "- ${#FILES[@]} files, commit \`${SHA}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

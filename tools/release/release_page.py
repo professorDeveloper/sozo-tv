@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Builds the Android TV release body from release/notes/v<version>.md.
+"""Builds the Sozo TV release body from release/notes/v<version>.md.
 
 A copy of the phone app's tool/compose_release_notes.py (sozo repository),
-adapted to one APK and the TV's paths.
+adapted to the TV apps (Android TV APK, Apple TV IPA, LG webOS IPK) and the
+TV repository's paths.
 
 Images may be written relative to the notes file. They become links to the
 exact commit being released, so they work in a draft before anything reaches
@@ -30,7 +31,7 @@ import re
 import sys
 from pathlib import Path
 
-from release_banner import banner_text, kind_of
+from release_banner import PLATFORMS, banner_text, kind_of, platform_list
 
 
 IMAGE_BLOCK = re.compile(r'<p[^>]*>\s*(<img\b[^>]*>)\s*</p>\n?', re.I)
@@ -78,13 +79,22 @@ def rewrite_images(text, notes_path, repo_root, repo, sha, warn):
     return MD_IMG.sub(markdown, HTML_IMG.sub(html, text))
 
 
+# (file extension, device column, platform key), in the order of the table.
+KINDS = [
+    (".apk", "📺 Android TV, Google TV, Shield, TV boxes", "androidtv"),
+    (".ipa", "🍎 Apple TV (tvOS 17+), unsigned: sideload it", "appletv"),
+    (".ipk", "🟣 LG TV, webOS 4 and newer (Developer Mode)", "webos"),
+]
+
+
 def downloads_table(assets, repo, tag, version):
     names = sorted(p.name for p in assets.iterdir()) if assets.is_dir() else []
     rows = []
-    for name in names:
-        if name.startswith(f"sozo-tv-{version}-") and name.endswith(".apk"):
-            url = f"https://github.com/{repo}/releases/download/{tag}/{name}"
-            rows.append(f"| 📺 Android TV, Google TV, Shield, TV boxes | [`{name}`]({url}) |")
+    for ext, device, _ in KINDS:
+        for name in names:
+            if name.startswith(f"sozo-tv-{version}-") and name.endswith(ext):
+                url = f"https://github.com/{repo}/releases/download/{tag}/{name}"
+                rows.append(f"| {device} | [`{name}`]({url}) |")
     if not rows:
         return "The files are attached to this release."
     lines = ["| Device | File |", "|---|---|", *rows]
@@ -169,10 +179,70 @@ def compose(version, sha, repo, tag, assets, repo_root, warn):
     return text.replace("<!-- downloads -->", downloads_table(assets, repo, tag, version))
 
 
-def generate(version, sha, repo, tag, previous, assets, repo_root, log_lines, intro=""):
+INSTALL = {
+    "androidtv": [
+        "<details>",
+        "<summary>📺 How to install it on an Android TV</summary>",
+        "",
+        "- **Updating:** if Sozo TV is already installed, it offers this version itself.",
+        "- **With Downloader:** install *Downloader* from the TV's app store, allow it to install",
+        "  apps, and open the APK link above in it.",
+        "- **With a USB stick:** copy the APK onto it and open it with the TV's file manager.",
+        "",
+        "If the TV says the app is not installed, an older Sozo TV signed with a different key",
+        "is on it: uninstall that one first.",
+        "</details>",
+    ],
+    "appletv": [
+        "<details>",
+        "<summary>🍎 How to install it on an Apple TV</summary>",
+        "",
+        "Sozo is not on the App Store, and this IPA is not signed. A sideloading tool signs it",
+        "with your own Apple ID while it installs:",
+        "",
+        "- **Sideloadly** (Windows/macOS): pair the Apple TV over Wi-Fi, drop the IPA in, sign in",
+        "  with your Apple ID and press Start.",
+        "- **Xcode** (macOS): Window → Devices and Simulators, pair the Apple TV, then install the",
+        "  IPA after signing it with your team.",
+        "",
+        "With a free Apple ID the app stops opening after 7 days and has to be installed again;",
+        "a paid developer account makes that a year.",
+        "</details>",
+    ],
+    "webos": [
+        "<details>",
+        "<summary>🟣 How to install it on an LG TV (webOS)</summary>",
+        "",
+        "1. On the TV, install **Developer Mode** from the LG Content Store, sign in with a free",
+        "   LG Developer account, turn on **Dev Mode Status** and let the TV restart.",
+        "2. In Developer Mode, turn on **Key Server**.",
+        "3. On a computer with Node.js on the same network:",
+        "",
+        "   ```sh",
+        "   npx @webos-tools/cli ares-setup-device   # name tv, the TV's IP, port 9922, user prisoner",
+        "   npx @webos-tools/cli ares-novacom --device tv --getkey",
+        "   npx @webos-tools/cli ares-install --device tv sozo-tv-<version>-webos.ipk",
+        "   ```",
+        "",
+        "Developer Mode runs out unless **EXTEND** is pressed in time; the app is removed with it.",
+        "On a rooted TV, install the IPK with Homebrew Channel or webOS Dev Manager instead.",
+        "</details>",
+    ],
+}
+
+
+def shipped(assets, version):
+    """Platform keys whose file is among the assets, in table order."""
+    names = [p.name for p in assets.iterdir()] if assets.is_dir() else []
+    return [key for ext, _, key in KINDS
+            if any(n.startswith(f"sozo-tv-{version}-") and n.endswith(ext) for n in names)]
+
+
+def generate(version, sha, repo, tag, previous, assets, repo_root, log_lines, intro="", platforms=None):
     """A page in the layout of the phone app's v3.2.0 notes, for a version nobody wrote up."""
     items = changes(log_lines)
-    t = banner_text(version, "", areas(items))
+    platforms = platforms or shipped(assets, version) or ["androidtv"]
+    t = banner_text(version, "", areas(items), platforms=platforms)
     patch = kind_of(version) == "PATCH RELEASE"
     lines = [
         '<p align="center">',
@@ -203,18 +273,10 @@ def generate(version, sha, repo, tag, previous, assets, repo_root, log_lines, in
     lines += [
         "---", "", "## ⬇ Download", "",
         downloads_table(assets, repo, tag, version), "",
-        "<details>",
-        "<summary>📺 How to install it on a TV</summary>",
-        "",
-        "- **Updating:** if Sozo TV is already installed, it offers this version itself.",
-        "- **With Downloader:** install *Downloader* from the TV's app store, allow it to install",
-        "  apps, and open the APK link above in it.",
-        "- **With a USB stick:** copy the APK onto it and open it with the TV's file manager.",
-        "",
-        "If the TV says the app is not installed, an older Sozo TV signed with a different key",
-        "is on it: uninstall that one first.",
-        "</details>",
-        "",
+    ]
+    for key in platforms:
+        lines += [l.replace("<version>", version) for l in INSTALL[key]] + [""]
+    lines += [
         "---", "", "## 💬 Join the community", "",
         f"- 📣 **Telegram**: [@sozoapp](https://telegram.me/sozoapp) for new versions and announcements first.",
         "- 🎧 **Discord**: [discord.gg/n22URhYvMR](https://discord.gg/n22URhYvMR) to suggest ideas and report bugs.",
@@ -255,15 +317,18 @@ def shorten(md, limit=230):
     return md
 
 
-def telegram_caption(version, notes_text, log_lines, intro=""):
-    t = banner_text(version, notes_text, areas(changes(log_lines)))
+def telegram_caption(version, notes_text, log_lines, intro="", platforms=("androidtv",)):
+    t = banner_text(version, notes_text, areas(changes(log_lines)), platforms=platforms)
     kind = "yamoq (patch)" if kind_of(version) == "PATCH RELEASE" else "yangi versiya"
     head = [f"📺 <b>Sozo TV v{html.escape(version)}</b> · {kind}",
             f"<i>{html.escape(t['line1'])} {html.escape(t['line2'])}</i>"]
+    if len(platforms) > 1:
+        head.append("🖥 " + " · ".join(PLATFORMS[p] for p in platforms))
     if intro.strip():
         head += ["", f"📝 {html.escape(intro.strip())}"]
     head += ["", "✨ <b>Nima yangi</b>"]
-    tail = ["", "⬇️ APK shu xabar ostida · 📣 @sozoapp"]
+    files = "APK" if list(platforms) == ["androidtv"] else "Fayllar"
+    tail = ["", f"⬇️ {files} shu xabar ostida · 📣 @sozoapp"]
 
     bullets = []
     uz = UZ_SUMMARY.search(notes_text or "")
@@ -299,6 +364,7 @@ def main():
     parser.add_argument("--intro", default="", help="text from the release form, put on top")
     parser.add_argument("--auto", action="store_true", help="generate a page when there are no notes")
     parser.add_argument("--root", default=".")
+    parser.add_argument("--platforms", default="", help="androidtv,appletv,webos (default: from --assets)")
     args = parser.parse_args()
     root = Path(args.root).resolve()
     log_lines = read_log(args.log)
@@ -307,7 +373,8 @@ def main():
         notes = notes_path(root, args.version)
         text = notes.read_text(encoding="utf-8") if notes.is_file() else ""
         Path(args.telegram).write_text(
-            telegram_caption(args.version, text, log_lines, args.intro), encoding="utf-8")
+            telegram_caption(args.version, text, log_lines, args.intro,
+                             platform_list(args.platforms)), encoding="utf-8")
     if not args.out:
         return 0
 
@@ -315,7 +382,8 @@ def main():
     body = compose(args.version, args.sha, args.repo, args.tag, Path(args.assets), root, warn)
     if body is None and args.auto:
         body = generate(args.version, args.sha, args.repo, args.tag, args.previous,
-                        Path(args.assets), root, log_lines, args.intro)
+                        Path(args.assets), root, log_lines, args.intro,
+                        platform_list(args.platforms) if args.platforms else None)
     if body is None:
         print(f"No release/notes/v{args.version}.md")
         return 3
